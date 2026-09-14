@@ -1,0 +1,120 @@
+# 03 — Data model
+
+SQLite via Drizzle (`packages/db`). Conventions: `id` = client-generated UUIDv7 (time-ordered); timestamps epoch ms UTC; synced tables carry `updated_at` + `deleted_at` (soft delete). JSON columns hold Zod-validated payloads. ⟳ = synced to Supabase when backup is on.
+
+## interests ⟳
+
+| column                               | type    | notes                                                     |
+| ------------------------------------ | ------- | --------------------------------------------------------- |
+| id                                   | text pk |                                                           |
+| name                                 | text    | short display name (generated in G3, editable)            |
+| want_to_learn                        | text    | intake step 1                                             |
+| why_choice                           | text    | `career \| personal_goal \| fun`                          |
+| why_text                             | text?   |                                                           |
+| experience_choice                    | text    | `getting_started \| explored \| in_middle \| experienced` |
+| experience_text                      | text?   |                                                           |
+| frequency                            | text    | `daily \| several_weekly \| when_i_can`                   |
+| session_minutes                      | int     | 5 / 10 / 15 / custom value                                |
+| approach_notes                       | text    | from G1, editable in path settings                        |
+| status                               | text    | `focus \| exploring \| archived`                          |
+| sort_order                           | real    | fractional ordering                                       |
+| created_at / updated_at / deleted_at | int     |                                                           |
+
+## topics ⟳ — intake topic chips + later additions
+
+`id, interest_id fk, label, origin (motivation | foundational | adjacent | user), selected int(bool), sort_order, created_at, updated_at, deleted_at`
+
+## goals ⟳
+
+| column                                       | type | notes                                                                                                                                               |
+| -------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id / interest_id                             |      |                                                                                                                                                     |
+| title                                        | text | short                                                                                                                                               |
+| description                                  | text | one-two lines                                                                                                                                       |
+| concepts                                     | json | `{id, label, kind: 'concept' \| 'skill'}[]` — the key concepts and skills beneath this goal (D16). Ids are stable so activities can reference them. |
+| status                                       | text | `not_started \| introduced \| strengthened \| applied`                                                                                              |
+| sort_order                                   | real | path order                                                                                                                                          |
+| source                                       | text | `intake \| suggestion \| reflection \| user`                                                                                                        |
+| introduced_at / strengthened_at / applied_at | int? | for spaced-review ordering                                                                                                                          |
+| created_at / updated_at / deleted_at         | int  |                                                                                                                                                     |
+
+Concept **coverage** (which concepts/skills have been targeted — shown when a goal is expanded in Path) is derived, not stored: join completed activities' `doc.concepts[].goalConceptId` against the goal's concept ids.
+
+## activities ⟳
+
+| column                               | type  | notes                                                       |
+| ------------------------------------ | ----- | ----------------------------------------------------------- |
+| id / interest_id / goal_id           |       |                                                             |
+| section                              | text  | `next \| strengthen \| go_further`                          |
+| tier                                 | text  | `introduce \| strengthen \| apply`                          |
+| library_item_id                      | text  | e.g. `worked-example`                                       |
+| title / est_minutes                  |       | shown on card                                               |
+| doc                                  | json? | Activity Document (null until G5b generates content)        |
+| status                               | text  | `planned \| ready \| in_progress \| completed \| abandoned` |
+| current_page                         | int   | resume point                                                |
+| planned_for                          | text  | local date `YYYY-MM-DD` the scheduler planned it for        |
+| started_at / completed_at            | int?  |                                                             |
+| rating                               | text? | `down \| mixed \| up`                                       |
+| rating_text                          | text? |                                                             |
+| created_at / updated_at / deleted_at | int   |                                                             |
+
+History = completed activities (indexed on `interest_id, completed_at`). Calendar = distinct local dates of `completed_at`.
+
+## responses ⟳ — user answers inside activities
+
+`id, activity_id fk, page_id, block_id, payload json (typed per block kind), created_at, updated_at, deleted_at`
+
+Kept separate from `doc` so generation (G6) and future features can query them.
+
+## resources ⟳
+
+`id, interest_id, url, title, description, how_to_use text?, summary text? (not shown in UI), source (user | suggested), goal_ids json?, created_at, updated_at, deleted_at`
+
+## contexts ⟳ — projects/environments/people (path settings)
+
+`id, interest_id, kind (project | environment | person), label, notes text?, created_at, updated_at, deleted_at`
+
+## reflections ⟳
+
+`id, interest_id, feeling_text, changes json (accepted path edits summary), created_at, updated_at, deleted_at`
+
+## library_prefs ⟳ — per-interest activation of library items
+
+`id, interest_id, section, library_item_id, active int(bool), updated_at, deleted_at`
+
+Absent row = library item's default activation. Library definitions themselves live in code (`packages/core/library`), not the DB.
+
+## routine_notes ⟳ — free-text routine customization (G11)
+
+`id, interest_id? (null = global), note, created_at, updated_at, deleted_at`
+
+## gen_cache — local only
+
+`id, kind (daily_plan | goal_suggestions | …), scope_key text (e.g. interest_id + local date), payload json, created_at, expires_at`
+
+Caches G5a daily plans, G9 suggestions, etc. Safe to wipe.
+
+## llm_calls — local only, for the AI Inspector
+
+`id, kind, model, interest_id?, activity_id?, request json (rendered messages/system), response json, input_tokens, output_tokens, latency_ms, status (ok | error | aborted), error text?, created_at`
+
+Pruned to last ~200 calls. Never synced.
+
+## analytics_buffer — local only
+
+`id, event, properties json, created_at` — schema-conformant events buffered pre-consent (D9): flushed to PostHog on opt-in, deleted on decline. Capped (~7 days / ~300 events). Never synced.
+
+## settings — local key/value
+
+`key pk, value json` — device_id + secret ref, backup on/off, sync cursors (`sync_state` may be its own table), posthog_opt_in (default false), byok flag (key itself in SecureStore), last_seen_version.
+
+## Supabase (server) tables
+
+- Mirrors of all ⟳ tables + `user_id uuid` with RLS `user_id = auth.uid()`.
+- `devices(device_id, secret_hash, platform, created_at, attested bool)` and `device_usage(device_id, day, input_tokens, output_tokens, calls)` — operational, service-role only.
+
+## Invariants
+
+- Goal status only moves forward; timestamps set once per transition (completing a strengthen activity on an `applied` goal updates `strengthened_at` but not status).
+- One `planned` daily-plan set per interest per local date; regenerated only via explicit refresh or config change.
+- Deleting an interest soft-deletes its children (cascade in application code).

@@ -1,0 +1,118 @@
+# 01 — Product spec
+
+Authoritative description of user-facing behavior. Vocabulary per `00-overview.md`. LLM call ids (G1, G2, …) are defined in `04-ai-pipeline.md`.
+
+## 1. Intake flow
+
+Runs for a brand-new user (after a brief welcome screen) and every time an existing user adds a new interest. One question per screen, progress dots, back navigation allowed. Answers are editable later in Path settings.
+
+**Step 1 — What do you want to learn?**
+Free text. Below the field, a few subtle example chips (rotate from a pool; show ~4, tappable to fill): _Understand LLMs and AI · Improve my approach to personal finance · Product management skills · More about climate and sustainability · Learn how to draw · Get back into Spanish · Get conversational in German · Improve my chess skills_.
+
+**Step 2 — Why do you want to learn it?**
+Single select: **For my career / For a personal goal / For fun**, plus an optional free-text "Anything more? (helps us tailor things)" — keep the affordance small.
+→ On advance, fire **G1** (approach & pedagogy notes) in the background.
+
+**Step 3 — How much experience do you have?**
+Single select: **Just getting started / Explored a bit / In the middle / Have a lot of experience**, optional small free-text detail.
+→ On advance, fire **G2** (topic candidates) in the background, consuming G1's result (or its streamed partial; G2 waits on G1).
+
+**Step 4 — How much time do you want to spend?**
+Two choices on one screen: frequency (**Daily / Several times a week / When I can**) and session length (**5 / 10 / 15 min / Custom**).
+This screen buys time for G2; if G2 hasn't finished when the user advances, show a brief, branded generating state.
+
+**Step 5 — Which topics feel most relevant?**
+Multi-select chips from G2's ~10 topics (mix of motivation-aligned, foundational/prerequisite, and adjacent-but-interesting; the mix is invisible to the user). Selecting none is allowed.
+→ On advance, fire **G3** (initial path: short interest name + 5–8 sequenced goals).
+
+**Step 6 — "Here's a direction we can start with."**
+Show the generated interest name and the goal list (title + one-line description each). Single reassuring line: _"We'll keep evolving this as you go."_ Primary button starts the first activity or goes to Today.
+→ On completion, fire **G4** (background web search for resources) and **G5-prefetch** (today's Next activity).
+
+**Mode placement (D15)**: this step also shows, subtly, where the interest landed — **In focus** if frequency is daily/several-times-a-week or the why is career/personal-goal; **Exploring** for for-fun + when-I-can. One tap toggles it; changeable anytime in Manage Interests.
+
+## 2. App shell
+
+Four tabs: **Today, Path, History, Me**.
+
+**Interest selector** (top toolbar on Today, Path, History): one pill per in-focus interest, plus an **Explore** pill when any exploring interests exist. Selecting Explore reveals a second pill row: **All** (default) + one pill per exploring interest. Path is the exception: it has no "All" — it defaults to the first interest.
+
+**Feedback button**: small, unobtrusive (e.g. a corner icon on every screen). Opens a sheet with one text field and Send → `POST /api/feedback` → Resend email to `feedback@thinkering.app`, including app version + platform (no learning data). Confirmation is a brief toast.
+
+## 3. Today
+
+Per selected interest (or aggregated across interests for Explore→All), three sections, each with a heading, a small configure (⚙) button, and swipeable cards. Cards show: activity title, the goal it targets, and a time estimate. At the bottom, a subtle centered **"Configure learning routine"** button.
+
+### Card selection rules (deterministic — `packages/core/scheduler`)
+
+- **Next** (1 card): an _introduce_-tier activity for the first `not_started` goal in the path. If ≤ 3 `not_started` goals remain, additionally show a card that opens the **Reflection** experience.
+- **Strengthen** (2 cards): _strengthen_-tier activities. Goal choice priority: (1) `introduced` but not yet `strengthened`; (2) already `strengthened` (spaced review — prefer least-recently-strengthened); (3) a prerequisite topic to their goals (early-days fallback). The two cards may target different goals.
+- **Go further** (2 cards): _apply_-tier activities (both flavors: apply and extend — see `06`). Priority: (1) `strengthened` but not yet `applied`; (2) already `applied`; (3) merely `introduced` (or the first goal for brand-new users).
+
+Card metadata (title, estimate, library item) comes from the cheap daily-plan call **G5a** on app open; full activity content (**G5b**) is generated on tap (streamed) — the Next card is prefetched.
+
+### Completion states
+
+When the user completes an activity in a section, that section's heading area visibly shifts (background wash in the section's accent color) and shows a small count ("2 today"). The intended rhythm: each day, in an interest, do at least one Next and one Strengthen; Go further when it suits. Remaining cards stay available — completion celebrates, it doesn't lock.
+
+### Configure (⚙ per section)
+
+Sheet listing that section's library items as small cards with checkboxes (active/inactive for this user + interest + section). Tapping a card opens a short overview dialog of the strategy. At least one item must remain active per section.
+
+### Configure learning routine (bottom button)
+
+Sheet showing the three section names (read-only) and a single free-text question: **"How would you want to customize your learning routine?"** → **G11** interprets it into library activations/preference notes and confirms the change in one line.
+
+## 4. Activities
+
+Multi-page, rendered from an Activity Document (`05-activity-format.md`). Top progress bar segmented by page; forward/back navigation always available. Every page has interactive elements per its library item.
+
+- **Response review page** (reserved near the end, counted in the page total): while the user works, **G6** analyzes their responses and fills this page with the highest-value response — addressing a misconception, deepening a good answer, or answering an implicit question.
+- **Summary page** (last): concept/skill chips for what was introduced/strengthened/put to use, a usefulness rating (👎 / 〜 mixed / 👍), an optional detail box, and a quiet "Share this activity with the developers" action (explicit, per-activity — see `08`, D18).
+- **Ask button** (always visible): free-text question → **G7** inserts a new page immediately after the current one and jumps to it, answering the question, with an interaction included when asked for or clearly valuable. Inserted pages extend the progress bar.
+- Completing the activity advances the goal's status (introduce → `introduced`, etc.), records history, and updates section completion state.
+- Leaving mid-activity keeps it resumable from Today for the rest of the day; unfinished activities don't advance goal status.
+
+## 5. Path
+
+For the selected single interest:
+
+- **Goal list**, in path order. Status shown by color treatment, not pills: `not_started` = plain white card, `introduced` = light cornflower wash, `strengthened` = solid cornflower (light text), `applied` ("Put to use") = a distinct warm celebratory treatment (peach edge/glow — a delighter, since going further is optional). Long-press / drag to reorder; tap to view/edit a goal.
+- **Expandable goals (D16)**: tapping a goal expands it to show the concepts and skills beneath it, with subtle coverage indicators for those already targeted by completed activities. Activities highlight these same concept/skill labels (summary chips, in-page emphasis) so the user can see what they're building.
+- **Reflection card** ("Reflect on progress and update path"): opens the Reflection flow — (1) a prompt on how their learning feels and what they want to focus on next (free text); (2) their current goal list with the ability to remove/reorder, a field to add their own goal, and **G8**-generated suggestions based on the reflection, their interests, and adjacent topics. Accepting produces an updated path.
+- **3 suggested goals** always at the bottom (from **G9**, cached, regenerated when the path changes) — one tap to add.
+
+### Resources (book icon on Path)
+
+List of resources for the interest. Each has: title, link, short description, "how this could be used" (user-entered, or generated if blank, or empty), and a longer summary stored for generation purposes but not shown.
+
+- **Add by link**: paste URL → **G10** fetches and drafts title/description/how-to-use/summary; user can edit before saving.
+- **Initial seeding**: after intake, **G4** web-searches for reputable, goal-specific YouTube videos and articles and saves them (marked as app-suggested; user can delete).
+- Resources are considered by activity generation (follow-along worked examples, things to study/notice, material for In-the-Wild activities).
+
+### Path settings (⚙ icon on Path)
+
+Editable fields, all from intake: short interest name · what they want to learn · why (selection) · why (text) · experience (selection) · experience (text) · frequency · session length · topics of interest (add/delete; considered when suggesting goals) · approach notes (from G1, editable) · **Contexts**: projects, environments, and people related to this interest (add/edit/delete) — considered when generating Go further activities, included only when they genuinely add value.
+
+## 6. History
+
+For the selected focused interest, all-explore, or an individual explore interest: completed activities grouped by date, newest day first. Each row: activity title + outcome line — _Introduced [goal] / Strengthened [goal]_, or for Go further the library item's `outcomeLabel`: _Put to use [goal]_ (apply items), _Went deeper on [goal]_ / _Branched out from [goal]_ (extend items). Load ~5 most recent active days, infinite scroll for more.
+
+## 7. Me
+
+- **Manage Interests** (top): reorder interests; set each to **In focus / Exploring / Archived**; unarchive freely.
+- **Calendar**: current month, days with completed activities highlighted; tapping a day lists that day's activities chronologically, grouped by interest. Swipe/navigate to load other months.
+- **Settings**:
+  - **Backup** — default off. Create/sign in to a Supabase email/password account, change password, toggle synced backup (turning off deletes server-side data after confirmation), export data (JSON file) / import.
+  - **AI usage** — today's usage vs. the daily included cap (meter), option to add their own Anthropic API key (stored in SecureStore/Keychain; unmetered, calls go direct), PostHog toggle ("Share anonymous usage to improve thinkering" — opt-in, default off, not linked to identity; a one-time ask also appears after the first completed activity).
+  - **Privacy** — static text page (placeholder for Reb's copy; same content as landing /privacy).
+  - **Feedback** — same form as the global feedback button, plus a note with `hello@thinkering.app` for questions or concerns (copy editable).
+
+## 8. Landing page (`apps/web`)
+
+Marketing page at thinkering.app: hero (product name, one-line promise, app store link/TestFlight waitlist), how it works (intake → path → daily activities), the learning-science angle, the local-first/privacy angle, open-source note, footer (privacy, contact). Reb will provide draft copy; design per `07-design-system.md`. Also hosts `/privacy` and the API routes.
+
+## 9. Later (explicitly out of v1 scope)
+
+- iOS Share Extension: share a link from any app into thinkering → becomes a resource (and can seed activities).
+- Android polish pass, push/local reminders aligned to their chosen frequency, App Attest hardening, widgets.

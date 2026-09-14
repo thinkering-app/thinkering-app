@@ -1,0 +1,64 @@
+# 05 — Activity Document format
+
+Activities are **data, not code** (D5): a versioned JSON document emitted by G5b (via tool-use/structured output), validated with Zod, stored on `activities.doc`, and rendered by the native block renderer in `apps/mobile/src/features/activity-player`. The same document renders on iOS, Android, and web.
+
+## Document shape
+
+```ts
+type ActivityDoc = {
+  version: 1
+  title: string
+  estMinutes: number
+  tier: 'introduce' | 'strengthen' | 'apply'
+  libraryItemId: string
+  concepts: { goalConceptId?: string; label: string }[] // goal concepts/skills targeted (D16); id links to the goal's concept for coverage
+  pages: Page[]
+}
+
+type Page =
+  | { id: string; kind: 'content'; blocks: Block[] }
+  | { id: string; kind: 'review'; blocks: Block[] | null } // reserved; filled by G6
+  | { id: string; kind: 'summary'; blocks: Block[] } // last page; renderer appends rating UI
+  | { id: string; kind: 'inserted'; blocks: Block[] } // created by G7 (Ask)
+```
+
+Rules: 3–7 pages for a 5-minute session, scaling with `estMinutes`. Exactly one `review` page (second-to-last) and one `summary` page (last). Every non-summary page includes at least one interactive block. The renderer owns the progress bar (pages = segments; inserted pages extend it), back/forward navigation, and the always-visible Ask button.
+
+## Block types (v1)
+
+Content:
+
+- `heading { text }`
+- `paragraph { md }` — inline markdown subset: bold, italic, code
+- `list { style: bullet|numbered, items: md[] }`
+- `callout { tone: note|example|tip, md }` — rendered as a tinted card
+- `steps { items: {label, md}[] }` — worked-example step sequence
+- `resourceEmbed { resourceId?, url, kind: video|article, title, startSec?, endSec?, focus?: md }` — embeds a resource: YouTube inline player (iframe on web, native player/WebView on iOS) optionally clipped to a segment; articles as a titled link card with an excerpt/focus prompt. Per multimedia-learning research, G5b segments videos (short clips, not whole videos) and pairs each embed with an interactive block (embedded questions), and `focus` tells the learner what to watch/read for before they start.
+
+Interactive (all record into `responses`):
+
+- `mcq { prompt, options: {id, label}[], correctId?, explain?: md }` — instant feedback when `correctId` present; opinion-style when absent
+- `freeText { prompt, placeholder?, minimal?: boolean }` — reflection / explain-back
+- `fillBlank { md, blanks: {id, answer, alts?: string[]}[] }`
+- `ordering { prompt, items: {id, label}[], correctOrder: id[] }`
+- `matching { prompt, pairs: {leftId, left, rightId, right}[] }`
+- `reveal { prompt, md }` — think-then-tap-to-reveal (retrieval practice)
+- `selfRate { prompt, scale: {id, label}[] }` — confidence / self-assessment
+
+Renderer contract: unknown block kinds render as a graceful "update the app" placeholder (forward compatibility); `version` gates breaking changes.
+
+## Behavior
+
+- **Responses** save immediately on interaction (`responses` table) — no submit buttons where avoidable.
+- **Review page (G6)**: fires when the user completes the last interactive block before the review page. Picks the single highest-value thing to address in their responses: a misconception to correct (kindly, directly), a good answer to build on, or an implicit question to answer. If responses were sparse, it reinforces the trickiest concept instead.
+- **Summary page**: G5b provides the concept recap blocks; the renderer appends the standard rating row (👎 / mixed / 👍 + optional text) which writes to `activities.rating`, plus the quiet per-activity "share with the developers" action (D18, see `08`).
+- **Ask (G7)**: inserts an `inserted` page after the current index and jumps to it. Multiple asks allowed; each extends the doc (persisted, so it survives resume).
+- **Completion**: reaching the summary and tapping done → `status = completed`, `completed_at` set, goal status transition applied, section completion state updates on Today.
+- **Resume**: `current_page` persists; an in-progress activity resumes from Today for the rest of its `planned_for` day, after which it's `abandoned` (silently — no guilt UI).
+
+## Authoring guidance baked into G5b prompts
+
+- Respect the library item's structure (see `06-library.md` — each item specifies a page skeleton).
+- Interaction before explanation where the strategy calls for it (generation effect); explanation before practice for worked examples. Keep cognitive load low: one idea per page.
+- Ground apply-tier activities in the user's `contexts` and `resources` only when they genuinely fit.
+- Concrete examples over abstractions; adult tone; zero filler ("Great job!" only when the answer was actually good, and specific about why).
