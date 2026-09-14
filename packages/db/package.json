@@ -13,7 +13,8 @@
     "snapshot": "tsx scripts/dump-snapshot.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
     "@thinkering/core": "workspace:*",
