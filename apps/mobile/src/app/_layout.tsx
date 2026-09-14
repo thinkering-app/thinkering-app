@@ -5,8 +5,10 @@ import { Stack } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
+import { Text, View } from 'react-native'
 
 import '../global.css'
+import { useDbMigrations } from '../db'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -18,12 +20,25 @@ export default function RootLayout() {
     Outfit_500Medium,
     Outfit_600SemiBold,
   })
+  const migrations = useDbMigrations()
+  const ready = fontsLoaded && (migrations.success || Boolean(migrations.error))
 
   useEffect(() => {
-    if (fontsLoaded) SplashScreen.hideAsync()
-  }, [fontsLoaded])
+    if (ready) SplashScreen.hideAsync()
+  }, [ready])
 
-  if (!fontsLoaded) return null
+  if (!ready) return null
+
+  if (migrations.error) {
+    // A failed migration means local data can't be trusted — stop rather than run on a wrong schema.
+    return (
+      <View className="flex-1 items-center justify-center bg-paper px-8">
+        <Text className="font-sans text-body text-ink">
+          Something went wrong preparing your data. Please restart the app.
+        </Text>
+      </View>
+    )
+  }
 
   return (
     <>

@@ -1,0 +1,4 @@
+{
+  "extends": "@thinkering/config/typescript",
+  "include": ["src", "test", "scripts", "drizzle.config.ts"]
+}
