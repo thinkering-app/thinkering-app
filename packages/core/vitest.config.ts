@@ -2,7 +2,18 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
-    // Real suites arrive with WP1.2 (scheduler, schemas); M0 only wires the runner.
-    passWithNoTests: true,
+    coverage: {
+      enabled: true,
+      provider: 'v8',
+      // Thresholds only where bugs are expensive (docs/10): scheduler and schemas.
+      include: ['src/scheduler/**', 'src/schemas/**'],
+      thresholds: {
+        lines: 90,
+        functions: 90,
+        branches: 90,
+        statements: 90,
+      },
+      reporter: ['text-summary'],
+    },
   },
 })

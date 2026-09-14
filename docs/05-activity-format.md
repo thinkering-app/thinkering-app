@@ -33,7 +33,7 @@ Content:
 - `list { style: bullet|numbered, items: md[] }`
 - `callout { tone: note|example|tip, md }` — rendered as a tinted card
 - `steps { items: {label, md}[] }` — worked-example step sequence
-- `resourceEmbed { resourceId?, url, kind: video|article, title, startSec?, endSec?, focus?: md }` — embeds a resource: YouTube inline player (iframe on web, native player/WebView on iOS) optionally clipped to a segment; articles as a titled link card with an excerpt/focus prompt. Per multimedia-learning research, G5b segments videos (short clips, not whole videos) and pairs each embed with an interactive block (embedded questions), and `focus` tells the learner what to watch/read for before they start.
+- `resourceEmbed { resourceId?, url, media: video|article, title, startSec?, endSec?, focus?: md }` — the field is `media` (not `kind`) because `kind` is the block discriminator — embeds a resource: YouTube inline player (iframe on web, native player/WebView on iOS) optionally clipped to a segment; articles as a titled link card with an excerpt/focus prompt. Per multimedia-learning research, G5b segments videos (short clips, not whole videos) and pairs each embed with an interactive block (embedded questions), and `focus` tells the learner what to watch/read for before they start.
 
 Interactive (all record into `responses`):
 
