@@ -226,7 +226,7 @@ exports[`prompt templates > intake.approach renders stably (snapshot) 1`] = `
     {
       "content": "They want to learn: Get conversational in German
 Why: personal_goal — Partner’s family is in Munich; I want to hold my own at dinner.
-Experience: explored — Two Duolingo streaks that died; I can order food.",
+Experience: not stated yet",
       "role": "user",
     },
   ],
@@ -261,6 +261,8 @@ Output contract: respond with a single JSON object exactly matching the schema i
     {
       "cache": true,
       "text": "Task: classify the learning domain and write the approach notes that will steer every later generation for this interest.
+
+Their experience level may be missing — they are answering that question right now. When it is, write notes that hold across levels and say what changes with experience, rather than guessing.
 
 Return JSON: {
   "domain": string,                    // short classification, e.g. "language acquisition", "quantitative-technical", "creative-physical skill", "strategy game", "knowledge-rich domain"
