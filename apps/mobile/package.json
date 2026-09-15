@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "expo start",
-    "ios": "expo start --ios",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "export:web": "expo export -p web",
     "test:web": "EXPO_PUBLIC_AI_MODE=fixture expo export -p web && playwright test",
