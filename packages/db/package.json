@@ -14,7 +14,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts",
+    "sync:check": "tsx scripts/sync-check.ts"
   },
   "dependencies": {
     "@thinkering/core": "workspace:*",
@@ -22,6 +23,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@supabase/supabase-js": "^2.116.0",
     "@thinkering/config": "workspace:*",
     "@types/better-sqlite3": "^7.6.12",
     "better-sqlite3": "^12.2.0",

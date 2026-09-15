@@ -40,6 +40,7 @@ This is the irreversible surface: an applied migration can't be edited (see CLAU
 - **Repositories**: soft-deleted rows never come back from a query; every write bumps `updated_at`.
 - **Sync merge**: the LWW resolver lives as a pure function in `packages/core` so conflicts are unit-testable without a server — concurrent edits, tombstone vs. update, exact ties, clock skew (`src/sync/merge.test.ts`). The SQLite side (`packages/db/test/sync.test.ts`) covers what the resolver can't see: first sync vs. nothing-changed, a batch refused because a row came from a newer schema, and a row this build can't parse being skipped rather than wedging the sync.
 - **Export/import**: round-trip (export → wipe → import) is deep-equal; import replaces rather than merges; an import file newer than the app — in either version — is refused; an older one migrates forward on the row schemas' defaults.
+- **Live sync** is the one thing no unit test can reach, so it is a script rather than a test: `pnpm sync:check` runs two simulated devices through a real Supabase project — first sync, second-device pull, concurrent-edit LWW, tombstone travel, RLS isolation, the `schema_version` floor, and the off-switch deletion. It creates and deletes its own throwaway users. Run it against a project before a release; never from `pnpm verify`, which must stay offline.
 
 ### Tier 3 — `apps/web/app/api`
 

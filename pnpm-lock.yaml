@@ -264,6 +264,9 @@ importers:
         specifier: ^4.6.5
         version: 4.6.5
     devDependencies:
+      '@supabase/supabase-js':
+        specifier: ^2.116.0
+        version: 2.116.0
       '@thinkering/config':
         specifier: workspace:*
         version: link:../config
