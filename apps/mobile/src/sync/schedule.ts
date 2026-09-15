@@ -1,9 +1,8 @@
 import { useEffect } from 'react'
 import { AppState } from 'react-native'
 import { addDatabaseChangeListener } from 'expo-sqlite'
-import { SYNCED_TABLE_NAMES, isBackupEnabled } from '@thinkering/db'
+import { SYNCED_TABLE_NAMES } from '@thinkering/db'
 
-import { db } from '@/db'
 import { syncNow } from './engine'
 import { backupConfigured, supabase } from './supabase'
 
@@ -19,7 +18,7 @@ const DEBOUNCE_MS = 8000
 let timer: ReturnType<typeof setTimeout> | null = null
 
 export function scheduleSync(delayMs: number = DEBOUNCE_MS): void {
-  if (!backupConfigured || !isBackupEnabled(db)) return
+  if (!backupConfigured) return
   if (timer) clearTimeout(timer)
   timer = setTimeout(() => {
     timer = null
