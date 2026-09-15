@@ -62,6 +62,44 @@ export const suggestedGoalsOutputSchema = z.object({
 export type SuggestedGoalsOutput = z.infer<typeof suggestedGoalsOutputSchema>
 
 /**
+ * G8 `reflect.update` — the reflection flow's proposed path edits (docs/01 §5).
+ * Goals are addressed by the short ref the params assign them ("G1", "G2", …)
+ * rather than by id: refs are short enough to copy without drift, and the
+ * client maps them back, ignoring any it doesn't recognise.
+ *
+ * Deviating from the docs/04 summary, additions live in `suggestedGoals` only —
+ * an `add` change type would have been a second way to say the same thing.
+ */
+export const reflectionChangeSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('revise'),
+    ref: z.string().min(1),
+    title: z.string().min(1).max(80),
+    description: z.string().min(1).max(240),
+    reason: z.string().min(1).max(200),
+  }),
+  z.object({ type: z.literal('remove'), ref: z.string().min(1), reason: z.string().min(1).max(200) }),
+  z.object({
+    type: z.literal('reorder'),
+    ref: z.string().min(1),
+    /** The goal it should follow; null puts it first. */
+    afterRef: z.string().min(1).nullable(),
+    reason: z.string().min(1).max(200),
+  }),
+])
+export type ReflectionChange = z.infer<typeof reflectionChangeSchema>
+
+export const reflectUpdateOutputSchema = z.object({
+  /** What their reflection says about where they are — plain, 2–3 sentences. */
+  observations: z.string().min(1).max(600),
+  suggestedChanges: z.array(reflectionChangeSchema).max(6),
+  suggestedGoals: z
+    .array(generatedGoalSchema.extend({ afterRef: z.string().min(1).nullable(), reason: z.string().min(1).max(200) }))
+    .max(4),
+})
+export type ReflectUpdateOutput = z.infer<typeof reflectUpdateOutputSchema>
+
+/**
  * G5a `today.plan` — the scheduler picks the goals; G5a picks a library item
  * from the active set and writes a human title per card. `goalId` null only
  * for the strengthen prerequisite fallback (the card then carries `topic`).

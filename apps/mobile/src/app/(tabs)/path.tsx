@@ -13,6 +13,7 @@ import { repoContext, db } from '@/db'
 import { InterestSelector } from '@/interests/selector'
 import { GoalCard } from '@/path/goal-card'
 import { GoalSheet } from '@/path/goal-sheet'
+import { ReflectCard } from '@/path/reflect-card'
 import { useSuggestions } from '@/path/suggestions'
 import { usePath, usePathInterest } from '@/path/use-path'
 import { colors } from '@/theme/tokens'
@@ -89,6 +90,10 @@ export default function PathScreen() {
                 }
               />
             ))}
+
+            <View className="pt-6">
+              <ReflectCard interestId={interest.id} />
+            </View>
 
             <View className="gap-3 pt-6">
               <Text className="font-heading-bold text-heading text-ink">Suggested</Text>

@@ -10,6 +10,7 @@ import { GenerationError } from '@/components/generation-error'
 import { Generating } from '@/components/generating'
 import { SectionHeader } from '@/components/section-header'
 import { InterestSelector } from '@/interests/selector'
+import { ReflectCard } from '@/path/reflect-card'
 import { useInterestSelection } from '@/interests/selection'
 import { ConfigureSheet } from '@/today/configure-sheet'
 import { dropUntouchedCards } from '@/today/plan'
@@ -22,7 +23,7 @@ import { useToday, type TodaySectionView } from '@/today/use-today'
  */
 export default function TodayScreen() {
   const { selected, selection } = useInterestSelection()
-  const { today, sections, empty, generating, error, retry, refresh } = useToday(selected)
+  const { today, sections, reflect, empty, generating, error, retry, refresh } = useToday(selected)
   const [configuring, setConfiguring] = useState<Section | null>(null)
   const [routineOpen, setRoutineOpen] = useState(false)
 
@@ -48,12 +49,24 @@ export default function TodayScreen() {
           <Empty hasInterest={selection !== null} />
         ) : (
           sections.map((section) => (
-            <SectionRow
-              key={section.section}
-              view={section}
-              generating={generating}
-              onConfigure={configurable ? () => setConfiguring(section.section) : undefined}
-            />
+            <View key={section.section} className="gap-3">
+              <SectionRow
+                view={section}
+                generating={generating}
+                onConfigure={configurable ? () => setConfiguring(section.section) : undefined}
+              />
+              {section.section === 'next' && reflect.length > 0 ? (
+                <View className="gap-3 px-5">
+                  {reflect.map((prompt) => (
+                    <ReflectCard
+                      key={prompt.interestId}
+                      interestId={prompt.interestId}
+                      interestName={prompt.interestName}
+                    />
+                  ))}
+                </View>
+              ) : null}
+            </View>
           ))
         )}
 

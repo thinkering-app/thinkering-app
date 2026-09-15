@@ -53,6 +53,17 @@ export interface GoalConcept {
   kind: ConceptKind
 }
 
+/**
+ * What a reflection changed about the path, stored on `reflections.changes`
+ * (docs/03) as the human-readable record of what the learner accepted.
+ */
+export interface ReflectionChanges {
+  added: string[]
+  removed: string[]
+  revised: string[]
+  reordered: boolean
+}
+
 /** Which tier of activity each Today section serves. */
 export const SECTION_TIER: Record<Section, Tier> = {
   next: 'introduce',

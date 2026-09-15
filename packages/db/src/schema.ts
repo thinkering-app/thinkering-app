@@ -10,6 +10,7 @@ import type {
   GoalStatus,
   InterestStatus,
   Rating,
+  ReflectionChanges,
   ResourceSource,
   Section,
   Tier,
@@ -207,7 +208,7 @@ export const reflections = sqliteTable(
       .references(() => interests.id),
     feelingText: text('feeling_text').notNull(),
     /** Accepted path edits summary. */
-    changes: text('changes', { mode: 'json' }).$type<unknown>().notNull(),
+    changes: text('changes', { mode: 'json' }).$type<ReflectionChanges>().notNull(),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
     deletedAt: deletedAt(),

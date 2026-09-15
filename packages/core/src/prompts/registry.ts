@@ -5,13 +5,14 @@ import { intakeApproachTemplate } from './kinds/intake-approach'
 import { intakePathTemplate } from './kinds/intake-path'
 import { intakeTopicsTemplate } from './kinds/intake-topics'
 import { pathSuggestGoalsTemplate } from './kinds/path-suggest-goals'
+import { reflectUpdateTemplate } from './kinds/reflect-update'
 import { routineCustomizeTemplate } from './kinds/routine-customize'
 import { todayPlanTemplate } from './kinds/today-plan'
 import type { AnyPromptTemplate, GenerationKind } from './types'
 
 /**
- * Every implemented prompt template by kind. G4, G8 and G10 arrive with their
- * work packages (docs/09); the proxy rejects kinds not present here.
+ * Every implemented prompt template by kind. G4 and G10 arrive with their work
+ * packages (docs/09); the proxy rejects kinds not present here.
  */
 export const PROMPTS = {
   'intake.approach': intakeApproachTemplate,
@@ -23,6 +24,7 @@ export const PROMPTS = {
   'activity.question': activityQuestionTemplate,
   'routine.customize': routineCustomizeTemplate,
   'path.suggestGoals': pathSuggestGoalsTemplate,
+  'reflect.update': reflectUpdateTemplate,
 } as const
 
 export type ImplementedKind = keyof typeof PROMPTS

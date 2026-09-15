@@ -67,6 +67,24 @@ export { activityReviewTemplate, type ActivityReviewParams } from './prompts/kin
 export { activityQuestionTemplate, type ActivityQuestionParams } from './prompts/kinds/activity-question'
 export { routineCustomizeTemplate, type RoutineCustomizeParams } from './prompts/kinds/routine-customize'
 export { pathSuggestGoalsTemplate, type PathSuggestGoalsParams } from './prompts/kinds/path-suggest-goals'
+export { reflectUpdateTemplate, type ReflectUpdateParams } from './prompts/kinds/reflect-update'
 export { sortOrderBetween, respreadSortOrders } from './path/ordering'
 export { conceptCoverage, type CoverageActivity } from './path/coverage'
 export { pathSignature } from './path/signature'
+export {
+  goalRefs,
+  planReflection,
+  acceptProposal,
+  dismissProposal,
+  acceptAddition,
+  dismissAddition,
+  addOwnGoal,
+  toggleRemoved,
+  moveDraft,
+  draftChanges,
+  type DraftGoal,
+  type DraftProposal,
+  type ReflectionGoal,
+  type ReflectionPlan,
+  type SuggestedAddition,
+} from './path/reflection'

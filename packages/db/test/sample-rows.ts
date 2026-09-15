@@ -79,7 +79,7 @@ export function seedSampleRows(db: Database): void {
     .values({ id: 'ctx-sample', interestId: 'i-sample', kind: 'project', label: 'Support-bot prototype', ...stamps })
     .run()
   db.insert(schema.reflections)
-    .values({ id: 'ref-sample', interestId: 'i-sample', feelingText: 'Going well; want more hands-on work.', changes: { added: 1 }, ...stamps })
+    .values({ id: 'ref-sample', interestId: 'i-sample', feelingText: 'Going well; want more hands-on work.', changes: { added: ['Explain what a token is'], removed: [], revised: [], reordered: true }, ...stamps })
     .run()
   db.insert(schema.libraryPrefs)
     .values({ id: 'lp-sample', interestId: 'i-sample', section: 'next', libraryItemId: 'mini-case', active: false, updatedAt: t })

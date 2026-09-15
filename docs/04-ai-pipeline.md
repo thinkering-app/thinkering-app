@@ -29,8 +29,8 @@ Every LLM call has a `kind` id, a versioned prompt template in `packages/core/pr
 - **G5b →** an Activity Document (`05-activity-format.md`), including the empty reserved review page. Declares which of the goal's concept/skill ids it targets so coverage and in-activity highlighting work (D16).
 - **G6 →** content blocks for the review page: respond to / build on / correct the highest-value thing in their responses.
 - **G7 →** one new page (content + optional interaction) answering the question.
-- **G8 →** `{observations, suggested_changes: [{type: add|reorder|revise|remove, …}], suggested_goals[]}`.
-- **G9 →** `{goals: [{title, description, concepts[]}] (3)}`.
+- **G8 →** `{observations, suggestedChanges: [{type: revise|remove|reorder, ref, reason, …}], suggestedGoals: [{…goal, afterRef, reason}]}`. Goals are addressed by short refs (`G1`, `G2`, …) assigned in path order by the params — short enough to copy without drift, and the client maps them back, dropping any proposal naming a ref that isn't on the path (`planReflection` in `packages/core/path`). Additions live only in `suggestedGoals`: an `add` change type would have been a second way to say the same thing. Every proposal carries a one-line `reason` the learner reads.
+- **G9 →** `{goals: [{title, description, concepts[]}] (3)}`. Cached under a path signature that ignores goal status and order (`pathSignature`): progress changing daily is not a changed path, and reordering the same goals doesn't change what's missing from them.
 - **G10 →** `{title, description, how_to_use, summary}`.
 - **G11 →** `{activations: [{section, library_item_id, active}], note}` — note saved to `routine_notes`.
 

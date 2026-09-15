@@ -3,6 +3,7 @@ import { useFocusEffect } from 'expo-router'
 import {
   completedTodayBySection,
   localDateOf,
+  planToday,
   SECTIONS,
   type LocalDate,
   type Section,
@@ -10,6 +11,7 @@ import {
 import {
   listHistory,
   listPlannedForDate,
+  schedulerGoals,
   type Activity,
   type Goal,
   type Interest,
@@ -41,9 +43,17 @@ export interface TodaySectionView {
   completedToday: number
 }
 
+/** An interest with three or fewer unstarted goals left — time to reflect (docs/01 §3). */
+export interface ReflectPrompt {
+  interestId: string
+  interestName?: string
+}
+
 export interface TodayView {
   today: LocalDate
   sections: TodaySectionView[]
+  /** Shown in Next, from the scheduler's `showReflectCard`. */
+  reflect: ReflectPrompt[]
   /** No goals yet in any selected interest — nothing to plan. */
   empty: boolean
   generating: boolean
@@ -116,9 +126,25 @@ export function useToday(interests: Interest[]): TodayView {
     [key, today, timeZone, version],
   )
 
+  const reflect = useMemo(
+    () =>
+      interests.flatMap((interest) =>
+        planToday(schedulerGoals(db, interest.id)).showReflectCard
+          ? [
+              {
+                interestId: interest.id,
+                interestName: interests.length > 1 ? interest.name : undefined,
+              },
+            ]
+          : [],
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [key, version],
+  )
+
   const empty = interests.length === 0 || interests.every((i) => listGoals(db, i.id).length === 0)
 
-  return { today, sections, empty, generating, error, retry: bump, refresh: bump }
+  return { today, sections, reflect, empty, generating, error, retry: bump, refresh: bump }
 }
 
 function readSections(

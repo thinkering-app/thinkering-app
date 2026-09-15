@@ -1,13 +1,16 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { conceptCoverage } from '@thinkering/core'
 import {
+  applyReflection,
   completeActivity,
   createActivity,
   createGoal,
   createInterest,
   attachDoc,
+  getGoal,
   listCoverage,
   listGoals,
+  listReflections,
   moveGoal,
   nextGoalSortOrder,
 } from '../src'
@@ -106,5 +109,35 @@ describe('listCoverage', () => {
     expect([...(conceptCoverage(listCoverage(db, interestId)).get(goal!.id) ?? [])]).toEqual([
       'c-0',
     ])
+  })
+})
+
+describe('applyReflection', () => {
+  it('writes the accepted path: removals, revisions, new goals, and the order', () => {
+    const [a, b, c] = makePath(['A', 'B', 'C'])
+    const reflection = applyReflection(db, ctx, {
+      interestId,
+      feelingText: 'I want more conversation practice.',
+      entries: [
+        { kind: 'existing', goalId: c!.id, title: 'C', description: 'C description' },
+        {
+          kind: 'new',
+          title: 'Ask a question back',
+          description: 'Keep the conversation moving.',
+          concepts: [{ label: 'W-questions', kind: 'concept' }],
+          source: 'reflection',
+        },
+        { kind: 'existing', goalId: a!.id, title: 'A, revised', description: 'Now about speaking' },
+      ],
+      changes: { added: ['Ask a question back'], removed: ['B'], revised: ['A'], reordered: true },
+    })
+
+    expect(titlesInOrder()).toEqual(['C', 'Ask a question back', 'A, revised'])
+    expect(getGoal(db, b!.id)).toBeUndefined()
+    const added = listGoals(db, interestId)[1]!
+    expect(added.source).toBe('reflection')
+    expect(added.concepts[0]!.id).toBeTruthy()
+    expect(listReflections(db, interestId)).toEqual([reflection])
+    expect(reflection.changes.removed).toEqual(['B'])
   })
 })

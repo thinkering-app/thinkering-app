@@ -4,6 +4,7 @@ import intakeApproach from '../../fixtures/recorded/intake.approach/default.json
 import intakePath from '../../fixtures/recorded/intake.path/default.json'
 import intakeTopics from '../../fixtures/recorded/intake.topics/default.json'
 import pathSuggestGoals from '../../fixtures/recorded/path.suggestGoals/default.json'
+import reflectUpdate from '../../fixtures/recorded/reflect.update/default.json'
 import routineCustomize from '../../fixtures/recorded/routine.customize/default.json'
 import todayPlan from '../../fixtures/recorded/today.plan/default.json'
 
@@ -33,4 +34,5 @@ export const RECORDED_RESPONSES: Record<string, RecordedResponse> = {
   'activity.question': activityQuestion,
   'routine.customize': routineCustomize,
   'path.suggestGoals': pathSuggestGoals,
+  'reflect.update': reflectUpdate,
 }
