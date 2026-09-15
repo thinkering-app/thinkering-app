@@ -43,9 +43,11 @@ Milestones broken into session-sized work packages (WP) suitable for one agent s
 
 ## M5 — Path
 
-- **WP5.1 Goal list**: status color treatments, expandable concepts/skills with coverage (D16), reorder, edit; suggested goals (G9); path settings screen (all editable intake fields + contexts).
-- **WP5.2 Reflection**: flow per `01` with G8; path update application; Today's reflect card trigger (≤3 not-started goals — the scheduler already computes `showReflectCard`; Today does not render it yet).
-- **WP5.3 Resources**: list + add-by-link (G10 w/ server URL fetch), intake seeding via G4 (web_search), resource consideration wired into G5b context.
+**Done 2026-09-15.** Deviations, recorded in the docs they touch: reorder is a long-press mode with up/down controls rather than a drag gesture (`01`) — a drag implementation wasn't worth its own gesture handler for a 5–8 item list; G8 is awaited behind a branded wait rather than streamed, and its additions live only in `suggestedGoals` (`04`); G8 addresses goals by short refs (`G1`, `G2`, …) that the client maps back, dropping any it doesn't recognise (`04`); G9's cache key ignores goal status and order, so suggestions go stale when the path changes rather than when the learner progresses (`04`); G10 gained `goalTitles` so pasted links match goals the way G4's do (`04`). New surfaces on the server: `POST /api/fetch-url` with the SSRF guards add-by-link needs, and `PromptTemplate.tools` for G4's web search. One bug the simulator caught: bottom sheets sat behind the keyboard, which affected M4's sheets too — fixed in `Sheet`. Verified on the iOS simulator in fixture mode: intake → Path (expand, reorder, edit, suggestions) → reflection → path update → resources (G4-seeded list, add-by-link draft) → path settings.
+
+- ~~**WP5.1 Goal list**~~ ✅: status color treatments, expandable concepts/skills with coverage (D16), reorder, edit; suggested goals (G9); path settings screen (all editable intake fields + contexts).
+- ~~**WP5.2 Reflection**~~ ✅: flow per `01` with G8; path update application; Today's reflect card trigger (≤3 not-started goals).
+- ~~**WP5.3 Resources**~~ ✅: list + add-by-link (G10 w/ server URL fetch), intake seeding via G4 (web_search), resources wired into the per-interest context (and G5a's `matchedResources`).
 
 ## M6 — History & Me
 
