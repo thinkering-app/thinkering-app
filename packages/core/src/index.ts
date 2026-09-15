@@ -113,3 +113,11 @@ export {
   type FeedbackPlatform,
   type FeedbackScreen,
 } from './feedback/context'
+export {
+  mergePull,
+  pickWinner,
+  selectPush,
+  type MergeWinner,
+  type PullMerge,
+  type SyncRowMeta,
+} from './sync/merge'

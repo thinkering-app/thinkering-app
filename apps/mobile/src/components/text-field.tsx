@@ -1,4 +1,4 @@
-import { TextInput, View } from 'react-native'
+import { TextInput, type TextInputProps, View } from 'react-native'
 
 import { colors } from '@/theme/tokens'
 
@@ -10,6 +10,11 @@ type TextFieldProps = {
   autoFocus?: boolean
   accessibilityLabel?: string
   onSubmitEditing?: () => void
+  /** Sign-in fields need the keyboard and autofill hints a prose field doesn't. */
+  secureTextEntry?: boolean
+  keyboardType?: TextInputProps['keyboardType']
+  autoCapitalize?: TextInputProps['autoCapitalize']
+  autoComplete?: TextInputProps['autoComplete']
 }
 
 /** Single- or multi-line input on a surface card (docs/07). No labels above — the question is the label. */
@@ -21,6 +26,10 @@ export function TextField({
   autoFocus = false,
   accessibilityLabel,
   onSubmitEditing,
+  secureTextEntry = false,
+  keyboardType,
+  autoCapitalize,
+  autoComplete,
 }: TextFieldProps) {
   return (
     <View className="rounded-card border border-hairline bg-surface px-4 py-3">
@@ -32,6 +41,10 @@ export function TextField({
         placeholderTextColor={colors.ink.soft}
         multiline={multiline}
         autoFocus={autoFocus}
+        secureTextEntry={secureTextEntry}
+        keyboardType={keyboardType}
+        autoCapitalize={autoCapitalize}
+        autoComplete={autoComplete}
         submitBehavior={multiline ? 'newline' : 'blurAndSubmit'}
         returnKeyType={multiline ? 'default' : 'done'}
         onSubmitEditing={onSubmitEditing}

@@ -9,6 +9,7 @@ import { Text, View } from 'react-native'
 
 import '../global.css'
 import { useDbMigrations } from '../db'
+import { useSyncLifecycle } from '@/sync/schedule'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -21,6 +22,7 @@ export default function RootLayout() {
     Outfit_600SemiBold,
   })
   const migrations = useDbMigrations()
+  useSyncLifecycle()
   const ready = fontsLoaded && (migrations.success || Boolean(migrations.error))
 
   useEffect(() => {

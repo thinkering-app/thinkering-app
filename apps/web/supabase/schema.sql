@@ -1,7 +1,11 @@
--- Operational metering tables (docs/02 §Device identity, docs/03 §Supabase).
--- Service-role access only — no RLS policies, so anon/authenticated get nothing.
--- Apply in the Supabase SQL editor (fresh project, D19). User-data mirror
--- tables + RLS ship with M8 (sync).
+-- Supabase schema (docs/02 §Device identity, docs/03 §Supabase). Apply in the
+-- Supabase SQL editor (fresh project, D19).
+--
+-- Two halves that never mix:
+--   * the operational metering tables — service-role only, no RLS policies, so
+--     anon/authenticated get nothing;
+--   * `sync_rows`, the user-data mirror — reached only by the signed-in user's
+--     own client through RLS, never by the service role.
 
 create table if not exists devices (
   device_id uuid primary key,
@@ -38,3 +42,41 @@ create table if not exists device_actions (
 alter table devices enable row level security;
 alter table device_usage enable row level security;
 alter table device_actions enable row level security;
+
+-- ── User data mirror (docs/02 §Backup & sync) ───────────────────────────────
+--
+-- One row per synced local row, its columns carried as JSON. A single generic
+-- table rather than a mirror per local table: local schema changes are then
+-- never server schema changes, which is exactly what D17 asks of the mirror
+-- ("the server stores per-table rows as JSON alongside version", additive-only).
+-- Nothing on the server reads inside `data`, so there is nothing to query for.
+--
+-- `updated_at` / `deleted_at` are client epoch ms — the last-write-wins keys,
+-- not server timestamps, so they must stay comparable across devices.
+
+create table if not exists sync_rows (
+  user_id uuid not null references auth.users (id) on delete cascade,
+  table_name text not null,
+  id text not null,
+  updated_at bigint not null,
+  deleted_at bigint,
+  schema_version integer not null,
+  data jsonb not null,
+  primary key (user_id, table_name, id)
+);
+
+-- The pull is always "everything of mine newer than my cursor".
+create index if not exists sync_rows_cursor_idx on sync_rows (user_id, updated_at);
+
+alter table sync_rows enable row level security;
+
+-- Own rows only, and only from a build new enough that a newer device can still
+-- reconcile what it writes (D17, "update the app to sync"). Raise the floor by
+-- re-running this policy when a deprecation window closes; an old client then
+-- gets a clear insert failure instead of writing rows nobody can read.
+drop policy if exists sync_rows_owner on sync_rows;
+create policy sync_rows_owner on sync_rows
+  for all
+  to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid() and schema_version >= 1);

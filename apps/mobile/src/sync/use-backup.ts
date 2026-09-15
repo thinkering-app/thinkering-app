@@ -1,0 +1,96 @@
+import { useCallback, useEffect, useState } from 'react'
+import { useFocusEffect } from 'expo-router'
+import { getSyncCursors, isBackupEnabled, setBackupEnabled } from '@thinkering/db'
+
+import { db } from '@/db'
+import { currentAccount, onAccountChange, type Account } from './account'
+import { deleteRemoteData, syncNow, type SyncOutcome } from './engine'
+import { cancelScheduledSync } from './schedule'
+import { backupConfigured } from './supabase'
+
+/** Me → Backup's read model: who is signed in, whether sync is on, how it went. */
+
+export interface BackupState {
+  configured: boolean
+  account: Account | null
+  enabled: boolean
+  syncing: boolean
+  lastSyncedAt: number | null
+  error: string | null
+}
+
+export function useBackup() {
+  const [account, setAccount] = useState<Account | null>(null)
+  const [enabled, setEnabled] = useState(() => isBackupEnabled(db))
+  const [syncing, setSyncing] = useState(false)
+  const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(() => getSyncCursors(db).lastSyncedAt)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    void currentAccount().then(setAccount)
+    return onAccountChange(setAccount)
+  }, [])
+
+  useFocusEffect(
+    useCallback(() => {
+      setLastSyncedAt(getSyncCursors(db).lastSyncedAt)
+      setEnabled(isBackupEnabled(db))
+    }, []),
+  )
+
+  const settle = useCallback((outcome: SyncOutcome) => {
+    if (outcome.ok) {
+      setLastSyncedAt(outcome.at)
+      setError(null)
+    } else if (outcome.reason === 'newer_schema') {
+      setError('Your other device is on a newer version of thinkering. Update this one to keep syncing.')
+    } else if (outcome.reason === 'failed') {
+      setError("We couldn't reach the backup just now.")
+    }
+  }, [])
+
+  const runSync = useCallback(async () => {
+    setSyncing(true)
+    try {
+      settle(await syncNow())
+    } finally {
+      setSyncing(false)
+    }
+  }, [settle])
+
+  const turnOn = useCallback(async () => {
+    setBackupEnabled(db, true)
+    setEnabled(true)
+    await runSync()
+  }, [runSync])
+
+  /** Off deletes the server copy (docs/02); the screen confirms before calling. */
+  const turnOff = useCallback(async () => {
+    setSyncing(true)
+    try {
+      const deleted = await deleteRemoteData()
+      if (!deleted) {
+        setError("We couldn't delete the backup from the server. Nothing has changed.")
+        return false
+      }
+      cancelScheduledSync()
+      setBackupEnabled(db, false)
+      setEnabled(false)
+      setLastSyncedAt(null)
+      setError(null)
+      return true
+    } finally {
+      setSyncing(false)
+    }
+  }, [])
+
+  const state: BackupState = {
+    configured: backupConfigured,
+    account,
+    enabled,
+    syncing,
+    lastSyncedAt,
+    error,
+  }
+  return { ...state, runSync, turnOn, turnOff, setError }
+}

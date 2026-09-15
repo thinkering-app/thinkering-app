@@ -1,4 +1,5 @@
 import { getTableColumns, getTableName, type Column, type Table } from 'drizzle-orm'
+import type { SQLiteColumn, SQLiteTable } from 'drizzle-orm/sqlite-core'
 import { z } from 'zod'
 import journal from '../../migrations/meta/_journal.json'
 import { SYNCED_TABLES } from '../schema'
@@ -15,11 +16,20 @@ export const SYNCED_TABLE_NAMES = Object.keys(SYNCED_TABLES) as SyncedTableName[
 
 export type SyncedTableName = keyof typeof SYNCED_TABLES
 
-export function syncedTable(name: SyncedTableName): Table {
-  return SYNCED_TABLES[name] as unknown as Table
+export function syncedTable(name: SyncedTableName): SQLiteTable {
+  return SYNCED_TABLES[name] as unknown as SQLiteTable
 }
 
 export type Row = Record<string, unknown>
+
+/** The three columns every ⟳ table carries, as drizzle columns for query building. */
+export function syncColumns(table: SQLiteTable): { id: SQLiteColumn; updatedAt: SQLiteColumn } {
+  const columns = getTableColumns(table) as Record<string, SQLiteColumn>
+  const id = columns.id
+  const updatedAt = columns.updatedAt
+  if (!id || !updatedAt) throw new Error(`${getTableName(table)} is not a synced table`)
+  return { id, updatedAt }
+}
 
 /**
  * A row validator derived from the drizzle table itself, so adding a column

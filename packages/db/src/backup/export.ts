@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { Database } from '../database'
+import { resetSyncCursors } from '../repos/sync-state'
 import { genCache } from '../schema'
 import { SCHEMA_VERSION, SYNCED_TABLE_NAMES, syncedRowSchema, syncedTable, type Row } from './rows'
 
@@ -92,7 +93,9 @@ export interface ImportResult {
 /**
  * Replaces all local learning data with the file's (confirm-replace, docs/01 §7).
  * Runs in one transaction so a bad file leaves the device untouched. `gen_cache`
- * is dropped because its entries key off ids that no longer exist.
+ * is dropped because its entries key off ids that no longer exist, and the sync
+ * cursors are reset because what is on this device is no longer what was last
+ * exchanged with the server.
  */
 export function importData(db: Database, rows: Record<string, Row[]>): ImportResult {
   let rowCount = 0
@@ -113,5 +116,6 @@ export function importData(db: Database, rows: Record<string, Row[]>): ImportRes
       rowCount += tableRows.length
     }
   })
+  resetSyncCursors(db)
   return { rowCount, schemaVersion: SCHEMA_VERSION }
 }
