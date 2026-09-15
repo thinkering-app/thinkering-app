@@ -18,7 +18,7 @@ With no API key configured the app runs in **fixture AI mode** (`EXPO_PUBLIC_AI_
 
 Workspace layout: `apps/mobile` (Expo app), `apps/web` (Next.js landing + future API), `packages/core` (pure-TS domain), `packages/config` (shared tokens, tsconfig, eslint). See `docs/02-architecture.md`.
 
-Deploys (Vercel, manual for now): `apps/web` is a standard Next.js project; the Expo web export deploys from `apps/mobile` (`vercel.json` there sets the COOP/COEP headers expo-sqlite's wasm build needs) for the future `app.thinkering.app` subdomain.
+Deploys (Vercel, manual for now): `apps/web` is a standard Next.js project; the Expo web export deploys from `apps/mobile` (`vercel.json` there sets the COOP/COEP headers expo-sqlite's wasm build needs) to `web.thinkering.app`.
 
 ## Principles
 

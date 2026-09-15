@@ -37,4 +37,9 @@ export function setInspectorEnabled(enabled: boolean): void {
   setSetting(db, INSPECTOR_KEY, enabled)
 }
 
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://thinkering.app'
+/**
+ * The API host, canonical form. `thinkering.app` 308-redirects to `www` — fine
+ * for a native client, fatal in a browser, where a redirected CORS preflight is
+ * rejected outright. Always point this at the host that answers directly.
+ */
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://www.thinkering.app'
