@@ -17,6 +17,14 @@ const bodySchema = z.object({
   kind: z.string().min(1),
   params: z.unknown(),
   stream: z.boolean().optional().default(true),
+  /** One repair round-trip (docs/04 §Failure handling): the client sends back
+   * the invalid output + validation errors; we append them as extra turns. */
+  repair: z
+    .object({
+      previousText: z.string().max(100_000),
+      issues: z.array(z.string().max(500)).min(1).max(20),
+    })
+    .optional(),
 })
 
 function toAnthropicRequest(
@@ -76,6 +84,16 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   const rendered = template.render(params.data as never)
+  if (body.data.repair) {
+    rendered.messages = [
+      ...rendered.messages,
+      { role: 'assistant', content: body.data.repair.previousText },
+      {
+        role: 'user',
+        content: `That response failed validation:\n${body.data.repair.issues.map((i) => `- ${i}`).join('\n')}\nRe-emit the complete corrected JSON object only.`,
+      },
+    ]
+  }
   const request = toAnthropicRequest(template, rendered)
   const started = now()
   const model = request.model

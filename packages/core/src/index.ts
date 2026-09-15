@@ -24,6 +24,9 @@ export {
   type ContextAssemblyOptions,
 } from './prompts/context-assembly'
 export { checkActivityDoc, toneLintOutput, toneLintIssues, pageCountRange, type CheckIssue } from './prompts/checks'
+export { SseParser, accumulateEvent, emptyAccumulator, type SseEvent, type StreamAccumulator } from './streaming/sse'
+export { extractPartialActivityDoc, type PartialActivityDoc } from './streaming/partial-doc'
+export { RECORDED_RESPONSES, type RecordedResponse } from './fixtures/recorded'
 export { intakeApproachTemplate, type IntakeApproachParams } from './prompts/kinds/intake-approach'
 export { intakeTopicsTemplate, type IntakeTopicsParams } from './prompts/kinds/intake-topics'
 export { intakePathTemplate, type IntakePathParams } from './prompts/kinds/intake-path'

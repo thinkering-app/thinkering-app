@@ -1,0 +1,14 @@
+{
+  "kind": "today.plan",
+  "promptVersion": 1,
+  "model": "hand-authored",
+  "fixture": "default",
+  "text": "{\"next\":[{\"goalId\":\"g3\",\"libraryItemId\":\"guided-discovery\",\"title\":\"Meine Familie: mein or meine?\",\"estMinutes\":10}],\"strengthen\":[{\"goalId\":\"g2\",\"libraryItemId\":\"focused-drill\",\"title\":\"Hätte gern: five quick orders\",\"estMinutes\":10},{\"goalId\":\"g1\",\"libraryItemId\":\"retrieval-quiz\",\"title\":\"Greetings from memory\",\"estMinutes\":8}],\"goFurther\":[{\"goalId\":\"g1\",\"libraryItemId\":\"make-something\",\"title\":\"Write your dinner-table intro\",\"estMinutes\":10},{\"goalId\":\"g2\",\"libraryItemId\":\"put-to-work\",\"title\":\"Plan your next real order\",\"estMinutes\":10}]}",
+  "usage": {
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0
+  },
+  "latencyMs": 0
+}

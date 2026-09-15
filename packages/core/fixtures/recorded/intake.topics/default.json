@@ -1,0 +1,14 @@
+{
+  "kind": "intake.topics",
+  "promptVersion": 1,
+  "model": "hand-authored",
+  "fixture": "default",
+  "text": "{\"topics\":[{\"label\":\"Everyday small talk\",\"origin\":\"motivation\",\"blurb\":\"Greetings, how-are-yous, and keeping a light conversation going.\"},{\"label\":\"Family conversations\",\"origin\":\"motivation\",\"blurb\":\"Talking about family members and asking about theirs.\"},{\"label\":\"Restaurant and food language\",\"origin\":\"motivation\",\"blurb\":\"Ordering, preferences, and dinner-table phrases.\"},{\"label\":\"Core pronunciation habits\",\"origin\":\"foundational\",\"blurb\":\"The handful of German sounds that make you understandable.\"},{\"label\":\"Present-tense sentence patterns\",\"origin\":\"foundational\",\"blurb\":\"The word-order skeleton most spoken sentences hang on.\"},{\"label\":\"Numbers, dates and time\",\"origin\":\"foundational\",\"blurb\":\"Understanding and saying the practical numbers of daily life.\"},{\"label\":\"Talking about your weekend\",\"origin\":\"foundational\",\"blurb\":\"The past tense you actually use in conversation.\"},{\"label\":\"Bavarian dinner culture\",\"origin\":\"adjacent\",\"blurb\":\"What to expect at a Munich table, and the phrases that fit.\"},{\"label\":\"German music and podcasts\",\"origin\":\"adjacent\",\"blurb\":\"Listening you’ll enjoy that doubles as practice.\"},{\"label\":\"Travel logistics German\",\"origin\":\"adjacent\",\"blurb\":\"Trains, tickets, and getting around on your next visit.\"}]}",
+  "usage": {
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0
+  },
+  "latencyMs": 0
+}

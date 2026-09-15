@@ -131,6 +131,19 @@ describe('POST /api/ai — validation and behavior', () => {
     expect(((await res.json()) as { error: string }).error).toBe('kind_limit_reached')
   })
 
+  it('accepts a repair round-trip and rejects an empty one', async () => {
+    const { store } = setupDeps()
+    const creds = await registerDevice(store)
+    const withRepair = JSON.stringify({
+      ...JSON.parse(APPROACH_BODY),
+      repair: { previousText: '{"domain": 42}', issues: ['domain: expected string'] },
+    })
+    expect((await aiPost(signedRequest('http://x/api/ai', creds, { body: withRepair }))).status).toBe(200)
+
+    const badRepair = JSON.stringify({ ...JSON.parse(APPROACH_BODY), repair: { previousText: 'x', issues: [] } })
+    expect((await aiPost(signedRequest('http://x/api/ai', creds, { body: badRepair }))).status).toBe(400)
+  })
+
   it('the logger never receives prompt or response bodies', async () => {
     const { store, logged } = setupDeps()
     const creds = await registerDevice(store)

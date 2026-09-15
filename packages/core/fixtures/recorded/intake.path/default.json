@@ -1,0 +1,14 @@
+{
+  "kind": "intake.path",
+  "promptVersion": 1,
+  "model": "hand-authored",
+  "fixture": "default",
+  "text": "{\"name\":\"Conversational German\",\"goals\":[{\"title\":\"Greet and introduce yourself\",\"description\":\"Handle the first minute of any conversation: greetings by register, your name, where you’re from.\",\"concepts\":[{\"label\":\"Greetings by register\",\"kind\":\"concept\"},{\"label\":\"Introducing yourself\",\"kind\":\"skill\"}]},{\"title\":\"Ask and answer how-are-you\",\"description\":\"The small-talk loop: asking, answering honestly, and bouncing the question back.\",\"concepts\":[{\"label\":\"Wie geht’s responses\",\"kind\":\"concept\"},{\"label\":\"Returning a question\",\"kind\":\"skill\"}]},{\"title\":\"Order food and drinks\",\"description\":\"Order politely, ask about dishes, and handle the bill.\",\"concepts\":[{\"label\":\"Restaurant phrases\",\"kind\":\"concept\"},{\"label\":\"Polite requests with hätte gern\",\"kind\":\"skill\"}]},{\"title\":\"Talk about your family\",\"description\":\"Name family members and say a sentence or two about each.\",\"concepts\":[{\"label\":\"Family vocabulary\",\"kind\":\"concept\"},{\"label\":\"Possessives mein/dein\",\"kind\":\"concept\"}]},{\"title\":\"Handle small talk about your weekend\",\"description\":\"Say what you did with the conversational past tense.\",\"concepts\":[{\"label\":\"Perfekt for past events\",\"kind\":\"concept\"},{\"label\":\"Weekend vocabulary\",\"kind\":\"concept\"}]},{\"title\":\"Understand menus and signs\",\"description\":\"Read the German you’ll actually encounter on a visit.\",\"concepts\":[{\"label\":\"Menu vocabulary\",\"kind\":\"concept\"},{\"label\":\"Skimming for meaning\",\"kind\":\"skill\"}]}]}",
+  "usage": {
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0
+  },
+  "latencyMs": 0
+}
