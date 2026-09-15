@@ -3,7 +3,7 @@ import {
   accumulateEvent,
   emptyAccumulator,
   extractJsonText,
-  FIXTURE_ACTIVITY_DOCS,
+  fixtureDocForGoal,
   getPromptTemplate,
   MODEL_IDS,
   parseActivityDoc,
@@ -199,8 +199,11 @@ async function executeOnce(
 async function fixtureCall(kind: string, params: unknown, opts: AiCallOptions): Promise<Execution> {
   let text: string
   if (kind === 'activity.generate') {
-    const tier = (params as { tier: 'introduce' | 'strengthen' | 'apply' }).tier
-    text = JSON.stringify(FIXTURE_ACTIVITY_DOCS[tier])
+    const { tier, goal } = params as {
+      tier: 'introduce' | 'strengthen' | 'apply'
+      goal: { concepts: { id: string; label: string }[] }
+    }
+    text = JSON.stringify(fixtureDocForGoal(tier, goal.concepts))
   } else {
     const recorded = RECORDED_RESPONSES[kind]
     if (!recorded) throw new Error(`no recorded fixture for kind "${kind}" — run pnpm prompt:run ${kind} --record`)

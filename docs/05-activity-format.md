@@ -22,7 +22,7 @@ type Page =
   | { id: string; kind: 'inserted'; blocks: Block[] } // created by G7 (Ask)
 ```
 
-Rules: 3–7 pages for a 5-minute session, scaling with `estMinutes`. Exactly one `review` page (second-to-last) and one `summary` page (last). Every non-summary page includes at least one interactive block. The renderer owns the progress bar (pages = segments; inserted pages extend it), back/forward navigation, and the always-visible Ask button.
+Rules: 3–7 pages for a 5-minute session, scaling with `estMinutes`. Exactly one `review` page (second-to-last) and one `summary` page (last). Every non-summary page includes at least one interactive block. The renderer owns the progress bar (pages = segments; inserted pages extend it), back/forward navigation, and the always-visible Ask button — which sits in the navigation footer beside Back/Continue, in thumb reach, not in the header.
 
 ## Block types (v1)
 
@@ -33,7 +33,7 @@ Content:
 - `list { style: bullet|numbered, items: md[] }`
 - `callout { tone: note|example|tip, md }` — rendered as a tinted card
 - `steps { items: {label, md}[] }` — worked-example step sequence
-- `resourceEmbed { resourceId?, url, media: video|article, title, startSec?, endSec?, focus?: md }` — the field is `media` (not `kind`) because `kind` is the block discriminator — embeds a resource: YouTube inline player (iframe on web, native player/WebView on iOS) optionally clipped to a segment; articles as a titled link card with an excerpt/focus prompt. Per multimedia-learning research, G5b segments videos (short clips, not whole videos) and pairs each embed with an interactive block (embedded questions), and `focus` tells the learner what to watch/read for before they start.
+- `resourceEmbed { resourceId?, url, media: video|article, title, startSec?, endSec?, focus?: md }` — the field is `media` (not `kind`) because `kind` is the block discriminator — embeds a resource: YouTube inline player (WebView on iOS/Android; the web export has no WebView, so it degrades to a link card) optionally clipped to a segment; articles as a titled link card with an excerpt/focus prompt. Per multimedia-learning research, G5b segments videos (short clips, not whole videos) and pairs each embed with an interactive block (embedded questions), and `focus` tells the learner what to watch/read for before they start.
 
 Interactive (all record into `responses`):
 
@@ -50,7 +50,7 @@ Renderer contract: unknown block kinds render as a graceful "update the app" pla
 ## Behavior
 
 - **Responses** save immediately on interaction (`responses` table) — no submit buttons where avoidable.
-- **Review page (G6)**: fires when the user completes the last interactive block before the review page. Picks the single highest-value thing to address in their responses: a misconception to correct (kindly, directly), a good answer to build on, or an implicit question to answer. If responses were sparse, it reinforces the trickiest concept instead.
+- **Review page (G6)**: fires when the user moves past the last page holding an interactive block before the review page. Picks the single highest-value thing to address in their responses: a misconception to correct (kindly, directly), a good answer to build on, or an implicit question to answer. If responses were sparse, it reinforces the trickiest concept instead.
 - **Summary page**: G5b provides the concept recap blocks; the renderer appends the standard rating row (👎 / mixed / 👍 + optional text) which writes to `activities.rating`, plus the quiet per-activity "share with the developers" action (D18, see `08`).
 - **Ask (G7)**: inserts an `inserted` page after the current index and jumps to it. Multiple asks allowed; each extends the doc (persisted, so it survives resume).
 - **Completion**: reaching the summary and tapping done → `status = completed`, `completed_at` set, goal status transition applied, section completion state updates on Today.

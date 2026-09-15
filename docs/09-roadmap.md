@@ -35,14 +35,16 @@ Milestones broken into session-sized work packages (WP) suitable for one agent s
 
 ## M4 — Today & activity player
 
-- **WP4.1 Today screen**: interest selector pills (+ Explore row), section headers with completion wash + counts, cards from scheduler + G5a (cached daily plan), configure sheets (library checkboxes + info dialogs), routine free-text (G11).
-- **WP4.2 Activity player**: renderer for all block types against fixtures (including `resourceEmbed` video/article embeds) — progress bar, back/forward, response persistence, summary rating + share-activity action, resume. No LLM needed (fixtures). One behavioral test per block kind + the unknown-kind placeholder (`10`).
-- **WP4.3 Live generation**: G5b streamed into the player (first page fast), Next-card prefetch, G6 review-page fill, G7 Ask inserted pages, goal status transitions + completion states.
+**Done 2026-09-15.** Deviations, recorded in the docs they touch: G5a's daily plan is cached as its `planned` activity rows rather than in `gen_cache`, and a configure change re-plans only the affected section's untouched cards (`03`); `activities` gained a nullable `topic` for the prerequisite-fallback card, which the schema couldn't express (`03`, migration 0001); the client zips G5a's cards with the scheduler's picks by position and ignores the returned `goal_id` (`04`); the Ask button sits in the navigation footer, not the header (`05`); `resourceEmbed` video degrades to a link card on the web export, which has no WebView (`05`); G6/G7/G11 templates and `activity.generate` v2 are in `04`. Three prompt-level fixes came out of running the kinds live — fence-stripping at the parse boundary, spelling out the block `"kind"` discriminator, and pinning the closing review/summary pages (`04`). New deps: `react-native-webview`, and a `jest-expo` + RNTL harness for the renderer tests (`10`). Verified on the iOS simulator in fixture mode: plan → card → streamed activity → interactions → G6 review page → summary rating → completion wash on Today.
+
+- ~~**WP4.1 Today screen**~~ ✅: interest selector pills (+ Explore row), section headers with completion wash + counts, cards from scheduler + G5a (cached daily plan), configure sheets (library checkboxes + info dialogs), routine free-text (G11).
+- ~~**WP4.2 Activity player**~~ ✅: renderer for all block types against fixtures (including `resourceEmbed` video/article embeds) — progress bar, back/forward, response persistence, summary rating + share-activity action, resume. No LLM needed (fixtures). One behavioral test per block kind + the unknown-kind placeholder (`10`).
+- ~~**WP4.3 Live generation**~~ ✅: G5b streamed into the player (first page fast), Next-card prefetch, G6 review-page fill, G7 Ask inserted pages, goal status transitions + completion states.
 
 ## M5 — Path
 
 - **WP5.1 Goal list**: status color treatments, expandable concepts/skills with coverage (D16), reorder, edit; suggested goals (G9); path settings screen (all editable intake fields + contexts).
-- **WP5.2 Reflection**: flow per `01` with G8; path update application; Today's reflect card trigger (≤3 not-started goals).
+- **WP5.2 Reflection**: flow per `01` with G8; path update application; Today's reflect card trigger (≤3 not-started goals — the scheduler already computes `showReflectCard`; Today does not render it yet).
 - **WP5.3 Resources**: list + add-by-link (G10 w/ server URL fetch), intake seeding via G4 (web_search), resource consideration wired into G5b context.
 
 ## M6 — History & Me

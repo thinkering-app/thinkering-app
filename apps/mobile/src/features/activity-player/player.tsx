@@ -105,16 +105,6 @@ export function ActivityPlayer({
           <View className="flex-1">
             <ProgressBar total={doc.pages.length} current={index} />
           </View>
-          {onAsk ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Ask"
-              onPress={onAsk}
-              hitSlop={12}
-            >
-              <Ionicons name="help-circle-outline" size={22} color={colors.cornflower.deep} />
-            </Pressable>
-          ) : null}
         </View>
 
         <ResponsesProvider sink={sink}>
@@ -162,6 +152,18 @@ export function ActivityPlayer({
               />
             )}
           </View>
+          {/* Ask sits with the navigation, in reach of a thumb — it's available
+              on every page, not a header affordance (docs/05). */}
+          {onAsk ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Ask"
+              onPress={onAsk}
+              className="h-11 w-11 items-center justify-center rounded-pill border border-hairline active:bg-cornflower-tint"
+            >
+              <Ionicons name="help-circle-outline" size={22} color={colors.cornflower.deep} />
+            </Pressable>
+          ) : null}
         </View>
       </KeyboardAvoidingView>
       {overlay}

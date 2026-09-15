@@ -10,8 +10,8 @@ Every LLM call has a `kind` id, a versioned prompt template in `packages/core/pr
 | G2  | `intake.topics`     | Intake step 3 → 4 (awaits G1)                                  | Sonnet                     | Background; step 4 buys time; brief branded wait if needed           |
 | G3  | `intake.path`       | Intake step 5 → 6                                              | Sonnet                     | Streamed onto step 6 (name first, then goals)                        |
 | G4  | `resources.search`  | Intake complete                                                | Sonnet + web_search tool   | Fully background; resources appear when ready                        |
-| G5a | `today.plan`        | App open / interest created / plan stale (new local date)      | Haiku                      | Fast (~1–2s); cached per interest per day in `gen_cache`             |
-| G5b | `activity.generate` | Card tap (Next card prefetched after G5a)                      | Sonnet                     | Streamed; page 1 renders as soon as it parses (~2–4s to first page)  |
+| G5a | `today.plan`        | App open / interest created / plan stale (new local date)      | Haiku                      | Fast (~3–4s); the day's `planned` activity rows are the cache        |
+| G5b | `activity.generate` | Card tap (Next card prefetched after G5a)                      | Sonnet                     | Streamed; page 1 renders as soon as it parses. 40–60s and 4–6k output tokens end to end for a 10-minute activity, so the stream is the experience |
 | G6  | `activity.review`   | User finishes the last interactive page before the review slot | Haiku                      | Runs while user reads the following page; soft skeleton if not ready |
 | G7  | `activity.question` | Ask button                                                     | Sonnet                     | Streamed into the inserted page                                      |
 | G8  | `reflect.update`    | Reflection flow submit                                         | Sonnet                     | Streamed suggestions                                                 |
@@ -25,7 +25,7 @@ Every LLM call has a `kind` id, a versioned prompt template in `packages/core/pr
 - **G2 →** `{topics: [{label, origin: motivation|foundational|adjacent, blurb}]}` (~10).
 - **G3 →** `{name, goals: [{title, description, concepts: [{label, kind: concept|skill}]}]}` — 5–8 goals, pedagogically sequenced, each scoped to one session (5 min session → introducible in 5; 10/15 → 5–10 min of new material). Concept/skill items become the goal's first-class concepts (D16); labels are 2–5 words because they render as chips, and ids are assigned on save.
 - **G4 →** `{resources: [{url, title, description, how_to_use, summary, goal_titles[]}]}` — reputable articles/videos matched to specific goals.
-- **G5a →** per section: `[{goal_id, library_item_id, title, est_minutes}]` — respects scheduler-chosen goals (the scheduler picks goals; G5a picks the library item from the active set and writes a human title).
+- **G5a →** per section: `[{goal_id, library_item_id, title, est_minutes}]` — respects scheduler-chosen goals (the scheduler picks goals; G5a picks the library item from the active set and writes a human title). The client zips the returned cards with the scheduler's picks **by position** and ignores the returned `goal_id` entirely: the scheduler owns the goal, and a hallucinated or stale id must not be able to point a card at the wrong one. A `library_item_id` outside the active set falls back to the first active item rather than generating something the user turned off.
 - **G5b →** an Activity Document (`05-activity-format.md`), including the empty reserved review page. Declares which of the goal's concept/skill ids it targets so coverage and in-activity highlighting work (D16).
 - **G6 →** content blocks for the review page: respond to / build on / correct the highest-value thing in their responses.
 - **G7 →** one new page (content + optional interaction) answering the question.
@@ -55,7 +55,9 @@ A deterministic builder in `packages/core/context` produces the per-interest con
 
 ## Failure handling
 
-- All calls: one automatic retry on transient failure; schema-invalid output → one repair round-trip (send validation errors back), then a user-visible "couldn't generate, try again" state. Never render unvalidated output.
+- All calls: one automatic retry on transient failure; schema-invalid output → one repair round-trip (send validation errors back), then a user-visible "couldn't generate, try again" state. Never render unvalidated output. A document that fails validation is a failure, not a partial success: the pages that streamed before it are discarded with it.
+- **Markdown fences**: models wrap JSON in ```json despite the output contract (Haiku on nearly every call). `extractJsonText` strips a wrapping fence at the single parse boundary — cheaper and calmer than a repair round-trip per call.
+- **Discriminator drift**: both Sonnet and Haiku emitted `"type"` instead of `"kind"` for blocks while the format was described in prose, which failed every activity document. The block format in `prompts/preamble.ts` spells out the discriminator with an example, and `activity.generate` pins the closing review/summary page pair explicitly — the last page came back as a content page about half the time without it. Both are load-bearing; check `pnpm prompt:check activity.generate` after touching either.
 - G6 not ready when the user reaches the review page: show it as "one more look at your answers…" skeleton for up to ~5s, then gracefully convert the page to a generic summary if the call failed.
 - Aborted streams (user backs out): mark `llm_calls.status = aborted`; keep partial doc only if ≥1 valid page.
 

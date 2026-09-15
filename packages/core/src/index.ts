@@ -19,6 +19,7 @@ export {
 export { planToday, tierForSection, type SchedulerGoal, type CardPick, type TodayPlan } from './scheduler/plan'
 export {
   FIXTURE_ACTIVITY_DOCS,
+  fixtureDocForGoal,
   FIXTURE_DOC_APPLY,
   FIXTURE_DOC_INTRODUCE,
   FIXTURE_DOC_STRENGTHEN,

@@ -44,7 +44,8 @@ Concept **coverage** (which concepts/skills have been targeted — shown when a 
 
 | column                               | type  | notes                                                       |
 | ------------------------------------ | ----- | ----------------------------------------------------------- |
-| id / interest_id / goal_id           |       |                                                             |
+| id / interest_id / goal_id           |       | `goal_id` null only on the strengthen prerequisite card     |
+| topic                                | text? | the prerequisite card's topic, when it has no goal yet      |
 | section                              | text  | `next \| strengthen \| go_further`                          |
 | tier                                 | text  | `introduce \| strengthen \| apply`                          |
 | library_item_id                      | text  | e.g. `worked-example`                                       |
@@ -92,7 +93,7 @@ Absent row = library item's default activation. Library definitions themselves l
 
 `id, kind (daily_plan | goal_suggestions | …), scope_key text (e.g. interest_id + local date), payload json, created_at, expires_at`
 
-Caches G5a daily plans, G9 suggestions, etc. Safe to wipe.
+Caches G9 suggestions and anything else keyed by scope. Safe to wipe — nothing here is a source of truth. G5a's daily plan is **not** cached here: its `planned` activity rows are the durable artifact (they hold the document, resume point and responses), so caching the plan separately would be a second source of truth for the same thing.
 
 ## llm_calls — local only, for the AI Inspector
 
@@ -116,5 +117,5 @@ Pruned to last ~200 calls. Never synced.
 ## Invariants
 
 - Goal status only moves forward; timestamps set once per transition (completing a strengthen activity on an `applied` goal updates `strengthened_at` but not status).
-- One `planned` daily-plan set per interest per local date; regenerated only via explicit refresh or config change.
+- One `planned` daily-plan set per interest per local date; regenerated only via explicit refresh or config change. A configure change drops that section's *untouched* cards and re-plans only that section — anything started or completed stays.
 - Deleting an interest soft-deletes its children (cascade in application code).

@@ -45,7 +45,7 @@ Implementation: one typed `track()` wrapper in `apps/mobile/src/analytics` whose
 We want to see whether generated activities are actually good without ambient content collection. Two layers:
 
 1. **Aggregate signal** (PostHog, opt-in): `activity_completed` carries rating × library_item_id × tier × model — enough to spot "faded examples are rating poorly in language interests" without any content.
-2. **Shared activity reports** (explicit, per-activity): the summary page offers "Share this activity with the developers". Sharing sends the generated activity content, the rating + comment, and the library item/kind metadata to us (feedback route → email for beta; a Supabase `shared_activities` table if volume grows). The user's own responses are **excluded by default**, with a checkbox to include them. Nothing is ever shared without this explicit action.
+2. **Shared activity reports** (explicit, per-activity): the summary page offers "Share this activity with the developers". Sharing sends the generated activity content, the rating + comment, and the library item/kind metadata to us (feedback route → email for beta, as an `activityReport` field the route forwards and never stores; a Supabase `shared_activities` table if volume grows). The user's own responses are **excluded by default**, with a checkbox to include them — and when included they travel as plain question/answer lines, not raw payloads. Nothing is ever shared without this explicit action.
 
 ## What the server sees (and doesn't keep)
 

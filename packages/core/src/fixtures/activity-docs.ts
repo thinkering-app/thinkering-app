@@ -1,3 +1,4 @@
+import type { Tier } from '../domain'
 import type { ActivityDoc } from '../schemas/activity-doc'
 
 /**
@@ -315,3 +316,26 @@ export const FIXTURE_ACTIVITY_DOCS = {
   strengthen: FIXTURE_DOC_STRENGTHEN,
   apply: FIXTURE_DOC_APPLY,
 } as const
+
+/**
+ * The fixture document for a tier, re-pointed at a real goal's concepts. The
+ * hand-written docs carry the seed interest's concept ids, which belong to no
+ * other goal — served as-is, fixture mode would fail its own validation
+ * boundary for every interest but the seeded one.
+ */
+export function fixtureDocForGoal(
+  tier: Tier,
+  goalConcepts: readonly { id: string; label: string }[],
+): ActivityDoc {
+  const doc = FIXTURE_ACTIVITY_DOCS[tier]
+  if (goalConcepts.length === 0) {
+    return { ...doc, concepts: doc.concepts.map(({ label }) => ({ label })) }
+  }
+  return {
+    ...doc,
+    concepts: doc.concepts.map((concept, i) => {
+      const target = goalConcepts[i]
+      return target ? { goalConceptId: target.id, label: target.label } : { label: concept.label }
+    }),
+  }
+}

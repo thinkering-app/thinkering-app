@@ -215,7 +215,9 @@ export default function ActivityScreen() {
   )
 
   if (!activity) return <Missing message="This activity is no longer here." />
-  if (genError && !shown) {
+  // A document that failed to generate doesn't get to look like one that
+  // half-arrived: the partial pages go with it.
+  if (genError && !doc) {
     return (
       <Missing>
         <GenerationError message={genError} onRetry={() => setAttempt((n) => n + 1)} />

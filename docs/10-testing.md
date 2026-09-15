@@ -51,7 +51,8 @@ Route handlers are called directly with a `Request`; the Anthropic SDK is mocked
 
 ### Tier 4 — renderer and app
 
-- One behavioral test per block kind, driven by the same ActivityDoc fixtures used in development: it renders, accepts interaction, and writes the expected `responses` row.
+- One behavioral test per block kind, driven by the same ActivityDoc fixtures used in development: it renders, accepts interaction, and records the exact payload the `responses` row will carry. Blocks write through a sink the player supplies, so the assertion is on the payload, not on SQLite — the row-writing itself is a `packages/db` test.
+- Harness: `jest-expo` + React Native Testing Library in `apps/mobile` (`pnpm test`). RNTL 14's `render` and `fireEvent` are **async** — `await` them. Rendering repeatedly inside one test (a loop with `unmount()`) trips "overlapping act()" and silently renders nothing; use `it.each` instead.
 - Unknown block kind renders the placeholder and doesn't take down the page (`05`).
 - Resume restores `current_page`; a partial streamed doc with one valid page renders.
 
