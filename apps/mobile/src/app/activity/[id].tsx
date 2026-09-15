@@ -40,7 +40,8 @@ import {
 } from '@/features/activity-player/generate'
 import { ActivityPlayer } from '@/features/activity-player/player'
 import type { ResponseSink } from '@/features/activity-player/responses'
-import { postFeedback, type ActivityReport } from '@/feedback/client'
+import { postActivityReport, type ActivityReport } from '@/feedback/client'
+import { useFeedbackContext } from '@/feedback/context'
 
 /**
  * Playing one activity (docs/05). The route owns everything durable — the
@@ -66,6 +67,7 @@ export default function ActivityScreen() {
   const [askState, setAskState] = useState<'idle' | 'pending' | 'error'>('idle')
   const [askError, setAskError] = useState<string>()
   const reviewRequested = useRef(false)
+  const feedbackContext = useFeedbackContext()
 
   // The live answer map is the sink's own: sharing reads the latest answers
   // without the player re-rendering every time one is recorded.
@@ -203,15 +205,11 @@ export default function ActivityScreen() {
         doc,
         ...(includeResponses ? { responses: describeAnswers(doc, answers) } : {}),
       }
-      postFeedback({
-        message: `Shared activity: ${activity.title}`,
-        screen: 'activity',
-        activityReport: report,
-      })
+      postActivityReport(report, feedbackContext)
         .then(() => setShareState('done'))
         .catch(() => setShareState('error'))
     },
-    [activity, answers, doc, rating, ratingText],
+    [activity, answers, doc, feedbackContext, rating, ratingText],
   )
 
   if (!activity) return <Missing message="This activity is no longer here." />
