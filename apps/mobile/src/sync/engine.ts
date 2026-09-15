@@ -38,16 +38,20 @@ export function syncNow(): Promise<SyncOutcome> {
 }
 
 async function runSync(): Promise<SyncOutcome> {
-  if (!backupConfigured || !isBackupEnabled(db)) return { ok: false, reason: 'off' }
-
-  const client = supabase()
-  const { data: sessionData } = await client.auth.getSession()
-  const userId = sessionData.session?.user.id
-  if (!userId) return { ok: false, reason: 'signed_out' }
-
-  const cursors = getSyncCursors(db)
+  if (!backupConfigured) return { ok: false, reason: 'off' }
 
   try {
+    // Keep every database read inside the error boundary. In particular, the
+    // first web sync can overlap initial route reads while expo-sqlite's worker
+    // is still settling; optional backup work must never take down the app.
+    if (!isBackupEnabled(db)) return { ok: false, reason: 'off' }
+
+    const client = supabase()
+    const { data: sessionData } = await client.auth.getSession()
+    const userId = sessionData.session?.user.id
+    if (!userId) return { ok: false, reason: 'signed_out' }
+
+    const cursors = getSyncCursors(db)
     const remote: unknown[] = []
     for (let from = 0; ; from += PAGE) {
       const { data, error } = await client

@@ -1,0 +1,23 @@
+{
+  "format": "thinkering-export",
+  "formatVersion": 1,
+  "schemaVersion": 1,
+  "exportedAt": 1789490000000,
+  "tables": {
+    "interests": [
+      {
+        "id": "web-smoke-interest",
+        "name": "Web persistence",
+        "wantToLearn": "Whether browser-local data survives navigation",
+        "whyChoice": "fun",
+        "experienceChoice": "explored",
+        "frequency": "daily",
+        "sessionMinutes": 5,
+        "status": "focus",
+        "sortOrder": 1,
+        "createdAt": 1789490000000,
+        "updatedAt": 1789490000000
+      }
+    ]
+  }
+}

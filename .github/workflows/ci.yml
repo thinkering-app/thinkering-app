@@ -17,7 +17,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm verify
-      - name: Web export smoke build (mobile)
-        run: pnpm --filter @thinkering/mobile export:web
+      - name: Web app smoke test
+        run: pnpm --filter @thinkering/mobile test:web
       - name: Landing build
         run: pnpm --filter @thinkering/web build

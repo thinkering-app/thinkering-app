@@ -10,14 +10,14 @@ Nothing in the gate touches the network, a model, a simulator, or a real Supabas
 
 ## Where the effort goes
 
-| Tier | Surface                                                                 | Tool                              | Share of effort      |
-| ---- | ----------------------------------------------------------------------- | --------------------------------- | -------------------- |
-| 1    | `packages/core` — scheduler, schemas, prompt assembly, context, library | vitest                            | ~45%                 |
-| 2    | `packages/db` — migrations, repositories, sync merge, export/import     | vitest + better-sqlite3           | ~25%                 |
-| 3    | `apps/web/app/api` — validation, device auth, metering                  | vitest (handlers called directly) | ~15%                 |
-| 4    | Activity renderer + a few app behaviors                                 | React Native Testing Library      | ~10%                 |
-| 5    | Prompt/LLM quality                                                      | `pnpm prompt:check`, AI Inspector | manual loop, not CI  |
-| 6    | E2E on iOS sim                                                          | Maestro                           | 3 flows, pre-release |
+| Tier | Surface                                                                 | Tool                              | Share of effort     |
+| ---- | ----------------------------------------------------------------------- | --------------------------------- | ------------------- |
+| 1    | `packages/core` — scheduler, schemas, prompt assembly, context, library | vitest                            | ~45%                |
+| 2    | `packages/db` — migrations, repositories, sync merge, export/import     | vitest + better-sqlite3           | ~25%                |
+| 3    | `apps/web/app/api` — validation, device auth, metering                  | vitest (handlers called directly) | ~15%                |
+| 4    | Activity renderer + a few app behaviors                                 | React Native Testing Library      | ~10%                |
+| 5    | Prompt/LLM quality                                                      | `pnpm prompt:check`, AI Inspector | manual loop, not CI |
+| 6    | E2E on iOS sim + web startup/data smoke                                 | Maestro + Playwright              | pre-release + CI    |
 
 ### Tier 1 — `packages/core`
 
@@ -73,6 +73,8 @@ Quality judgment stays human: eyeball the output in the AI Inspector, and record
 ### Tier 6 — E2E
 
 Three Maestro flows on the iOS simulator, run before a release, not per PR: intake → a path exists; Today → complete an activity → history entry and goal status advanced; export → import. They live in `apps/mobile/.maestro` with a README, run with `pnpm e2e`, and share one install — flow 1 leaves the interest that flows 2 and 3 use. They run in **fixture AI mode**, so they're deterministic and free.
+
+CI also runs `pnpm --filter @thinkering/mobile test:web`: it exports the production web app in fixture mode, serves it with the headers from `vercel.json`, and drives Chrome from a fresh install through a backup restore. Re-entering `/` must land on Today, proving that the SQLite worker started, migrations ran, an Interest was written, and browser-local data persisted. This is intentionally one end-to-end smoke test; component behavior remains covered at the cheaper tiers above.
 
 Three things about them are worth knowing before editing one:
 
