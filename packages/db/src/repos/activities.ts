@@ -64,9 +64,10 @@ export function attachDoc(db: Database, ctx: RepoContext, id: string, doc: Activ
     .run()
 }
 
+/** Reopening a completed activity from History must not un-complete it. */
 export function startActivity(db: Database, ctx: RepoContext, id: string): void {
   const current = getActivity(db, id)
-  if (!current) return
+  if (!current || current.status === 'completed') return
   const now = ctx.now()
   db.update(activities)
     .set({ status: 'in_progress', startedAt: current.startedAt ?? now, updatedAt: now })

@@ -20,6 +20,7 @@ import { listGoals } from '@thinkering/db'
 
 import { describeAiError } from '@/ai'
 import { db } from '@/db'
+import { deviceTimeZone } from '@/time'
 import { prefetchNextActivity } from '@/features/activity-player/generate'
 import { ensureDailyPlan, hasPlanFor } from './plan'
 
@@ -63,10 +64,6 @@ export interface TodayView {
 }
 
 const HISTORY_LOOKBACK = 30
-
-export function deviceTimeZone(): string {
-  return Intl.DateTimeFormat().resolvedOptions().timeZone
-}
 
 export function useToday(interests: Interest[]): TodayView {
   const timeZone = deviceTimeZone()

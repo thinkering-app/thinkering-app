@@ -90,3 +90,16 @@ export {
   type ReflectionPlan,
   type SuggestedAddition,
 } from './path/reflection'
+export { outcomeLine, type OutcomeInput } from './history/outcome'
+export { groupByLocalDay, type DayGroup } from './history/grouping'
+export {
+  isSameMonth,
+  monthBoundsMs,
+  monthGrid,
+  monthLabel,
+  shiftMonth,
+  WEEKDAY_LABELS,
+  yearMonthOf,
+  type CalendarDay,
+  type YearMonth,
+} from './history/calendar'
