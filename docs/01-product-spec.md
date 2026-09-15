@@ -77,7 +77,7 @@ Multi-page, rendered from an Activity Document (`05-activity-format.md`). Top pr
 
 For the selected single interest:
 
-- **Goal list**, in path order. Status shown by color treatment, not pills: `not_started` = plain white card, `introduced` = light cornflower wash, `strengthened` = solid cornflower (light text), `applied` ("Put to use") = a distinct warm celebratory treatment (peach edge/glow — a delighter, since going further is optional). Long-press / drag to reorder; tap to view/edit a goal.
+- **Goal list**, in path order. Status shown by color treatment, not pills: `not_started` = plain white card, `introduced` = light cornflower wash, `strengthened` = solid cornflower (light text), `applied` ("Put to use") = a distinct warm celebratory treatment (peach edge/glow — a delighter, since going further is optional). Long-press a goal to turn on reorder mode — each card grows up/down controls and the header a Done button (a drag gesture was not worth a reanimated gesture handler for a 5–8 item list). Tap a goal to expand it; the pencil opens its title/description for editing, or removes it.
 - **Expandable goals (D16)**: tapping a goal expands it to show the concepts and skills beneath it, with subtle coverage indicators for those already targeted by completed activities. Activities highlight these same concept/skill labels (summary chips, in-page emphasis) so the user can see what they're building.
 - **Reflection card** ("Reflect on progress and update path"): opens the Reflection flow — (1) a prompt on how their learning feels and what they want to focus on next (free text); (2) their current goal list with the ability to remove/reorder, a field to add their own goal, and **G8**-generated suggestions based on the reflection, their interests, and adjacent topics. Accepting produces an updated path.
 - **3 suggested goals** always at the bottom (from **G9**, cached, regenerated when the path changes) — one tap to add.
@@ -92,7 +92,7 @@ List of resources for the interest. Each has: title, link, short description, "h
 
 ### Path settings (⚙ icon on Path)
 
-Editable fields, all from intake: short interest name · what they want to learn · why (selection) · why (text) · experience (selection) · experience (text) · frequency · session length · topics of interest (add/delete; considered when suggesting goals) · approach notes (from G1, editable) · **Contexts**: projects, environments, and people related to this interest (add/edit/delete) — considered when generating Go further activities, included only when they genuinely add value.
+Reached from the ⚙ in the Path header. Text fields commit with **Save**; the lists (topics, contexts) act as they are tapped. Editable fields, all from intake: short interest name · what they want to learn · why (selection) · why (text) · experience (selection) · experience (text) · frequency · session length · topics of interest (add/delete; considered when suggesting goals) · approach notes (from G1, editable) · **Contexts**: projects, environments, and people related to this interest (add/edit/delete) — considered when generating Go further activities, included only when they genuinely add value.
 
 ## 6. History
 

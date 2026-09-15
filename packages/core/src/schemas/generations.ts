@@ -34,24 +34,32 @@ export const topicsOutputSchema = z.object({
 })
 export type TopicsOutput = z.infer<typeof topicsOutputSchema>
 
+/**
+ * One generated goal, as G3, G8 and G9 all emit it. Concept ids are assigned on
+ * save (docs/04), so the model only supplies labels and kinds.
+ */
+export const generatedGoalSchema = z.object({
+  title: z.string().min(1).max(80),
+  description: z.string().min(1).max(240),
+  concepts: z
+    .array(z.object({ label: z.string().min(1).max(60), kind: z.enum(['concept', 'skill']) }))
+    .min(1)
+    .max(6),
+})
+export type GeneratedGoal = z.infer<typeof generatedGoalSchema>
+
 /** G3 `intake.path` — interest name + 5–8 sequenced goals with concepts (D16). */
 export const pathOutputSchema = z.object({
   name: z.string().min(1).max(40),
-  goals: z
-    .array(
-      z.object({
-        title: z.string().min(1).max(80),
-        description: z.string().min(1).max(240),
-        concepts: z
-          .array(z.object({ label: z.string().min(1).max(60), kind: z.enum(['concept', 'skill']) }))
-          .min(1)
-          .max(6),
-      }),
-    )
-    .min(4)
-    .max(9),
+  goals: z.array(generatedGoalSchema).min(4).max(9),
 })
 export type PathOutput = z.infer<typeof pathOutputSchema>
+
+/** G9 `path.suggestGoals` — the three suggestions at the bottom of Path. */
+export const suggestedGoalsOutputSchema = z.object({
+  goals: z.array(generatedGoalSchema).min(1).max(4),
+})
+export type SuggestedGoalsOutput = z.infer<typeof suggestedGoalsOutputSchema>
 
 /**
  * G5a `today.plan` — the scheduler picks the goals; G5a picks a library item

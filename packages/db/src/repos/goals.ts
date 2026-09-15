@@ -1,5 +1,13 @@
 import { and, asc, eq, isNull } from 'drizzle-orm'
-import { advanceGoalStatus, type GoalConcept, type GoalSource, type SchedulerGoal, type Tier } from '@thinkering/core'
+import {
+  advanceGoalStatus,
+  respreadSortOrders,
+  sortOrderBetween,
+  type GoalConcept,
+  type GoalSource,
+  type SchedulerGoal,
+  type Tier,
+} from '@thinkering/core'
 import type { Database, RepoContext } from '../database'
 import { goals } from '../schema'
 
@@ -48,6 +56,36 @@ export function listGoals(db: Database, interestId: string): Goal[] {
     .where(and(eq(goals.interestId, interestId), isNull(goals.deletedAt)))
     .orderBy(asc(goals.sortOrder), asc(goals.id))
     .all()
+}
+
+/** Appends to the end of the path — where a suggestion or a user-added goal lands. */
+export function nextGoalSortOrder(db: Database, interestId: string): number {
+  const orders = listGoals(db, interestId).map((g) => g.sortOrder)
+  return orders.length === 0 ? 1 : Math.max(...orders) + 1
+}
+
+/**
+ * Moves a goal to `targetIndex` in path order (docs/01 §5 reorder). One row
+ * changes, via a fractional order between its new neighbours; if midpoints have
+ * exhausted double precision, the whole path is renumbered instead.
+ */
+export function moveGoal(db: Database, ctx: RepoContext, goalId: string, targetIndex: number): void {
+  const goal = getGoal(db, goalId)
+  if (!goal) return
+  const path = listGoals(db, goal.interestId)
+  const without = path.filter((g) => g.id !== goalId)
+  const index = Math.max(0, Math.min(targetIndex, without.length))
+  const order = sortOrderBetween(without[index - 1]?.sortOrder ?? null, without[index]?.sortOrder ?? null)
+  const now = ctx.now()
+  if (order === null) {
+    const reordered = [...without.slice(0, index), goal, ...without.slice(index)]
+    const spread = respreadSortOrders(reordered.length)
+    for (const [i, row] of reordered.entries()) {
+      db.update(goals).set({ sortOrder: spread[i]!, updatedAt: now }).where(eq(goals.id, row.id)).run()
+    }
+    return
+  }
+  db.update(goals).set({ sortOrder: order, updatedAt: now }).where(eq(goals.id, goalId)).run()
 }
 
 export type GoalPatch = Partial<Pick<Goal, 'title' | 'description' | 'concepts' | 'sortOrder'>>

@@ -23,6 +23,21 @@ export function getCached<T>(db: Database, kind: string, scopeKey: string, nowMs
   return row.payload as T
 }
 
+/**
+ * Cache read for a React render path, where reading a clock is impure: an entry
+ * that carries an expiry is treated as absent rather than compared against now.
+ * Kinds keyed by a content signature (G9's path signature) never set one — the
+ * key going stale is what expires them.
+ */
+export function getCachedUnexpiring<T>(db: Database, kind: string, scopeKey: string): T | undefined {
+  const row = db
+    .select()
+    .from(genCache)
+    .where(and(eq(genCache.kind, kind), eq(genCache.scopeKey, scopeKey)))
+    .get()
+  return row && row.expiresAt === null ? (row.payload as T) : undefined
+}
+
 export function putCached(
   db: Database,
   ctx: RepoContext,

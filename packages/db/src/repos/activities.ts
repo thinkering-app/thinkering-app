@@ -189,6 +189,25 @@ export function listHistory(
 }
 
 /**
+ * What every completed activity of an interest declared it targeted — the input
+ * to concept coverage (D16, `conceptCoverage` in packages/core). An interest's
+ * completed set stays small, so this reads them whole rather than paging.
+ */
+export function listCoverage(db: Database, interestId: string): { goalId: string | null; doc: ActivityDoc | null }[] {
+  return db
+    .select({ goalId: activities.goalId, doc: activities.doc })
+    .from(activities)
+    .where(
+      and(
+        eq(activities.interestId, interestId),
+        eq(activities.status, 'completed'),
+        isNull(activities.deletedAt),
+      ),
+    )
+    .all()
+}
+
+/**
  * Writes the day's cards for an interest in one transaction (docs/03: one
  * planned set per interest per local date) — a half-written plan would read as
  * a complete one next time Today loads.

@@ -66,3 +66,7 @@ export { activityGenerateTemplate, type ActivityGenerateParams } from './prompts
 export { activityReviewTemplate, type ActivityReviewParams } from './prompts/kinds/activity-review'
 export { activityQuestionTemplate, type ActivityQuestionParams } from './prompts/kinds/activity-question'
 export { routineCustomizeTemplate, type RoutineCustomizeParams } from './prompts/kinds/routine-customize'
+export { pathSuggestGoalsTemplate, type PathSuggestGoalsParams } from './prompts/kinds/path-suggest-goals'
+export { sortOrderBetween, respreadSortOrders } from './path/ordering'
+export { conceptCoverage, type CoverageActivity } from './path/coverage'
+export { pathSignature } from './path/signature'
