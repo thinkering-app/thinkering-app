@@ -12,15 +12,19 @@ Milestones broken into session-sized work packages (WP) suitable for one agent s
 
 ## M1 — Data layer
 
-- **WP1.1 Schema**: `packages/db` drizzle schema per `03`, drizzle-kit migrations, `useMigrations` on app start; UUIDv7 util; repository functions for interests/goals/activities/responses. Migration harness (better-sqlite3 in node): empty → head, the additive-first check, and the `fixtures/db/v<N>.sql` snapshot convention (`10`).
-- **WP1.2 Core domain**: `packages/core` — domain types, Zod schemas (incl. ActivityDoc), library definitions (`06`), **scheduler** with unit tests covering the Today selection rules + fallback chains + day boundaries (incl. a DST transition); injected clock/id context; the malformed-model-output corpus for the ActivityDoc schema (`10`).
-- **WP1.3 Seed & fixtures**: seed script with a fixture interest, path, history, and 3 hand-written ActivityDocs (one per tier) for renderer development.
+**Done 2026-09-15.** Deviations, recorded in the docs they touch: `resourceEmbed`'s media field is `media`, not `kind` (`05`); the three fixture ActivityDocs live as typed exports in `packages/core/src/fixtures/activity-docs.ts` (validated by test) rather than JSON files; `pnpm seed` writes `packages/db/.data/seed.db` and the same `seedFixtureData()` backs a dev-only button on Me.
+
+- ~~**WP1.1 Schema**~~ ✅: `packages/db` drizzle schema per `03`, drizzle-kit migrations, `useMigrations` on app start; UUIDv7 util; repository functions for interests/goals/activities/responses. Migration harness (better-sqlite3 in node): empty → head, the additive-first check, and the `fixtures/db/v<N>.sql` snapshot convention (`10`; `pnpm snapshot` dumps them).
+- ~~**WP1.2 Core domain**~~ ✅: `packages/core` — domain types, Zod schemas (incl. ActivityDoc), library definitions (`06`), **scheduler** with unit tests covering the Today selection rules + fallback chains + day boundaries (incl. a DST transition); injected clock/id context; the malformed-model-output corpus for the ActivityDoc schema (`10`).
+- ~~**WP1.3 Seed & fixtures**~~ ✅: seed script with a fixture interest, path, history, and 3 hand-written ActivityDocs (one per tier) for renderer development.
 
 ## M2 — AI plumbing
 
-- **WP2.1 Proxy**: `apps/web/app/api` — device register (HMAC), `/api/ai` streaming passthrough by `kind`, metering in Supabase (`devices`, `device_usage`), budget headers, 429 behavior, `/api/usage`, `/api/feedback` (Resend).
-- **WP2.2 Prompt layer**: `packages/core/prompts` — template infrastructure (typed params → system/messages, PROMPT_VERSION, cache breakpoints), context assembly builder, pedagogy module; G1–G3 + G5a/G5b implemented with fixtures + `pnpm prompt:run` (incl. `--record`) and `pnpm prompt:check` structural + tone assertions (`10`).
-- **WP2.3 Client AI + Inspector**: `apps/mobile/src/ai` — call wrapper (proxy + BYO + **fixture** modes, SSE, incremental JSON page parsing, retry/repair), `llm_calls` logging, AI Inspector screen (dev + hidden toggle).
+**Done 2026-09-15.** Deviations, recorded in the docs they touch: temperature is Haiku-only (Sonnet 5 rejects sampling params) and contract keys are camelCase (`04`); `devices` stores the raw secret since HMAC verification needs it, and `device_usage` gained `kind_calls` for burst limits (`03`, schema in `apps/web/supabase/schema.sql` — needs applying to the fresh Supabase project). `/api/ai` also accepts a `repair` turn for the schema-repair round-trip. Recorded fixtures for G1–G3/G5a are hand-authored placeholders until `pnpm prompt:run <kind> --record` replaces them with real ones (needs an API key); fixture mode serves `activity.generate` from the per-tier fixture docs.
+
+- ~~**WP2.1 Proxy**~~ ✅: `apps/web/app/api` — device register (HMAC), `/api/ai` streaming passthrough by `kind`, metering in Supabase (`devices`, `device_usage`), budget headers, 429 behavior, `/api/usage`, `/api/feedback` (Resend).
+- ~~**WP2.2 Prompt layer**~~ ✅: `packages/core/prompts` — template infrastructure (typed params → system/messages, PROMPT_VERSION, cache breakpoints), context assembly builder, pedagogy module; G1–G3 + G5a/G5b implemented with fixtures + `pnpm prompt:run` (incl. `--record`) and `pnpm prompt:check` structural + tone assertions (`10`).
+- ~~**WP2.3 Client AI + Inspector**~~ ✅: `apps/mobile/src/ai` — call wrapper (proxy + BYO + **fixture** modes, SSE, incremental JSON page parsing, retry/repair), `llm_calls` logging, AI Inspector screen (dev + hidden toggle).
 
 ## M3 — Intake
 
