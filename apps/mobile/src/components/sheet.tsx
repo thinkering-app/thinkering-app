@@ -1,6 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import type { ReactNode } from 'react'
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native'
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { colors } from '@/theme/tokens'
@@ -14,11 +22,18 @@ type SheetProps = {
   footer?: ReactNode
 }
 
-/** Bottom sheet for configure dialogs (docs/07): paper surface, one action, tap-away to close. */
+/**
+ * Bottom sheet for configure dialogs (docs/07): paper surface, one action,
+ * tap-away to close. Every sheet with a field in it needs to sit above the
+ * keyboard, so the avoidance lives here rather than in each caller.
+ */
 export function Sheet({ visible, onClose, title, children, footer }: SheetProps) {
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View className="flex-1 justify-end bg-ink/30">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        className="flex-1 justify-end bg-ink/30"
+      >
         <Pressable className="flex-1" accessibilityLabel="Close" onPress={onClose} />
         <SafeAreaView edges={['bottom']} className="max-h-[85%] rounded-t-card bg-paper">
           <View className="flex-row items-center justify-between px-5 pb-2 pt-5">
@@ -40,7 +55,7 @@ export function Sheet({ visible, onClose, title, children, footer }: SheetProps)
           </ScrollView>
           {footer ? <View className="px-5 pb-2 pt-1">{footer}</View> : null}
         </SafeAreaView>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   )
 }
