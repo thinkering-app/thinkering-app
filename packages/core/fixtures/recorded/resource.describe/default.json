@@ -1,0 +1,14 @@
+{
+  "kind": "resource.describe",
+  "promptVersion": 1,
+  "model": "hand-authored",
+  "fixture": "default",
+  "text": "```json\n{\n  \"title\": \"Nico's Weg – A1 (Deutsche Welle)\",\n  \"description\": \"A free video-story German course from Deutsche Welle: short episodes following Nico through everyday situations, with exercises after each.\",\n  \"howToUse\": \"Watch one episode before a session, then try saying the episode's situation out loud in your own words.\",\n  \"summary\": \"Deutsche Welle's free A1 course, told as a video story in two-to-four-minute episodes with transcripts and optional German or English subtitles. Each episode is followed by exercises on its vocabulary and structures. Situations covered include introductions, directions, shopping and ordering in a cafe; the full A1 curriculum takes roughly 60 hours, and A2 and B1 continue in the same format.\",\n  \"goalTitles\": [\n    \"Greet and introduce yourself\",\n    \"Order food and drinks\"\n  ]\n}\n```",
+  "usage": {
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0
+  },
+  "latencyMs": 0
+}

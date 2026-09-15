@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "title": "Tokens, not words",
+  "estMinutes": 5,
+  "tier": "introduce",
+  "libraryItemId": "plain-explainer",
+  "concepts": [
+    {
+      "goalConceptId": "c-tokens",
+      "label": "Tokenization"
+    }
+  ],
+  "pages": [
+    {
+      "id": "p1",
+      "kind": "content",
+      "blocks": [
+        {
+          "kind": "paragraph",
+          "md": "Models do not read words — they read tokens."
+        },
+        {
+          "kind": "mcq",
+          "id": "q1",
+          "prompt": "Roughly how long is a token?",
+          "options": [
+            {
+              "id": "a",
+              "label": "One character"
+            },
+            {
+              "id": "b",
+              "label": "About three-quarters of a word"
+            },
+            {
+              "id": "c",
+              "label": "One sentence"
+            }
+          ],
+          "correctId": "b"
+        }
+      ]
+    },
+    {
+      "id": "p2",
+      "kind": "content",
+      "blocks": [
+        {
+          "kind": "paragraph",
+          "md": "Tokenizers split rare words into pieces."
+        },
+        {
+          "kind": "reveal",
+          "id": "r1",
+          "prompt": "Why do misspellings cost more tokens?",
+          "md": "Rare strings are not in the vocabulary, so they fragment into many small pieces."
+        }
+      ]
+    },
+    {
+      "id": "p4",
+      "kind": "summary",
+      "blocks": [
+        {
+          "kind": "paragraph",
+          "md": "Tokens are the unit of model input and cost."
+        }
+      ]
+    }
+  ]
+}

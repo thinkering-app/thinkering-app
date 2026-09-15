@@ -1,0 +1,28 @@
+{
+  "name": "@thinkering/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prompt:run": "tsx scripts/prompt-run.ts",
+    "prompt:check": "tsx scripts/prompt-check.ts"
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^0.125.0",
+    "@thinkering/config": "workspace:*",
+    "@vitest/coverage-v8": "^3.2.7",
+    "eslint": "^9.18.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.4"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  }
+}

@@ -1,0 +1,120 @@
+# THROWAWAY (gitignored .context): verifies the opt-in path end to end against
+# the real PostHog project — the ask appears on the first completion, "Share"
+# is accepted, and the pre-consent buffer flushes. The committed flow declines.
+appId: ${APP_ID}
+name: optin
+---
+- runFlow:
+    file: helpers/open-app.yaml
+    env:
+      CLEAR_STATE: 'true'
+- extendedWaitUntil:
+    visible:
+      id: 'intake-start'
+    timeout: 120000
+- tapOn:
+    id: 'intake-start'
+
+# 1 — what do you want to learn
+- tapOn:
+    id: 'intake-learn'
+- inputText: 'Conversational German'
+- hideKeyboard
+- tapOn:
+    id: 'intake-continue'
+
+# 2 — why
+- tapOn:
+    id: 'intake-why-fun'
+- tapOn:
+    id: 'intake-continue'
+
+# 3 — experience
+- tapOn:
+    id: 'intake-experience-getting_started'
+- tapOn:
+    id: 'intake-continue'
+
+# 4 — how often, how long
+- tapOn:
+    id: 'intake-frequency-daily'
+- tapOn:
+    id: 'intake-minutes-10'
+- tapOn:
+    id: 'intake-continue'
+
+# 5 — topics (G2). Selecting none is allowed; the wait is the assertion.
+- extendedWaitUntil:
+    visible:
+      id: 'intake-continue'
+      enabled: true
+    timeout: 30000
+- tapOn:
+    id: 'intake-continue'
+
+# 6 — the generated path (G3), streamed
+- extendedWaitUntil:
+    visible:
+      id: 'intake-finish'
+      enabled: true
+    timeout: 45000
+- tapOn:
+    id: 'intake-finish'
+
+- tapOn:
+    id: 'tab-today'
+- extendedWaitUntil:
+    visible:
+      id: 'activity-card-next'
+    timeout: 45000
+- tapOn:
+    id: 'activity-card-next'
+
+# G5b streams the document; page one renders as soon as it parses.
+- extendedWaitUntil:
+    visible:
+      id: 'player-continue'
+      enabled: true
+    timeout: 60000
+
+# Forward to the end. Pages vary by tier, so this walks until Done appears
+# rather than assuming a count.
+- repeat:
+    times: 15
+    commands:
+      - runFlow:
+          when:
+            notVisible:
+              id: 'player-done'
+          commands:
+            - tapOn:
+                id: 'player-continue'
+            - extendedWaitUntil:
+                visible:
+                  id: 'player-continue'
+                  enabled: true
+                timeout: 20000
+                optional: true
+
+- assertVisible: 'Was this useful?'
+- tapOn: 'Useful'
+- tapOn:
+    id: 'player-done'
+
+
+# Accept, rather than the committed flow's decline: this is the path that
+# flushes the buffered intake events to PostHog.
+- extendedWaitUntil:
+    visible: 'Share anonymous usage?'
+    timeout: 20000
+- assertVisible: 'Counts, ratings and how long things take.*'
+- tapOn: 'Share'
+- extendedWaitUntil:
+    visible: '1 today'
+    timeout: 20000
+
+# And the Me toggle reflects the answer.
+- tapOn:
+    id: 'tab-me'
+- tapOn: 'AI usage'
+- assertVisible: 'Share anonymous usage to improve thinkering'

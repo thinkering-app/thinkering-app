@@ -1,0 +1,17 @@
+{
+  "name": "@thinkering/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./tailwind": "./tailwind/preset.cjs",
+    "./eslint": "./eslint/base.js",
+    "./eslint/core": "./eslint/core.js",
+    "./typescript": "./typescript/base.json"
+  },
+  "dependencies": {
+    "@eslint/js": "^9.18.0",
+    "eslint-config-prettier": "^10.0.1",
+    "typescript-eslint": "^8.20.0"
+  }
+}

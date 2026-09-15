@@ -1,0 +1,230 @@
+import { and, desc, eq, inArray, isNotNull, isNull, lt } from 'drizzle-orm'
+import type { ActivityDoc, LocalDate, Rating, Section, Tier } from '@thinkering/core'
+import type { Database, RepoContext } from '../database'
+import { activities } from '../schema'
+import { recordGoalTierCompletion } from './goals'
+
+export type Activity = typeof activities.$inferSelect
+
+export interface NewActivity {
+  interestId: string
+  goalId?: string | null
+  /** The prerequisite-fallback card's topic, when it has no goal. */
+  topic?: string | null
+  section: Section
+  tier: Tier
+  libraryItemId: string
+  title: string
+  estMinutes: number
+  plannedFor: LocalDate
+  doc?: ActivityDoc | null
+}
+
+export function createActivity(db: Database, ctx: RepoContext, input: NewActivity): Activity {
+  const now = ctx.now()
+  const row: typeof activities.$inferInsert = {
+    id: ctx.newId(),
+    interestId: input.interestId,
+    goalId: input.goalId ?? null,
+    topic: input.topic ?? null,
+    section: input.section,
+    tier: input.tier,
+    libraryItemId: input.libraryItemId,
+    title: input.title,
+    estMinutes: input.estMinutes,
+    doc: input.doc ?? null,
+    status: input.doc ? 'ready' : 'planned',
+    plannedFor: input.plannedFor,
+    createdAt: now,
+    updatedAt: now,
+  }
+  db.insert(activities).values(row).run()
+  return getActivity(db, row.id)!
+}
+
+export function getActivity(db: Database, id: string): Activity | undefined {
+  return db
+    .select()
+    .from(activities)
+    .where(and(eq(activities.id, id), isNull(activities.deletedAt)))
+    .get()
+}
+
+/** Stores a validated Activity Document (G5b / G6 / G7 updates) and marks it ready if still planned. */
+export function attachDoc(db: Database, ctx: RepoContext, id: string, doc: ActivityDoc): void {
+  const current = getActivity(db, id)
+  if (!current) return
+  db.update(activities)
+    .set({
+      doc,
+      status: current.status === 'planned' ? 'ready' : current.status,
+      updatedAt: ctx.now(),
+    })
+    .where(eq(activities.id, id))
+    .run()
+}
+
+/** Reopening a completed activity from History must not un-complete it. */
+export function startActivity(db: Database, ctx: RepoContext, id: string): void {
+  const current = getActivity(db, id)
+  if (!current || current.status === 'completed') return
+  const now = ctx.now()
+  db.update(activities)
+    .set({ status: 'in_progress', startedAt: current.startedAt ?? now, updatedAt: now })
+    .where(eq(activities.id, id))
+    .run()
+}
+
+/** Persists the resume point (docs/05). */
+export function saveProgress(db: Database, ctx: RepoContext, id: string, currentPage: number): void {
+  db.update(activities)
+    .set({ currentPage, updatedAt: ctx.now() })
+    .where(and(eq(activities.id, id), isNull(activities.deletedAt)))
+    .run()
+}
+
+/**
+ * Completion (docs/05): sets status/completed_at and applies the goal status
+ * transition for the activity's tier.
+ */
+export function completeActivity(db: Database, ctx: RepoContext, id: string): void {
+  const current = getActivity(db, id)
+  if (!current || current.status === 'completed') return
+  const now = ctx.now()
+  db.update(activities)
+    .set({ status: 'completed', completedAt: now, updatedAt: now })
+    .where(eq(activities.id, id))
+    .run()
+  if (current.goalId) recordGoalTierCompletion(db, ctx, current.goalId, current.tier)
+}
+
+export function rateActivity(
+  db: Database,
+  ctx: RepoContext,
+  id: string,
+  rating: Rating,
+  ratingText?: string,
+): void {
+  db.update(activities)
+    .set({ rating, ratingText: ratingText ?? null, updatedAt: ctx.now() })
+    .where(and(eq(activities.id, id), isNull(activities.deletedAt)))
+    .run()
+}
+
+/**
+ * An unfinished activity is resumable from Today for the rest of its planned
+ * day; after that it's abandoned, silently (docs/05 §Resume). Called when Today
+ * loads on a new local date.
+ */
+export function abandonStalePlans(
+  db: Database,
+  ctx: RepoContext,
+  opts: { interestId: string; before: LocalDate },
+): void {
+  db.update(activities)
+    .set({ status: 'abandoned', updatedAt: ctx.now() })
+    .where(
+      and(
+        eq(activities.interestId, opts.interestId),
+        lt(activities.plannedFor, opts.before),
+        inArray(activities.status, ['planned', 'ready', 'in_progress']),
+        isNull(activities.deletedAt),
+      ),
+    )
+    .run()
+}
+
+/** Dropping a card the user's configuration change invalidated (docs/03: soft delete, always). */
+export function softDeleteActivity(db: Database, ctx: RepoContext, id: string): void {
+  const now = ctx.now()
+  db.update(activities)
+    .set({ deletedAt: now, updatedAt: now })
+    .where(and(eq(activities.id, id), isNull(activities.deletedAt)))
+    .run()
+}
+
+export function abandonActivity(db: Database, ctx: RepoContext, id: string): void {
+  db.update(activities)
+    .set({ status: 'abandoned', updatedAt: ctx.now() })
+    .where(and(eq(activities.id, id), isNull(activities.deletedAt)))
+    .run()
+}
+
+/** The day's plan for an interest (one planned set per interest per local date, docs/03). */
+export function listPlannedForDate(db: Database, interestId: string, plannedFor: LocalDate): Activity[] {
+  return db
+    .select()
+    .from(activities)
+    .where(
+      and(
+        eq(activities.interestId, interestId),
+        eq(activities.plannedFor, plannedFor),
+        isNull(activities.deletedAt),
+      ),
+    )
+    .all()
+}
+
+/**
+ * History: completed activities, newest first, keyset-paginated by `completed_at`
+ * (docs/01 §6 loads ~5 recent days then pages).
+ */
+export function listHistory(
+  db: Database,
+  opts: { interestId?: string; beforeCompletedAt?: number; limit?: number } = {},
+): Activity[] {
+  const conditions = [
+    eq(activities.status, 'completed'),
+    isNotNull(activities.completedAt),
+    isNull(activities.deletedAt),
+  ]
+  if (opts.interestId !== undefined) conditions.push(eq(activities.interestId, opts.interestId))
+  if (opts.beforeCompletedAt !== undefined) conditions.push(lt(activities.completedAt, opts.beforeCompletedAt))
+  return db
+    .select()
+    .from(activities)
+    .where(and(...conditions))
+    .orderBy(desc(activities.completedAt))
+    .limit(opts.limit ?? 50)
+    .all()
+}
+
+/**
+ * What every completed activity of an interest declared it targeted — the input
+ * to concept coverage (D16, `conceptCoverage` in packages/core). An interest's
+ * completed set stays small, so this reads them whole rather than paging.
+ */
+export function listCoverage(db: Database, interestId: string): { goalId: string | null; doc: ActivityDoc | null }[] {
+  return db
+    .select({ goalId: activities.goalId, doc: activities.doc })
+    .from(activities)
+    .where(
+      and(
+        eq(activities.interestId, interestId),
+        eq(activities.status, 'completed'),
+        isNull(activities.deletedAt),
+      ),
+    )
+    .all()
+}
+
+/**
+ * Writes the day's cards for an interest in one transaction (docs/03: one
+ * planned set per interest per local date) — a half-written plan would read as
+ * a complete one next time Today loads.
+ */
+export function createDailyPlan(
+  db: Database,
+  ctx: RepoContext,
+  input: { interestId: string; plannedFor: LocalDate; cards: Omit<NewActivity, 'interestId' | 'plannedFor'>[] },
+): Activity[] {
+  return db.transaction((tx) =>
+    input.cards.map((card) =>
+      createActivity(tx as unknown as Database, ctx, {
+        ...card,
+        interestId: input.interestId,
+        plannedFor: input.plannedFor,
+      }),
+    ),
+  )
+}

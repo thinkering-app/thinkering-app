@@ -1,0 +1,14 @@
+{
+  "kind": "routine.customize",
+  "promptVersion": 1,
+  "model": "claude-haiku-4-5-20251001",
+  "fixture": "default",
+  "text": "```json\n{\n  \"activations\": [\n    {\n      \"section\": \"strengthen\",\n      \"libraryItemId\": \"focused-drill\",\n      \"active\": false\n    },\n    {\n      \"section\": \"strengthen\",\n      \"libraryItemId\": \"spot-the-error\",\n      \"active\": false\n    },\n    {\n      \"section\": \"strengthen\",\n      \"libraryItemId\": \"notice-training\",\n      \"active\": false\n    }\n  ],\n  \"note\": \"Focusing strengthen on retrieval and output (explain-back, faded-example) rather than grammar analysis. Keeping watch-along and adding more sentence production in go_further.\"\n}\n```",
+  "usage": {
+    "inputTokens": 3322,
+    "outputTokens": 166,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0
+  },
+  "latencyMs": 2285
+}

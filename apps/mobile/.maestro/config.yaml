@@ -1,0 +1,11 @@
+# Workspace config for `pnpm e2e` (docs/10 Tier 6). The three flows share one
+# install and run in order: intake leaves an interest and a path behind, which
+# is what the activity flow plays and the backup flow exports.
+flows:
+  - '0*.yaml'
+executionOrder:
+  continueOnFailure: false
+  flowsOrder:
+    - intake
+    - activity
+    - backup

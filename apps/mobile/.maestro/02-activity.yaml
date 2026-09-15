@@ -1,0 +1,71 @@
+# Flow 2 (docs/10 Tier 6): Today → complete an activity → a history entry and
+# the goal's status advanced. Continues from flow 1's state — no clearState.
+appId: ${APP_ID}
+name: activity
+---
+- runFlow:
+    file: helpers/open-app.yaml
+    env:
+      CLEAR_STATE: 'false'
+- tapOn:
+    id: 'tab-today'
+- extendedWaitUntil:
+    visible:
+      id: 'activity-card-next'
+    timeout: 45000
+- tapOn:
+    id: 'activity-card-next'
+
+# G5b streams the document; page one renders as soon as it parses.
+- extendedWaitUntil:
+    visible:
+      id: 'player-continue'
+      enabled: true
+    timeout: 60000
+
+# Forward to the end. Pages vary by tier, so this walks until Done appears
+# rather than assuming a count.
+- repeat:
+    times: 15
+    commands:
+      - runFlow:
+          when:
+            notVisible:
+              id: 'player-done'
+          commands:
+            - tapOn:
+                id: 'player-continue'
+            - extendedWaitUntil:
+                visible:
+                  id: 'player-continue'
+                  enabled: true
+                timeout: 20000
+                optional: true
+
+- assertVisible: 'Was this useful?'
+- tapOn: 'Useful'
+- tapOn:
+    id: 'player-done'
+
+# In a build with a PostHog key, the first completion is where the analytics
+# ask appears (docs/08). Declining is what a test should do: it sends nothing
+# and deletes the buffer. Optional, because a build without a key never asks.
+- tapOn:
+    text: 'No thanks'
+    optional: true
+
+# The completion shows on Today — the card reads "Done today" and the section
+# heading carries the count — and the activity is in History.
+- extendedWaitUntil:
+    visible: '1 today'
+    timeout: 20000
+- assertVisible: '.*Done today'
+- tapOn:
+    id: 'tab-history'
+- assertVisible: 'Today'
+- assertNotVisible: 'Activities you finish show up here.'
+
+# And the goal it targeted has moved off not_started.
+- tapOn:
+    id: 'tab-path'
+- assertVisible: '.*Introduced'

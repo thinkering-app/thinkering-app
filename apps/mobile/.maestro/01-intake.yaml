@@ -1,0 +1,73 @@
+# Flow 1 (docs/10 Tier 6): intake → a path exists.
+# Runs in fixture AI mode, so the three generations are recorded responses and
+# the run is deterministic and free.
+appId: ${APP_ID}
+name: intake
+---
+- runFlow:
+    file: helpers/open-app.yaml
+    env:
+      CLEAR_STATE: 'true'
+- extendedWaitUntil:
+    visible:
+      id: 'intake-start'
+    timeout: 120000
+- tapOn:
+    id: 'intake-start'
+
+# 1 — what do you want to learn
+- tapOn:
+    id: 'intake-learn'
+- inputText: 'Conversational German'
+- hideKeyboard
+- tapOn:
+    id: 'intake-continue'
+
+# 2 — why
+- tapOn:
+    id: 'intake-why-fun'
+- tapOn:
+    id: 'intake-continue'
+
+# 3 — experience
+- tapOn:
+    id: 'intake-experience-getting_started'
+- tapOn:
+    id: 'intake-continue'
+
+# 4 — how often, how long
+- tapOn:
+    id: 'intake-frequency-daily'
+- tapOn:
+    id: 'intake-minutes-10'
+- tapOn:
+    id: 'intake-continue'
+
+# 5 — topics (G2). Selecting none is allowed; the wait is the assertion.
+- extendedWaitUntil:
+    visible:
+      id: 'intake-continue'
+      enabled: true
+    timeout: 30000
+- tapOn:
+    id: 'intake-continue'
+
+# 6 — the generated path (G3), streamed
+- extendedWaitUntil:
+    visible:
+      id: 'intake-finish'
+      enabled: true
+    timeout: 45000
+- tapOn:
+    id: 'intake-finish'
+
+# A path exists. The fixture path is deterministic, so its first goal is a
+# safe thing to assert on.
+- assertVisible: 'Today'
+- tapOn:
+    id: 'tab-path'
+# Text matching is a full-match regex, and a goal card is one accessibility
+# element whose label carries its status — hence the trailing `.*`.
+- extendedWaitUntil:
+    visible: 'Greet someone at a Munich dinner.*'
+    timeout: 30000

@@ -1,0 +1,14 @@
+{
+  "kind": "intake.topics",
+  "promptVersion": 1,
+  "model": "claude-sonnet-5",
+  "fixture": "default",
+  "text": "{\"topics\":[{\"label\":\"Family introductions\",\"origin\":\"motivation\",\"blurb\":\"Say who you are and ask about others at the table.\"},{\"label\":\"Talking about food\",\"origin\":\"motivation\",\"blurb\":\"Describe dishes, preferences, and compliments during a meal.\"},{\"label\":\"Sharing opinions politely\",\"origin\":\"motivation\",\"blurb\":\"Agree, disagree, and give your view without sounding blunt.\"},{\"label\":\"Small talk starters\",\"origin\":\"motivation\",\"blurb\":\"Open and keep a casual conversation going at dinner.\"},{\"label\":\"Du vs Sie\",\"origin\":\"foundational\",\"blurb\":\"Know which form of 'you' fits family versus formal settings.\"},{\"label\":\"Present tense verbs\",\"origin\":\"foundational\",\"blurb\":\"Build simple, correct sentences about everyday actions.\"},{\"label\":\"Asking questions naturally\",\"origin\":\"foundational\",\"blurb\":\"Form questions people actually use in conversation, not textbook drills.\"},{\"label\":\"German word order\",\"origin\":\"foundational\",\"blurb\":\"Get verb placement right so sentences sound natural.\"},{\"label\":\"Bavarian everyday phrases\",\"origin\":\"adjacent\",\"blurb\":\"Pick up local expressions you'll hear around Munich.\"},{\"label\":\"Munich table customs\",\"origin\":\"adjacent\",\"blurb\":\"Learn the small social rules around German family meals.\"},{\"label\":\"Telling stories about your day\",\"origin\":\"adjacent\",\"blurb\":\"Narrate simple past events to share with others.\"}]}",
+  "usage": {
+    "inputTokens": 349,
+    "outputTokens": 860,
+    "cacheReadTokens": 1317,
+    "cacheWriteTokens": 0
+  },
+  "latencyMs": 9671
+}
