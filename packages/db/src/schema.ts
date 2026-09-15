@@ -105,6 +105,8 @@ export const activities = sqliteTable(
       .notNull()
       .references(() => interests.id),
     goalId: text('goal_id').references(() => goals.id),
+    /** Set only on the strengthen prerequisite-fallback card, which has no goal yet (docs/01 §3). */
+    topic: text('topic'),
     section: text('section').$type<Section>().notNull(),
     tier: text('tier').$type<Tier>().notNull(),
     libraryItemId: text('library_item_id').notNull(),

@@ -9,6 +9,8 @@ export type Activity = typeof activities.$inferSelect
 export interface NewActivity {
   interestId: string
   goalId?: string | null
+  /** The prerequisite-fallback card's topic, when it has no goal. */
+  topic?: string | null
   section: Section
   tier: Tier
   libraryItemId: string
@@ -24,6 +26,7 @@ export function createActivity(db: Database, ctx: RepoContext, input: NewActivit
     id: ctx.newId(),
     interestId: input.interestId,
     goalId: input.goalId ?? null,
+    topic: input.topic ?? null,
     section: input.section,
     tier: input.tier,
     libraryItemId: input.libraryItemId,
@@ -183,4 +186,25 @@ export function listHistory(
     .orderBy(desc(activities.completedAt))
     .limit(opts.limit ?? 50)
     .all()
+}
+
+/**
+ * Writes the day's cards for an interest in one transaction (docs/03: one
+ * planned set per interest per local date) — a half-written plan would read as
+ * a complete one next time Today loads.
+ */
+export function createDailyPlan(
+  db: Database,
+  ctx: RepoContext,
+  input: { interestId: string; plannedFor: LocalDate; cards: Omit<NewActivity, 'interestId' | 'plannedFor'>[] },
+): Activity[] {
+  return db.transaction((tx) =>
+    input.cards.map((card) =>
+      createActivity(tx as unknown as Database, ctx, {
+        ...card,
+        interestId: input.interestId,
+        plannedFor: input.plannedFor,
+      }),
+    ),
+  )
 }

@@ -8,6 +8,13 @@
       "when": 1789426907118,
       "tag": "0000_marvelous_living_mummy",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1789451368506,
+      "tag": "0001_sleepy_strong_guy",
+      "breakpoints": true
     }
   ]
 }

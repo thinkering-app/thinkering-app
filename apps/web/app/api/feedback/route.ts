@@ -3,8 +3,13 @@ import { getDeps } from '@/lib/server/deps'
 
 /**
  * Feedback → Resend → feedback@thinkering.app (docs/02 §Feedback). No auth
- * needed; lightly rate-limited per device id header. No learning data.
+ * needed; lightly rate-limited per device id header. No learning data, except
+ * when the user explicitly shares one activity (docs/08 D18) — that report
+ * arrives here as an opaque JSON string and is forwarded, never stored.
  */
+
+/** Generous enough for a long activity document, small enough to bound an email. */
+const MAX_REPORT_CHARS = 80_000
 
 const bodySchema = z.object({
   message: z.string().min(1).max(4000),
@@ -13,6 +18,8 @@ const bodySchema = z.object({
     appVersion: z.string().max(50),
     platform: z.string().max(20),
   }),
+  /** Serialized shared-activity report (D18); present only when the user tapped share. */
+  activityReport: z.string().max(MAX_REPORT_CHARS).optional(),
 })
 
 const RATE_LIMIT_PER_DAY = 20
@@ -54,8 +61,10 @@ export async function POST(req: Request): Promise<Response> {
     body: JSON.stringify({
       from: 'thinkering <feedback@thinkering.app>',
       to: ['feedback@thinkering.app'],
-      subject: `Feedback · ${body.data.context.screen} · ${body.data.context.platform} ${body.data.context.appVersion}`,
-      text: body.data.message,
+      subject: `${body.data.activityReport ? 'Shared activity' : 'Feedback'} · ${body.data.context.screen} · ${body.data.context.platform} ${body.data.context.appVersion}`,
+      text: body.data.activityReport
+        ? `${body.data.message}\n\n--- shared activity ---\n${body.data.activityReport}`
+        : body.data.message,
     }),
   })
   if (!res.ok) return Response.json({ error: 'send_failed' }, { status: 502 })

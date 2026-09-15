@@ -220,4 +220,29 @@ describe('POST /api/feedback', () => {
     )
     expect(res.status).toBe(400)
   })
+
+  it('forwards an explicitly shared activity, and refuses an oversized one', async () => {
+    const { fetchCalls } = setupDeps()
+    process.env.RESEND_API_KEY = 'test-key'
+    const share = (report: string) =>
+      feedbackPost(
+        new Request('http://x/api/feedback', {
+          method: 'POST',
+          headers: { 'x-device-id': 'device-10' },
+          body: JSON.stringify({
+            message: 'Shared activity: Tokens, not words',
+            context: { screen: 'activity', appVersion: '0.0.1', platform: 'ios' },
+            activityReport: report,
+          }),
+        }),
+      )
+
+    const ok = await share(JSON.stringify({ title: 'Tokens, not words', doc: { version: 1 } }))
+    expect(ok.status).toBe(200)
+    const body = JSON.parse(String(fetchCalls[0]!.init?.body)) as { subject: string; text: string }
+    expect(body.subject).toContain('Shared activity')
+    expect(body.text).toContain('Tokens, not words')
+
+    expect((await share('x'.repeat(80_001))).status).toBe(400)
+  })
 })

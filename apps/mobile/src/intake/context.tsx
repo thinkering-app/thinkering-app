@@ -15,7 +15,7 @@ import { saveIntake } from '@thinkering/db'
 
 import { callAi } from '@/ai'
 import { db, repoContext } from '@/db'
-import { useGeneration, type GenerationState } from './generation'
+import { useGeneration, type GenerationState } from '@/ai/generation'
 
 /**
  * Intake state for one run of the flow (docs/01 §1): the answers so far plus

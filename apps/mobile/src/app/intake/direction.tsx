@@ -6,7 +6,7 @@ import { Pressable, Text, View } from 'react-native'
 import { Card } from '@/components/card'
 import { Generating } from '@/components/generating'
 import { useIntake } from '@/intake/context'
-import { GenerationError } from '@/intake/generation-error'
+import { GenerationError } from '@/components/generation-error'
 import { PrimaryAction, StepScreen } from '@/intake/step-screen'
 import { colors } from '@/theme/tokens'
 

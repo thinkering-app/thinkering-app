@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 
-import { AiBudgetError, AiOutputError } from '@/ai'
+import { AiBudgetError, AiOutputError } from './client'
 
 /**
  * One background generation's lifecycle (docs/04 §Failure handling). The AI

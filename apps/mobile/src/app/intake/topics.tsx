@@ -5,7 +5,7 @@ import { View } from 'react-native'
 import { ChoiceChip } from '@/components/choice-chip'
 import { Generating } from '@/components/generating'
 import { useIntake } from '@/intake/context'
-import { GenerationError } from '@/intake/generation-error'
+import { GenerationError } from '@/components/generation-error'
 import { StepScreen } from '@/intake/step-screen'
 
 /**
