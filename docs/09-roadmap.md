@@ -51,8 +51,10 @@ Milestones broken into session-sized work packages (WP) suitable for one agent s
 
 ## M6 — History & Me
 
-- **WP6.1 History**: grouped-by-day list with outcome lines, per-interest/all-explore filtering, lazy loading.
-- **WP6.2 Me**: Manage Interests (reorder, focus/exploring/archived), calendar month view + day detail, settings shell, AI usage meter + BYOK entry (SecureStore), PostHog toggle, privacy placeholder, and dual-channel feedback per `01`: a Featurebase portal WebView/new-tab fallback plus the private email form and separate activity-report route.
+**Done 2026-09-15.** Deviations, recorded in the docs they touch: `POST /api/feedback` is now device-signed like every other route and its rate limit persists in a new service-role `device_actions` table, since the in-memory counter reset with every serverless instance (`02`, `03`, schema in `apps/web/supabase/schema.sql` — another table waiting on the fresh Supabase project); the Featurebase metadata contract is a `metaData` query parameter of stringified JSON plus `hideLogo=true`, from their docs (`02`); the AI usage meter is proxy-only, because a BYO key is billed by Anthropic and fixture mode never touches the network (`01`); Me's settings list has no Backup row yet — it arrives with the thing itself in M8. Interest reorder renumbers the visible list in one write (`reorderInterests`) rather than borrowing the path's fractional single-row move: the list is 1–10 rows, and archived interests sit outside it. `startActivity` now refuses a completed activity, so reopening one from History or the calendar can't un-complete it. Verified on the iOS simulator in fixture mode: History's day groups and outcome lines, the calendar's marked days and day sheet, Manage Interests, AI usage (fixture state, BYOK entry, analytics toggle), Privacy, and both feedback channels — including the real Featurebase portal loading in the WebView.
+
+- ~~**WP6.1 History**~~ ✅: grouped-by-day list with outcome lines, per-interest/all-explore filtering, lazy loading.
+- ~~**WP6.2 Me**~~ ✅: Manage Interests (reorder, focus/exploring/archived), calendar month view + day detail, settings shell, AI usage meter + BYOK entry (SecureStore), PostHog toggle, privacy placeholder, and dual-channel feedback per `01`: a Featurebase portal WebView/new-tab fallback plus the private email form and separate activity-report route.
 
 ## M7 — Landing page
 

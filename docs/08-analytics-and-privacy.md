@@ -8,7 +8,7 @@ Learning data is personal. It lives on the device; the only ways it leaves are t
 
 - `posthog-react-native`, EU or US host (pick one, document in privacy copy).
 - **Identity**: a locally generated random UUID as `distinct_id`. Never call `identify()` with email/user id — even when the user creates a Supabase backup account, telemetry stays unlinked (D9).
-- **Opt-in (D9)**: default **off** — nothing is transmitted until the user says yes. One-time ask after the first completed activity ("Share anonymous usage to improve thinkering?" — one line on what it includes/excludes, links to privacy); toggle lives in Me → AI usage. Session replay, autocapture, and GeoIP enrichment disabled.
+- **Opt-in (D9)**: default **off** — nothing is transmitted until the user says yes. The setting itself is `posthog_opt_in` in local settings, read through `apps/mobile/src/analytics/consent.ts` (built in WP6.2, ahead of the wrapper). One-time ask after the first completed activity ("Share anonymous usage to improve thinkering?" — one line on what it includes/excludes, links to privacy); toggle lives in Me → AI usage. Session replay, autocapture, and GeoIP enrichment disabled.
 - **Pre-consent buffer**: from first launch, the typed `track()` wrapper writes events to a local buffer table instead of PostHog (capped: first ~7 days / ~300 events). On opt-in, the buffer is flushed to PostHog (so a willing user's first intake and first activity are captured); on decline, it's deleted and buffering stops. The buffer holds only schema-conformant events — same allowlist, no content — and never leaves the device without opt-in.
 - Landing page: no cookies/analytics beyond privacy-respecting basics (at most PostHog with the same rules, or nothing).
 
