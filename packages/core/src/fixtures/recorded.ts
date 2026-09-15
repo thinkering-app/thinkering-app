@@ -1,6 +1,9 @@
+import activityQuestion from '../../fixtures/recorded/activity.question/default.json'
+import activityReview from '../../fixtures/recorded/activity.review/default.json'
 import intakeApproach from '../../fixtures/recorded/intake.approach/default.json'
 import intakePath from '../../fixtures/recorded/intake.path/default.json'
 import intakeTopics from '../../fixtures/recorded/intake.topics/default.json'
+import routineCustomize from '../../fixtures/recorded/routine.customize/default.json'
 import todayPlan from '../../fixtures/recorded/today.plan/default.json'
 
 /**
@@ -25,4 +28,7 @@ export const RECORDED_RESPONSES: Record<string, RecordedResponse> = {
   'intake.topics': intakeTopics,
   'intake.path': intakePath,
   'today.plan': todayPlan,
+  'activity.review': activityReview,
+  'activity.question': activityQuestion,
+  'routine.customize': routineCustomize,
 }

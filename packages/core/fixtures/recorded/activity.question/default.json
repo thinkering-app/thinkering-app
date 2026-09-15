@@ -1,0 +1,14 @@
+{
+  "kind": "activity.question",
+  "promptVersion": 1,
+  "model": "hand-authored",
+  "fixture": "default",
+  "text": "{\"blocks\": [{\"kind\": \"paragraph\", \"md\": \"It changes, and in the masculine it's the one change worth memorizing: **mein** Bruder becomes **meinen** Bruder when he's the object — *Ich sehe meinen Bruder.*\"}, {\"kind\": \"list\", \"style\": \"bullet\", \"items\": [\"masculine: mein Bruder → **meinen** Bruder\", \"feminine: meine Schwester → meine Schwester (no change)\", \"neuter: mein Kind → mein Kind (no change)\", \"plural: meine Eltern → meine Eltern (no change)\"]}, {\"kind\": \"mcq\", \"id\": \"q-akk-check\", \"prompt\": \"*Ich besuche ___ Vater.*\", \"options\": [{\"id\": \"a\", \"label\": \"mein\"}, {\"id\": \"b\", \"label\": \"meinen\"}, {\"id\": \"c\", \"label\": \"meine\"}], \"correctId\": \"b\", \"explain\": \"Vater is masculine and he's being visited, so it takes the -en.\"}]}",
+  "usage": {
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0
+  },
+  "latencyMs": 2600
+}

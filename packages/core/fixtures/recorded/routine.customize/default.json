@@ -1,0 +1,14 @@
+{
+  "kind": "routine.customize",
+  "promptVersion": 1,
+  "model": "hand-authored",
+  "fixture": "default",
+  "text": "{\"activations\": [{\"section\": \"next\", \"libraryItemId\": \"watch-along\", \"active\": true}, {\"section\": \"strengthen\", \"libraryItemId\": \"focused-drill\", \"active\": false}, {\"section\": \"strengthen\", \"libraryItemId\": \"explain-back\", \"active\": true}, {\"section\": \"go_further\", \"libraryItemId\": \"make-something\", \"active\": true}], \"note\": \"Wants to produce German rather than drill it: more explaining and writing, fewer grammar reps, and video-based activities are welcome.\"}",
+  "usage": {
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0
+  },
+  "latencyMs": 900
+}

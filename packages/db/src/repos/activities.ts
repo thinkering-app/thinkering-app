@@ -1,4 +1,4 @@
-import { and, desc, eq, isNotNull, isNull, lt } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNotNull, isNull, lt } from 'drizzle-orm'
 import type { ActivityDoc, LocalDate, Rating, Section, Tier } from '@thinkering/core'
 import type { Database, RepoContext } from '../database'
 import { activities } from '../schema'
@@ -103,6 +103,38 @@ export function rateActivity(
 ): void {
   db.update(activities)
     .set({ rating, ratingText: ratingText ?? null, updatedAt: ctx.now() })
+    .where(and(eq(activities.id, id), isNull(activities.deletedAt)))
+    .run()
+}
+
+/**
+ * An unfinished activity is resumable from Today for the rest of its planned
+ * day; after that it's abandoned, silently (docs/05 §Resume). Called when Today
+ * loads on a new local date.
+ */
+export function abandonStalePlans(
+  db: Database,
+  ctx: RepoContext,
+  opts: { interestId: string; before: LocalDate },
+): void {
+  db.update(activities)
+    .set({ status: 'abandoned', updatedAt: ctx.now() })
+    .where(
+      and(
+        eq(activities.interestId, opts.interestId),
+        lt(activities.plannedFor, opts.before),
+        inArray(activities.status, ['planned', 'ready', 'in_progress']),
+        isNull(activities.deletedAt),
+      ),
+    )
+    .run()
+}
+
+/** Dropping a card the user's configuration change invalidated (docs/03: soft delete, always). */
+export function softDeleteActivity(db: Database, ctx: RepoContext, id: string): void {
+  const now = ctx.now()
+  db.update(activities)
+    .set({ deletedAt: now, updatedAt: now })
     .where(and(eq(activities.id, id), isNull(activities.deletedAt)))
     .run()
 }

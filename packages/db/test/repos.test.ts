@@ -74,7 +74,7 @@ describe('soft delete', () => {
     const interest = makeInterest()
     const goal = makeGoal(interest.id)
     const activity = makeActivity(interest.id, goal.id)
-    saveResponse(db, ctx, { activityId: activity.id, pageId: 'p1', blockId: 'q1', payload: { selectedId: 'b' } })
+    saveResponse(db, ctx, { activityId: activity.id, pageId: 'p1', blockId: 'q1', payload: { kind: 'mcq', selectedId: 'b', correct: true } })
 
     softDeleteInterest(db, ctx, interest.id)
 
@@ -201,13 +201,13 @@ describe('responses', () => {
     const goal = makeGoal(interest.id)
     const a = makeActivity(interest.id, goal.id)
 
-    saveResponse(db, ctx, { activityId: a.id, pageId: 'p1', blockId: 'q1', payload: { selectedId: 'a' } })
+    saveResponse(db, ctx, { activityId: a.id, pageId: 'p1', blockId: 'q1', payload: { kind: 'mcq', selectedId: 'a', correct: false } })
     ctx.advance(2_000)
-    saveResponse(db, ctx, { activityId: a.id, pageId: 'p1', blockId: 'q1', payload: { selectedId: 'b' } })
+    saveResponse(db, ctx, { activityId: a.id, pageId: 'p1', blockId: 'q1', payload: { kind: 'mcq', selectedId: 'b', correct: true } })
 
     const rows = listResponses(db, a.id)
     expect(rows).toHaveLength(1)
-    expect(rows[0]?.payload).toEqual({ selectedId: 'b' })
+    expect(rows[0]?.payload).toEqual({ kind: 'mcq', selectedId: 'b', correct: true })
     expect(rows[0]?.updatedAt).toBe(ctx.now())
   })
 })

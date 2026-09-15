@@ -1,0 +1,143 @@
+{
+  "interestName": "Conversational German",
+  "wantToLearn": "Get conversational in German",
+  "domain": "language",
+  "request": "Less grammar drilling please — I'd rather spend the time actually saying and writing sentences, and I like the video ones.",
+  "current": [
+    {
+      "section": "next",
+      "libraryItemId": "plain-explainer",
+      "name": "Plain-English Explainer",
+      "active": true
+    },
+    {
+      "section": "next",
+      "libraryItemId": "guided-discovery",
+      "name": "Guided Discovery",
+      "active": true
+    },
+    {
+      "section": "next",
+      "libraryItemId": "watch-along",
+      "name": "Watch Along",
+      "active": true
+    },
+    {
+      "section": "next",
+      "libraryItemId": "guided-reading",
+      "name": "Guided Reading",
+      "active": true
+    },
+    {
+      "section": "next",
+      "libraryItemId": "worked-example",
+      "name": "Worked Example",
+      "active": true
+    },
+    {
+      "section": "next",
+      "libraryItemId": "mini-case",
+      "name": "Mini Case",
+      "active": true
+    },
+    {
+      "section": "next",
+      "libraryItemId": "big-picture-map",
+      "name": "Big Picture Map",
+      "active": false
+    },
+    {
+      "section": "strengthen",
+      "libraryItemId": "retrieval-quiz",
+      "name": "Quick Retrieval",
+      "active": true
+    },
+    {
+      "section": "strengthen",
+      "libraryItemId": "explain-back",
+      "name": "Explain It Back",
+      "active": true
+    },
+    {
+      "section": "strengthen",
+      "libraryItemId": "focused-drill",
+      "name": "Focused Drill",
+      "active": true
+    },
+    {
+      "section": "strengthen",
+      "libraryItemId": "faded-example",
+      "name": "Complete the Example",
+      "active": true
+    },
+    {
+      "section": "strengthen",
+      "libraryItemId": "spot-the-error",
+      "name": "Spot the Error",
+      "active": true
+    },
+    {
+      "section": "strengthen",
+      "libraryItemId": "compare-contrast",
+      "name": "Compare & Contrast",
+      "active": true
+    },
+    {
+      "section": "strengthen",
+      "libraryItemId": "notice-training",
+      "name": "Noticing Reps",
+      "active": true
+    },
+    {
+      "section": "strengthen",
+      "libraryItemId": "mixed-review",
+      "name": "Mixed Review",
+      "active": false
+    },
+    {
+      "section": "go_further",
+      "libraryItemId": "put-to-work",
+      "name": "Put It to Work",
+      "active": true
+    },
+    {
+      "section": "go_further",
+      "libraryItemId": "make-something",
+      "name": "Make Something Small",
+      "active": true
+    },
+    {
+      "section": "go_further",
+      "libraryItemId": "teach-back",
+      "name": "Teach It Forward",
+      "active": true
+    },
+    {
+      "section": "go_further",
+      "libraryItemId": "scenario-challenge",
+      "name": "Scenario Challenge",
+      "active": true
+    },
+    {
+      "section": "go_further",
+      "libraryItemId": "in-the-wild",
+      "name": "In the Wild",
+      "active": true
+    },
+    {
+      "section": "go_further",
+      "libraryItemId": "dig-deeper",
+      "name": "Dig Deeper",
+      "active": true
+    },
+    {
+      "section": "go_further",
+      "libraryItemId": "connect-ideas",
+      "name": "Connect Ideas",
+      "active": true
+    }
+  ],
+  "existingNotes": [
+    "Prefers speaking practice over grammar drills"
+  ]
+}

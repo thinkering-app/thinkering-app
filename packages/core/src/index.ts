@@ -4,7 +4,18 @@ export * from './schemas/blocks'
 export * from './schemas/activity-doc'
 export type { LibraryItem } from './library/types'
 export { LIBRARY_ITEMS, getLibraryItem, libraryItemsForSection } from './library/items'
+export {
+  activeLibraryItems,
+  libraryPrefsForSection,
+  type LibraryPref,
+  type LibrarySituation,
+} from './library/prefs'
 export { localDateOf, isSameLocalDay, type LocalDate } from './scheduler/local-date'
+export {
+  completedTodayBySection,
+  type CompletionInput,
+  type SectionCounts,
+} from './scheduler/completion'
 export { planToday, tierForSection, type SchedulerGoal, type CardPick, type TodayPlan } from './scheduler/plan'
 export {
   FIXTURE_ACTIVITY_DOCS,
@@ -13,6 +24,21 @@ export {
   FIXTURE_DOC_STRENGTHEN,
 } from './fixtures/activity-docs'
 export * from './schemas/generations'
+export {
+  responsePayloadSchema,
+  parseResponsePayload,
+  type ResponsePayload,
+  type ResponsePayloadFor,
+} from './schemas/responses'
+export { describeResponse } from './activity/describe'
+export { gradeMcq, gradeBlank, gradeFillBlank, gradeOrdering, gradeMatching } from './activity/grading'
+export {
+  reviewPageIndex,
+  fillReviewPage,
+  insertPageAfter,
+  lastInteractivePageIndex,
+  interactiveBlocksBeforeReview,
+} from './activity/doc-ops'
 export * from './prompts/types'
 export { PROMPTS, getPromptTemplate, isGenerationKind, type ImplementedKind } from './prompts/registry'
 export { SHARED_PREAMBLE, ACTIVITY_DOC_FORMAT, libraryReference } from './prompts/preamble'
@@ -34,3 +60,6 @@ export { intakeTopicsTemplate, type IntakeTopicsParams } from './prompts/kinds/i
 export { intakePathTemplate, type IntakePathParams } from './prompts/kinds/intake-path'
 export { todayPlanTemplate, type TodayPlanParams } from './prompts/kinds/today-plan'
 export { activityGenerateTemplate, type ActivityGenerateParams } from './prompts/kinds/activity-generate'
+export { activityReviewTemplate, type ActivityReviewParams } from './prompts/kinds/activity-review'
+export { activityQuestionTemplate, type ActivityQuestionParams } from './prompts/kinds/activity-question'
+export { routineCustomizeTemplate, type RoutineCustomizeParams } from './prompts/kinds/routine-customize'

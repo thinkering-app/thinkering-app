@@ -150,13 +150,13 @@ export function seedFixtureData(db: Database, ctx: RepoContext, opts: { today: L
     activityId: lastHistoryActivityId,
     pageId: 'intro-hook',
     blockId: 'hook-q',
-    payload: { selectedId: 'b', correct: true },
+    payload: { kind: 'mcq', selectedId: 'b', correct: true },
   })
   saveResponse(db, ctx, {
     activityId: lastHistoryActivityId,
     pageId: 'intro-precise',
     blockId: 'precise-reveal',
-    payload: { revealed: true },
+    payload: { kind: 'reveal', revealed: true },
   })
 
   return true

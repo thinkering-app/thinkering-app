@@ -1,4 +1,5 @@
 import { and, asc, eq, isNull } from 'drizzle-orm'
+import type { ResponsePayload } from '@thinkering/core'
 import type { Database, RepoContext } from '../database'
 import { responses } from '../schema'
 
@@ -11,7 +12,7 @@ export type Response = typeof responses.$inferSelect
 export function saveResponse(
   db: Database,
   ctx: RepoContext,
-  input: { activityId: string; pageId: string; blockId: string; payload: unknown },
+  input: { activityId: string; pageId: string; blockId: string; payload: ResponsePayload },
 ): Response {
   const now = ctx.now()
   const existing = db

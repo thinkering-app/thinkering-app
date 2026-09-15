@@ -1,4 +1,6 @@
 import { z } from 'zod'
+import { SECTIONS } from '../domain'
+import { blockSchema } from './blocks'
 
 /**
  * Output contracts for the generation kinds (docs/04 §Contracts). Every LLM
@@ -70,3 +72,37 @@ export const dailyPlanOutputSchema = z.object({
 })
 export type DailyPlanOutput = z.infer<typeof dailyPlanOutputSchema>
 export type DailyPlanCard = z.infer<typeof dailyPlanCardSchema>
+
+/**
+ * G6 `activity.review` — the blocks that fill the reserved review page. One
+ * idea: the highest-value thing to say about their answers (docs/05).
+ */
+export const reviewOutputSchema = z.object({
+  blocks: z.array(blockSchema).min(1).max(6),
+})
+export type ReviewOutput = z.infer<typeof reviewOutputSchema>
+
+/** G7 `activity.question` — the page inserted after the current one by Ask. */
+export const questionOutputSchema = z.object({
+  blocks: z.array(blockSchema).min(1).max(6),
+})
+export type QuestionOutput = z.infer<typeof questionOutputSchema>
+
+/**
+ * G11 `routine.customize` — free text from the routine sheet interpreted into
+ * library activations plus a preference note saved to `routine_notes`.
+ */
+export const routineOutputSchema = z.object({
+  activations: z
+    .array(
+      z.object({
+        section: z.enum(SECTIONS),
+        libraryItemId: z.string().min(1),
+        active: z.boolean(),
+      }),
+    )
+    .max(40),
+  /** The one-line confirmation, also stored as the routine note. */
+  note: z.string().min(1).max(280),
+})
+export type RoutineOutput = z.infer<typeof routineOutputSchema>
