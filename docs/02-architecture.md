@@ -69,6 +69,8 @@ Three modes, same prompt code (`packages/core/prompts`):
 2. **BYO key**: user's Anthropic key in SecureStore (Keychain); client assembles the same prompts and calls Anthropic directly (`anthropic-dangerous-direct-browser-access` on web). Unmetered by us. On web, warn that the key is stored in browser storage.
 3. **Fixture** (dev, CI, and E2E): serves recorded responses from `fixtures/recorded/<kind>/` with simulated streaming and latency — no network, no key, deterministic. A first-class mode, not a test shim: it's how the whole app runs at zero token cost and how someone new runs it without an API key. See `10-testing.md`.
 
+The mode is a setting (Me, dev builds), defaulting to proxy. `EXPO_PUBLIC_AI_MODE=fixture` overrides the default for a run — needed because intake happens before the Me screen is reachable, and it is how the Maestro flows start (`10`).
+
 ### Device identity & metering (D10)
 
 - First launch: `POST /api/device/register` → `{device_id, secret}` stored in SecureStore. Requests carry `device_id` + HMAC signature (timestamped, replay-window). Server keeps a `devices` + `device_usage` table in Supabase (service role — operational data, not user learning data).

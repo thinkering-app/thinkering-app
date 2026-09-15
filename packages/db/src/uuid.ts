@@ -1,6 +1,7 @@
 /**
  * UUIDv7 (time-ordered) — ids are generated client-side (docs/03). Uses the
- * WinterCG `crypto.getRandomValues` available in Node 22 and the Expo runtime.
+ * WinterCG `crypto.getRandomValues`, available in Node 22 and installed on
+ * Hermes by the app's crypto polyfill (apps/mobile/src/crypto-polyfill.ts).
  *
  * Within one millisecond a 12-bit monotonic counter keeps ids sortable in
  * creation order; the counter seeds randomly and the remaining 62 bits are

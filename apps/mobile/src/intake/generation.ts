@@ -54,6 +54,9 @@ export function useGeneration<T>(): GenerationRunner<T> {
       },
       (error: unknown) => {
         entry.failed = true
+        // The AI Inspector records failures too, but only once the call got far
+        // enough to log; this catches the ones that didn't.
+        if (__DEV__) console.error(`[generation] ${key} failed`, error)
         if (current.current === entry && !controller.signal.aborted) {
           setState({ status: 'error', message: describeAiError(error) })
         }
