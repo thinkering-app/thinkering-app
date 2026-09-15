@@ -33,6 +33,9 @@ type TrackArgs<N extends AnalyticsEventName> =
 
 export function track<N extends AnalyticsEventName>(event: N, ...args: TrackArgs<N>): void {
   try {
+    // A build with no PostHog key has nowhere to send anything and never asks
+    // for consent, so it doesn't buffer either.
+    if (!isAnalyticsConfigured()) return
     const properties = sanitizeAnalyticsProperties(event, args[0] ?? {})
     switch (getConsent()) {
       case 'granted':

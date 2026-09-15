@@ -145,3 +145,9 @@ export {
   type NoProperties,
   type SettingsKey,
 } from './analytics/events'
+export {
+  PRIVACY_CONTACT_EMAIL,
+  PRIVACY_INTRO,
+  PRIVACY_SECTIONS,
+  type PrivacySection,
+} from './privacy/copy'

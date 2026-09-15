@@ -6,10 +6,12 @@ Learning data is personal. It lives on the device; the only ways it leaves are t
 
 ## PostHog setup
 
-- `posthog-react-native`, EU or US host (pick one, document in privacy copy).
-- **Identity**: a locally generated random UUID as `distinct_id`. Never call `identify()` with email/user id — even when the user creates a Supabase backup account, telemetry stays unlinked (D9).
-- **Opt-in (D9)**: default **off** — nothing is transmitted until the user says yes. The setting itself is `posthog_opt_in` in local settings, read through `apps/mobile/src/analytics/consent.ts` (built in WP6.2, ahead of the wrapper). One-time ask after the first completed activity ("Share anonymous usage to improve thinkering?" — one line on what it includes/excludes, links to privacy); toggle lives in Me → AI usage. Session replay, autocapture, and GeoIP enrichment disabled.
-- **Pre-consent buffer**: from first launch, the typed `track()` wrapper writes events to a local buffer table instead of PostHog (capped: first ~7 days / ~300 events). On opt-in, the buffer is flushed to PostHog (so a willing user's first intake and first activity are captured); on decline, it's deleted and buffering stops. The buffer holds only schema-conformant events — same allowlist, no content — and never leaves the device without opt-in.
+- `posthog-react-native`, **EU host** (`https://eu.i.posthog.com`), named in the privacy copy. Configured by `EXPO_PUBLIC_POSTHOG_KEY` / `EXPO_PUBLIC_POSTHOG_HOST`; with no key the wrapper is inert — nothing captured, nothing buffered, and the one-time ask never appears.
+- **Identity**: a locally generated random UUID as `distinct_id` — the SDK's own anonymous id, persisted in our `settings` table through a `customStorage` adapter rather than a file of its own. Never call `identify()` with email/user id — even when the user creates a Supabase backup account, telemetry stays unlinked (D9).
+- **No IP, no location**: every capture carries `$ip: null` (which stops PostHog recording the address at all) on top of `disableGeoip: true` (which only suppresses the lookup). Belt and braces, because the address is the one identifier a client can't otherwise withhold.
+- **No session replay, ever.** Mobile replay records the screen, and this screen is full of the learner's own writing and their generated activities — exactly the content the rest of this document promises never leaves the device. `enableSessionReplay: false`, and the optional `posthog-react-native-session-replay` package is not installed, so the capability isn't in the binary. Aggregate ratings (below) and shared activity reports are how we see quality instead. Revisiting this would be a product decision recorded here first, not a config change.
+- **Opt-in (D9)**: default **off** — nothing is transmitted until the user says yes. Consent is three-valued in `apps/mobile/src/analytics/consent.ts`: `undecided` (buffer), `granted`, `denied`, stored as `posthog_opt_in` + `posthog_consent_decided` in local settings. One-time ask after the first completed activity ("Share anonymous usage?" — one line on what it includes/excludes, links to privacy); toggle lives in Me → AI usage. Autocapture needs `<PostHogProvider>`, which the app never renders; lifecycle events, surveys and feature-flag preloading are off at construction.
+- **Pre-consent buffer**: from first launch, the typed `track()` wrapper writes events to the local `analytics_buffer` table instead of PostHog. The cap is "the first week, or 300 events, whichever comes first", measured from the first buffered event: once the window closes the buffer keeps what it has and refuses more, because the early events are the ones worth keeping. On opt-in the buffer is flushed to PostHog with each event's original timestamp (so a willing user's first intake and first activity are captured, in order); on decline it's deleted and buffering stops. The buffer holds only schema-conformant events — same allowlist, no content — and never leaves the device without opt-in.
 - Landing page: no cookies/analytics beyond privacy-respecting basics (at most PostHog with the same rules, or nothing).
 
 ## Event schema (allowlist — nothing else gets captured)
@@ -23,7 +25,7 @@ Never in any property: interest names, goal titles, activity titles, user text, 
 | `intake_step_completed`              | step (1–6), duration_bucket                                                           |
 | `intake_completed`                   | topics_selected_count, frequency, session_minutes                                     |
 | `intake_abandoned`                   | last_step                                                                             |
-| `activity_started`                   | section, tier, library_item_id, source (card/prefetch/resume)                         |
+| `activity_started`                   | section, tier, library_item_id, source (card/prefetch/resume — `prefetch` is reserved; prefetching generates a document, it doesn't start an activity) |
 | `activity_completed`                 | section, tier, library_item_id, duration_bucket, pages, questions_asked_count, rating |
 | `activity_abandoned`                 | tier, last_page_index                                                                 |
 | `question_asked`                     | tier                                                                                  |
@@ -40,13 +42,17 @@ Never in any property: interest names, goal titles, activity titles, user text, 
 | `activity_report_sent`               | —                                                                                     |
 | `settings_changed`                   | key (enum)                                                                            |
 
-Implementation: one typed `track()` wrapper in `apps/mobile/src/analytics` whose union type _is_ this schema — adding an event means editing the type + this doc. No stray `posthog.capture` calls.
+Implementation: the schema is a discriminated union in `packages/core/src/analytics/events.ts` — in core rather than the app so its buckets and allowlist are unit-testable — and `track()` in `apps/mobile/src/analytics/track.ts` is typed by it. Adding an event means editing the union, the runtime allowlist beside it (a type error if they disagree), and this table. No stray `posthog.capture` calls.
+
+`sanitizeAnalyticsProperties` runs on every event, buffered or sent: properties the schema doesn't declare are dropped, and so is any value that isn't a string under 64 characters, a finite number, or a boolean — an object, an array or a long string is the shape a content leak takes. Buckets: `durationBucket` (`<10s` … `45m+`), `latencyBucket` (`<500ms` … `30s+`), `daysSinceInstallBucket` (`0`, `1-6`, `7-29`, `30-89`, `90+`).
+
+Counts that are deliberately raw rather than bucketed: `pages`, `questions_asked_count`, `topics_selected_count`, `session_minutes`, `changes_count`, `last_page_index`, `step` — small integers about our own structures, not about the person.
 
 ## Activity quality review (D18)
 
 We want to see whether generated activities are actually good without ambient content collection. Two layers:
 
-1. **Aggregate signal** (PostHog, opt-in): `activity_completed` carries rating × library_item_id × tier × model — enough to spot "faded examples are rating poorly in language interests" without any content.
+1. **Aggregate signal** (PostHog, opt-in): `activity_completed` carries rating × library_item_id × tier — enough to spot "faded examples are rating poorly in language interests" without any content.
 2. **Shared activity reports** (explicit, per-activity): the summary page offers "Share this activity with the developers". Sharing sends the generated activity content, the rating + comment, and the library item/kind metadata through signed `POST /api/activity-report`, which forwards it by email and never stores it. The user's own responses are **excluded by default**, with a checkbox to include them — and when included they travel as plain question/answer lines, not raw payloads. Nothing is ever shared without this explicit action.
 
 ## What the server sees (and doesn't keep)
@@ -57,6 +63,25 @@ We want to see whether generated activities are actually good without ambient co
 - **Supabase backup**: user-owned rows under RLS; deleted when backup is turned off or account deleted.
 - **Metering tables**: device_id (random), daily token counts. No content, no identity linkage.
 
+## App Store privacy disclosures
+
+What App Privacy on App Store Connect should say, and why. **"Do you use data to track users?" — No**: nothing is shared with data brokers or used for cross-app advertising, and no identifier is linked to an identity.
+
+| Data type                        | Collected                       | Linked to the user | Purpose             | Why                                                                              |
+| -------------------------------- | ------------------------------- | ------------------ | ------------------- | -------------------------------------------------------------------------------- |
+| Contact info → Email address     | Yes                             | **Yes**            | App functionality   | Only if the user opts into backup (Supabase auth), or supplies a reply address on private feedback. |
+| User content → Other user content| Yes                             | Yes                | App functionality   | Backup rows are the user's own learning data under RLS. Off by default.          |
+| User content → Other user content| Yes                             | **No**             | App functionality   | Prompt content through the AI proxy, and explicitly shared activity reports. Neither is stored. |
+| Identifiers → User ID            | No                              | —                  | —                   | The analytics id is random, device-local and never linked; PostHog's `$ip` is suppressed. |
+| Usage data → Product interaction | Yes                             | **No**             | Analytics           | The docs/08 event schema, opt-in only. Declare it — "the user can turn it off" does not exempt it. |
+| Diagnostics                      | No                              | —                  | —                   | No crash reporter, no performance SDK, no error tracking.                        |
+
+Also before submission:
+
+- **The embedded Featurebase WebView** shows user-generated content from other people, so App Review Guideline 1.2 applies: the portal must have moderation, reporting, blocking and a contact path, and the checklist in `10-testing.md` §Tier 6 is the pre-TestFlight pass for it. If end-user reporting can't be provided, iOS opens the portal in the system browser instead of the WebView.
+- **Account deletion** (Guideline 5.1.1(v)): because the app offers account creation, it must offer in-app deletion of the account itself — not only the sign-out and the backup off-switch that deletes the server copy. Built in WP9.3 as a signed `POST /api/account/delete`.
+- **Encryption**: `ITSAppUsesNonExemptEncryption = false` — HTTPS only, no custom cryptography. (The device-signing HMAC is exempt as standard authentication.)
+
 ## Privacy page (landing `/privacy` + Me → Privacy)
 
-Working copy is live on the landing `/privacy` (M7), pending Reb's review; Me → Privacy still carries the M6 placeholder and should be brought in line with the reviewed copy before release. Must cover, in plain language: local-first storage; what LLM calls transmit and that we don't store them; optional backup and its deletion; anonymous opt-in analytics and exactly what's in it; the explicit share-an-activity option; BYO key handling; public/community feedback stored by Featurebase; private feedback and activity reports processed through Resend; the technical information each provider receives; retention and deletion handling; and contact `hello@thinkering.app`. Update App Store privacy disclosures for the embedded Featurebase WebView before release.
+Both surfaces render the same copy, which lives as data in `packages/core/src/privacy/copy.ts` — they drifted once, and sharing the text is cheaper than remembering to sync it. Still pending Reb's review of the wording. Must cover, in plain language: local-first storage; what LLM calls transmit and that we don't store them; optional backup and its deletion; anonymous opt-in analytics and exactly what's in it; the explicit share-an-activity option; BYO key handling; public/community feedback stored by Featurebase; private feedback and activity reports processed through Resend; the technical information each provider receives; retention and deletion handling; and contact `hello@thinkering.app`. Update App Store privacy disclosures for the embedded Featurebase WebView before release.
