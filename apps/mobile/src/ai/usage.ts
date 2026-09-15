@@ -15,11 +15,21 @@ export interface UsageSnapshot {
   resetAt: string
 }
 
+/** A meter nobody can reach should say so rather than spin (no proxy, no network). */
+const TIMEOUT_MS = 8_000
+
 export async function fetchUsage(): Promise<UsageSnapshot> {
-  const res = await fetch(`${API_BASE_URL}/api/usage`, {
-    method: 'GET',
-    headers: await signedHeaders(''),
-  })
-  if (!res.ok) throw new Error(`usage unavailable (${res.status})`)
-  return (await res.json()) as UsageSnapshot
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/usage`, {
+      method: 'GET',
+      headers: await signedHeaders(''),
+      signal: controller.signal,
+    })
+    if (!res.ok) throw new Error(`usage unavailable (${res.status})`)
+    return (await res.json()) as UsageSnapshot
+  } finally {
+    clearTimeout(timer)
+  }
 }

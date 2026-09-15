@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Platform, Switch, Text, View } from 'react-native'
 
-import { getAiMode, setAiMode } from '@/ai/settings'
+import { getAiMode, setAiMode, type AiMode } from '@/ai/settings'
 import { KEYS, secureDelete, secureGet, secureSet } from '@/ai/secure-store'
 import { fetchUsage, type UsageSnapshot } from '@/ai/usage'
 import { isAnalyticsOptedIn, setAnalyticsOptIn } from '@/analytics/consent'
@@ -23,14 +23,16 @@ export default function AiUsageScreen() {
   const [byok, setByok] = useState<boolean | null>(null)
   const [key, setKey] = useState('')
   const [optedIn, setOptedIn] = useState(() => isAnalyticsOptedIn())
-  const own = getAiMode() === 'byok'
+  const mode: AiMode = getAiMode()
 
   useEffect(() => {
     let live = true
     void secureGet(KEYS.byokKey).then((stored) => {
       if (live) setByok(stored !== null)
     })
-    if (!own) {
+    // Only the metered proxy has a meter: a BYO key is billed by Anthropic, and
+    // fixture mode never touches the network (docs/10).
+    if (mode === 'proxy') {
       fetchUsage().then(
         (snapshot) => live && setUsage(snapshot),
         () => live && setUsageError(true),
@@ -39,7 +41,7 @@ export default function AiUsageScreen() {
     return () => {
       live = false
     }
-  }, [own])
+  }, [mode])
 
   const saveKey = async () => {
     const trimmed = key.trim()
@@ -58,9 +60,13 @@ export default function AiUsageScreen() {
 
   return (
     <SubScreen title="AI usage">
-      {own ? (
+      {mode === 'byok' ? (
         <Text className="font-sans text-body text-ink-soft">
           Your own key is in use, so we don&apos;t meter these calls.
+        </Text>
+      ) : mode === 'fixture' ? (
+        <Text className="font-sans text-body text-ink-soft">
+          Fixture mode is replaying recorded responses. Nothing is metered.
         </Text>
       ) : usage ? (
         <Meter

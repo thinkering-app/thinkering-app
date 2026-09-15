@@ -34,7 +34,9 @@ export async function POST(req: Request): Promise<Response> {
   const { store, now } = getDeps()
 
   const bodyText = await req.text()
-  if (bodyText.length > MAX_MESSAGE_CHARS * 2) {
+  // A bound on what we'll even parse; the real message limit is the schema's.
+  // Generous, because JSON escaping inflates newline-heavy text.
+  if (bodyText.length > 64_000) {
     return Response.json({ error: 'too_large' }, { status: 413 })
   }
   const auth = await verifyDeviceAuth(req, bodyText, store, now())

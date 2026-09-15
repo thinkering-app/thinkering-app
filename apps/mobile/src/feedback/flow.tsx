@@ -62,7 +62,12 @@ export function FeedbackFlow({ visible, onClose }: { visible: boolean; onClose: 
 
       <EmailSheet
         visible={visible && emailOpen}
-        onClose={() => setEmailOpen(false)}
+        // Dismissing the form leaves feedback altogether rather than bouncing
+        // back to the chooser the user already answered.
+        onClose={() => {
+          setEmailOpen(false)
+          onClose()
+        }}
         contextLine={describeFeedbackContext(context)}
         onSend={async (message, replyEmail, includeContext) => {
           await postFeedback({
