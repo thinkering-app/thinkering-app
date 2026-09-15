@@ -69,6 +69,7 @@ export default function MeScreen() {
 
         <View className="gap-2">
           <Text className="font-heading-bold text-heading text-ink">Settings</Text>
+          <Row label="Backup" onPress={() => router.push('/me/backup')} />
           <Row label="AI usage" onPress={() => router.push('/me/ai-usage')} />
           <Row label="Privacy" onPress={() => router.push('/me/privacy')} />
           <Row label="Feedback" onPress={() => setFeedbackOpen(true)} />

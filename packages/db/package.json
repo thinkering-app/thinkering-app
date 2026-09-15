@@ -18,7 +18,8 @@
   },
   "dependencies": {
     "@thinkering/core": "workspace:*",
-    "drizzle-orm": "^0.44.5"
+    "drizzle-orm": "^0.44.5",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@thinkering/config": "workspace:*",
