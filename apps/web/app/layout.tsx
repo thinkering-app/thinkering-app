@@ -15,8 +15,12 @@ const outfit = Outfit({
 })
 
 export const metadata: Metadata = {
-  title: 'thinkering',
-  description: 'Steady, real progress on the things you want to learn.',
+  title: {
+    default: 'thinkering',
+    template: '%s — thinkering',
+  },
+  description:
+    'Learn the things you’ve been meaning to, with short daily activities grounded in the science of learning.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
