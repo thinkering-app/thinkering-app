@@ -111,7 +111,7 @@ Pruned to last ~200 calls. Never synced.
 ## Supabase (server) tables
 
 - Mirrors of all ⟳ tables + `user_id uuid` with RLS `user_id = auth.uid()`.
-- `devices(device_id, secret_hash, platform, created_at, attested bool)` and `device_usage(device_id, day, input_tokens, output_tokens, calls)` — operational, service-role only.
+- `devices(device_id, secret, platform, created_at, attested bool)` and `device_usage(device_id, day, input_tokens, output_tokens, calls, kind_calls json)` — operational, service-role only. The secret is stored raw, not hashed: the server must verify HMAC request signatures (docs/02), which a one-way hash cannot do; access is service-role only and App Attest hardens issuance later. `kind_calls` carries per-kind counts for the burst limits in `04`.
 
 ## Invariants
 
