@@ -28,8 +28,10 @@ Milestones broken into session-sized work packages (WP) suitable for one agent s
 
 ## M3 — Intake
 
-- **WP3.1 Intake UI**: 6 steps per `01`, chips, progress, back nav, generating states; writes interest/topics/goals.
-- **WP3.2 Intake generation wiring**: G1/G2/G3 orchestration (background kickoffs, dependency on G1, streamed step 6), error/retry states.
+**Done 2026-09-15.** Deviations, recorded in the docs they touch: G1's experience params are optional and the prompt says so (`04`) — docs/01 fires G1 on the screen *before* the experience question, which the old contract couldn't express; G1's fields are word-budgeted and G3's `maxTokens` is 4000 with 2–5-word concept labels, both from running the prompts live (`04`, `07`); `EXPO_PUBLIC_AI_MODE` sets the starting AI mode, since Me isn't reachable until intake is done (`02`); new components `TextField`, `ProgressDots`, `Generating` are in `07`. Two bugs the simulator caught: Hermes has no global `crypto`, so every `uuidv7()` threw until the app installed expo-crypto's `getRandomValues` (`apps/mobile/src/crypto-polyfill.ts`), and `loadFixtures` named the base input fixture after its file rather than `default`, so `--record` wrote alongside the recording instead of replacing it. Verified on the iOS simulator in fixture mode, end to end, including relaunch and the three logged calls in the AI Inspector.
+
+- ~~**WP3.1 Intake UI**~~ ✅: 6 steps per `01`, chips, progress, back nav, generating states; writes interest/topics/goals.
+- ~~**WP3.2 Intake generation wiring**~~ ✅: G1/G2/G3 orchestration (background kickoffs, dependency on G1, streamed step 6), error/retry states.
 
 ## M4 — Today & activity player
 
