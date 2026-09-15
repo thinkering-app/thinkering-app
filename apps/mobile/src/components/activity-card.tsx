@@ -44,7 +44,9 @@ export function ActivityCard({
     <PressScale
       testID={testID}
       accessibilityRole="button"
-      accessibilityLabel={`${title}. ${goalLine}. ${estMinutes} minutes`}
+      accessibilityLabel={`${title}. ${goalLine}. ${
+        completed ? 'Done today' : inProgress ? 'Continue' : `${estMinutes} minutes`
+      }`}
       onPress={onPress}
       className={`w-72 gap-2 rounded-card border-l-4 bg-surface p-5 shadow-card ${EDGE[section]} ${
         completed ? 'opacity-60' : ''

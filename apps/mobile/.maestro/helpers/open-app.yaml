@@ -3,17 +3,40 @@
 # which project it had open.
 appId: ${APP_ID}
 ---
-- launchApp:
-    clearState: ${CLEAR_STATE == 'true'}
+- runFlow:
+    when:
+      true: ${CLEAR_STATE == 'true'}
+    commands:
+      # A standalone command, because `launchApp.clearState` can't take an expression.
+      - clearState
+- launchApp
 - runFlow:
     when:
       true: ${APP_ID == 'host.exp.Exponent'}
     commands:
       - openLink: ${DEV_URL}
+      # iOS asks before handing an exp:// link over, every time.
+      - extendedWaitUntil:
+          visible: 'Open in'
+          timeout: 20000
+          optional: true
       - tapOn:
           text: 'Open'
           optional: true
-      - extendedWaitUntil:
-          notVisible: 'Opening project'
-          timeout: 120000
-          optional: true
+      # Expo Go shows its developer-menu tour once per install, and clearing
+      # its state is what makes it "once" again. Only the flow that clears has
+      # to wait for it — the first bundle takes a while to arrive.
+      - runFlow:
+          when:
+            true: ${CLEAR_STATE == 'true'}
+          commands:
+            - extendedWaitUntil:
+                visible: 'This is the developer menu'
+                timeout: 180000
+                optional: true
+            - tapOn:
+                text: 'Continue'
+                optional: true
+            - tapOn:
+                id: 'xmark'
+                optional: true

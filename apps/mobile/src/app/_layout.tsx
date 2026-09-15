@@ -24,8 +24,10 @@ export default function RootLayout() {
     Outfit_600SemiBold,
   })
   const migrations = useDbMigrations()
-  useSyncLifecycle()
   const ready = fontsLoaded && (migrations.success || Boolean(migrations.error))
+  // Both wait for the schema: their effects run before the first render that
+  // does, and on a fresh install the tables they read don't exist yet.
+  useSyncLifecycle(migrations.success)
   useAppOpened(migrations.success)
 
   useEffect(() => {

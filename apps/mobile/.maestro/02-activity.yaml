@@ -26,29 +26,33 @@ name: activity
 # Forward to the end. Pages vary by tier, so this walks until Done appears
 # rather than assuming a count.
 - repeat:
-    while:
-      notVisible:
-        id: 'player-done'
-    maxRuns: 15
+    times: 15
     commands:
-      - tapOn:
-          id: 'player-continue'
-      - extendedWaitUntil:
-          visible:
-            id: 'player-continue'
-            enabled: true
-          timeout: 20000
-          optional: true
+      - runFlow:
+          when:
+            notVisible:
+              id: 'player-done'
+          commands:
+            - tapOn:
+                id: 'player-continue'
+            - extendedWaitUntil:
+                visible:
+                  id: 'player-continue'
+                  enabled: true
+                timeout: 20000
+                optional: true
 
 - assertVisible: 'Was this useful?'
 - tapOn: 'Useful'
 - tapOn:
     id: 'player-done'
 
-# The completion shows on Today, and the activity is in History.
+# The completion shows on Today — the card reads "Done today" and the section
+# heading carries the count — and the activity is in History.
 - extendedWaitUntil:
-    visible: 'Done today'
+    visible: '1 today'
     timeout: 20000
+- assertVisible: '.*Done today'
 - tapOn:
     id: 'tab-history'
 - assertVisible: 'Today'
@@ -57,4 +61,4 @@ name: activity
 # And the goal it targeted has moved off not_started.
 - tapOn:
     id: 'tab-path'
-- assertVisible: 'Introduced'
+- assertVisible: '.*Introduced'

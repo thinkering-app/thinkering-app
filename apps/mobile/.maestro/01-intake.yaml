@@ -9,7 +9,8 @@ name: intake
     env:
       CLEAR_STATE: 'true'
 - extendedWaitUntil:
-    visible: 'thinkering'
+    visible:
+      id: 'intake-start'
     timeout: 120000
 - tapOn:
     id: 'intake-start'
@@ -65,7 +66,8 @@ name: intake
 - assertVisible: 'Today'
 - tapOn:
     id: 'tab-path'
+# Text matching is a full-match regex, and a goal card is one accessibility
+# element whose label carries its status — hence the trailing `.*`.
 - extendedWaitUntil:
-    visible: 'Conversational German'
+    visible: 'Greet someone at a Munich dinner.*'
     timeout: 30000
-- assertVisible: 'Greet someone at a Munich dinner'

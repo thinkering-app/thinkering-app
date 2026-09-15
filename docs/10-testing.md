@@ -72,7 +72,15 @@ Quality judgment stays human: eyeball the output in the AI Inspector, and record
 
 ### Tier 6 — E2E
 
-Three Maestro flows on the iOS simulator, run before a release, not per PR: intake → a path exists; Today → complete an activity → history entry and goal status advanced; export → import. They run in **fixture AI mode**, so they're deterministic and free.
+Three Maestro flows on the iOS simulator, run before a release, not per PR: intake → a path exists; Today → complete an activity → history entry and goal status advanced; export → import. They live in `apps/mobile/.maestro` with a README, run with `pnpm e2e`, and share one install — flow 1 leaves the interest that flows 2 and 3 use. They run in **fixture AI mode**, so they're deterministic and free.
+
+Three things about them are worth knowing before editing one:
+
+- **Address elements by `testID`.** Matching our `Pressable`s by visible text is unreliable and point-percentage taps break the moment a layout moves. Several components take a `testID` purely for this.
+- **Maestro's text matching is a full-match regex**, so a substring needs `.*`. That bites on anything with an `accessibilityLabel`: a `Pressable` with one is a single accessibility element, and the `Text` nodes inside it are invisible to the driver. `'Done today'` inside an activity card can only be matched through the card's own label.
+- **What the system hides.** `UIActivityViewController`'s contents live in another process, so the export flow asserts that the app reached the sheet and came back, not what the sheet said. The file round trip is a `packages/db` test.
+
+Running them via **Expo Go** (rather than the `e2e` EAS build) needs the Metro URL, because clearing Expo Go's state also clears which project it had open, and the first launch shows a developer-menu tour over the app. `helpers/open-app.yaml` handles both.
 
 The feedback integration also gets a manual pre-TestFlight pass: both chooser paths; all three Featurebase boards; guest participation; anonymized public author display; hidden leaderboard; post/comment moderation; public Feature requests and General feedback and discussions; author-only Bugs and issues; filtering, user reporting, blocking, and contact mechanisms required by [App Review Guideline 1.2](https://developer.apple.com/app-store/review/guidelines/); WebView loading/offline/retry/back/close/external-link behavior; Expo web's new-tab fallback; private email validation, context preview/toggle, success, and retry-preserved text. If end-user reporting is unavailable, verify that iOS uses the system browser fallback.
 

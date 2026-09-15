@@ -15,16 +15,21 @@ name: backup
     id: 'me-backup'
 - assertVisible: 'A file you keep'
 
-# Export opens the share sheet with a file in it.
+# Export hands a file to the share sheet. What the sheet contains is in a
+# separate process that XCUITest can't see into, so the assertion is that the
+# app got there and came back: the button leaves its "Exporting…" state.
 - tapOn:
     id: 'backup-export'
+- waitForAnimationToEnd:
+    timeout: 10000
+# Dismissed by tapping the dimmed area above the sheet — a swipe down works
+# only sometimes, and Maestro's point taps take integer percentages only. The
+# button leaving its "Exporting…" state is the proof the file was handed over.
+- tapOn:
+    point: '50%,10%'
 - extendedWaitUntil:
-    visible: 'thinkering'
-    timeout: 20000
-- assertVisible:
-    text: '.*\.json.*'
-    optional: true
-- tapOn: 'Close'
+    visible: 'Export data'
+    timeout: 30000
 
 # Import asks before it replaces anything, and backing out changes nothing.
 - tapOn:

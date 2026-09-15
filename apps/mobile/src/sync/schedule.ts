@@ -32,10 +32,15 @@ export function cancelScheduledSync(): void {
   timer = null
 }
 
-/** Installed once, at the root. Does nothing in a build with no Supabase project. */
-export function useSyncLifecycle(): void {
+/**
+ * Installed once, at the root. Does nothing in a build with no Supabase project
+ * — and nothing until migrations have run: on a fresh install the settings
+ * table doesn't exist yet, and this effect fires before the first render that
+ * waits for it.
+ */
+export function useSyncLifecycle(ready: boolean): void {
   useEffect(() => {
-    if (!backupConfigured) return
+    if (!ready || !backupConfigured) return
 
     const synced = new Set<string>(SYNCED_TABLE_NAMES)
     const auth = supabase().auth
@@ -60,5 +65,5 @@ export function useSyncLifecycle(): void {
       cancelScheduledSync()
       void auth.stopAutoRefresh()
     }
-  }, [])
+  }, [ready])
 }
