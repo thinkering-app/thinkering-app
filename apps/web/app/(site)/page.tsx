@@ -244,7 +244,7 @@ const PRINCIPLES = [
   },
   {
     title: 'Built on the science of learning',
-    body: 'Research shapes the content and the interactions. We’re continuing to figure out how to build it in in accurate, engaging, and effective ways.',
+    body: 'Research shapes the content and the interactions. We’re continuing to figure out how to build it in accurate, engaging, and effective ways.',
   },
   { title: 'Privacy-centered', body: 'Your learning data stays on your device by default.' },
   {

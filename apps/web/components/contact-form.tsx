@@ -78,8 +78,8 @@ export function ContactForm() {
             {state === 'sending' ? 'Sending…' : 'Send'}
           </button>
           <p aria-live="polite" className="text-secondary text-ink-soft">
-            {state === 'sent' ? 'Thanks — I’ll get back to you.' : null}
-            {state === 'error' ? 'That didn’t send. Please email me instead.' : null}
+            {state === 'sent' ? 'Sent. Thanks for the message!' : null}
+            {state === 'error' ? 'That didn’t work. Please try again later.' : null}
           </p>
         </div>
       </div>
