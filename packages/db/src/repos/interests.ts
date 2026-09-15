@@ -1,9 +1,10 @@
 import { and, asc, eq, isNull } from 'drizzle-orm'
-import type {
-  ExperienceChoice,
-  Frequency,
-  InterestStatus,
-  WhyChoice,
+import {
+  respreadSortOrders,
+  type ExperienceChoice,
+  type Frequency,
+  type InterestStatus,
+  type WhyChoice,
 } from '@thinkering/core'
 import type { Database, RepoContext } from '../database'
 import {
@@ -72,6 +73,23 @@ export function listInterests(db: Database): Interest[] {
     .where(isNull(interests.deletedAt))
     .orderBy(asc(interests.sortOrder), asc(interests.id))
     .all()
+}
+
+/**
+ * Manage Interests (docs/01 §7) hands back the order it shows, so the whole
+ * visible list is renumbered in one go — the list is 1–10 rows, not a path.
+ */
+export function reorderInterests(db: Database, ctx: RepoContext, orderedIds: string[]): void {
+  const now = ctx.now()
+  const orders = respreadSortOrders(orderedIds.length)
+  db.transaction((tx) => {
+    for (const [index, id] of orderedIds.entries()) {
+      tx.update(interests)
+        .set({ sortOrder: orders[index]!, updatedAt: now })
+        .where(and(eq(interests.id, id), isNull(interests.deletedAt)))
+        .run()
+    }
+  })
 }
 
 export type InterestPatch = Partial<Omit<Interest, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt'>>

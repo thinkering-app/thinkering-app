@@ -22,6 +22,14 @@ export async function secureSet(key: string, value: string): Promise<void> {
   await SecureStore.setItemAsync(key, value)
 }
 
+export async function secureDelete(key: string): Promise<void> {
+  if (Platform.OS === 'web') {
+    if (typeof localStorage !== 'undefined') localStorage.removeItem(`secure.${key}`)
+    return
+  }
+  await SecureStore.deleteItemAsync(key)
+}
+
 export const KEYS = {
   deviceId: 'thinkering.device_id',
   deviceSecret: 'thinkering.device_secret',
