@@ -6,6 +6,7 @@ import { listInterests, reorderInterests, updateInterest, type Interest } from '
 
 import { Pill } from '@/components/pill'
 import { SubScreen } from '@/components/sub-screen'
+import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
 import { colors } from '@/theme/tokens'
 
@@ -34,11 +35,13 @@ export default function ManageInterestsScreen() {
     const [moved] = order.splice(index, 1)
     order.splice(to, 0, moved!)
     reorderInterests(db, repoContext, order)
+    track('settings_changed', { key: 'interest_order' })
     reload()
   }
 
   const setStatus = (interest: Interest, status: InterestStatus) => {
     updateInterest(db, repoContext, interest.id, { status })
+    track('settings_changed', { key: 'interest_status' })
     reload()
   }
 

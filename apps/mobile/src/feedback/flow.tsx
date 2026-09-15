@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Linking, Platform, Pressable, Switch, Text, View } from 'react-native'
 import { featurebasePortalUrl } from '@thinkering/core'
 
+import { track } from '@/analytics'
 import { Button } from '@/components/button'
 import { Sheet } from '@/components/sheet'
 import { TextField } from '@/components/text-field'
@@ -32,6 +33,7 @@ export function FeedbackFlow({ visible, onClose }: { visible: boolean; onClose: 
 
   const openPortal = () => {
     if (!portal) return
+    track('featurebase_opened', { screen: context.screen })
     onClose()
     // Expo web has no WebView; the portal opens in a new tab (docs/02).
     if (Platform.OS === 'web') void Linking.openURL(portal)
@@ -75,6 +77,7 @@ export function FeedbackFlow({ visible, onClose }: { visible: boolean; onClose: 
             ...(replyEmail ? { replyEmail } : {}),
             ...(includeContext ? { context } : {}),
           })
+          track('email_feedback_sent', { screen: context.screen, included_context: includeContext })
           setEmailOpen(false)
           onClose()
           setConfirmation('Sent — thank you.')

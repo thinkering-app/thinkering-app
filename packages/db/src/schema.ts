@@ -1,6 +1,7 @@
 import { index, integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import type {
   ActivityDoc,
+  AnalyticsValue,
   ActivityStatus,
   ContextKind,
   ExperienceChoice,
@@ -289,7 +290,7 @@ export const llmCalls = sqliteTable('llm_calls', {
 export const analyticsBuffer = sqliteTable('analytics_buffer', {
   id: id(),
   event: text('event').notNull(),
-  properties: text('properties', { mode: 'json' }).$type<Record<string, unknown>>().notNull(),
+  properties: text('properties', { mode: 'json' }).$type<Record<string, AnalyticsValue>>().notNull(),
   createdAt: createdAt(),
 })
 

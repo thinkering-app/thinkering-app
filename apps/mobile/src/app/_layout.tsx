@@ -9,6 +9,7 @@ import { Text, View } from 'react-native'
 
 import '../global.css'
 import { useDbMigrations } from '../db'
+import { useAppOpened } from '@/analytics'
 import { useSyncLifecycle } from '@/sync/schedule'
 
 SplashScreen.preventAutoHideAsync()
@@ -24,6 +25,7 @@ export default function RootLayout() {
   const migrations = useDbMigrations()
   useSyncLifecycle()
   const ready = fontsLoaded && (migrations.success || Boolean(migrations.error))
+  useAppOpened(migrations.success)
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync()

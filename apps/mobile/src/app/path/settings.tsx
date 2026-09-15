@@ -27,6 +27,7 @@ import {
 import { Button } from '@/components/button'
 import { ChoiceChip } from '@/components/choice-chip'
 import { TextField } from '@/components/text-field'
+import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
 import { ContextSheet, CONTEXT_KIND_LABEL } from '@/path/context-sheet'
 import { colors } from '@/theme/tokens'
@@ -111,6 +112,9 @@ export default function PathSettingsScreen() {
       sessionMinutes,
       approachNotes: approachNotes.trim(),
     })
+    track('settings_changed', { key: 'path_settings' })
+    if (frequency !== interest.frequency) track('settings_changed', { key: 'frequency' })
+    if (sessionMinutes !== interest.sessionMinutes) track('settings_changed', { key: 'session_minutes' })
     router.back()
   }
 

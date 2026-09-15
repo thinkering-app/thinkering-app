@@ -6,6 +6,7 @@ import { listGoals, listLibraryPrefs, setLibraryPref } from '@thinkering/db'
 
 import { InfoDialog, Sheet } from '@/components/sheet'
 import { librarySituation } from '@/ai/context'
+import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
 import { SECTION_LABELS } from '@/components/section-header'
 import { colors } from '@/theme/tokens'
@@ -53,7 +54,10 @@ export function ConfigureSheet({
   }
 
   const close = () => {
-    if (dirty) onChanged(section)
+    if (dirty) {
+      track('routine_configured', { via: 'checkboxes' })
+      onChanged(section)
+    }
     setDirty(false)
     onClose()
   }

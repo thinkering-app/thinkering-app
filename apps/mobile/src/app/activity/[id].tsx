@@ -4,6 +4,7 @@ import { Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   describeResponse,
+  durationBucket,
   insertPageAfter,
   lastInteractivePageIndex,
   parseResponsePayload,
@@ -17,6 +18,7 @@ import {
 import {
   attachDoc,
   completeActivity,
+  countCompletedActivities,
   getActivity,
   listResponses,
   rateActivity,
@@ -27,6 +29,7 @@ import {
 } from '@thinkering/db'
 
 import { describeAiError } from '@/ai/generation'
+import { AnalyticsAskSheet, shouldAskForAnalytics, track } from '@/analytics'
 import { Button } from '@/components/button'
 import { Generating } from '@/components/generating'
 import { GenerationError } from '@/components/generation-error'
@@ -66,7 +69,11 @@ export default function ActivityScreen() {
   const [askOpen, setAskOpen] = useState(false)
   const [askState, setAskState] = useState<'idle' | 'pending' | 'error'>('idle')
   const [askError, setAskError] = useState<string>()
+  const [askConsent, setAskConsent] = useState(false)
   const reviewRequested = useRef(false)
+  const openedAt = useRef(0)
+  const questionsAsked = useRef(0)
+  const completed = useRef(false)
   const feedbackContext = useFeedbackContext()
 
   // The live answer map is the sink's own: sharing reads the latest answers
@@ -90,7 +97,15 @@ export default function ActivityScreen() {
 
   // Opening a card starts it (docs/03: started_at once, status in_progress).
   useEffect(() => {
-    if (activity) startActivity(db, repoContext, activity.id)
+    if (!activity) return
+    startActivity(db, repoContext, activity.id)
+    openedAt.current = Date.now()
+    track('activity_started', {
+      section: activity.section,
+      tier: activity.tier,
+      library_item_id: activity.libraryItemId,
+      source: activity.startedAt === null ? 'card' : 'resume',
+    })
   }, [activity])
 
   // G5b on first open of a card that has no document yet (docs/04: streamed,
@@ -155,6 +170,8 @@ export default function ActivityScreen() {
     (question: string) => {
       if (!activity || !doc) return
       setAskState('pending')
+      questionsAsked.current += 1
+      track('question_asked', { tier: activity.tier })
       let insertedId: string | null = null
       const applyBlocks = (blocks: Block[]) => {
         if (blocks.length === 0) return
@@ -206,7 +223,10 @@ export default function ActivityScreen() {
         ...(includeResponses ? { responses: describeAnswers(doc, answers) } : {}),
       }
       postActivityReport(report, feedbackContext)
-        .then(() => setShareState('done'))
+        .then(() => {
+          track('activity_report_sent')
+          setShareState('done')
+        })
         .catch(() => setShareState('error'))
     },
     [activity, answers, doc, feedbackContext, rating, ratingText],
@@ -246,13 +266,31 @@ export default function ActivityScreen() {
       }}
       onDone={() => {
         completeActivity(db, repoContext, activity.id)
+        completed.current = true
+        track('activity_completed', {
+          section: activity.section,
+          tier: activity.tier,
+          library_item_id: activity.libraryItemId,
+          duration_bucket: durationBucket(Date.now() - (activity.startedAt ?? openedAt.current)),
+          pages: shown.pages.length,
+          questions_asked_count: questionsAsked.current,
+          rating: rating ?? 'none',
+        })
+        // The one-time analytics ask rides on the first completion (docs/08).
+        if (shouldAskForAnalytics(countCompletedActivities(db))) setAskConsent(true)
+        else router.back()
+      }}
+      onClose={() => {
+        if (!completed.current) {
+          track('activity_abandoned', { tier: activity.tier, last_page_index: page })
+        }
         router.back()
       }}
-      onClose={() => router.back()}
       onShare={onShare}
       shareState={shareState}
       onAsk={doc ? () => setAskOpen(true) : undefined}
       overlay={
+        <>
         <AskSheet
           visible={askOpen}
           onClose={() => {
@@ -263,6 +301,14 @@ export default function ActivityScreen() {
           state={askState}
           error={askError}
         />
+        <AnalyticsAskSheet
+          visible={askConsent}
+          onAnswered={() => {
+            setAskConsent(false)
+            router.back()
+          }}
+        />
+        </>
       }
     />
   )

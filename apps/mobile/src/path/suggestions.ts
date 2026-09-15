@@ -17,6 +17,7 @@ import {
 
 import { callAi, describeAiError } from '@/ai'
 import { interestContext } from '@/ai/context'
+import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
 
 /**
@@ -94,6 +95,7 @@ export function useSuggestions(interest: Interest | null, goals: Goal[]): Sugges
   const accept = useCallback(
     (suggestion: GeneratedGoal) => {
       if (!interest) throw new Error('no interest selected')
+      track('goal_added', { source: 'suggestion' })
       return createGoal(db, repoContext, {
         interestId: interest.id,
         title: suggestion.title,

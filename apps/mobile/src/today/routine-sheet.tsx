@@ -18,6 +18,7 @@ import { Generating } from '@/components/generating'
 import { SECTION_LABELS } from '@/components/section-header'
 import { Sheet } from '@/components/sheet'
 import { TextField } from '@/components/text-field'
+import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
 
 /**
@@ -76,6 +77,7 @@ export function RoutineSheet({
         })
       }
       createRoutineNote(db, repoContext, { interestId, note: output.note })
+      track('routine_configured', { via: 'free_text' })
       setMessage(output.note)
       setStatus('done')
       onChanged()

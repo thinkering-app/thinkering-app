@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
 import { getSyncCursors, isBackupEnabled, setBackupEnabled } from '@thinkering/db'
 
+import { track } from '@/analytics'
 import { db } from '@/db'
 import { currentAccount, onAccountChange, type Account } from './account'
 import { deleteRemoteData, syncNow, type SyncOutcome } from './engine'
@@ -61,6 +62,7 @@ export function useBackup() {
   const turnOn = useCallback(async () => {
     setBackupEnabled(db, true)
     setEnabled(true)
+    track('backup_enabled')
     await runSync()
   }, [runSync])
 
@@ -76,6 +78,7 @@ export function useBackup() {
       cancelScheduledSync()
       setBackupEnabled(db, false)
       setEnabled(false)
+      track('backup_disabled')
       setLastSyncedAt(null)
       setError(null)
       return true

@@ -1,5 +1,6 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import {
+  durationBucket,
   extractPartialPath,
   placeInterest,
   type ApproachOutput,
@@ -11,9 +12,10 @@ import {
   type TopicsOutput,
   type WhyChoice,
 } from '@thinkering/core'
-import { saveIntake } from '@thinkering/db'
+import { listInterests, saveIntake } from '@thinkering/db'
 
 import { callAi } from '@/ai'
+import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
 import { useGeneration, type GenerationState } from '@/ai/generation'
 
@@ -73,6 +75,8 @@ interface IntakeValue {
   placement: Mode
   /** Writes the interest, its topics and its path. Returns the new interest id. */
   save: () => string
+  /** Records a finished step (docs/08). Steps 1–5 — step 6 is `intake_completed`. */
+  completeStep: (step: number) => void
 }
 
 const IntakeContext = createContext<IntakeValue | null>(null)
@@ -92,6 +96,28 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
 
   const update = useCallback((patch: Partial<IntakeAnswers>) => {
     setAnswers((prev) => ({ ...prev, ...patch }))
+  }, [])
+
+  // Intake telemetry (docs/08): counts and durations only — none of the answers.
+  const stepStartedAt = useRef(0)
+  const lastStep = useRef(1)
+  const finished = useRef(false)
+
+  useEffect(() => {
+    stepStartedAt.current = Date.now()
+    track('intake_started', { is_first_interest: listInterests(db).length === 0 })
+    return () => {
+      if (!finished.current) track('intake_abandoned', { last_step: lastStep.current })
+    }
+  }, [])
+
+  const completeStep = useCallback((step: number) => {
+    track('intake_step_completed', {
+      step,
+      duration_bucket: durationBucket(Date.now() - stepStartedAt.current),
+    })
+    stepStartedAt.current = Date.now()
+    lastStep.current = step + 1
   }, [])
 
   /**
@@ -180,6 +206,12 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
       })),
       goals: path.state.value.goals,
     })
+    finished.current = true
+    track('intake_completed', {
+      topics_selected_count: answers.selectedTopics.length,
+      frequency,
+      session_minutes: sessionMinutes,
+    })
     return interest.id
   }, [answers, approach.state, path.state, placement, topics.state])
 
@@ -197,6 +229,7 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
     retryPath: path.retry,
     placement,
     save,
+    completeStep,
   }
 
   return <IntakeContext.Provider value={value}>{children}</IntakeContext.Provider>

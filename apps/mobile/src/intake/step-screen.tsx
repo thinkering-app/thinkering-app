@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { ProgressDots } from '@/components/progress-dots'
 import { colors } from '@/theme/tokens'
+import { useIntake } from './context'
 import { INTAKE_STEP_COUNT } from './steps'
 
 type StepScreenProps = {
@@ -34,6 +35,16 @@ export function StepScreen({
   continueLabel = 'Continue',
   continueDisabled = false,
 }: StepScreenProps) {
+  // Steps 1–5 finish here; step 6 replaces the action and is counted by
+  // `intake_completed` instead (docs/08).
+  const { completeStep } = useIntake()
+  const advance = onContinue
+    ? () => {
+        completeStep(step)
+        onContinue()
+      }
+    : undefined
+
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right', 'bottom']}>
       <KeyboardAvoidingView
@@ -69,7 +80,7 @@ export function StepScreen({
 
         <View className="px-5 pb-2 pt-2">
           {footer ?? (
-            <PrimaryAction label={continueLabel} onPress={onContinue} disabled={continueDisabled} />
+            <PrimaryAction label={continueLabel} onPress={advance} disabled={continueDisabled} />
           )}
         </View>
       </KeyboardAvoidingView>

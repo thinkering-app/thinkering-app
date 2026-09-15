@@ -4,7 +4,7 @@ import { Platform, Switch, Text, View } from 'react-native'
 import { getAiMode, setAiMode, type AiMode } from '@/ai/settings'
 import { KEYS, secureDelete, secureGet, secureSet } from '@/ai/secure-store'
 import { fetchUsage, type UsageSnapshot } from '@/ai/usage'
-import { isAnalyticsOptedIn, setAnalyticsOptIn } from '@/analytics/consent'
+import { isAnalyticsOptedIn, setAnalyticsConsent, track } from '@/analytics'
 import { Button } from '@/components/button'
 import { Meter } from '@/components/meter'
 import { SubScreen } from '@/components/sub-screen'
@@ -48,13 +48,18 @@ export default function AiUsageScreen() {
     if (trimmed.length === 0) return
     await secureSet(KEYS.byokKey, trimmed)
     setAiMode('byok')
+    track('byok_enabled')
+    track('settings_changed', { key: 'ai_mode' })
     setKey('')
     setByok(true)
   }
 
   const removeKey = async () => {
     await secureDelete(KEYS.byokKey)
-    if (getAiMode() === 'byok') setAiMode('proxy')
+    if (getAiMode() === 'byok') {
+      setAiMode('proxy')
+      track('settings_changed', { key: 'ai_mode' })
+    }
     setByok(false)
   }
 
@@ -118,8 +123,10 @@ export default function AiUsageScreen() {
           <Switch
             value={optedIn}
             onValueChange={(next) => {
-              setAnalyticsOptIn(next)
+              // A yes here flushes the pre-consent buffer; a no deletes it (docs/08).
+              setAnalyticsConsent(next)
               setOptedIn(next)
+              if (next) track('settings_changed', { key: 'analytics_opt_in' })
             }}
             trackColor={{ false: colors.hairline, true: colors.cornflower.DEFAULT }}
             thumbColor={colors.surface}

@@ -9,6 +9,7 @@ import {
 
 import { callAi } from '@/ai'
 import { interestContext } from '@/ai/context'
+import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
 
 /**
@@ -41,5 +42,6 @@ export async function seedResources(interestId: string): Promise<void> {
       source: 'suggested',
       goalIds: goalIdsForTitles(db, interestId, resource.goalTitles),
     })
+    track('resource_added', { source: 'suggested' })
   }
 }

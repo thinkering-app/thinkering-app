@@ -1,6 +1,7 @@
 import { fetch } from 'expo/fetch'
 import {
   accumulateEvent,
+  latencyBucket,
   emptyAccumulator,
   extractJsonText,
   fixtureDocForGoal,
@@ -13,6 +14,7 @@ import {
   type RenderedPrompt,
 } from '@thinkering/core'
 import { logLlmCall } from '@thinkering/db'
+import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
 import { signedHeaders } from './device'
 import { KEYS, secureGet } from './secure-store'
@@ -72,6 +74,9 @@ interface Execution {
 
 const TRANSIENT = new Set([408, 429, 500, 502, 503, 504, 529])
 
+/** The logged reason a call stopped at the daily cap — also what `ai_call` reports. */
+const RATE_LIMITED = 'daily generation budget used'
+
 export async function callAi<T = unknown>(
   kind: string,
   params: unknown,
@@ -85,6 +90,18 @@ export async function callAi<T = unknown>(
   const started = Date.now()
 
   const finishLog = (status: 'ok' | 'error' | 'aborted', execution?: Execution, error?: string) => {
+    const latencyMs = Date.now() - started
+    // `ai_call` (docs/08) counts kinds and latency buckets, never the prompt or
+    // the output. An aborted call is a navigation, not a result, so it doesn't
+    // count; fixture mode isn't a real call either.
+    if (status !== 'aborted' && mode !== 'fixture') {
+      track('ai_call', {
+        kind,
+        model: execution?.model ?? MODEL_IDS[template.model],
+        latency_bucket: latencyBucket(latencyMs),
+        status: status === 'ok' ? 'ok' : error === RATE_LIMITED ? 'rate_limited' : 'error',
+      })
+    }
     logLlmCall(db, repoContext, {
       kind,
       model: execution?.model ?? MODEL_IDS[template.model],
@@ -94,7 +111,7 @@ export async function callAi<T = unknown>(
       response: execution ? { text: execution.text } : null,
       inputTokens: execution?.inputTokens ?? null,
       outputTokens: execution?.outputTokens ?? null,
-      latencyMs: Date.now() - started,
+      latencyMs,
       status,
       error: error ?? null,
     })
@@ -129,6 +146,9 @@ export async function callAi<T = unknown>(
     if (e instanceof AiOutputError) throw e
     if (opts.signal?.aborted) {
       finishLog('aborted')
+    } else if (e instanceof AiBudgetError) {
+      finishLog('error', undefined, RATE_LIMITED)
+      track('cap_reached')
     } else {
       finishLog('error', undefined, (e as Error).message)
     }

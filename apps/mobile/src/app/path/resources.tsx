@@ -16,6 +16,7 @@ import { Button } from '@/components/button'
 import { Generating } from '@/components/generating'
 import { Sheet } from '@/components/sheet'
 import { TextField } from '@/components/text-field'
+import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
 import {
   draftResource,
@@ -188,6 +189,7 @@ function AddLinkSheet({
       source: 'user',
       goalIds: draft.goalIds,
     })
+    track('resource_added', { source: 'user' })
     onSaved()
     onClose()
   }

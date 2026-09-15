@@ -36,6 +36,7 @@ import { Button } from '@/components/button'
 import { GenerationError } from '@/components/generation-error'
 import { Generating } from '@/components/generating'
 import { TextField } from '@/components/text-field'
+import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
 import { colors } from '@/theme/tokens'
 
@@ -113,11 +114,22 @@ export default function ReflectScreen() {
               source: g.source === 'user' ? 'user' : 'reflection',
             },
       )
+    const changes = draftChanges(plan, goals)
     applyReflection(db, repoContext, {
       interestId: interest.id,
       feelingText: feelingText.trim(),
       entries,
-      changes: draftChanges(plan, goals),
+      changes,
+    })
+    for (const entry of entries) {
+      if (entry.kind === 'new') track('goal_added', { source: entry.source })
+    }
+    track('reflection_completed', {
+      changes_count:
+        changes.added.length +
+        changes.removed.length +
+        changes.revised.length +
+        (changes.reordered ? 1 : 0),
     })
     router.back()
   }
