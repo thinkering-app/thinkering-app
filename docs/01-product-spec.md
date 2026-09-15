@@ -120,7 +120,7 @@ Small marketing site at thinkering.app, designed per `07-design-system.md` (same
 - **`/` overview** — hero (promise + "grow as a learner" beat, join-the-beta CTA), how it works (add an interest → path → daily activities → routine, with a typed-interests mock and a switchable 3-interest sample path), why it works, principles (dark section, 4 cards), the project (Reb/Assembly Code card).
 - **`/about`** — the project's goal + the five principles, full versions.
 - **`/contribute`** — three tinted cards: library discussion thread, beta + feedback/roadmap, GitHub.
-- **`/contact`** — email + LinkedIn.
+- **`/contact`** — a message form (name, email, message) posting to `POST /api/contact`, plus email + LinkedIn.
 - **`/privacy`** — plain-language policy per `08`.
 
 The primary CTA is the beta signup form (Google Form) until an App Store link exists. Feedback/roadmap links go to the Featurebase portal. `hello@thinkering.app` is assembled client-side so it never appears in served HTML. All external URLs live in `apps/web/components/links.ts`. Also hosts the API routes.

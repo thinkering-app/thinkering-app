@@ -56,6 +56,8 @@ export function SiteHeader() {
           {sitePages.map((p) => navLink(p.href, p.label))}
           <a
             href={links.betaForm}
+            target="_blank"
+            rel="noopener noreferrer"
             className="ml-2 rounded-pill bg-cornflower px-4 py-1.5 text-secondary font-medium text-white transition-colors hover:bg-cornflower-deep"
           >
             Join the beta
@@ -91,6 +93,8 @@ export function SiteHeader() {
             ))}
             <a
               href={links.betaForm}
+              target="_blank"
+              rel="noopener noreferrer"
               className="mt-2 self-start rounded-pill bg-cornflower px-4 py-2 font-medium text-white"
             >
               Join the beta

@@ -13,7 +13,7 @@ const WAYS = [
   {
     title: 'Ground it in the science of learning',
     wash: 'bg-leaf-tint',
-    body: 'thinkering draws its activities from a library of research-backed learning strategies. Help build that grounding — and the accuracy checks around it — in the open.',
+    body: 'thinkering draws its activities from a library of research-backed learning strategies. Help build that grounding and the accuracy checks around it together.',
     actions: [{ label: 'Join the library discussion', href: links.featurebaseLibraryThread }],
   },
   {
@@ -39,7 +39,7 @@ export default function Contribute() {
       <h1 className="font-heading-bold text-display-lg font-bold text-ink">Contribute</h1>
       <p className="mt-6 max-w-xl text-body text-ink-soft">
         Figuring out how AI and the science of learning can help our personal learning is no easy
-        task. It goes better together.
+        task. We can make progress better together.
       </p>
 
       <div className="mt-10 flex flex-col gap-5">
@@ -52,6 +52,8 @@ export default function Contribute() {
                 <a
                   key={a.href}
                   href={a.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="rounded-pill bg-surface px-4 py-2 text-secondary font-medium text-ink shadow-card transition-colors hover:text-cornflower-deep"
                 >
                   {a.label}

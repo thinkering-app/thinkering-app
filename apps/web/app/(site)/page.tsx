@@ -28,12 +28,13 @@ function Hero() {
           Learn the things you&rsquo;ve been meaning to.
         </h1>
         <p className="mt-5 max-w-xl text-title text-ink-soft">
-          Make consistent progress with short, effective daily activities grounded in how we
-          learn.
+          Make consistent progress with short, effective daily activities grounded in how we learn.
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <a
             href={links.betaForm}
+            target="_blank"
+            rel="noopener noreferrer"
             className="rounded-pill bg-cornflower px-6 py-3 font-medium text-white transition-colors hover:bg-cornflower-deep"
           >
             Join the beta
@@ -45,11 +46,14 @@ function Hero() {
             See how it works
           </a>
         </div>
-        <div className="mt-14 max-w-xl border-l-4 border-sun pl-5">
-          <p className="font-heading text-heading text-ink">And grow as a learner as you do.</p>
+        <div className="mt-14 max-w-xl rounded-card border border-hairline bg-surface p-6 shadow-card">
+          <span className="block h-2 w-10 rounded-pill bg-sun" />
+          <p className="mt-4 font-heading text-heading text-ink">
+            And grow as a learner as you do.
+          </p>
           <p className="mt-2 text-secondary text-ink-soft">
-            AI can help connect us with new knowledge and ways to approach it. But we should stay
-            in control of — and keep getting better at — what and how we learn.
+            AI can help connect us with new knowledge and ways to approach it. But we should stay in
+            control of — and can keep getting better at — what and how we learn.
           </p>
         </div>
       </div>
@@ -73,7 +77,7 @@ function Step({
       <div className="max-w-md">
         <div className="flex items-baseline gap-3">
           <span className="font-heading-bold text-title font-bold text-cornflower">{number}</span>
-          <h3 className="font-heading-bold text-display-md font-bold text-ink">{title}</h3>
+          <h3 className="font-heading-bold text-title font-bold text-ink">{title}</h3>
         </div>
         {body ? <p className="mt-3 text-body text-ink-soft">{body}</p> : null}
       </div>
@@ -88,16 +92,32 @@ function HowItWorks() {
       <div className="mx-auto max-w-5xl px-6 py-20">
         <h2 className="font-heading-bold text-display-md font-bold text-ink">How it works</h2>
         <ol className="mt-12 flex flex-col gap-16">
-          <Step number={1} title="Add an interest, or a few" body="Anything you’ve been meaning to learn — a craft, a language, a subject you keep circling back to.">
+          <Step
+            number={1}
+            title="Add an interest, or a few"
+            body="Anything you’ve been meaning to learn — a skill, a language, a subject you keep circling back to."
+          >
             <InterestTyper />
           </Step>
-          <Step number={2} title="thinkering sketches a direction" body="A path of goals that’s pedagogically sound for that kind of learning — and it evolves as you go, not a fixed syllabus.">
+          <Step
+            number={2}
+            title="thinkering sketches a direction"
+            body="A path of goals that’s pedagogically sound for that kind of learning — and it evolves as you go, not a fixed syllabus."
+          >
             <PathPreview />
           </Step>
-          <Step number={3} title="Make progress every day" body="Short, interactive activities built from the science of learning — not another feed to scroll.">
+          <Step
+            number={3}
+            title="Make progress every day"
+            body="Short, interactive activities built from the science of learning — not another feed to scroll."
+          >
             <ActivityMock />
           </Step>
-          <Step number={4} title="Build your own routine" body="Balance new ground, reinforcement, and real-world use — and figure out what actually helps you learn.">
+          <Step
+            number={4}
+            title="Build your own routine"
+            body="Balance new ground, reinforcement, and real-world use — and figure out what actually helps you learn."
+          >
             <RoutineMock />
           </Step>
         </ol>
@@ -136,9 +156,24 @@ function ActivityMock() {
 
 function RoutineMock() {
   const sections = [
-    { name: 'Next', accent: 'bg-cornflower', wash: 'bg-cornflower-tint', text: 'One new step on your path' },
-    { name: 'Strengthen', accent: 'bg-leaf', wash: 'bg-leaf-tint', text: 'Revisit what you’ve met, so it sticks' },
-    { name: 'Go further', accent: 'bg-peach', wash: 'bg-peach-tint', text: 'Put it to use in your own life' },
+    {
+      name: 'Next',
+      accent: 'bg-cornflower',
+      wash: 'bg-cornflower-tint',
+      text: 'One new step on your path',
+    },
+    {
+      name: 'Strengthen',
+      accent: 'bg-leaf',
+      wash: 'bg-leaf-tint',
+      text: 'Revisit what you’ve met, so it sticks',
+    },
+    {
+      name: 'Go further',
+      accent: 'bg-peach',
+      wash: 'bg-peach-tint',
+      text: 'Put it to use in your own life',
+    },
   ]
   return (
     <div className="flex flex-col gap-3">
@@ -155,15 +190,20 @@ function RoutineMock() {
   )
 }
 
-const WHY = [
+const WHY: { title: string; body: React.ReactNode; accent: string }[] = [
   {
     title: 'Learning happens when it’s active',
-    body: 'It’s easy to feel like we’re learning when we consume content. Interacting with ideas — and using them in different ways — is what makes them stick and grow.',
+    body: (
+      <>
+        It’s easy to <em>feel</em> like we’re learning when we consume content. Interacting with
+        ideas — and using them in different ways — is what makes them stick and grow.
+      </>
+    ),
     accent: 'bg-cornflower',
   },
   {
     title: 'Motivation is more than gamification',
-    body: 'Genuine progress, the right amount of challenge, relevance to your life, and reflecting on how you learn — no streaks or points required.',
+    body: 'Genuine progress, the right amount of challenge, relevance to your life, and reflecting on your learning — no streaks or points required.',
     accent: 'bg-leaf',
   },
   {
@@ -173,7 +213,7 @@ const WHY = [
   },
   {
     title: 'Learning is not linear',
-    body: 'You shouldn’t be stuck in a path that isn’t working, or doesn’t match what you need right now. This is a model that goes beyond an online course.',
+    body: 'You shouldn’t be stuck in a path that isn’t working, or doesn’t match what you need right now. Your learning app should adjust to your needs and allow you to go off-path and explore.',
     accent: 'bg-peach',
   },
 ]
@@ -187,9 +227,7 @@ function WhyItWorks() {
           {WHY.map((item) => (
             <div key={item.title}>
               <span className={`block h-2 w-10 rounded-pill ${item.accent}`} />
-              <h3 className="mt-4 font-heading-bold text-title font-bold text-ink">
-                {item.title}
-              </h3>
+              <h3 className="mt-4 font-heading-bold text-title font-bold text-ink">{item.title}</h3>
               <p className="mt-2 text-body text-ink-soft">{item.body}</p>
             </div>
           ))}
@@ -200,10 +238,19 @@ function WhyItWorks() {
 }
 
 const PRINCIPLES = [
-  { title: 'User control and choice', body: 'Suggestions for ease, never lock-in. You decide what and how you learn.' },
-  { title: 'Built on the science of learning', body: 'Research shapes the content and the interactions, not just the pitch.' },
+  {
+    title: 'User control and choice',
+    body: 'Suggestions for ease and inspiration, but you decide what and how you learn.',
+  },
+  {
+    title: 'Built on the science of learning',
+    body: 'Research shapes the content and the interactions. We’re continuing to figure out how to build it in in accurate, engaging, and effective ways.',
+  },
   { title: 'Privacy-centered', body: 'Your learning data stays on your device by default.' },
-  { title: 'Intentional, transparent AI', body: 'AI that grows your capabilities instead of replacing them.' },
+  {
+    title: 'Intentional, transparent AI',
+    body: 'AI that grows your capabilities instead of replacing them.',
+  },
 ]
 
 function Principles() {
@@ -237,9 +284,9 @@ function Project() {
         <div className="max-w-md">
           <h2 className="font-heading-bold text-display-md font-bold text-ink">The project</h2>
           <p className="mt-4 text-body text-ink-soft">
-            thinkering is early and actively in development. I&rsquo;d love to hear what you want
-            for your personal learning, and to collaborate on grounding the app in the science of
-            learning.
+            thinkering is early and actively in development. I&rsquo;d love to hear what
+            you&rsquo;re looking for in your personal learning and work together to ensure
+            it&rsquo;s accurate, effective, and enjoyable.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
@@ -250,6 +297,8 @@ function Project() {
             </Link>
             <a
               href={links.featurebase}
+              target="_blank"
+              rel="noopener noreferrer"
               className="rounded-pill border border-hairline bg-surface px-5 py-2.5 font-medium text-ink transition-colors hover:border-cornflower"
             >
               Feedback &amp; roadmap
@@ -263,14 +312,24 @@ function Project() {
           <ul className="flex flex-col gap-4 text-secondary text-ink">
             <li>
               Built by{' '}
-              <a href={links.linkedin} className="text-cornflower-deep hover:underline">
+              <a
+                href={links.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-cornflower-deep hover:underline"
+              >
                 Rebecca Hao
               </a>
               , learning designer and software developer
             </li>
             <li>
               With the support of{' '}
-              <a href={links.assemblyCode} className="text-cornflower-deep hover:underline">
+              <a
+                href={links.assemblyCode}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-cornflower-deep hover:underline"
+              >
                 Assembly Code
               </a>
               , a non-profit incubator and studio
@@ -278,9 +337,15 @@ function Project() {
             <li>Free to use. Your data is private — local to your device by default.</li>
             <li>
               Open source on{' '}
-              <a href={links.github} className="text-cornflower-deep hover:underline">
+              <a
+                href={links.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-cornflower-deep hover:underline"
+              >
                 GitHub
-              </a>
+              </a>{' '}
+              under AGPL
             </li>
           </ul>
         </div>

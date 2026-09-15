@@ -1,6 +1,5 @@
 import Link from 'next/link'
 
-import { EmailLink } from './email-link'
 import { links, sitePages } from './links'
 
 const footerLink = 'text-secondary text-cornflower-tint/80 transition-colors hover:text-white'
@@ -8,20 +7,25 @@ const footerLink = 'text-secondary text-cornflower-tint/80 transition-colors hov
 export function SiteFooter() {
   return (
     <footer className="bg-ink text-white">
-      <div className="mx-auto grid max-w-5xl gap-10 px-6 py-12 sm:grid-cols-[1fr_auto_auto]">
+      <div className="mx-auto flex max-w-5xl flex-col gap-6 px-6 py-10 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-xs">
           <p className="font-heading-bold text-heading font-bold">thinkering</p>
           <p className="mt-2 text-secondary text-cornflower-tint/80">
             Learn the things you&rsquo;ve been meaning to — and grow as a learner as you do.
           </p>
-          <p className="mt-4 text-secondary text-cornflower-tint/80">
+          <p className="mt-2 text-secondary text-cornflower-tint/80">
             Supported by{' '}
-            <a href={links.assemblyCode} className="underline hover:text-white">
+            <a
+              href={links.assemblyCode}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-white"
+            >
               Assembly Code
             </a>
           </p>
         </div>
-        <nav className="flex flex-col gap-2" aria-label="Site pages">
+        <nav className="flex flex-wrap gap-x-5 gap-y-2" aria-label="Site pages">
           <Link href="/" className={footerLink}>
             Overview
           </Link>
@@ -33,18 +37,6 @@ export function SiteFooter() {
           <Link href="/privacy" className={footerLink}>
             Privacy
           </Link>
-        </nav>
-        <nav className="flex flex-col gap-2" aria-label="Elsewhere">
-          <a href={links.betaForm} className={footerLink}>
-            Join the beta
-          </a>
-          <a href={links.featurebase} className={footerLink}>
-            Feedback &amp; roadmap
-          </a>
-          <a href={links.github} className={footerLink}>
-            GitHub
-          </a>
-          <EmailLink className={footerLink} />
         </nav>
       </div>
     </footer>

@@ -9,7 +9,7 @@ import {
 } from '@thinkering/core'
 import { verifyDeviceAuth } from '@/lib/server/auth'
 import { getDeps } from '@/lib/server/deps'
-import { contextLine, sendFeedbackEmail } from '@/lib/server/email'
+import { contextLine, sendEmail } from '@/lib/server/email'
 import { utcDayOf } from '@/lib/server/metering'
 
 /**
@@ -72,7 +72,7 @@ export async function POST(req: Request): Promise<Response> {
 
   const report = body.data
   const context = report.context ? sanitizeFeedbackContext(report.context) : undefined
-  const sent = await sendFeedbackEmail({
+  const sent = await sendEmail({
     at: 'activity_report',
     subject: `Shared activity · ${report.libraryItemId} · ${report.tier}`,
     text: [

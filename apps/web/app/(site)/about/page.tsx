@@ -27,7 +27,7 @@ const PRINCIPLES = [
     title: 'Privacy-centered',
     accent: 'border-sun',
     paragraphs: [
-      'A lot of technology is built around capturing our attention and selling our data. thinkering joins the technology that pushes back on that model. Your data is local to your device by default — private to you — and you can opt in to an account for backup or syncing. Analytics are also opt-in. To generate AI content, data passes through a server and Anthropic processes it, but it isn’t saved in either place.',
+      'A lot of technology is built around capturing our attention and selling our data. thinkering joins the technology that pushes back on that model. Your data is local to your device by default — private to you — and you can opt in to an account for backup or syncing. Analytics (purely for product improvement, never shared) are also opt-in. To generate AI content, data passes through a server and Anthropic processes it, but it isn’t saved in either place.',
     ],
   },
   {
@@ -35,7 +35,7 @@ const PRINCIPLES = [
     accent: 'border-peach',
     paragraphs: [
       'thinkering integrates generative AI (currently Anthropic’s Claude) to provide its services, and uses it in development for its coding capabilities.',
-      'We use it in the app because it can create adaptive content, sift through and apply the science of learning, and work across a wide range of domains. There are real concerns about how AI is affecting learning — I hope thinkering contributes to the kind of AI integration that grows people’s knowledge and capabilities instead of replacing them.',
+      'We use it in the app because it can create adaptive content, sift through and apply the science of learning, and work across a wide range of domains. There are real concerns about how AI is affecting learning — I aim for thinkering to contribute to the kind of AI integration that grows people’s knowledge and capabilities instead of replacing them.',
       'And if you feel uncomfortable with the changes AI has been bringing, I’m with you. I’m continually trying to understand its environmental and societal impacts, reduce resource usage, and address accuracy and bias. I’ll keep this section updated as I learn more and improve my processes.',
     ],
   },
@@ -43,7 +43,7 @@ const PRINCIPLES = [
     title: 'Not-for-profit and open source',
     accent: 'border-cornflower-deep',
     paragraphs: [
-      'We want this model of learning to be accessible and useful for as many people as possible, so the core capabilities stay free. Generative AI queries and development do cost money, so we’ll keep exploring funding — potentially a Plus tier mainly for people who want to support the project, never gating important functionality.',
+      'We want this model of learning to be accessible and useful for as many people as possible, so the core capabilities stay free. Generative AI queries and development do cost money, so we’ll keep exploring funding — potentially a paid option for people who want to support the project, never gating important functionality.',
       'The software is open source, so the implementation can reflect these commitments — and we welcome collaboration as we all figure out how to use AI responsibly and effectively for personal learning.',
     ],
   },
@@ -56,12 +56,18 @@ export default function About() {
 
       <div className="mt-6 flex flex-col gap-4 text-body text-ink-soft">
         <p>
-          thinkering is a non-profit, open source app built by Rebecca Hao, with the support of{' '}
-          <a href={links.assemblyCode} className="text-cornflower-deep hover:underline">
+          <strong className="font-sans-semibold font-semibold text-ink">thinkering</strong> is a
+          non-profit, open source app built by Rebecca Hao, with the support of{' '}
+          <a
+            href={links.assemblyCode}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-cornflower-deep hover:underline"
+          >
             Assembly Code
           </a>
-          . Its goal: create free and responsible technology that helps people learn — and grow
-          our learning skills while we do it.
+          . The goal: create free and responsible technology that helps people learn — and grow our
+          learning skills while we do it.
         </p>
         <p>
           thinkering introduces a model of personal learning that provides some structure, but is
@@ -69,12 +75,21 @@ export default function About() {
           generative AI.
         </p>
         <p>
-          The app is still early and in development, so feedback and conversations really help
-          make it useful and effective. Please reach out through the{' '}
+          The app is still early and in development, so feedback and conversations really help make
+          it more useful and effective. Please reach out through the{' '}
           <Link href="/contact" className="text-cornflower-deep hover:underline">
             contact page
-          </Link>{' '}
-          or at <EmailLink className="text-cornflower-deep hover:underline" />.
+          </Link>
+          , at <EmailLink className="text-cornflower-deep hover:underline" />, or{' '}
+          <a
+            href={links.featurebase}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-cornflower-deep hover:underline"
+          >
+            join the discussion
+          </a>
+          .
         </p>
       </div>
 

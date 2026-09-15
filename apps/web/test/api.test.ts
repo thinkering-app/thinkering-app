@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { FIXTURE_DOC_INTRODUCE } from '@thinkering/core'
 import { POST as aiPost } from '@/app/api/ai/route'
 import { POST as registerPost } from '@/app/api/device/register/route'
+import { POST as contactPost, resetContactLimitForTests } from '@/app/api/contact/route'
 import { POST as feedbackPost } from '@/app/api/feedback/route'
 import { POST as reportPost } from '@/app/api/activity-report/route'
 import { POST as deleteAccountPost } from '@/app/api/account/delete/route'
@@ -376,5 +377,52 @@ describe('POST /api/account/delete (App Review 5.1.1(v))', () => {
 
     for (let i = 0; i < 5; i++) await store.addAction(creds.deviceId, '2026-09-15', 'account_delete')
     expect((await deleteAccountPost(signed(creds, 'token'))).status).toBe(429)
+  })
+})
+
+describe('POST /api/contact (landing page form)', () => {
+  const body = (extra: Record<string, unknown> = {}) =>
+    JSON.stringify({
+      name: 'Ada',
+      email: 'ada@example.com',
+      message: 'I would like to try the beta.',
+      ...extra,
+    })
+  const post = (raw: string) =>
+    contactPost(
+      new Request('http://x/api/contact', {
+        method: 'POST',
+        body: raw,
+        headers: { 'x-forwarded-for': '203.0.113.7, 10.0.0.1' },
+      }),
+    )
+
+  beforeEach(() => resetContactLimitForTests())
+
+  it('forwards to the contact inbox with the sender as Reply-To', async () => {
+    const { fetchCalls } = setupDeps()
+    process.env.RESEND_API_KEY = 'test-key'
+    const res = await post(body())
+    delete process.env.RESEND_API_KEY
+
+    expect(res.status).toBe(200)
+    const sent = JSON.parse(String(fetchCalls[0]!.init?.body)) as Record<string, unknown>
+    expect(sent.to).toEqual(['contact@thinkering.app'])
+    expect(sent.subject).toBe('Contact · Ada')
+    expect(sent.reply_to).toBe('ada@example.com')
+    expect(sent.text).toContain('I would like to try the beta.')
+  })
+
+  it('rejects a missing field, a bad address, and a filled honeypot', async () => {
+    setupDeps()
+    expect((await post(JSON.stringify({ name: 'Ada', email: 'ada@example.com' }))).status).toBe(400)
+    expect((await post(body({ email: 'not-an-address' }))).status).toBe(400)
+    expect((await post(body({ website: 'http://spam.example' }))).status).toBe(400)
+  })
+
+  it('caps submissions per IP per day', async () => {
+    setupDeps()
+    for (let i = 0; i < 5; i++) expect((await post(body())).status).toBe(200)
+    expect((await post(body())).status).toBe(429)
   })
 })

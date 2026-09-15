@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { FEEDBACK_PLATFORMS, FEEDBACK_SCREENS, sanitizeFeedbackContext } from '@thinkering/core'
 import { verifyDeviceAuth } from '@/lib/server/auth'
 import { getDeps } from '@/lib/server/deps'
-import { contextLine, sendFeedbackEmail } from '@/lib/server/email'
+import { contextLine, sendEmail } from '@/lib/server/email'
 import { utcDayOf } from '@/lib/server/metering'
 
 /**
@@ -61,7 +61,7 @@ export async function POST(req: Request): Promise<Response> {
 
   // Re-sanitized server-side: the allowlist can't depend on a client being honest.
   const context = body.data.context ? sanitizeFeedbackContext(body.data.context) : undefined
-  const sent = await sendFeedbackEmail({
+  const sent = await sendEmail({
     at: 'feedback',
     subject: `Feedback · ${contextLine(context)}`,
     text: body.data.message,
