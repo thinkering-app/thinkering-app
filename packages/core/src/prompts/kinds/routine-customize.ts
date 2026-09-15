@@ -39,7 +39,7 @@ Return JSON: {
 Rules:
 - Only include activations you are actually changing. An empty list is correct when the request is purely about tone, difficulty, or content rather than which strategies run.
 - Only use library item ids listed as available for that section. Never turn off every item in a section — at least one must stay active.
-- The note is the durable instruction to later generation calls: one or two plain sentences in the learner's terms ("Prefers speaking practice over grammar drills"). It doubles as the confirmation shown to them, so make it true and readable, not a summary of your reasoning.
+- The note is the durable instruction to later generation calls: one or two plain sentences in the learner's terms, under 200 characters ("Prefers speaking practice over grammar drills"). It doubles as the one-line confirmation shown to them, so write what they now prefer — not a list of the items you toggled or a summary of your reasoning.
 - If the request is vague, make the smallest sensible change and say what you did in the note.
 
 ${libraryReference()}`

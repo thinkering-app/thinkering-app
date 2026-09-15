@@ -2,6 +2,7 @@ import { fetch } from 'expo/fetch'
 import {
   accumulateEvent,
   emptyAccumulator,
+  extractJsonText,
   FIXTURE_ACTIVITY_DOCS,
   getPromptTemplate,
   MODEL_IDS,
@@ -150,7 +151,7 @@ function validateOutput(
   }
   let json: unknown
   try {
-    json = JSON.parse(text)
+    json = JSON.parse(extractJsonText(text))
   } catch (e) {
     return { ok: false, issues: [`invalid JSON: ${(e as Error).message}`] }
   }

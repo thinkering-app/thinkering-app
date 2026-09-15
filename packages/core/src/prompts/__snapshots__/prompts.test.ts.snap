@@ -81,13 +81,22 @@ Activity Document JSON format (version 1):
   ]
 }
 
-Block types — content: heading {text}, paragraph {md}, list {style: "bullet"|"numbered", items: md[]}, callout {tone: "note"|"example"|"tip", md}, steps {items: [{label, md}]}, resourceEmbed {resourceId?, url, media: "video"|"article", title, startSec?, endSec?, focus?} — interactive (each needs a unique "id" field): mcq {id, prompt, options: [{id, label}], correctId?, explain?}, freeText {id, prompt, placeholder?}, fillBlank {id, md, blanks: [{id, answer, alts?}]}, ordering {id, prompt, items: [{id, label}], correctOrder: [id]}, matching {id, prompt, pairs: [{leftId, left, rightId, right}]}, reveal {id, prompt, md}, selfRate {id, prompt, scale: [{id, label}]}.
-"md" fields allow only inline bold/italic/code.
+Every block is an object whose discriminator field is "kind" — never "type": { "kind": "paragraph", "md": "…" }.
 
-Rules: 3–7 pages for a 5-minute session, scaling with estMinutes. Every content page includes at least one interactive block. Page ids unique. Follow the library item's page skeleton. Interaction before explanation where the strategy calls for it; explanation before practice for worked examples. One idea per page. resourceEmbed: short segments only (use startSec/endSec), always paired with an interactive block, with "focus" telling the learner what to watch or read for.
+Content blocks: { "kind": "heading", "text": string } · { "kind": "paragraph", "md": string } · { "kind": "list", "style": "bullet"|"numbered", "items": md[] } · { "kind": "callout", "tone": "note"|"example"|"tip", "md": string } · { "kind": "steps", "items": [{ "label": string, "md": string }] } · { "kind": "resourceEmbed", "resourceId"?, "url": string, "media": "video"|"article", "title": string, "startSec"?, "endSec"?, "focus"? }
+
+Interactive blocks (each also needs its own unique "id"): { "kind": "mcq", "id", "prompt", "options": [{ "id", "label" }], "correctId"?, "explain"? } · { "kind": "freeText", "id", "prompt", "placeholder"? } · { "kind": "fillBlank", "id", "md", "blanks": [{ "id", "answer", "alts"? }] } · { "kind": "ordering", "id", "prompt", "items": [{ "id", "label" }], "correctOrder": [id] } · { "kind": "matching", "id", "prompt", "pairs": [{ "leftId", "left", "rightId", "right" }] } · { "kind": "reveal", "id", "prompt", "md" } · { "kind": "selfRate", "id", "prompt", "scale": [{ "id", "label" }] }
+
+"md" fields allow only inline bold/italic/code. In a fillBlank, write each blank as ___ in the "md".
+
+Rules: 3–7 pages for a 5-minute session, scaling with estMinutes. Pages carry their own "kind" too: the teaching pages are "content", the second-to-last page is the reserved "review" page with "blocks": null, and the final page is the "summary" page — emit those two with those kinds, not as content pages. Every content page includes at least one interactive block; the summary page is a recap and has none. Page ids unique. Follow the library item's page skeleton. Interaction before explanation where the strategy calls for it; explanation before practice for worked examples. One idea per page. resourceEmbed: short segments only (use startSec/endSec), always paired with an interactive block, with "focus" telling the learner what to watch or read for.
 
 Additional rules for this task:
 - Emit pages in reading order, page 1 first (it renders while you're still writing).
+- End every document with exactly these two pages, in this order and with these kinds:
+  { "id": "review", "kind": "review", "blocks": null },
+  { "id": "summary", "kind": "summary", "blocks": [ …2–3 recap blocks, no interaction… ] }
+  The summary is "kind": "summary", not "content" — a content page would fail validation.
 - "concepts": declare which of the goal's concept/skill ids this activity genuinely targets (use their exact ids in goalConceptId). Don't claim coverage you don't deliver.
 - Ground apply-tier activities in the learner's contexts and resources only when they genuinely fit — never force it.
 - If a resource is provided, build around it with resourceEmbed blocks: short segments, focus prompts, interaction after each segment. Never "watch this 20-minute video".
@@ -307,10 +316,15 @@ Activity Document JSON format (version 1):
   ]
 }
 
-Block types — content: heading {text}, paragraph {md}, list {style: "bullet"|"numbered", items: md[]}, callout {tone: "note"|"example"|"tip", md}, steps {items: [{label, md}]}, resourceEmbed {resourceId?, url, media: "video"|"article", title, startSec?, endSec?, focus?} — interactive (each needs a unique "id" field): mcq {id, prompt, options: [{id, label}], correctId?, explain?}, freeText {id, prompt, placeholder?}, fillBlank {id, md, blanks: [{id, answer, alts?}]}, ordering {id, prompt, items: [{id, label}], correctOrder: [id]}, matching {id, prompt, pairs: [{leftId, left, rightId, right}]}, reveal {id, prompt, md}, selfRate {id, prompt, scale: [{id, label}]}.
-"md" fields allow only inline bold/italic/code.
+Every block is an object whose discriminator field is "kind" — never "type": { "kind": "paragraph", "md": "…" }.
 
-Rules: 3–7 pages for a 5-minute session, scaling with estMinutes. Every content page includes at least one interactive block. Page ids unique. Follow the library item's page skeleton. Interaction before explanation where the strategy calls for it; explanation before practice for worked examples. One idea per page. resourceEmbed: short segments only (use startSec/endSec), always paired with an interactive block, with "focus" telling the learner what to watch or read for.
+Content blocks: { "kind": "heading", "text": string } · { "kind": "paragraph", "md": string } · { "kind": "list", "style": "bullet"|"numbered", "items": md[] } · { "kind": "callout", "tone": "note"|"example"|"tip", "md": string } · { "kind": "steps", "items": [{ "label": string, "md": string }] } · { "kind": "resourceEmbed", "resourceId"?, "url": string, "media": "video"|"article", "title": string, "startSec"?, "endSec"?, "focus"? }
+
+Interactive blocks (each also needs its own unique "id"): { "kind": "mcq", "id", "prompt", "options": [{ "id", "label" }], "correctId"?, "explain"? } · { "kind": "freeText", "id", "prompt", "placeholder"? } · { "kind": "fillBlank", "id", "md", "blanks": [{ "id", "answer", "alts"? }] } · { "kind": "ordering", "id", "prompt", "items": [{ "id", "label" }], "correctOrder": [id] } · { "kind": "matching", "id", "prompt", "pairs": [{ "leftId", "left", "rightId", "right" }] } · { "kind": "reveal", "id", "prompt", "md" } · { "kind": "selfRate", "id", "prompt", "scale": [{ "id", "label" }] }
+
+"md" fields allow only inline bold/italic/code. In a fillBlank, write each blank as ___ in the "md".
+
+Rules: 3–7 pages for a 5-minute session, scaling with estMinutes. Pages carry their own "kind" too: the teaching pages are "content", the second-to-last page is the reserved "review" page with "blocks": null, and the final page is the "summary" page — emit those two with those kinds, not as content pages. Every content page includes at least one interactive block; the summary page is a recap and has none. Page ids unique. Follow the library item's page skeleton. Interaction before explanation where the strategy calls for it; explanation before practice for worked examples. One idea per page. resourceEmbed: short segments only (use startSec/endSec), always paired with an interactive block, with "focus" telling the learner what to watch or read for.
 
 Rules:
 - Answer the question they actually asked, at the level the activity is pitched at. Concrete over abstract; one idea, not a lecture.
@@ -411,10 +425,15 @@ Activity Document JSON format (version 1):
   ]
 }
 
-Block types — content: heading {text}, paragraph {md}, list {style: "bullet"|"numbered", items: md[]}, callout {tone: "note"|"example"|"tip", md}, steps {items: [{label, md}]}, resourceEmbed {resourceId?, url, media: "video"|"article", title, startSec?, endSec?, focus?} — interactive (each needs a unique "id" field): mcq {id, prompt, options: [{id, label}], correctId?, explain?}, freeText {id, prompt, placeholder?}, fillBlank {id, md, blanks: [{id, answer, alts?}]}, ordering {id, prompt, items: [{id, label}], correctOrder: [id]}, matching {id, prompt, pairs: [{leftId, left, rightId, right}]}, reveal {id, prompt, md}, selfRate {id, prompt, scale: [{id, label}]}.
-"md" fields allow only inline bold/italic/code.
+Every block is an object whose discriminator field is "kind" — never "type": { "kind": "paragraph", "md": "…" }.
 
-Rules: 3–7 pages for a 5-minute session, scaling with estMinutes. Every content page includes at least one interactive block. Page ids unique. Follow the library item's page skeleton. Interaction before explanation where the strategy calls for it; explanation before practice for worked examples. One idea per page. resourceEmbed: short segments only (use startSec/endSec), always paired with an interactive block, with "focus" telling the learner what to watch or read for.
+Content blocks: { "kind": "heading", "text": string } · { "kind": "paragraph", "md": string } · { "kind": "list", "style": "bullet"|"numbered", "items": md[] } · { "kind": "callout", "tone": "note"|"example"|"tip", "md": string } · { "kind": "steps", "items": [{ "label": string, "md": string }] } · { "kind": "resourceEmbed", "resourceId"?, "url": string, "media": "video"|"article", "title": string, "startSec"?, "endSec"?, "focus"? }
+
+Interactive blocks (each also needs its own unique "id"): { "kind": "mcq", "id", "prompt", "options": [{ "id", "label" }], "correctId"?, "explain"? } · { "kind": "freeText", "id", "prompt", "placeholder"? } · { "kind": "fillBlank", "id", "md", "blanks": [{ "id", "answer", "alts"? }] } · { "kind": "ordering", "id", "prompt", "items": [{ "id", "label" }], "correctOrder": [id] } · { "kind": "matching", "id", "prompt", "pairs": [{ "leftId", "left", "rightId", "right" }] } · { "kind": "reveal", "id", "prompt", "md" } · { "kind": "selfRate", "id", "prompt", "scale": [{ "id", "label" }] }
+
+"md" fields allow only inline bold/italic/code. In a fillBlank, write each blank as ___ in the "md".
+
+Rules: 3–7 pages for a 5-minute session, scaling with estMinutes. Pages carry their own "kind" too: the teaching pages are "content", the second-to-last page is the reserved "review" page with "blocks": null, and the final page is the "summary" page — emit those two with those kinds, not as content pages. Every content page includes at least one interactive block; the summary page is a recap and has none. Page ids unique. Follow the library item's page skeleton. Interaction before explanation where the strategy calls for it; explanation before practice for worked examples. One idea per page. resourceEmbed: short segments only (use startSec/endSec), always paired with an interactive block, with "focus" telling the learner what to watch or read for.
 
 Choose exactly one thing to do, whichever is most valuable for this learner right now:
 - Correct a misconception their answers reveal — kindly, directly, and specifically; name what they said and what's actually true.
@@ -669,7 +688,7 @@ Return JSON: {
 Rules:
 - Only include activations you are actually changing. An empty list is correct when the request is purely about tone, difficulty, or content rather than which strategies run.
 - Only use library item ids listed as available for that section. Never turn off every item in a section — at least one must stay active.
-- The note is the durable instruction to later generation calls: one or two plain sentences in the learner's terms ("Prefers speaking practice over grammar drills"). It doubles as the confirmation shown to them, so make it true and readable, not a summary of your reasoning.
+- The note is the durable instruction to later generation calls: one or two plain sentences in the learner's terms, under 200 characters ("Prefers speaking practice over grammar drills"). It doubles as the one-line confirmation shown to them, so write what they now prefer — not a list of the items you toggled or a summary of your reasoning.
 - If the request is vague, make the smallest sensible change and say what you did in the note.
 
 Activity library:

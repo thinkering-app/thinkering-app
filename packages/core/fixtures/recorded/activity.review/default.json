@@ -1,14 +1,14 @@
 {
   "kind": "activity.review",
   "promptVersion": 1,
-  "model": "hand-authored",
+  "model": "claude-haiku-4-5-20251001",
   "fixture": "default",
-  "text": "{\"blocks\": [{\"kind\": \"heading\", \"text\": \"About hätte gern\"}, {\"kind\": \"paragraph\", \"md\": \"Your instinct that it sounds less like a demand is right, and the reason is worth having: *hätte* is the subjunctive of **haben**, not the past. \\\"I would have\\\" — the distance is hypothetical, not historical. That's why it works for any polite request: *Ich hätte gern die Rechnung.*\"}, {\"kind\": \"callout\", \"tone\": \"tip\", \"md\": \"The blank you missed is the same rule in disguise: **einen** Kaffee, because *Kaffee* is masculine and it's the thing being ordered.\"}]}",
+  "text": "```json\n{\n  \"blocks\": [\n    {\n      \"kind\": \"heading\",\n      \"text\": \"You nailed the form — and spotted something real about the tone\"\n    },\n    {\n      \"kind\": \"paragraph\",\n      \"md\": \"Your answer about *will* nails it: it does sound demanding, almost childish. You're right that *hätte gern* creates distance and politeness — but not because it's past tense. Here's the real move: *hätte gern* is the **conditional** form (\\\"I would like\\\"), not past tense. That conditional softens the request — it's hypothetical, tentative, less direct than the present *will* (\\\"I want\\\"). Same reason English speakers say \\\"I would like\\\" instead of \\\"I want\\\" to a stranger. The *gern* part just means \\\"gladly,\\\" so the whole thing is \\\"I would gladly like…\\\" — extra soft.\"\n    },\n    {\n      \"kind\": \"paragraph\",\n      \"md\": \"On the blanks: *einen* vs. *ein* — you wrote *ein*, but *einen* is right here because *Kaffee* is masculine accusative (the object of the verb). *Gern* vs. *gerne* — both work, but *gern* is more common in speech, especially in this phrase. You're close on both; these are the details that settle with repetition.\"\n    },\n    {\n      \"kind\": \"callout\",\n      \"tone\": \"tip\",\n      \"md\": \"When you're at a Munich dinner table and want something, *Ich hätte gern…* is your go-to. It's polite without being stiff. You've got the skeleton solid.\"\n    }\n  ]\n}\n```",
   "usage": {
-    "inputTokens": 0,
-    "outputTokens": 0,
+    "inputTokens": 2187,
+    "outputTokens": 410,
     "cacheReadTokens": 0,
     "cacheWriteTokens": 0
   },
-  "latencyMs": 1400
+  "latencyMs": 6335
 }

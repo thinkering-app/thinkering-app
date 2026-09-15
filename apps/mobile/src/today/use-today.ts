@@ -18,6 +18,7 @@ import { listGoals } from '@thinkering/db'
 
 import { describeAiError } from '@/ai'
 import { db } from '@/db'
+import { prefetchNextActivity } from '@/features/activity-player/generate'
 import { ensureDailyPlan, hasPlanFor } from './plan'
 
 /**
@@ -88,9 +89,11 @@ export function useToday(interests: Interest[]): TodayView {
         // Sequential: the plan for each interest is a separate cheap call, and
         // firing them together only makes the meter spike.
         for (const interest of missing) await ensureDailyPlan(interest, today, controller.signal)
-        if (!cancelled) {
-          setGenerating(false)
-          bump()
+        if (cancelled) return
+        setGenerating(false)
+        bump()
+        for (const interest of missing) {
+          prefetchNextActivity(listPlannedForDate(db, interest.id, today), controller.signal)
         }
       } catch (e) {
         if (cancelled || controller.signal.aborted) return

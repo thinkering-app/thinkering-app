@@ -30,7 +30,7 @@ export {
   type ResponsePayload,
   type ResponsePayloadFor,
 } from './schemas/responses'
-export { describeResponse } from './activity/describe'
+export { describeResponse, pageToPlainText } from './activity/describe'
 export { gradeMcq, gradeBlank, gradeFillBlank, gradeOrdering, gradeMatching } from './activity/grading'
 export {
   reviewPageIndex,
@@ -53,6 +53,8 @@ export { checkActivityDoc, toneLintOutput, toneLintIssues, pageCountRange, type 
 export { SseParser, accumulateEvent, emptyAccumulator, type SseEvent, type StreamAccumulator } from './streaming/sse'
 export { extractPartialActivityDoc, type PartialActivityDoc } from './streaming/partial-doc'
 export { extractPartialPath, type PartialPath, type PathGoal } from './streaming/partial-path'
+export { extractPartialBlocks } from './streaming/partial-blocks'
+export { extractJsonText } from './streaming/json'
 export { placeInterest } from './intake/placement'
 export { RECORDED_RESPONSES, type RecordedResponse } from './fixtures/recorded'
 export { intakeApproachTemplate, type IntakeApproachParams } from './prompts/kinds/intake-approach'

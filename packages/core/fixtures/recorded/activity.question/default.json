@@ -1,14 +1,14 @@
 {
   "kind": "activity.question",
   "promptVersion": 1,
-  "model": "hand-authored",
+  "model": "claude-sonnet-5",
   "fixture": "default",
-  "text": "{\"blocks\": [{\"kind\": \"paragraph\", \"md\": \"It changes, and in the masculine it's the one change worth memorizing: **mein** Bruder becomes **meinen** Bruder when he's the object — *Ich sehe meinen Bruder.*\"}, {\"kind\": \"list\", \"style\": \"bullet\", \"items\": [\"masculine: mein Bruder → **meinen** Bruder\", \"feminine: meine Schwester → meine Schwester (no change)\", \"neuter: mein Kind → mein Kind (no change)\", \"plural: meine Eltern → meine Eltern (no change)\"]}, {\"kind\": \"mcq\", \"id\": \"q-akk-check\", \"prompt\": \"*Ich besuche ___ Vater.*\", \"options\": [{\"id\": \"a\", \"label\": \"mein\"}, {\"id\": \"b\", \"label\": \"meinen\"}, {\"id\": \"c\", \"label\": \"meine\"}], \"correctId\": \"b\", \"explain\": \"Vater is masculine and he's being visited, so it takes the -en.\"}]}",
+  "text": "{\n  \"blocks\": [\n    {\n      \"kind\": \"paragraph\",\n      \"md\": \"Only the masculine ones change. When *der Bruder* is the object (the thing being acted on), *mein* becomes *meinen*. Feminine, neuter, and plural forms stay the same whether they're subject or object.\"\n    },\n    {\n      \"kind\": \"list\",\n      \"style\": \"bullet\",\n      \"items\": [\n        \"*Mein Bruder wohnt in Berlin.* (subject — stays **mein**)\",\n        \"*Ich rufe meinen Bruder an.* (object — becomes **meinen**)\",\n        \"*Meine Schwester kocht.* / *Ich rufe meine Schwester an.* (no change, either role)\"\n      ]\n    },\n    {\n      \"kind\": \"mcq\",\n      \"id\": \"check-accusative\",\n      \"prompt\": \"Ich besuche ___ Vater am Wochenende. (I'm visiting my father this weekend.)\",\n      \"options\": [\n        { \"id\": \"a\", \"label\": \"mein\" },\n        { \"id\": \"b\", \"label\": \"meinen\" },\n        { \"id\": \"c\", \"label\": \"meine\" }\n      ],\n      \"correctId\": \"b\",\n      \"explain\": \"*Vater* is masculine and here it's the object of *besuche*, so *mein* shifts to *meinen*.\"\n    }\n  ]\n}",
   "usage": {
-    "inputTokens": 0,
-    "outputTokens": 0,
-    "cacheReadTokens": 0,
+    "inputTokens": 749,
+    "outputTokens": 876,
+    "cacheReadTokens": 2119,
     "cacheWriteTokens": 0
   },
-  "latencyMs": 2600
+  "latencyMs": 10012
 }

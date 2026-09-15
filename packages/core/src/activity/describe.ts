@@ -49,3 +49,41 @@ export function describeResponse(block: Block, payload: ResponsePayload): string
     }
   }
 }
+
+/**
+ * A page as plain text, for the prompts that need to know what the learner is
+ * looking at (G7's Ask). Interactions become their prompt line; formatting is
+ * dropped — the model needs the content, not our markup.
+ */
+export function pageToPlainText(page: { blocks: Block[] | null }): string {
+  const lines: string[] = []
+  for (const block of page.blocks ?? []) {
+    switch (block.kind) {
+      case 'heading':
+        lines.push(block.text)
+        break
+      case 'paragraph':
+      case 'callout':
+        lines.push(block.md)
+        break
+      case 'list':
+        lines.push(...block.items.map((item) => `- ${item}`))
+        break
+      case 'steps':
+        lines.push(...block.items.map((step) => `- ${step.label}: ${step.md}`))
+        break
+      case 'resourceEmbed':
+        lines.push(`[${block.media}] ${block.title}${block.focus ? ` — watch for: ${block.focus}` : ''}`)
+        break
+      case 'fillBlank':
+        lines.push(`[fill in] ${block.md}`)
+        break
+      case 'reveal':
+        lines.push(`[think, then reveal] ${block.prompt} → ${block.md}`)
+        break
+      default:
+        lines.push(`[${block.kind}] ${block.prompt}`)
+    }
+  }
+  return lines.join('\n')
+}

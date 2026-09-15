@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { FIXTURE_DOC_INTRODUCE } from '../fixtures/activity-docs'
+import { extractJsonText } from './json'
+import { extractPartialBlocks } from './partial-blocks'
 import { extractPartialActivityDoc } from './partial-doc'
 import { extractPartialPath } from './partial-path'
 import { accumulateEvent, emptyAccumulator, SseParser } from './sse'
@@ -101,5 +103,37 @@ describe('extractPartialPath', () => {
   it('drops a goal that is complete JSON but fails the schema', () => {
     const bad = '{"name":"X","goals":[{"title":"No concepts","description":"d","concepts":[]}]}'
     expect(extractPartialPath(bad).goals).toEqual([])
+  })
+})
+
+describe('extractPartialBlocks', () => {
+  it('yields each block as it closes and stops at a half-written one', () => {
+    const full = JSON.stringify({
+      blocks: [
+        { kind: 'paragraph', md: 'The short answer first.' },
+        { kind: 'callout', tone: 'tip', md: 'And the nuance.' },
+      ],
+    })
+    const cut = full.indexOf('callout') + 4
+    expect(extractPartialBlocks(full.slice(0, cut)).map((b) => b.kind)).toEqual(['paragraph'])
+    expect(extractPartialBlocks(full).map((b) => b.kind)).toEqual(['paragraph', 'callout'])
+  })
+
+  it('is empty until the array opens, and stops at an invalid block', () => {
+    expect(extractPartialBlocks('{"blo')).toEqual([])
+    const bad = '{"blocks":[{"kind":"paragraph","md":"ok"},{"kind":"telepathy"}]}'
+    expect(extractPartialBlocks(bad).map((b) => b.kind)).toEqual(['paragraph'])
+  })
+})
+
+describe('extractJsonText', () => {
+  it('unwraps a markdown fence the model added anyway, and leaves bare JSON alone', () => {
+    const object = '{\n  "next": []\n}'
+    expect(extractJsonText('```json\n' + object + '\n```')).toBe(object)
+    expect(extractJsonText('```\n' + object + '\n```\n')).toBe(object)
+    expect(extractJsonText(object)).toBe(object)
+    // A fence inside a string value isn't a wrapper.
+    const inline = '{"md":"```code```"}'
+    expect(extractJsonText(inline)).toBe(inline)
   })
 })

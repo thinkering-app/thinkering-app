@@ -1,14 +1,14 @@
 {
   "kind": "today.plan",
   "promptVersion": 1,
-  "model": "hand-authored",
+  "model": "claude-haiku-4-5-20251001",
   "fixture": "default",
-  "text": "{\"next\":[{\"goalId\":\"g3\",\"libraryItemId\":\"guided-discovery\",\"title\":\"Meine Familie: mein or meine?\",\"estMinutes\":10}],\"strengthen\":[{\"goalId\":\"g2\",\"libraryItemId\":\"focused-drill\",\"title\":\"Hätte gern: five quick orders\",\"estMinutes\":10},{\"goalId\":\"g1\",\"libraryItemId\":\"retrieval-quiz\",\"title\":\"Greetings from memory\",\"estMinutes\":8}],\"goFurther\":[{\"goalId\":\"g1\",\"libraryItemId\":\"make-something\",\"title\":\"Write your dinner-table intro\",\"estMinutes\":10},{\"goalId\":\"g2\",\"libraryItemId\":\"put-to-work\",\"title\":\"Plan your next real order\",\"estMinutes\":10}]}",
+  "text": "```json\n{\n  \"next\": [\n    {\n      \"goalId\": \"g3\",\n      \"libraryItemId\": \"plain-explainer\",\n      \"title\": \"Family words and mein/dein\",\n      \"estMinutes\": 10\n    }\n  ],\n  \"strengthen\": [\n    {\n      \"goalId\": \"g2\",\n      \"libraryItemId\": \"focused-drill\",\n      \"title\": \"Ordering practice: hätte gern drills\",\n      \"estMinutes\": 10\n    },\n    {\n      \"goalId\": \"g1\",\n      \"libraryItemId\": \"retrieval-quiz\",\n      \"title\": \"Quick retrieval: greetings and introductions\",\n      \"estMinutes\": 9\n    }\n  ],\n  \"goFurther\": [\n    {\n      \"goalId\": \"g1\",\n      \"libraryItemId\": \"make-something\",\n      \"title\": \"Write a dinner introduction\",\n      \"estMinutes\": 10\n    },\n    {\n      \"goalId\": \"g2\",\n      \"libraryItemId\": \"put-to-work\",\n      \"title\": \"Plan your first restaurant order\",\n      \"estMinutes\": 11\n    }\n  ]\n}\n```",
   "usage": {
-    "inputTokens": 0,
-    "outputTokens": 0,
+    "inputTokens": 3639,
+    "outputTokens": 307,
     "cacheReadTokens": 0,
     "cacheWriteTokens": 0
   },
-  "latencyMs": 0
+  "latencyMs": 4096
 }

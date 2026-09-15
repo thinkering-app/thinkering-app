@@ -8,6 +8,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { loadFixtures, pkgRoot, requireTemplate, runLive } from './prompt-lib'
+import { extractJsonText } from '../src/streaming/json'
 
 const args = process.argv.slice(2)
 const record = args.includes('--record')
@@ -20,7 +21,7 @@ for (const fixture of loadFixtures(template.kind)) {
 
   let outputOk = false
   try {
-    const parsed = template.outputSchema.safeParse(JSON.parse(result.text))
+    const parsed = template.outputSchema.safeParse(JSON.parse(extractJsonText(result.text)))
     outputOk = parsed.success
     if (!parsed.success) console.error('schema issues:', parsed.error.issues.slice(0, 10))
   } catch (e) {

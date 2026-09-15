@@ -43,6 +43,10 @@ ${ACTIVITY_DOC_FORMAT}
 
 Additional rules for this task:
 - Emit pages in reading order, page 1 first (it renders while you're still writing).
+- End every document with exactly these two pages, in this order and with these kinds:
+  { "id": "review", "kind": "review", "blocks": null },
+  { "id": "summary", "kind": "summary", "blocks": [ …2–3 recap blocks, no interaction… ] }
+  The summary is "kind": "summary", not "content" — a content page would fail validation.
 - "concepts": declare which of the goal's concept/skill ids this activity genuinely targets (use their exact ids in goalConceptId). Don't claim coverage you don't deliver.
 - Ground apply-tier activities in the learner's contexts and resources only when they genuinely fit — never force it.
 - If a resource is provided, build around it with resourceEmbed blocks: short segments, focus prompts, interaction after each segment. Never "watch this 20-minute video".
@@ -53,9 +57,12 @@ ${libraryReference()}`
 
 export const activityGenerateTemplate: PromptTemplate<ActivityGenerateParams, ActivityDoc> = {
   kind: 'activity.generate',
-  version: 1,
+  // v2: the block format spells out the "kind" discriminator — models were
+  // emitting "type" and every document needed a repair round-trip.
+  version: 2,
   model: 'sonnet',
-  maxTokens: 8000,
+  // A 10-minute activity runs 4–6k output tokens; 15-minute ones need the room.
+  maxTokens: 12000,
   paramsSchema: activityGenerateParamsSchema,
   outputSchema: activityDocSchema,
   render: (params) => ({

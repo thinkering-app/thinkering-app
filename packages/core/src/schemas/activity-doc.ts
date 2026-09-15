@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { extractJsonText } from '../streaming/json'
 import { blockSchema, isInteractiveBlock } from './blocks'
 
 /**
@@ -102,7 +103,7 @@ export function parseActivityDoc(
   let value = input
   if (typeof value === 'string') {
     try {
-      value = JSON.parse(value)
+      value = JSON.parse(extractJsonText(value))
     } catch (e) {
       return { ok: false, issues: [{ path: '', message: `invalid JSON: ${(e as Error).message}` }] }
     }

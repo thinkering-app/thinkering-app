@@ -40,18 +40,25 @@ function findBlock(kind: Block['kind']): { pageId: string; block: Block } {
 }
 
 describe('content blocks', () => {
-  it.each(['heading', 'paragraph', 'list', 'callout'] as const)('renders a %s as text', async (kind) => {
-    const { block } = await renderBlock(kind)
-    const text =
-      block.kind === 'heading'
-        ? block.text
-        : block.kind === 'list'
-          ? block.items[0]!
-          : (block as { md: string }).md
-    // Inline markdown renders as spans, so match a plain-text fragment of it.
-    const fragment = text.replace(/[*`_]/g, '').split(/[.,;:]/)[0]!.trim().slice(0, 24)
-    expect(screen.getByText(new RegExp(escapeRegExp(fragment)))).toBeTruthy()
-  })
+  it.each(['heading', 'paragraph', 'list', 'callout'] as const)(
+    'renders a %s as text',
+    async (kind) => {
+      const { block } = await renderBlock(kind)
+      const text =
+        block.kind === 'heading'
+          ? block.text
+          : block.kind === 'list'
+            ? block.items[0]!
+            : (block as { md: string }).md
+      // Inline markdown renders as spans, so match a plain-text fragment of it.
+      const fragment = text
+        .replace(/[*`_]/g, '')
+        .split(/[.,;:]/)[0]!
+        .trim()
+        .slice(0, 24)
+      expect(screen.getByText(new RegExp(escapeRegExp(fragment)))).toBeTruthy()
+    },
+  )
 
   it('renders each step of a steps block with its label', async () => {
     const { block } = await renderBlock('steps')
@@ -62,7 +69,9 @@ describe('content blocks', () => {
   it('renders a video resource embed with its focus prompt and title', async () => {
     const { block } = await renderBlock('resourceEmbed')
     if (block.kind !== 'resourceEmbed') throw new Error('wrong block')
-    expect(screen.getAllByText(new RegExp(escapeRegExp(block.title.slice(0, 20)))).length).toBeGreaterThan(0)
+    expect(
+      screen.getAllByText(new RegExp(escapeRegExp(block.title.slice(0, 20)))).length,
+    ).toBeGreaterThan(0)
   })
 })
 
@@ -78,8 +87,14 @@ describe('interactive blocks', () => {
   it('freeText records what was typed', async () => {
     const { block, last } = await renderBlock('freeText')
     if (block.kind !== 'freeText') throw new Error('wrong block')
-    await fireEvent.changeText(screen.getByLabelText(block.prompt), 'Because the model imitates the pattern.')
-    expect(last()?.payload).toEqual({ kind: 'freeText', text: 'Because the model imitates the pattern.' })
+    await fireEvent.changeText(
+      screen.getByLabelText(block.prompt),
+      'Because the model imitates the pattern.',
+    )
+    expect(last()?.payload).toEqual({
+      kind: 'freeText',
+      text: 'Because the model imitates the pattern.',
+    })
   })
 
   it('fillBlank records each blank and grades forgivingly', async () => {
@@ -110,7 +125,10 @@ describe('interactive blocks', () => {
     const pair = block.pairs[0]!
     await fireEvent.press(screen.getByLabelText(pair.left))
     await fireEvent.press(screen.getByLabelText(pair.right))
-    expect(last()?.payload).toMatchObject({ kind: 'matching', pairs: { [pair.leftId]: pair.rightId } })
+    expect(last()?.payload).toMatchObject({
+      kind: 'matching',
+      pairs: { [pair.leftId]: pair.rightId },
+    })
   })
 
   it('reveal shows the answer only after the tap, and records it', async () => {

@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import type { ActivityDoc, Page, Rating } from '@thinkering/core'
@@ -23,10 +23,11 @@ export interface PlayerProps {
   /** Pages still arriving from G5b; forward navigation stops at what exists. */
   streaming?: boolean
   sink: ResponseSink
-  startPage?: number
+  /** Controlled: the route owns the page so Ask can jump to the page it inserted. */
+  page: number
+  onPageChange: (index: number) => void
   rating: Rating | null
   ratingText: string
-  onPageChange?: (index: number) => void
   onRate: (rating: Rating, text: string) => void
   onDone: () => void
   onClose: () => void
@@ -42,10 +43,10 @@ export function ActivityPlayer({
   doc,
   streaming = false,
   sink,
-  startPage = 0,
+  page: requested,
+  onPageChange,
   rating,
   ratingText,
-  onPageChange,
   onRate,
   onDone,
   onClose,
@@ -54,9 +55,8 @@ export function ActivityPlayer({
   onAsk,
   overlay,
 }: PlayerProps) {
-  const [requested, setRequested] = useState(startPage)
-  // Derived, not stored: pages arrive while G5b streams, and an Ask page can
-  // appear beneath us — the page we're on is always one that exists.
+  // Clamped, never stored: pages arrive while G5b streams, so the page we show
+  // is always one that exists yet.
   const index = Math.max(0, Math.min(requested, doc.pages.length - 1))
   const scroller = useRef<ScrollView>(null)
   const page: Page | undefined = doc.pages[index]
@@ -64,8 +64,7 @@ export function ActivityPlayer({
   const go = useCallback(
     (next: number) => {
       const clamped = Math.max(0, Math.min(next, doc.pages.length - 1))
-      setRequested(clamped)
-      onPageChange?.(clamped)
+      onPageChange(clamped)
       scroller.current?.scrollTo({ y: 0, animated: false })
     },
     [doc.pages.length, onPageChange],

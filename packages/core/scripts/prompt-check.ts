@@ -8,6 +8,7 @@ import { parseActivityDoc } from '../src/schemas/activity-doc'
 import { checkActivityDoc, toneLintOutput, type CheckIssue } from '../src/prompts/checks'
 import type { ActivityGenerateParams } from '../src/prompts/kinds/activity-generate'
 import { loadFixtures, requireTemplate, runLive } from './prompt-lib'
+import { extractJsonText } from '../src/streaming/json'
 
 const kind = process.argv.slice(2).find((a) => !a.startsWith('--'))
 const template = requireTemplate(kind)
@@ -21,7 +22,7 @@ for (const fixture of loadFixtures(template.kind)) {
 
   let output: unknown
   try {
-    output = JSON.parse(result.text)
+    output = JSON.parse(extractJsonText(result.text))
   } catch (e) {
     issues.push({ check: 'json', message: `not valid JSON: ${(e as Error).message}` })
   }

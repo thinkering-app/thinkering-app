@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react-native'
+import { useState } from 'react'
 import { FIXTURE_DOC_INTRODUCE, type ActivityDoc } from '@thinkering/core'
 
 import { ActivityPlayer } from './player'
@@ -10,8 +11,12 @@ import { ActivityPlayer } from './player'
 
 const noop = () => {}
 
-function renderPlayer(overrides: Partial<React.ComponentProps<typeof ActivityPlayer>> = {}) {
-  return render(
+type Overrides = Partial<Omit<React.ComponentProps<typeof ActivityPlayer>, 'page' | 'onPageChange'>>
+
+/** The page index is controlled by the route in the app; this stands in for it. */
+function Harness({ startPage = 0, ...overrides }: Overrides & { startPage?: number }) {
+  const [page, setPage] = useState(startPage)
+  return (
     <ActivityPlayer
       doc={FIXTURE_DOC_INTRODUCE}
       sink={{ initial: {}, save: noop }}
@@ -23,8 +28,14 @@ function renderPlayer(overrides: Partial<React.ComponentProps<typeof ActivityPla
       onShare={noop}
       shareState="idle"
       {...overrides}
-    />,
+      page={page}
+      onPageChange={setPage}
+    />
   )
+}
+
+function renderPlayer(overrides: Overrides & { startPage?: number } = {}) {
+  return render(<Harness {...overrides} />)
 }
 
 describe('activity player', () => {
@@ -44,7 +55,10 @@ describe('activity player', () => {
   })
 
   it('renders a partially streamed document and holds the last page until it finishes', async () => {
-    const partial: ActivityDoc = { ...FIXTURE_DOC_INTRODUCE, pages: FIXTURE_DOC_INTRODUCE.pages.slice(0, 1) }
+    const partial: ActivityDoc = {
+      ...FIXTURE_DOC_INTRODUCE,
+      pages: FIXTURE_DOC_INTRODUCE.pages.slice(0, 1),
+    }
     await renderPlayer({ doc: partial, streaming: true })
     expect(screen.getByText('A new colleague, day one')).toBeTruthy()
     expect(screen.getByText('Writing…')).toBeTruthy()

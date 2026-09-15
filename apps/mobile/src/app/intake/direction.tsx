@@ -28,8 +28,8 @@ export default function DirectionStep() {
 
   const finish = () => {
     save()
-    // G4 (resource search) and the G5 prefetch hang off this point too — they
-    // arrive with WP5.3 and WP4.3.
+    // Today plans the day and prefetches the Next card on arrival; G4 (resource
+    // search) hangs off this point too, and arrives with WP5.3.
     router.replace('/today')
   }
 

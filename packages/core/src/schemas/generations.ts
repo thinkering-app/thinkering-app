@@ -102,7 +102,9 @@ export const routineOutputSchema = z.object({
       }),
     )
     .max(40),
-  /** The one-line confirmation, also stored as the routine note. */
-  note: z.string().min(1).max(280),
+  /** The one-line confirmation, also stored as the routine note. The prompt asks
+   * for under 200 characters; the cap has slack so a slightly long line doesn't
+   * cost a repair round-trip. */
+  note: z.string().min(1).max(400),
 })
 export type RoutineOutput = z.infer<typeof routineOutputSchema>
