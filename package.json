@@ -12,7 +12,9 @@
     "test": "turbo run test",
     "verify": "turbo run typecheck lint test",
     "format": "prettier --write .",
-    "seed": "pnpm --filter @thinkering/db seed"
+    "seed": "pnpm --filter @thinkering/db seed",
+    "prompt:run": "pnpm --filter @thinkering/core prompt:run",
+    "prompt:check": "pnpm --filter @thinkering/core prompt:check"
   },
   "devDependencies": {
     "prettier": "^3.4.2",

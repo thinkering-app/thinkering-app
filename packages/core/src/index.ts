@@ -12,3 +12,20 @@ export {
   FIXTURE_DOC_INTRODUCE,
   FIXTURE_DOC_STRENGTHEN,
 } from './fixtures/activity-docs'
+export * from './schemas/generations'
+export * from './prompts/types'
+export { PROMPTS, getPromptTemplate, isGenerationKind, type ImplementedKind } from './prompts/registry'
+export { SHARED_PREAMBLE, ACTIVITY_DOC_FORMAT, libraryReference } from './prompts/preamble'
+export {
+  buildInterestContext,
+  estimateTokens,
+  DEFAULT_CONTEXT_BUDGET_TOKENS,
+  type InterestContextInput,
+  type ContextAssemblyOptions,
+} from './prompts/context-assembly'
+export { checkActivityDoc, toneLintOutput, toneLintIssues, pageCountRange, type CheckIssue } from './prompts/checks'
+export { intakeApproachTemplate, type IntakeApproachParams } from './prompts/kinds/intake-approach'
+export { intakeTopicsTemplate, type IntakeTopicsParams } from './prompts/kinds/intake-topics'
+export { intakePathTemplate, type IntakePathParams } from './prompts/kinds/intake-path'
+export { todayPlanTemplate, type TodayPlanParams } from './prompts/kinds/today-plan'
+export { activityGenerateTemplate, type ActivityGenerateParams } from './prompts/kinds/activity-generate'

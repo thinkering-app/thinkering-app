@@ -19,7 +19,7 @@ Every LLM call has a `kind` id, a versioned prompt template in `packages/core/pr
 | G10 | `resource.describe` | User adds a link                                               | Haiku (+ server URL fetch) | Inline (~2s), editable draft                                         |
 | G11 | `routine.customize` | Routine free-text submit                                       | Haiku                      | Inline, one-line confirmation                                        |
 
-### Contracts (summary — full Zod schemas in `packages/core/schemas`)
+### Contracts (summary — full Zod schemas in `packages/core/schemas`; keys are camelCase there, matching ActivityDoc, even where this summary shows snake_case)
 
 - **G1 →** `{domain, approach_notes, pitfalls, progression_principles}` — effective approaches, topic progressions, and pedagogy for this domain given their why + experience. Stored on the interest (editable). Reused as context by G2/G3/G5/G8.
 - **G2 →** `{topics: [{label, origin: motivation|foundational|adjacent, blurb}]}` (~10).
@@ -45,7 +45,7 @@ A deterministic builder in `packages/core/context` produces the per-interest con
 - **Right-size models** (D11): Haiku for metadata-shaped calls (G5a, G6, G9, G10, G11), Sonnet where pedagogy/quality dominates (G1–G4, G5b, G7, G8). Model ids live in one config map — easy to tune per kind.
 - **Prefetch, don't pre-generate everything**: only the Next card's full activity is prefetched (highest likelihood of use). Strengthen/Go further generate on tap with streaming. Completed-activity docs are kept locally, so replay/history is free.
 - **Cache aggressively**: G5a per interest+date; G9 per path hash; regenerating requires explicit user action.
-- Max_tokens tuned per kind; temperature ~1 for generation kinds, lower for extraction-shaped kinds (G10, G11).
+- Max_tokens tuned per kind. Temperature applies to **Haiku kinds only** — Sonnet 5 rejects sampling parameters (temperature/top_p/top_k), so Sonnet kinds run at the model default; lower temperature is set on extraction-shaped Haiku kinds (G5a, G10, G11).
 
 ## Usage metering (default proxy mode)
 

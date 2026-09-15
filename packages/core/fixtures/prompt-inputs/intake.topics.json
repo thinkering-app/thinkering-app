@@ -1,0 +1,21 @@
+{
+  "wantToLearn": "Get conversational in German",
+  "whyChoice": "personal_goal",
+  "whyText": "Partner’s family is in Munich; I want to hold my own at dinner.",
+  "experienceChoice": "explored",
+  "experienceText": "Two Duolingo streaks that died; I can order food.",
+  "approach": {
+    "domain": "language acquisition",
+    "approachNotes": "You learn a language by understanding messages and being pushed to produce them. We’ll pair short comprehensible input — reading and listening slightly above your level — with small speaking and writing reps every session, so recognition turns into production.",
+    "pitfalls": [
+      "App streaks that reward recognition without production",
+      "Grammar-first study that stalls real conversation",
+      "Input that is too hard, which quietly kills motivation"
+    ],
+    "progressionPrinciples": [
+      "High-frequency conversational chunks before grammar rules",
+      "Comprehensible input at i+1, always paired with output",
+      "Recycle vocabulary across contexts rather than word lists"
+    ]
+  }
+}
