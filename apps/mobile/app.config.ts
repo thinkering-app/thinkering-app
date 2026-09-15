@@ -5,7 +5,12 @@ const { colors } = preset.theme.extend
 
 const config: ExpoConfig = {
   name: 'thinkering',
-  slug: 'thinkering',
+  // `slug` and `owner` must match the EAS project (`eas init` created
+  // thinkering-app/thinkering-v1); `extra.eas.projectId` is what links a build
+  // to it. All three live here rather than in a root app.json — the Expo app is
+  // this workspace, not the repo root.
+  slug: 'thinkering-v1',
+  owner: 'thinkering-app',
   version: '0.1.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
@@ -46,6 +51,9 @@ const config: ExpoConfig = {
   experiments: {
     typedRoutes: true,
     reactCompiler: true,
+  },
+  extra: {
+    eas: { projectId: '79d41ec7-1bf4-44ce-8f85-147fadc2fcd6' },
   },
 }
 

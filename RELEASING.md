@@ -41,9 +41,14 @@ eas build -p ios --profile production
 eas submit -p ios --profile production     # → TestFlight
 ```
 
-Both need `eas login` as the account that owns the Apple Developer membership,
-and `eas init` once, to attach the EAS project id. `submit.production.ios.ascAppId`
-in `eas.json` is a placeholder until the app exists in App Store Connect.
+Both need `eas login` as the account that owns the Apple Developer membership.
+Run them **from `apps/mobile`**, not the repo root: that's where the Expo app,
+its `app.config.ts` and its `eas.json` are. `eas init` at the root creates a
+stray `app.json`/`eas.json` for a project that doesn't exist there.
+
+The EAS project is already linked — `thinkering-app/thinkering-v1`, id in
+`extra.eas.projectId`. `submit.production.ios.ascAppId` in `eas.json` is still a
+placeholder until the app exists in App Store Connect.
 
 ### Environment
 
@@ -56,7 +61,7 @@ variables on the `production` and `preview` environments:
 | `EXPO_PUBLIC_SUPABASE_URL`              | Backup. Unset hides synced backup entirely.      |
 | `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`  | `sb_publishable_…`. Public by design.            |
 | `EXPO_PUBLIC_POSTHOG_KEY`               | Unset makes analytics inert (`08`).              |
-| `EXPO_PUBLIC_POSTHOG_HOST`              | Defaults to the EU cloud.                        |
+| `EXPO_PUBLIC_POSTHOG_HOST`              | Defaults to the US cloud, the project's region.  |
 | `EXPO_PUBLIC_FEATUREBASE_PORTAL_URL`    | Unset hides the community feedback option.       |
 
 Server secrets (`ANTHROPIC_API_KEY`, `RESEND_API_KEY`, `SUPABASE_SECRET_KEY`)

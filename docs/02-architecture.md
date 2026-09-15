@@ -88,7 +88,7 @@ Both email routes store only operational rate-limit counters and never store or 
 
 ## Analytics
 
-PostHog via `posthog-react-native`, EU cloud, anonymous random distinct_id generated locally, explicit opt-in (default off). The event schema is a typed union in `packages/core/src/analytics`; `apps/mobile/src/analytics/track.ts` is the only thing that captures, and it buffers to the local `analytics_buffer` table until the learner answers. Configured by `EXPO_PUBLIC_POSTHOG_KEY` / `EXPO_PUBLIC_POSTHOG_HOST`; with no key nothing is captured or buffered. Event schema and privacy rules in `08-analytics-and-privacy.md`.
+PostHog via `posthog-react-native`, US cloud, anonymous random distinct_id generated locally, explicit opt-in (default off). The event schema is a typed union in `packages/core/src/analytics`; `apps/mobile/src/analytics/track.ts` is the only thing that captures, and it buffers to the local `analytics_buffer` table until the learner answers. Configured by `EXPO_PUBLIC_POSTHOG_KEY` / `EXPO_PUBLIC_POSTHOG_HOST`; with no key nothing is captured or buffered. Event schema and privacy rules in `08-analytics-and-privacy.md`.
 
 The client's PostHog key/value store is backed by our own `settings` table (`customStorage`), so the SDK adds no file of its own — and with no key the SDK is never constructed at all.
 

@@ -17,8 +17,8 @@ import { db } from '@/db'
  */
 
 const API_KEY = process.env.EXPO_PUBLIC_POSTHOG_KEY ?? ''
-/** EU cloud by default — the privacy copy says where the data lands. */
-const HOST = process.env.EXPO_PUBLIC_POSTHOG_HOST ?? 'https://eu.i.posthog.com'
+/** US cloud — the project's region, and what the privacy copy names. */
+const HOST = process.env.EXPO_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com'
 
 const STORAGE_KEY = 'posthog_storage'
 
