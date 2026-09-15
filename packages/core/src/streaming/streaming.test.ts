@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { FIXTURE_DOC_INTRODUCE } from '../fixtures/activity-docs'
 import { extractPartialActivityDoc } from './partial-doc'
+import { extractPartialPath } from './partial-path'
 import { accumulateEvent, emptyAccumulator, SseParser } from './sse'
 
 describe('SseParser', () => {
@@ -62,5 +63,43 @@ describe('extractPartialActivityDoc', () => {
     const bad =
       '{"pages":[{"id":"p1","kind":"content","blocks":[{"kind":"mystery"}]},{"id":"p2","kind":"review","blocks":null}]}'
     expect(extractPartialActivityDoc(bad).pages).toEqual([])
+  })
+})
+
+describe('extractPartialPath', () => {
+  const full = JSON.stringify({
+    name: 'Conversational German',
+    goals: [
+      {
+        title: 'Order in a café',
+        description: 'The handful of phrases that carry a whole transaction.',
+        concepts: [{ label: 'Polite requests', kind: 'skill' }],
+      },
+      {
+        title: 'Read a simple menu',
+        description: 'Food vocabulary and the grammar holding it together.',
+        concepts: [{ label: 'Noun gender', kind: 'concept' }],
+      },
+    ],
+  })
+
+  it('surfaces the name before any goal has closed', () => {
+    const result = extractPartialPath(full.slice(0, full.indexOf('"goals"') + 20))
+    expect(result.name).toBe('Conversational German')
+    expect(result.goals).toEqual([])
+  })
+
+  it('yields each goal as its object closes', () => {
+    const cut = full.indexOf('"Read a simple menu"') + 10
+    expect(extractPartialPath(full.slice(0, cut)).goals.map((g) => g.title)).toEqual(['Order in a café'])
+    expect(extractPartialPath(full).goals.map((g) => g.title)).toEqual([
+      'Order in a café',
+      'Read a simple menu',
+    ])
+  })
+
+  it('drops a goal that is complete JSON but fails the schema', () => {
+    const bad = '{"name":"X","goals":[{"title":"No concepts","description":"d","concepts":[]}]}'
+    expect(extractPartialPath(bad).goals).toEqual([])
   })
 })
