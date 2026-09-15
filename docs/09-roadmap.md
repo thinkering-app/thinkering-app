@@ -58,7 +58,9 @@ Milestones broken into session-sized work packages (WP) suitable for one agent s
 
 ## M7 — Landing page
 
-- **WP7.1**: real landing per `01 §8` — **ask Reb for draft copy at session start** — privacy page, app-subdomain deploy of the Expo web export.
+**Done 2026-09-15** (site built and verified; the Vercel deploys — landing and the app subdomain's Expo web export — remain configured-but-not-executed from M0, needing Reb's Vercel account). Deviations, recorded in the docs they touch: the landing grew from one page into a small site (overview, about, contribute, contact, privacy) per Reb's draft, with the beta signup form as the CTA until an App Store link exists (`01 §8`); `/privacy` carries real working copy per `08`'s checklist, pending Reb's review — Me → Privacy in the app still shows the M6 placeholder and should be synced once reviewed (`08`). Landing-only display type sizes extend the shared scale in `apps/web/tailwind.config.cjs`; the paper-grain and watercolor-blob treatments from `07` are pure CSS (inline SVG noise, blurred gradients), no assets shipped. Verified with a production build and headless-Chrome screenshots of all five pages at desktop and mobile widths.
+
+- ~~**WP7.1**~~ ✅: real landing per `01 §8` — privacy page; app-subdomain deploy still pending Reb's Vercel account.
 
 ## M8 — Backup & sync
 

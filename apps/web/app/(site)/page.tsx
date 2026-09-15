@@ -24,7 +24,7 @@ function Hero() {
       <div className="blob -right-16 top-40 h-64 w-64 bg-peach-tint" />
       <div className="blob bottom-0 left-1/3 h-56 w-56 bg-sun-tint" />
       <div className="relative mx-auto max-w-5xl px-6 pb-20 pt-20 sm:pt-28">
-        <h1 className="max-w-2xl font-heading-bold text-display-lg font-bold text-ink">
+        <h1 className="max-w-3xl font-heading-bold text-display-lg font-bold text-ink">
           Learn the things you&rsquo;ve been meaning to.
         </h1>
         <p className="mt-5 max-w-xl text-title text-ink-soft">

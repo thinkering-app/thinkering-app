@@ -115,7 +115,15 @@ For the selected focused interest, all-explore, or an individual explore interes
 
 ## 8. Landing page (`apps/web`)
 
-Marketing page at thinkering.app: hero (product name, one-line promise, app store link/TestFlight waitlist), how it works (intake → path → daily activities), the learning-science angle, the local-first/privacy angle, open-source note, footer (privacy, contact). Reb will provide draft copy; design per `07-design-system.md`. Also hosts `/privacy` and the API routes.
+Small marketing site at thinkering.app, designed per `07-design-system.md` (same tokens/fonts as the app; landing-only display sizes live in `apps/web/tailwind.config.cjs`). Pages, under a shared header (overview with hover section-jump, about, contribute, contact, join-the-beta CTA) and dark footer:
+
+- **`/` overview** — hero (promise + "grow as a learner" beat, join-the-beta CTA), how it works (add an interest → path → daily activities → routine, with a typed-interests mock and a switchable 3-interest sample path), why it works, principles (dark section, 4 cards), the project (Reb/Assembly Code card).
+- **`/about`** — the project's goal + the five principles, full versions.
+- **`/contribute`** — three tinted cards: library discussion thread, beta + feedback/roadmap, GitHub.
+- **`/contact`** — email + LinkedIn.
+- **`/privacy`** — plain-language policy per `08`.
+
+The primary CTA is the beta signup form (Google Form) until an App Store link exists. Feedback/roadmap links go to the Featurebase portal. `hello@thinkering.app` is assembled client-side so it never appears in served HTML. All external URLs live in `apps/web/components/links.ts`. Also hosts the API routes.
 
 ## 9. Later (explicitly out of v1 scope)
 
