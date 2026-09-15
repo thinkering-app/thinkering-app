@@ -8,7 +8,7 @@ import { useState } from 'react'
  */
 
 const field =
-  'w-full rounded-card border border-hairline bg-paper px-4 py-2.5 text-body text-ink outline-none transition-colors placeholder:text-ink-soft/60 focus:border-cornflower'
+  'w-full rounded-card border border-hairline bg-paper px-4 py-2.5 text-body text-ink outline-none transition-colors focus:border-cornflower'
 const label = 'text-secondary font-medium text-ink'
 
 type State = 'idle' | 'sending' | 'sent' | 'error'
