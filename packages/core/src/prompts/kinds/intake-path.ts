@@ -25,7 +25,7 @@ Return JSON: {
   "goals": [{
     "title": string,                 // one well-scoped unit, outcome-flavored ("Read a simple menu", "Explain what a token is")
     "description": string,           // one–two plain lines on what this covers
-    "concepts": [{ "label": string, "kind": "concept"|"skill" }]   // 2–4 key concepts/skills beneath the goal; "skill" = something you do, "concept" = something you understand
+    "concepts": [{ "label": string, "kind": "concept"|"skill" }]   // 2–4 key concepts/skills beneath the goal, 2–5 words each — they render as chips; "skill" = something you do, "concept" = something you understand
   }]
 }
 
@@ -33,9 +33,9 @@ Return JSON: {
 
 export const intakePathTemplate: PromptTemplate<IntakePathParams, z.infer<typeof pathOutputSchema>> = {
   kind: 'intake.path',
-  version: 1,
+  version: 2,
   model: 'sonnet',
-  maxTokens: 3000,
+  maxTokens: 4000,
   paramsSchema: intakePathParamsSchema,
   outputSchema: pathOutputSchema,
   render: (params) => ({

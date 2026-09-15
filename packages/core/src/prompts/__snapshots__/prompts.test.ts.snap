@@ -266,10 +266,12 @@ Their experience level may be missing — they are answering that question right
 
 Return JSON: {
   "domain": string,                    // short classification, e.g. "language acquisition", "quantitative-technical", "creative-physical skill", "strategy game", "knowledge-rich domain"
-  "approachNotes": string,             // 3–6 sentences: what works for teaching this domain to this person, given their why and experience; concrete, method-level, no fluff. The user can read and edit this text.
-  "pitfalls": string[],                // 2–5 domain-specific traps (illusions of fluency, common misconceptions, motivation cliffs)
-  "progressionPrinciples": string[]    // 2–5 principles for sequencing topics in this domain for this experience level
+  "approachNotes": string,             // 3–4 sentences, 90 words maximum: what works for teaching this domain to this person, given their why and experience; concrete, method-level, no fluff. The user can read and edit this text.
+  "pitfalls": string[],                // exactly 3 domain-specific traps (illusions of fluency, common misconceptions, motivation cliffs), one line of 20 words maximum each
+  "progressionPrinciples": string[]    // exactly 3 principles for sequencing topics in this domain at this level, one line of 20 words maximum each
 }
+
+Every later generation reads this, so it is a brief, and briefs are short. Downstream calls wait on it.
 
 The approach notes are user-visible: write them to the learner ("you"), plainly.",
     },
@@ -286,11 +288,11 @@ Why: personal_goal — Partner’s family is in Munich; I want to hold my own at
 Experience: explored — Two Duolingo streaks that died; I can order food.
 Session length: 10 minutes
 Domain: language acquisition
-Approach notes: You learn a language by understanding messages and being pushed to produce them. We’ll pair short comprehensible input — reading and listening slightly above your level — with small speaking and writing reps every session, so recognition turns into production.
-Progression principles: High-frequency conversational chunks before grammar rules · Comprehensible input at i+1, always paired with output · Recycle vocabulary across contexts rather than word lists
-Pitfalls to design around: App streaks that reward recognition without production · Grammar-first study that stalls real conversation · Input that is too hard, which quietly kills motivation
-Topics they selected: Everyday small talk, Restaurant and food language, Family conversations
-Topics shown but not selected: German cases, Business German",
+Approach notes: You'll get the most from comprehensible input paired with real output: hear or read German at your level, then produce your own sentences, not just recognize them. Since Munich dinners are the goal, build around spoken, social register — greetings, family talk, food, opinions — over textbook grammar drills. Until we know your level, early sessions will test where you land; if you already know some German, we'll skip basics and go straight to gaps. As you progress, scaffolding (translations, sentence starters) fades and improvisation load increases.
+Progression principles: Start with high-frequency social phrases and questions before tackling grammar rules abstractly. · Interleave listening and speaking early so output habits form alongside comprehension. · Sequence topics around real family-dinner scenarios: introductions, food, opinions, small talk.
+Pitfalls to design around: Recognizing words when reading feels like fluency but doesn't mean you can produce them aloud. · Overusing English grammar logic causes systematic errors in case endings and word order. · Politeness and small talk phrases get neglected in favor of vocabulary lists, hurting real dinners.
+Topics they selected: Family introductions, Talking about food, Sharing opinions politely
+Topics shown but not selected: Small talk starters, Du vs Sie, Present tense verbs, Asking questions naturally, German word order, Bavarian everyday phrases, Munich table customs, Telling stories about your day",
       "role": "user",
     },
   ],
@@ -331,7 +333,7 @@ Return JSON: {
   "goals": [{
     "title": string,                 // one well-scoped unit, outcome-flavored ("Read a simple menu", "Explain what a token is")
     "description": string,           // one–two plain lines on what this covers
-    "concepts": [{ "label": string, "kind": "concept"|"skill" }]   // 2–4 key concepts/skills beneath the goal; "skill" = something you do, "concept" = something you understand
+    "concepts": [{ "label": string, "kind": "concept"|"skill" }]   // 2–4 key concepts/skills beneath the goal, 2–5 words each — they render as chips; "skill" = something you do, "concept" = something you understand
   }]
 }
 
@@ -349,8 +351,8 @@ exports[`prompt templates > intake.topics renders stably (snapshot) 1`] = `
 Why: personal_goal — Partner’s family is in Munich; I want to hold my own at dinner.
 Experience: explored — Two Duolingo streaks that died; I can order food.
 Domain: language acquisition
-Approach notes: You learn a language by understanding messages and being pushed to produce them. We’ll pair short comprehensible input — reading and listening slightly above your level — with small speaking and writing reps every session, so recognition turns into production.
-Progression principles: High-frequency conversational chunks before grammar rules · Comprehensible input at i+1, always paired with output · Recycle vocabulary across contexts rather than word lists",
+Approach notes: You'll get the most from comprehensible input paired with real output: hear or read German at your level, then produce your own sentences, not just recognize them. Since Munich dinners are the goal, build around spoken, social register — greetings, family talk, food, opinions — over textbook grammar drills. Until we know your level, early sessions will test where you land; if you already know some German, we'll skip basics and go straight to gaps. As you progress, scaffolding (translations, sentence starters) fades and improvisation load increases.
+Progression principles: Start with high-frequency social phrases and questions before tackling grammar rules abstractly. · Interleave listening and speaking early so output habits form alongside comprehension. · Sequence topics around real family-dinner scenarios: introductions, food, opinions, small talk.",
       "role": "user",
     },
   ],

@@ -25,10 +25,12 @@ Their experience level may be missing — they are answering that question right
 
 Return JSON: {
   "domain": string,                    // short classification, e.g. "language acquisition", "quantitative-technical", "creative-physical skill", "strategy game", "knowledge-rich domain"
-  "approachNotes": string,             // 3–6 sentences: what works for teaching this domain to this person, given their why and experience; concrete, method-level, no fluff. The user can read and edit this text.
-  "pitfalls": string[],                // 2–5 domain-specific traps (illusions of fluency, common misconceptions, motivation cliffs)
-  "progressionPrinciples": string[]    // 2–5 principles for sequencing topics in this domain for this experience level
+  "approachNotes": string,             // 3–4 sentences, 90 words maximum: what works for teaching this domain to this person, given their why and experience; concrete, method-level, no fluff. The user can read and edit this text.
+  "pitfalls": string[],                // exactly 3 domain-specific traps (illusions of fluency, common misconceptions, motivation cliffs), one line of 20 words maximum each
+  "progressionPrinciples": string[]    // exactly 3 principles for sequencing topics in this domain at this level, one line of 20 words maximum each
 }
+
+Every later generation reads this, so it is a brief, and briefs are short. Downstream calls wait on it.
 
 The approach notes are user-visible: write them to the learner ("you"), plainly.`
 
@@ -37,9 +39,9 @@ export const intakeApproachTemplate: PromptTemplate<
   z.infer<typeof approachOutputSchema>
 > = {
   kind: 'intake.approach',
-  version: 2,
+  version: 3,
   model: 'sonnet',
-  maxTokens: 1500,
+  maxTokens: 1400,
   paramsSchema: intakeApproachParamsSchema,
   outputSchema: approachOutputSchema,
   render: (params) => ({

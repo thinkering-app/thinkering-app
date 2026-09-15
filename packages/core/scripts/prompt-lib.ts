@@ -21,7 +21,11 @@ export function requireTemplate(kind: string | undefined): AnyPromptTemplate {
   return template
 }
 
-/** All input fixtures for a kind: `<kind>.json` plus `<kind>.<variant>.json`. */
+/**
+ * All input fixtures for a kind: `<kind>.json` (named `default`) plus
+ * `<kind>.<variant>.json` (named `<variant>`) — the names recordings are filed
+ * under in `fixtures/recorded/<kind>/`.
+ */
 export function loadFixtures(kind: string): { name: string; params: unknown }[] {
   const dir = join(pkgRoot, 'fixtures/prompt-inputs')
   const files = readdirSync(dir).filter((f) => f === `${kind}.json` || (f.startsWith(`${kind}.`) && f.endsWith('.json')))
@@ -30,7 +34,7 @@ export function loadFixtures(kind: string): { name: string; params: unknown }[] 
     process.exit(1)
   }
   return files.sort().map((f) => ({
-    name: f.replace(/\.json$/, ''),
+    name: f === `${kind}.json` ? 'default' : f.slice(kind.length + 1).replace(/\.json$/, ''),
     params: JSON.parse(readFileSync(join(dir, f), 'utf8')) as unknown,
   }))
 }
