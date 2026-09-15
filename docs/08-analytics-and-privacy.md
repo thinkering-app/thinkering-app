@@ -2,7 +2,7 @@
 
 ## Stance
 
-Learning data is personal. It lives on the device; the only ways it leaves are the LLM proxy (to generate content — not stored server-side), opt-in Supabase backup, and the feedback form (what the user types there). Telemetry must be useful for product decisions while never containing learning content or identity.
+Learning data is personal. It lives on the device; the only ways it leaves are the LLM proxy (to generate content — not stored server-side), opt-in Supabase backup, community or private feedback the user deliberately submits, and explicit activity reports. Telemetry must be useful for product decisions while never containing learning or feedback content or identity.
 
 ## PostHog setup
 
@@ -35,7 +35,9 @@ Never in any property: interest names, goal titles, activity titles, user text, 
 | `byok_enabled`                       | —                                                                                     |
 | `ai_call`                            | kind, model, latency_bucket, status (ok/error/rate_limited)                           |
 | `cap_reached`                        | —                                                                                     |
-| `feedback_sent`                      | screen                                                                                |
+| `featurebase_opened`                 | screen                                                                                |
+| `email_feedback_sent`                | screen, included_context                                                              |
+| `activity_report_sent`               | —                                                                                     |
 | `settings_changed`                   | key (enum)                                                                            |
 
 Implementation: one typed `track()` wrapper in `apps/mobile/src/analytics` whose union type _is_ this schema — adding an event means editing the type + this doc. No stray `posthog.capture` calls.
@@ -45,15 +47,16 @@ Implementation: one typed `track()` wrapper in `apps/mobile/src/analytics` whose
 We want to see whether generated activities are actually good without ambient content collection. Two layers:
 
 1. **Aggregate signal** (PostHog, opt-in): `activity_completed` carries rating × library_item_id × tier × model — enough to spot "faded examples are rating poorly in language interests" without any content.
-2. **Shared activity reports** (explicit, per-activity): the summary page offers "Share this activity with the developers". Sharing sends the generated activity content, the rating + comment, and the library item/kind metadata to us (feedback route → email for beta, as an `activityReport` field the route forwards and never stores; a Supabase `shared_activities` table if volume grows). The user's own responses are **excluded by default**, with a checkbox to include them — and when included they travel as plain question/answer lines, not raw payloads. Nothing is ever shared without this explicit action.
+2. **Shared activity reports** (explicit, per-activity): the summary page offers "Share this activity with the developers". Sharing sends the generated activity content, the rating + comment, and the library item/kind metadata through signed `POST /api/activity-report`, which forwards it by email and never stores it. The user's own responses are **excluded by default**, with a checkbox to include them — and when included they travel as plain question/answer lines, not raw payloads. Nothing is ever shared without this explicit action.
 
 ## What the server sees (and doesn't keep)
 
 - **AI proxy**: receives `{kind, params}` (params include learning content by necessity, e.g. intake answers) and streams Anthropic's response through. It does **not** log prompt/response bodies — only per-kind aggregate counters (count, tokens, latency, errors) keyed by device_id for metering.
-- **Feedback route**: forwards the message via Resend; not stored.
+- **Featurebase portal**: receives community posts and the provider's normal technical request data. thinkering supplies only coarse screen, platform, and app version metadata — no app identity, email, SSO data, learning content, or analytics copy of the post.
+- **Private feedback and activity-report routes**: forward content via Resend; neither content nor the optional reply email is stored or logged. Persistent per-device/day rate-limit counters contain no submitted content.
 - **Supabase backup**: user-owned rows under RLS; deleted when backup is turned off or account deleted.
 - **Metering tables**: device_id (random), daily token counts. No content, no identity linkage.
 
 ## Privacy page (landing `/privacy` + Me → Privacy)
 
-Placeholder for Reb's copy. Must cover, in plain language: local-first storage; what LLM calls transmit and that we don't store them; optional backup and its deletion; anonymous opt-in analytics and exactly what's in it; the explicit share-an-activity option; BYO key handling; feedback email handling; contact `hello@thinkering.app`.
+Placeholder for Reb's copy. Must cover, in plain language: local-first storage; what LLM calls transmit and that we don't store them; optional backup and its deletion; anonymous opt-in analytics and exactly what's in it; the explicit share-an-activity option; BYO key handling; public/community feedback stored by Featurebase; private feedback and activity reports processed through Resend; the technical information each provider receives; retention and deletion handling; and contact `hello@thinkering.app`. Update App Store privacy disclosures for the embedded Featurebase WebView before release.

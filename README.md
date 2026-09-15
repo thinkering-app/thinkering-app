@@ -8,6 +8,7 @@ A mobile app for adults' personal learning. You tell thinkering what you want to
 
 ```sh
 pnpm install
+cp apps/mobile/.env.example apps/mobile/.env  # configure local app integrations as needed
 pnpm verify            # typecheck + lint + tests — the gate for every PR
 pnpm --filter @thinkering/mobile dev    # Expo dev server (press i for iOS simulator)
 pnpm --filter @thinkering/web dev       # landing page at localhost:3000
@@ -42,7 +43,7 @@ Deploys (Vercel, manual for now): `apps/web` is a standard Next.js project; the 
 
 ## Planned stack
 
-pnpm monorepo · Expo (iOS-first, Android + web capable) · expo-router · TypeScript strict · expo-sqlite + Drizzle ORM · Next.js on Vercel (landing + API proxy) · Claude API · Supabase (optional backup/sync, usage metering) · Resend (feedback) · PostHog (anonymous, opt-in) · NativeWind + shared Tailwind tokens.
+pnpm monorepo · Expo (iOS-first, Android + web capable) · expo-router · TypeScript strict · expo-sqlite + Drizzle ORM · Next.js on Vercel (landing + API proxy) · Claude API · Supabase (optional backup/sync, usage metering) · Featurebase (community feedback) · Resend (private feedback) · PostHog (anonymous, opt-in) · NativeWind + shared Tailwind tokens.
 
 ## License
 

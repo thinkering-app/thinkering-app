@@ -26,6 +26,7 @@ Nothing in the gate touches the network, a model, a simulator, or a real Supabas
 - **Zod schemas**: valid fixtures parse; a committed corpus of _broken_ model output (truncated JSON, missing review page, two review pages, unknown block kind, non-interactive content page, concept ids that don't exist on the goal) fails with a useful error and never reaches a renderer.
 - **Prompt assembly**: snapshot the rendered `{system, messages}` per kind. Prompts are the artifact, so string snapshots are correct here — the diff is the review. Assert the cache breakpoint sits after the shared preamble; a moved breakpoint silently doubles cost.
 - **Context assembly**: token budget respected, ordering stable across runs (prompt-cache safety), truncation deterministic.
+- **Feedback helpers**: context sanitization and Featurebase URL construction are unit-tested without network access; only coarse screen, platform, and app version can survive the allowlist.
 - **Library definitions** (`06`): every item has a valid page skeleton, an `outcomeLabel`, and a unique id.
 
 Coverage threshold: 90% on `scheduler/` and `schemas/`. No thresholds anywhere else.
@@ -48,6 +49,7 @@ Route handlers are called directly with a `Request`; the Anthropic SDK is mocked
 - Device auth (D10): bad signature, stale timestamp, and replayed request are all rejected.
 - Metering (D14): budget exhaustion returns 429 with a reset time; reserved headroom still admits `activity.review` and `activity.question` when generation kinds are capped.
 - The server never logs prompt or response bodies — assert the shape of what the logger receives.
+- **Feedback routes**: cover signed authentication, malformed requests, optional email/context, Reply-To behavior, the 4,000-character message and 80 KB report limits, persistent UTC-day rate limits, provider failures, and content-free logging for both `/api/feedback` and `/api/activity-report`.
 
 ### Tier 4 — renderer and app
 
@@ -70,6 +72,8 @@ Quality judgment stays human: eyeball the output in the AI Inspector, and record
 ### Tier 6 — E2E
 
 Three Maestro flows on the iOS simulator, run before a release, not per PR: intake → a path exists; Today → complete an activity → history entry and goal status advanced; export → import. They run in **fixture AI mode**, so they're deterministic and free.
+
+The feedback integration also gets a manual pre-TestFlight pass: both chooser paths; all three Featurebase boards; guest participation; anonymized public author display; hidden leaderboard; post/comment moderation; public Feature requests and General feedback and discussions; author-only Bugs and issues; filtering, user reporting, blocking, and contact mechanisms required by [App Review Guideline 1.2](https://developer.apple.com/app-store/review/guidelines/); WebView loading/offline/retry/back/close/external-link behavior; Expo web's new-tab fallback; private email validation, context preview/toggle, success, and retry-preserved text. If end-user reporting is unavailable, verify that iOS uses the system browser fallback.
 
 ## Fixture AI mode
 

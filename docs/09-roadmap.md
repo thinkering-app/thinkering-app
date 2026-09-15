@@ -52,7 +52,7 @@ Milestones broken into session-sized work packages (WP) suitable for one agent s
 ## M6 — History & Me
 
 - **WP6.1 History**: grouped-by-day list with outcome lines, per-interest/all-explore filtering, lazy loading.
-- **WP6.2 Me**: Manage Interests (reorder, focus/exploring/archived), calendar month view + day detail, settings shell, feedback screen, privacy placeholder, AI usage meter + BYOK entry (SecureStore), PostHog toggle.
+- **WP6.2 Me**: Manage Interests (reorder, focus/exploring/archived), calendar month view + day detail, settings shell, AI usage meter + BYOK entry (SecureStore), PostHog toggle, privacy placeholder, and dual-channel feedback per `01`: a Featurebase portal WebView/new-tab fallback plus the private email form and separate activity-report route.
 
 ## M7 — Landing page
 
@@ -65,9 +65,9 @@ Milestones broken into session-sized work packages (WP) suitable for one agent s
 
 ## M9 — Analytics, polish, release
 
-- **WP9.1 PostHog**: typed `track()` wrapper + full `08` schema, pre-consent local buffer (flush on opt-in, delete on decline), opt-in flow (one-time ask after first completed activity + Me toggle).
+- **WP9.1 PostHog & privacy**: typed `track()` wrapper + full `08` schema, including the three content-free feedback events; pre-consent local buffer (flush on opt-in, delete on decline); opt-in flow (one-time ask after first completed activity + Me toggle); provider/privacy copy and App Store privacy disclosures.
 - **WP9.2 Polish pass**: texture assets, watercolor accents, motion, empty states, app icon/splash.
-- **WP9.3 Release**: the three Maestro E2E flows in fixture AI mode (`10`), EAS build profiles, TestFlight, versioning/changelog conventions.
+- **WP9.3 Release**: the three Maestro E2E flows in fixture AI mode (`10`), EAS build profiles, TestFlight, versioning/changelog conventions, and the Featurebase configuration/moderation checklist in `10`. If Featurebase cannot provide end-user reporting for embedded user-generated content, open it in the system browser on iOS instead of the WebView.
 
 ## Later
 

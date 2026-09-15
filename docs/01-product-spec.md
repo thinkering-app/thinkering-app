@@ -37,7 +37,12 @@ Four tabs: **Today, Path, History, Me**.
 
 **Interest selector** (top toolbar on Today, Path, History): one pill per in-focus interest, plus an **Explore** pill when any exploring interests exist. Selecting Explore reveals a second pill row: **All** (default) + one pill per exploring interest. Path is the exception: it has no "All" — it defaults to the first interest.
 
-**Feedback button**: small, unobtrusive (e.g. a corner icon on every screen). Opens a sheet with one text field and Send → `POST /api/feedback` → Resend email to `feedback@thinkering.app`, including app version + platform (no learning data). Confirmation is a brief toast.
+**Feedback button**: small, unobtrusive (e.g. a corner icon on every screen). Opens a compact chooser:
+
+- **Post to a feedback board** — community feedback hosted by Featurebase; feature/general posts may be public. Native opens a dedicated portal WebView and Expo web opens the portal in a new tab. The portal exposes Feature requests, General feedback and discussions, and Bugs and issues, with loading, offline/retry, close/back handling, and external links handed to the system browser. Only coarse screen, platform, and app version metadata may be attached; never app identity, email, raw routes/URLs, activity IDs, hardware/device IDs, interests, goals, or learning content.
+- **Send privately by email** — a native form with required feedback (maximum 4,000 characters), optional validated follow-up email (never persisted locally), and an **Include app details** toggle that defaults on. Its visible preview is limited to coarse screen, platform, and app version. Send uses the signed `POST /api/feedback` route; success closes the form and briefly confirms, while failure preserves the text for retry.
+
+Keep `hello@thinkering.app` visible for questions or privacy concerns.
 
 ## 3. Today
 
@@ -106,7 +111,7 @@ For the selected focused interest, all-explore, or an individual explore interes
   - **Backup** — default off. Create/sign in to a Supabase email/password account, change password, toggle synced backup (turning off deletes server-side data after confirmation), export data (JSON file) / import.
   - **AI usage** — today's usage vs. the daily included cap (meter), option to add their own Anthropic API key (stored in SecureStore/Keychain; unmetered, calls go direct), PostHog toggle ("Share anonymous usage to improve thinkering" — opt-in, default off, not linked to identity; a one-time ask also appears after the first completed activity).
   - **Privacy** — static text page (placeholder for Reb's copy; same content as landing /privacy).
-  - **Feedback** — same form as the global feedback button, plus a note with `hello@thinkering.app` for questions or concerns (copy editable).
+  - **Feedback** — same community/private chooser as the global feedback button, with `hello@thinkering.app` visible for questions or privacy concerns.
 
 ## 8. Landing page (`apps/web`)
 

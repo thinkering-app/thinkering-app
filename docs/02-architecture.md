@@ -16,7 +16,7 @@ apps/
       theme/
   web/             # Next.js (App Router) on Vercel
     app/           # landing page, /privacy
-    app/api/       # ai proxy, feedback, device register, usage
+    app/api/       # ai proxy, feedback/activity-report, device register, usage
 packages/
   core/            # pure TS, no React: domain types, Zod schemas, prompt templates,
                    # library definitions, scheduler, context assembly
@@ -79,7 +79,11 @@ The mode is a setting (Me, dev builds), defaulting to proxy. `EXPO_PUBLIC_AI_MOD
 
 ## Feedback
 
-`POST /api/feedback` `{message, context: {screen, appVersion, platform}}` → Resend → `feedback@thinkering.app`. No auth needed; rate-limited per device. Resend API key server-side only.
+- **Community**: `EXPO_PUBLIC_FEATUREBASE_PORTAL_URL` configures the public Featurebase portal. Native follows Featurebase's [mobile embedding guidance](https://help.featurebase.app/articles/1131771-embed-featurebase-into-mobile-app) and renders that URL in the app's existing WebView stack; Expo web opens it in a new tab. Add only allowlisted [URL metadata](https://help.featurebase.app/articles/7002056-metadata-for-posts) (`screen`, `platform`, `appVersion`). There is no Featurebase secret, SSO data, or JavaScript SDK in the client; Featurebase's compact JavaScript widget is web-only.
+- **Private email**: signed `POST /api/feedback` accepts `{message, replyEmail?, context?}` and forwards it through Resend to `feedback@thinkering.app`. `message` is capped at 4,000 characters; `replyEmail` becomes Reply-To and is used only to respond; omit `context` entirely when the user disables app details. Apply a persistent limit of 20 messages per device per UTC day.
+- **Activity quality reports**: signed `POST /api/activity-report` retains the explicit per-activity response opt-in described in `08`. Validate the structured payload, cap it at 80 KB, and apply a persistent limit of five reports per device per UTC day before forwarding through Resend.
+
+Both email routes store only operational rate-limit counters and never store or log message/report contents. `RESEND_API_KEY` remains server-side.
 
 ## Analytics
 
@@ -87,10 +91,10 @@ PostHog via `posthog-react-native`, anonymous random distinct_id generated local
 
 ## Security summary
 
-- Secrets server-side: Anthropic key, Resend key, Supabase service role. Client env: Supabase URL + anon key, PostHog key (public by design), API base URL.
+- Secrets server-side: Anthropic key, Resend key, Supabase service role. Client env: Supabase URL + anon key, PostHog key (public by design), API base URL, and the public Featurebase portal URL.
 - BYO Anthropic key: SecureStore on native; web localStorage with explicit warning.
 - All API routes validate input with Zod, sign-check device tokens, and rate-limit.
-- Supabase RLS on all user-data tables; service-role usage confined to metering/feedback routes.
+- Supabase RLS on all user-data tables; service-role usage confined to metering and operational rate-limit counters.
 
 ## Dev experience
 
