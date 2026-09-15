@@ -8,8 +8,8 @@ import {
 import {
   bufferAnalyticsEvent,
   clearAnalyticsBuffer,
-  listBufferedEvents,
   getSetting,
+  listBufferedEvents,
   setSetting,
 } from '@thinkering/db'
 import { db, repoContext } from '@/db'

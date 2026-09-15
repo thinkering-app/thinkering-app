@@ -2,7 +2,7 @@
 
 A mobile app for adults' personal learning. You tell thinkering what you want to learn and why; it builds a pedagogically sound path of well-scoped goals and generates short, interactive activities each day — introduce something new, strengthen what you know, and put it to use.
 
-**Status: scaffolded (M0).** The monorepo builds everywhere; implementation follows the roadmap in `docs/09-roadmap.md`.
+**Status: feature-complete for a first beta (M9).** Intake, Today, the activity player, Path, History, Me, backup and sync, the landing site, and opt-in analytics are all built; what's left before TestFlight is in [RELEASING.md](RELEASING.md). Progress and deviations are recorded milestone by milestone in `docs/09-roadmap.md`.
 
 ## Getting started
 
@@ -13,6 +13,8 @@ pnpm verify            # typecheck + lint + tests — the gate for every PR
 pnpm --filter @thinkering/mobile dev    # Expo dev server (press i for iOS simulator)
 pnpm --filter @thinkering/web dev       # landing page at localhost:3000
 ```
+
+With no API key configured the app runs in **fixture AI mode** (`EXPO_PUBLIC_AI_MODE=fixture`): every generation is a recorded response, so the whole app works offline and at zero cost. That's also how the three Maestro end-to-end flows run — `pnpm e2e`, see `apps/mobile/.maestro/README.md`.
 
 Workspace layout: `apps/mobile` (Expo app), `apps/web` (Next.js landing + future API), `packages/core` (pure-TS domain), `packages/config` (shared tokens, tsconfig, eslint). See `docs/02-architecture.md`.
 
@@ -40,6 +42,7 @@ Deploys (Vercel, manual for now): `apps/web` is a standard Next.js project; the 
 | [08-analytics-and-privacy](docs/08-analytics-and-privacy.md) | PostHog event schema, privacy stance                                        |
 | [09-roadmap](docs/09-roadmap.md)                             | Milestones broken into buildable work packages                              |
 | [10-testing](docs/10-testing.md)                             | Test strategy: what gets tested, what deliberately doesn't                  |
+| [RELEASING](RELEASING.md)                                    | Versioning, changelog conventions, cutting a build, pre-submission checks   |
 
 ## Planned stack
 
