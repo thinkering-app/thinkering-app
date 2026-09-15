@@ -4,6 +4,7 @@ import { Pressable, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { importFromFile, refusalMessage } from '@/backup/actions'
+import { Watercolor } from '@/components/texture'
 import { PrimaryAction } from '@/intake/step-screen'
 
 /** The brief welcome ahead of the six questions (docs/01 §1). Not a step — no progress dot. */
@@ -21,6 +22,10 @@ export default function WelcomeScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right', 'bottom']}>
+      {/* The one place a wash gets the whole upper half of the screen (docs/07). */}
+      <View className="absolute inset-x-0 top-0 h-1/2">
+        <Watercolor color="cornflower" size={340} opacity={0.5} />
+      </View>
       <View className="flex-1 justify-end px-5 pb-2">
         <Text className="font-heading-bold text-display text-ink">thinkering</Text>
         <Text className="mt-3 font-sans text-body text-ink-soft">

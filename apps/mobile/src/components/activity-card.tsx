@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
-import { Pressable, Text, View } from 'react-native'
+import { Text, View } from 'react-native'
 import type { Section } from '@thinkering/core'
 
+import { PressScale } from '@/components/press-scale'
 import { colors } from '@/theme/tokens'
 
 type ActivityCardProps = {
@@ -37,11 +38,11 @@ export function ActivityCard({
   onPress,
 }: ActivityCardProps) {
   return (
-    <Pressable
+    <PressScale
       accessibilityRole="button"
       accessibilityLabel={`${title}. ${goalLine}. ${estMinutes} minutes`}
       onPress={onPress}
-      className={`w-72 gap-2 rounded-card border-l-4 bg-surface p-5 shadow-card active:bg-cornflower-tint ${EDGE[section]} ${
+      className={`w-72 gap-2 rounded-card border-l-4 bg-surface p-5 shadow-card ${EDGE[section]} ${
         completed ? 'opacity-60' : ''
       }`}
     >
@@ -69,6 +70,6 @@ export function ActivityCard({
           </>
         )}
       </View>
-    </Pressable>
+    </PressScale>
   )
 }

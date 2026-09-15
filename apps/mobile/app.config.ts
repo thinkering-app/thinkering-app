@@ -13,7 +13,9 @@ const config: ExpoConfig = {
   // Dark mode is out of scope for v1 (docs/07).
   userInterfaceStyle: 'light',
   ios: {
-    icon: './assets/expo.icon',
+    bundleIdentifier: 'app.thinkering.mobile',
+    // No `.icon` bundle yet: the Liquid Glass layered format can't be reviewed
+    // without a device build, so iOS renders `icon.png` (docs/07).
   },
   android: {
     adaptiveIcon: {

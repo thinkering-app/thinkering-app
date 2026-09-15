@@ -17,6 +17,7 @@ import { Generating } from '@/components/generating'
 import { Sheet } from '@/components/sheet'
 import { TextField } from '@/components/text-field'
 import { track } from '@/analytics'
+import { EmptyState } from '@/components/empty-state'
 import { db, repoContext } from '@/db'
 import {
   draftResource,
@@ -81,9 +82,10 @@ export default function ResourcesScreen() {
 
       <ScrollView className="flex-1" contentContainerClassName="gap-3 px-5 py-6">
         {resources.length === 0 ? (
-          <Text className="px-3 py-6 text-center font-sans text-body text-ink-soft">
-            Nothing saved yet. Paste a link to something worth coming back to.
-          </Text>
+          <EmptyState
+            color="peach"
+            message="Nothing saved yet. Paste a link to something worth coming back to."
+          />
         ) : (
           resources.map((resource) => (
             <Pressable

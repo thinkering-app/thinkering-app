@@ -10,6 +10,7 @@ import { Text, View } from 'react-native'
 import '../global.css'
 import { useDbMigrations } from '../db'
 import { useAppOpened } from '@/analytics'
+import { PaperGrain } from '@/components/texture'
 import { useSyncLifecycle } from '@/sync/schedule'
 
 SplashScreen.preventAutoHideAsync()
@@ -45,9 +46,11 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <View className="flex-1">
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false }} />
-    </>
+      {/* The paper grain sits over every screen and under every sheet (docs/07). */}
+      <PaperGrain />
+    </View>
   )
 }

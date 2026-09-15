@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { outcomeLine } from '@thinkering/core'
 import type { HistoryRow } from '@thinkering/db'
 
+import { EmptyState } from '@/components/empty-state'
 import { FeedbackButton } from '@/components/feedback-button'
 import { dayLabel } from '@/history/day-label'
 import { useHistory } from '@/history/use-history'
@@ -81,11 +82,5 @@ function HistoryEntry({ row, interestName }: { row: HistoryRow; interestName?: s
 }
 
 function Empty() {
-  return (
-    <View className="items-center px-8 py-16">
-      <Text className="text-center font-sans text-body text-ink-soft">
-        Activities you finish show up here.
-      </Text>
-    </View>
-  )
+  return <EmptyState message="Activities you finish show up here." color="leaf" />
 }

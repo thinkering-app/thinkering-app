@@ -6,6 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import type { GeneratedGoal } from '@thinkering/core'
 import { moveGoal, softDeleteGoal, updateGoal, type Goal } from '@thinkering/db'
 
+import { Button } from '@/components/button'
+import { EmptyState } from '@/components/empty-state'
 import { FeedbackButton } from '@/components/feedback-button'
 import { GenerationError } from '@/components/generation-error'
 import { Generating } from '@/components/generating'
@@ -168,17 +170,8 @@ function SuggestionCard({ suggestion, onAdd }: { suggestion: GeneratedGoal; onAd
 
 function Empty() {
   return (
-    <View className="items-center gap-4 px-8 py-10">
-      <Text className="text-center font-sans text-body text-ink-soft">
-        Add something you want to learn to get started.
-      </Text>
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => router.push('/intake/welcome')}
-        className="rounded-pill bg-cornflower px-6 py-3 active:bg-cornflower-deep"
-      >
-        <Text className="font-sans-medium text-body text-white">Add an interest</Text>
-      </Pressable>
-    </View>
+    <EmptyState message="Add something you want to learn to get started.">
+      <Button label="Add an interest" onPress={() => router.push('/intake/welcome')} />
+    </EmptyState>
   )
 }

@@ -5,7 +5,9 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import type { ActivityDoc, Page, Rating } from '@thinkering/core'
 
 import { Button } from '@/components/button'
+import { FadeIn } from '@/components/fade-in'
 import { Generating } from '@/components/generating'
+import { Watercolor } from '@/components/texture'
 import { ProgressBar } from '@/components/progress-bar'
 import { colors } from '@/theme/tokens'
 import { BlockView } from './blocks'
@@ -107,6 +109,9 @@ export function ActivityPlayer({
           </View>
         </View>
 
+        {/* The summary is the one page that gets a wash behind it (docs/07). */}
+        {isSummary ? <Watercolor color="sun" size={300} opacity={0.35} /> : null}
+
         <ResponsesProvider sink={sink}>
           <ScrollView
             ref={scroller}
@@ -115,7 +120,7 @@ export function ActivityPlayer({
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="interactive"
           >
-            {content}
+            <FadeIn key={page?.id ?? index}>{content}</FadeIn>
             {isSummary ? (
               <SummaryFooter
                 doc={doc}
