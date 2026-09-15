@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { deleteSupabaseAccount, type DeleteAccountResult } from './account'
 import { MemoryStore, type MeteringStore } from './store'
 import { SupabaseStore } from './supabase-store'
 
@@ -14,6 +15,8 @@ export interface ServerDeps {
   anthropic: () => Anthropic
   now: () => number
   fetch: typeof fetch
+  /** Deletes the backup account an access token belongs to (docs/08). */
+  deleteAccount: (accessToken: string) => Promise<DeleteAccountResult>
   /** Aggregate observability only — never receives prompt or response bodies. */
   logAiCall: (entry: {
     kind: string
@@ -36,6 +39,7 @@ function defaultDeps(): ServerDeps {
     anthropic: () => new Anthropic(),
     now: () => Date.now(),
     fetch: (...args) => fetch(...args),
+    deleteAccount: (accessToken) => deleteSupabaseAccount(url, secretKey, accessToken),
     logAiCall: (entry) => console.log(JSON.stringify({ at: 'ai', ...entry })),
   }
 }

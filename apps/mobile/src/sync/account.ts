@@ -1,5 +1,9 @@
 import type { AuthError, Session } from '@supabase/supabase-js'
 
+import { fetch } from 'expo/fetch'
+
+import { signedHeaders } from '@/ai/device'
+import { API_BASE_URL } from '@/ai/settings'
 import { backupConfigured, supabase } from './supabase'
 
 /**
@@ -45,6 +49,30 @@ export async function changePassword(password: string): Promise<AuthResult> {
 
 export async function sendPasswordReset(email: string): Promise<AuthResult> {
   return attempt(() => supabase().auth.resetPasswordForEmail(email.trim()))
+}
+
+/**
+ * Deletes the account itself, not just its data (App Review 5.1.1(v)). Only the
+ * server can do it — deleting a user needs the secret key — so the session's
+ * access token goes to `POST /api/account/delete`, which deletes exactly the
+ * account that token belongs to. The rows go with it (`on delete cascade`).
+ */
+export async function deleteAccount(): Promise<AuthResult> {
+  if (!backupConfigured) return { ok: false, message: UNREACHABLE }
+  try {
+    const { data } = await supabase().auth.getSession()
+    const token = data.session?.access_token
+    if (!token) return { ok: false, message: 'Sign in again to delete your account.' }
+    const res = await fetch(`${API_BASE_URL}/api/account/delete`, {
+      method: 'POST',
+      headers: { ...(await signedHeaders('')), authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) return { ok: false, message: "We couldn't delete the account. Nothing has changed." }
+    await supabase().auth.signOut()
+    return { ok: true }
+  } catch {
+    return { ok: false, message: UNREACHABLE }
+  }
 }
 
 const UNREACHABLE = "We couldn't reach the server. Check your connection and try again."

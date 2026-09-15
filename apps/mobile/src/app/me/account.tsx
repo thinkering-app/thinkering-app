@@ -1,9 +1,10 @@
 import { router } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
-import { setBackupEnabled } from '@thinkering/db'
+import { resetSyncCursors, setBackupEnabled } from '@thinkering/db'
 
 import { Button } from '@/components/button'
+import { confirmDestructive } from '@/components/confirm'
 import { SubScreen } from '@/components/sub-screen'
 import { TextField } from '@/components/text-field'
 import { db } from '@/db'
@@ -11,6 +12,7 @@ import {
   changePassword,
   createAccount,
   currentAccount,
+  deleteAccount,
   sendPasswordReset,
   signIn,
   type Account,
@@ -73,6 +75,33 @@ export default function AccountScreen() {
     }
   }
 
+  /**
+   * Deleting the account, not the data on this device (App Review 5.1.1(v)).
+   * The local library is the source of truth, so it stays — what goes is the
+   * account and everything on the server.
+   */
+  const removeAccount = async () => {
+    const confirmed = await confirmDestructive({
+      title: 'Delete your account?',
+      message:
+        'Your account and the copy on our server are deleted for good. Your learning stays on this device.',
+      confirmLabel: 'Delete account',
+    })
+    if (!confirmed) return
+    setBusy(true)
+    setError(null)
+    setMessage(null)
+    try {
+      const result = await deleteAccount()
+      if (!result.ok) return setError(result.message)
+      setBackupEnabled(db, false)
+      resetSyncCursors(db)
+      router.back()
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const resetPassword = async () => {
     setError(null)
     setMessage(null)
@@ -104,6 +133,17 @@ export default function AccountScreen() {
           />
         </View>
         <Feedback message={message} error={error} />
+        <View className="gap-2 border-t border-hairline pt-6">
+          <Button
+            label="Delete account"
+            variant="quiet"
+            onPress={() => void removeAccount()}
+            disabled={busy}
+          />
+          <Text className="font-sans text-caption text-ink-soft">
+            Deletes the account and the copy on our server. Your learning stays on this device.
+          </Text>
+        </View>
       </SubScreen>
     )
   }

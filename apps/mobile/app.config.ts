@@ -6,18 +6,19 @@ const { colors } = preset.theme.extend
 const config: ExpoConfig = {
   name: 'thinkering',
   slug: 'thinkering',
-  version: '0.0.0',
+  version: '0.1.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'thinkering',
   // Dark mode is out of scope for v1 (docs/07).
   userInterfaceStyle: 'light',
   ios: {
-    bundleIdentifier: 'app.thinkering.mobile',
+    bundleIdentifier: 'app.thinkering',
     // No `.icon` bundle yet: the Liquid Glass layered format can't be reviewed
     // without a device build, so iOS renders `icon.png` (docs/07).
   },
   android: {
+    package: 'app.thinkering',
     adaptiveIcon: {
       backgroundColor: colors.paper,
       foregroundImage: './assets/images/android-icon-foreground.png',

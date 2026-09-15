@@ -4,6 +4,7 @@ import { POST as aiPost } from '@/app/api/ai/route'
 import { POST as registerPost } from '@/app/api/device/register/route'
 import { POST as feedbackPost } from '@/app/api/feedback/route'
 import { POST as reportPost } from '@/app/api/activity-report/route'
+import { POST as deleteAccountPost } from '@/app/api/account/delete/route'
 import { GET as usageGet } from '@/app/api/usage/route'
 import { resetReplayCacheForTests } from '@/lib/server/auth'
 import { checkBudget, DAILY_BUDGET_WEIGHTED, RESERVED_WEIGHTED } from '@/lib/server/metering'
@@ -331,5 +332,49 @@ describe('POST /api/activity-report (D18)', () => {
     for (let i = 0; i < 5; i++) await store.addAction(creds.deviceId, '2026-09-15', 'activity_report')
     const res = await reportPost(signedRequest('http://x/api/activity-report', creds, { body: report() }))
     expect(res.status).toBe(429)
+  })
+})
+
+describe('POST /api/account/delete (App Review 5.1.1(v))', () => {
+  const signed = (creds: { deviceId: string; secret: string }, token?: string) => {
+    const req = signedRequest('http://x/api/account/delete', creds, { body: '', method: 'POST' })
+    if (token) req.headers.set('authorization', `Bearer ${token}`)
+    return req
+  }
+
+  it('deletes only the account the access token belongs to', async () => {
+    const deleted: string[] = []
+    const { store } = setupDeps({
+      deleteAccount: async (token) => {
+        deleted.push(token)
+        return { ok: true }
+      },
+    })
+    const creds = await registerDevice(store)
+
+    const res = await deleteAccountPost(signed(creds, 'access-token-abc'))
+    expect(res.status).toBe(200)
+    expect(deleted).toEqual(['access-token-abc'])
+  })
+
+  it('refuses without an access token, and passes a bad one through as a 401', async () => {
+    const { store } = setupDeps({
+      deleteAccount: async () => ({ ok: false, status: 401, error: 'invalid_access_token' }),
+    })
+    const creds = await registerDevice(store)
+
+    expect((await deleteAccountPost(signed(creds))).status).toBe(401)
+    resetReplayCacheForTests()
+    expect((await deleteAccountPost(signed(creds, 'stale'))).status).toBe(401)
+  })
+
+  it('is device-signed and rate limited like the other routes', async () => {
+    const { store } = setupDeps({ deleteAccount: async () => ({ ok: true }) })
+    const creds = await registerDevice(store)
+    const unsigned = new Request('http://x/api/account/delete', { method: 'POST' })
+    expect((await deleteAccountPost(unsigned)).status).toBe(401)
+
+    for (let i = 0; i < 5; i++) await store.addAction(creds.deviceId, '2026-09-15', 'account_delete')
+    expect((await deleteAccountPost(signed(creds, 'token'))).status).toBe(429)
   })
 })
