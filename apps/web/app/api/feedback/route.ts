@@ -1,36 +1,48 @@
 import { z } from 'zod'
+import { FEEDBACK_PLATFORMS, FEEDBACK_SCREENS, sanitizeFeedbackContext } from '@thinkering/core'
+import { verifyDeviceAuth } from '@/lib/server/auth'
 import { getDeps } from '@/lib/server/deps'
+import { contextLine, sendFeedbackEmail } from '@/lib/server/email'
+import { utcDayOf } from '@/lib/server/metering'
 
 /**
- * Feedback → Resend → feedback@thinkering.app (docs/02 §Feedback). No auth
- * needed; lightly rate-limited per device id header. No learning data, except
- * when the user explicitly shares one activity (docs/08 D18) — that report
- * arrives here as an opaque JSON string and is forwarded, never stored.
+ * Private feedback (docs/01 §2, docs/02 §Feedback): the user's message, an
+ * optional reply address, and — only if they left "Include app details" on —
+ * the three allowlisted context values. Forwarded by email, never stored.
+ * Community feedback doesn't come through here; it goes to the Featurebase
+ * portal, which this server never sees.
  */
 
-/** Generous enough for a long activity document, small enough to bound an email. */
-const MAX_REPORT_CHARS = 80_000
+const MAX_MESSAGE_CHARS = 4000
+const RATE_LIMIT_PER_DAY = 20
 
 const bodySchema = z.object({
-  message: z.string().min(1).max(4000),
-  context: z.object({
-    screen: z.string().max(100),
-    appVersion: z.string().max(50),
-    platform: z.string().max(20),
-  }),
-  /** Serialized shared-activity report (D18); present only when the user tapped share. */
-  activityReport: z.string().max(MAX_REPORT_CHARS).optional(),
+  message: z.string().trim().min(1).max(MAX_MESSAGE_CHARS),
+  /** Reply-To only; never persisted anywhere (docs/08). */
+  replyEmail: z.string().email().max(254).optional(),
+  /** Absent when the user turned app details off. */
+  context: z
+    .object({
+      screen: z.enum(FEEDBACK_SCREENS),
+      platform: z.enum(FEEDBACK_PLATFORMS),
+      appVersion: z.string().max(50),
+    })
+    .optional(),
 })
 
-const RATE_LIMIT_PER_DAY = 20
-const sends = new Map<string, { day: string; count: number }>()
-
 export async function POST(req: Request): Promise<Response> {
-  const { fetch: doFetch, now } = getDeps()
+  const { store, now } = getDeps()
+
+  const bodyText = await req.text()
+  if (bodyText.length > MAX_MESSAGE_CHARS * 2) {
+    return Response.json({ error: 'too_large' }, { status: 413 })
+  }
+  const auth = await verifyDeviceAuth(req, bodyText, store, now())
+  if (!auth.ok) return Response.json({ error: auth.message }, { status: auth.status })
 
   let json: unknown
   try {
-    json = await req.json()
+    json = JSON.parse(bodyText)
   } catch {
     return Response.json({ error: 'invalid_json' }, { status: 400 })
   }
@@ -39,34 +51,20 @@ export async function POST(req: Request): Promise<Response> {
     return Response.json({ error: 'invalid_request', issues: body.error.issues }, { status: 400 })
   }
 
-  const deviceId = req.headers.get('x-device-id') ?? 'anonymous'
-  const day = new Date(now()).toISOString().slice(0, 10)
-  const entry = sends.get(deviceId)
-  const count = entry && entry.day === day ? entry.count : 0
-  if (count >= RATE_LIMIT_PER_DAY) {
+  const day = utcDayOf(now())
+  if ((await store.getActionCount(auth.deviceId, day, 'feedback')) >= RATE_LIMIT_PER_DAY) {
     return Response.json({ error: 'rate_limited' }, { status: 429 })
   }
-  sends.set(deviceId, { day, count: count + 1 })
+  await store.addAction(auth.deviceId, day, 'feedback')
 
-  const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey) {
-    // Dev without Resend configured: accept and log shape only.
-    console.log(JSON.stringify({ at: 'feedback', dev: true, ...body.data.context }))
-    return Response.json({ ok: true })
-  }
-
-  const res = await doFetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
-    body: JSON.stringify({
-      from: 'thinkering <feedback@thinkering.app>',
-      to: ['feedback@thinkering.app'],
-      subject: `${body.data.activityReport ? 'Shared activity' : 'Feedback'} · ${body.data.context.screen} · ${body.data.context.platform} ${body.data.context.appVersion}`,
-      text: body.data.activityReport
-        ? `${body.data.message}\n\n--- shared activity ---\n${body.data.activityReport}`
-        : body.data.message,
-    }),
+  // Re-sanitized server-side: the allowlist can't depend on a client being honest.
+  const context = body.data.context ? sanitizeFeedbackContext(body.data.context) : undefined
+  const sent = await sendFeedbackEmail({
+    at: 'feedback',
+    subject: `Feedback · ${contextLine(context)}`,
+    text: body.data.message,
+    replyTo: body.data.replyEmail,
   })
-  if (!res.ok) return Response.json({ error: 'send_failed' }, { status: 502 })
+  if (!sent.ok) return Response.json({ error: sent.error }, { status: sent.status })
   return Response.json({ ok: true })
 }

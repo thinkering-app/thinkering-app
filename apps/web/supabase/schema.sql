@@ -24,5 +24,17 @@ create table if not exists device_usage (
   primary key (device_id, day)
 );
 
+-- Rate-limit counters for the routes that don't spend tokens: private
+-- feedback and activity reports (docs/02 §Feedback). Counts only — no
+-- submitted content ever lands here.
+create table if not exists device_actions (
+  device_id uuid not null references devices (device_id),
+  day date not null,
+  action text not null check (action in ('feedback', 'activity_report')),
+  count integer not null default 0,
+  primary key (device_id, day, action)
+);
+
 alter table devices enable row level security;
 alter table device_usage enable row level security;
+alter table device_actions enable row level security;

@@ -75,4 +75,24 @@ export class SupabaseStore implements MeteringStore {
     )
     if (error) throw new Error(`device_usage upsert failed: ${error.message}`)
   }
+
+  async getActionCount(deviceId: string, day: string, action: string): Promise<number> {
+    const { data, error } = await this.client
+      .from('device_actions')
+      .select('count')
+      .eq('device_id', deviceId)
+      .eq('day', day)
+      .eq('action', action)
+      .maybeSingle()
+    if (error) throw new Error(`device_actions select failed: ${error.message}`)
+    return data?.count ?? 0
+  }
+
+  async addAction(deviceId: string, day: string, action: string): Promise<void> {
+    const current = await this.getActionCount(deviceId, day, action)
+    const { error } = await this.client
+      .from('device_actions')
+      .upsert({ device_id: deviceId, day, action, count: current + 1 }, { onConflict: 'device_id,day,action' })
+    if (error) throw new Error(`device_actions upsert failed: ${error.message}`)
+  }
 }

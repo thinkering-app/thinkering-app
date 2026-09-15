@@ -39,11 +39,18 @@ export interface MeteringStore {
   /** Usage for a UTC day key (YYYY-MM-DD). */
   getUsage(deviceId: string, day: string): Promise<UsageRecord>
   addUsage(deviceId: string, day: string, delta: UsageDelta): Promise<void>
+  /**
+   * Persistent per-device/day counters for the routes that don't spend tokens
+   * (docs/02 §Feedback). A count, never any submitted content.
+   */
+  getActionCount(deviceId: string, day: string, action: string): Promise<number>
+  addAction(deviceId: string, day: string, action: string): Promise<void>
 }
 
 export class MemoryStore implements MeteringStore {
   private devices = new Map<string, DeviceRecord>()
   private usage = new Map<string, UsageRecord>()
+  private actions = new Map<string, number>()
 
   async createDevice(device: DeviceRecord): Promise<void> {
     this.devices.set(device.deviceId, device)
@@ -66,5 +73,14 @@ export class MemoryStore implements MeteringStore {
       calls: current.calls + 1,
       kindCalls: { ...current.kindCalls, [delta.kind]: (current.kindCalls[delta.kind] ?? 0) + 1 },
     })
+  }
+
+  async getActionCount(deviceId: string, day: string, action: string): Promise<number> {
+    return this.actions.get(`${deviceId}:${day}:${action}`) ?? 0
+  }
+
+  async addAction(deviceId: string, day: string, action: string): Promise<void> {
+    const key = `${deviceId}:${day}:${action}`
+    this.actions.set(key, (this.actions.get(key) ?? 0) + 1)
   }
 }

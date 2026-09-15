@@ -1,7 +1,9 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { FIXTURE_DOC_INTRODUCE } from '@thinkering/core'
 import { POST as aiPost } from '@/app/api/ai/route'
 import { POST as registerPost } from '@/app/api/device/register/route'
 import { POST as feedbackPost } from '@/app/api/feedback/route'
+import { POST as reportPost } from '@/app/api/activity-report/route'
 import { GET as usageGet } from '@/app/api/usage/route'
 import { resetReplayCacheForTests } from '@/lib/server/auth'
 import { checkBudget, DAILY_BUDGET_WEIGHTED, RESERVED_WEIGHTED } from '@/lib/server/metering'
@@ -193,56 +195,141 @@ describe('GET /api/usage', () => {
   })
 })
 
-describe('POST /api/feedback', () => {
-  it('validates and forwards to Resend without learning data', async () => {
-    const { fetchCalls } = setupDeps()
+describe('POST /api/feedback (private channel)', () => {
+  const body = (extra: Record<string, unknown> = {}) =>
+    JSON.stringify({
+      message: 'The strengthen cards feel repetitive.',
+      context: { screen: 'today', platform: 'ios', appVersion: '0.1.0' },
+      ...extra,
+    })
+
+  it('forwards the message with its coarse context and no learning data', async () => {
+    const { store, fetchCalls } = setupDeps()
+    const creds = await registerDevice(store)
     process.env.RESEND_API_KEY = 'test-key'
-    const res = await feedbackPost(
-      new Request('http://x/api/feedback', {
-        method: 'POST',
-        headers: { 'x-device-id': 'device-9' },
-        body: JSON.stringify({
-          message: 'The strengthen cards feel repetitive.',
-          context: { screen: 'today', appVersion: '0.0.1', platform: 'ios' },
-        }),
-      }),
-    )
+    const res = await feedbackPost(signedRequest('http://x/api/feedback', creds, { body: body() }))
     delete process.env.RESEND_API_KEY
+
     expect(res.status).toBe(200)
     expect(fetchCalls).toHaveLength(1)
     expect(fetchCalls[0]!.url).toContain('resend.com')
+    const sent = JSON.parse(String(fetchCalls[0]!.init?.body)) as Record<string, unknown>
+    expect(sent.subject).toBe('Feedback · today · ios 0.1.0')
+    expect(sent.text).toBe('The strengthen cards feel repetitive.')
+    expect(sent.reply_to).toBeUndefined()
   })
 
-  it('bad input → 400', async () => {
+  it('makes a reply address the Reply-To, and says so when app details are withheld', async () => {
+    const { store, fetchCalls } = setupDeps()
+    const creds = await registerDevice(store)
+    process.env.RESEND_API_KEY = 'test-key'
+    const withEmail = JSON.stringify({ message: 'Ping me', replyEmail: 'learner@example.com' })
+    const res = await feedbackPost(signedRequest('http://x/api/feedback', creds, { body: withEmail }))
+    delete process.env.RESEND_API_KEY
+
+    expect(res.status).toBe(200)
+    const sent = JSON.parse(String(fetchCalls[0]!.init?.body)) as Record<string, unknown>
+    expect(sent.reply_to).toBe('learner@example.com')
+    expect(sent.subject).toBe('Feedback · no app details')
+  })
+
+  it('requires device auth', async () => {
     setupDeps()
     const res = await feedbackPost(
-      new Request('http://x/api/feedback', { method: 'POST', body: JSON.stringify({ message: '' }) }),
+      new Request('http://x/api/feedback', { method: 'POST', body: body() }),
     )
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(401)
   })
 
-  it('forwards an explicitly shared activity, and refuses an oversized one', async () => {
-    const { fetchCalls } = setupDeps()
+  it('rejects an empty message, an over-long one, and an unknown screen', async () => {
+    const { store } = setupDeps()
+    const creds = await registerDevice(store)
+    const post = (raw: string) => feedbackPost(signedRequest('http://x/api/feedback', creds, { body: raw }))
+
+    expect((await post(JSON.stringify({ message: '' }))).status).toBe(400)
+    expect((await post(JSON.stringify({ message: 'x'.repeat(4001) }))).status).toBe(400)
+    expect((await post(body({ context: { screen: '/activity/0199a0f0', platform: 'ios', appVersion: '0.1.0' } }))).status).toBe(400)
+  })
+
+  it('counts against a persistent daily limit', async () => {
+    const { store } = setupDeps()
+    const creds = await registerDevice(store)
+    const day = '2026-09-15'
+    for (let i = 0; i < 20; i++) await store.addAction(creds.deviceId, day, 'feedback')
+    const res = await feedbackPost(signedRequest('http://x/api/feedback', creds, { body: body() }))
+    expect(res.status).toBe(429)
+  })
+
+  it('reports a provider failure without logging the message', async () => {
+    const logs: string[] = []
+    const spy = vi.spyOn(console, 'log').mockImplementation((line: unknown) => logs.push(String(line)))
+    const { store } = setupDeps({
+      fetch: (async () => new Response('nope', { status: 500 })) as typeof fetch,
+    })
+    const creds = await registerDevice(store)
     process.env.RESEND_API_KEY = 'test-key'
-    const share = (report: string) =>
-      feedbackPost(
-        new Request('http://x/api/feedback', {
-          method: 'POST',
-          headers: { 'x-device-id': 'device-10' },
-          body: JSON.stringify({
-            message: 'Shared activity: Tokens, not words',
-            context: { screen: 'activity', appVersion: '0.0.1', platform: 'ios' },
-            activityReport: report,
-          }),
-        }),
-      )
+    const res = await feedbackPost(signedRequest('http://x/api/feedback', creds, { body: body() }))
+    delete process.env.RESEND_API_KEY
+    spy.mockRestore()
 
-    const ok = await share(JSON.stringify({ title: 'Tokens, not words', doc: { version: 1 } }))
-    expect(ok.status).toBe(200)
-    const body = JSON.parse(String(fetchCalls[0]!.init?.body)) as { subject: string; text: string }
-    expect(body.subject).toContain('Shared activity')
-    expect(body.text).toContain('Tokens, not words')
+    expect(res.status).toBe(502)
+    expect(logs.join('\n')).not.toContain('repetitive')
+  })
+})
 
-    expect((await share('x'.repeat(80_001))).status).toBe(400)
+describe('POST /api/activity-report (D18)', () => {
+  const report = (extra: Record<string, unknown> = {}) =>
+    JSON.stringify({
+      title: 'Tokens, not words',
+      libraryItemId: 'worked-example',
+      tier: 'introduce',
+      rating: 'up',
+      comment: 'Clear.',
+      doc: FIXTURE_DOC_INTRODUCE,
+      context: { screen: 'activity', platform: 'ios', appVersion: '0.1.0' },
+      ...extra,
+    })
+
+  it('forwards the activity, and leaves answers out unless they were included', async () => {
+    const { store, fetchCalls } = setupDeps()
+    const creds = await registerDevice(store)
+    process.env.RESEND_API_KEY = 'test-key'
+    const withoutAnswers = await reportPost(
+      signedRequest('http://x/api/activity-report', creds, { body: report() }),
+    )
+    const withAnswers = await reportPost(
+      signedRequest('http://x/api/activity-report', creds, {
+        body: report({ responses: [{ prompt: 'What is a token?', answer: 'A chunk of text' }] }),
+        timestamp: NOW + 1,
+      }),
+    )
+    delete process.env.RESEND_API_KEY
+
+    expect([withoutAnswers.status, withAnswers.status]).toEqual([200, 200])
+    const first = JSON.parse(String(fetchCalls[0]!.init?.body)) as { subject: string; text: string }
+    expect(first.subject).toContain('Shared activity')
+    expect(first.text).toContain('Tokens, not words')
+    expect(first.text).not.toContain('their answers')
+
+    const second = JSON.parse(String(fetchCalls[1]!.init?.body)) as { text: string }
+    expect(second.text).toContain('A chunk of text')
+  })
+
+  it('refuses an oversized report and a malformed document', async () => {
+    const { store } = setupDeps()
+    const creds = await registerDevice(store)
+    const huge = report({ comment: 'x'.repeat(90_000) })
+    expect((await reportPost(signedRequest('http://x/api/activity-report', creds, { body: huge }))).status).toBe(413)
+
+    const broken = report({ doc: { version: 1, pages: [] } })
+    expect((await reportPost(signedRequest('http://x/api/activity-report', creds, { body: broken }))).status).toBe(400)
+  })
+
+  it('counts against its own, tighter daily limit', async () => {
+    const { store } = setupDeps()
+    const creds = await registerDevice(store)
+    for (let i = 0; i < 5; i++) await store.addAction(creds.deviceId, '2026-09-15', 'activity_report')
+    const res = await reportPost(signedRequest('http://x/api/activity-report', creds, { body: report() }))
+    expect(res.status).toBe(429)
   })
 })

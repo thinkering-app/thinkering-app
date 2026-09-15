@@ -103,3 +103,13 @@ export {
   type CalendarDay,
   type YearMonth,
 } from './history/calendar'
+export {
+  coarseScreen,
+  featurebasePortalUrl,
+  sanitizeFeedbackContext,
+  FEEDBACK_PLATFORMS,
+  FEEDBACK_SCREENS,
+  type FeedbackContext,
+  type FeedbackPlatform,
+  type FeedbackScreen,
+} from './feedback/context'
