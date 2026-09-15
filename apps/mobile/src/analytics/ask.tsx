@@ -13,9 +13,14 @@ import { setAnalyticsConsent } from './track'
  * real answer: it deletes the pre-consent buffer and stops the buffering.
  */
 
-/** Whether this completion is the moment to ask. */
+/**
+ * Whether this completion is the moment to ask. In practice that's the first
+ * one; `>= 1` rather than `=== 1` so that someone who got their first
+ * completion in a build without a PostHog key is still asked later, once there
+ * is one. Being undecided is what makes it happen only once.
+ */
 export function shouldAskForAnalytics(completedCount: number): boolean {
-  return completedCount === 1 && isConsentUndecided() && isAnalyticsConfigured()
+  return completedCount >= 1 && isConsentUndecided() && isAnalyticsConfigured()
 }
 
 export function AnalyticsAskSheet({

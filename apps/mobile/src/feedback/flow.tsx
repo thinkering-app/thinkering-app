@@ -21,6 +21,13 @@ import { describeFeedbackContext, useFeedbackContext } from './context'
  */
 
 const PORTAL_URL = process.env.EXPO_PUBLIC_FEATUREBASE_PORTAL_URL
+/**
+ * App Review Guideline 1.2 asks for reporting and blocking on embedded
+ * user-generated content. If the portal can't offer end-user reporting, this
+ * flag moves it out of the WebView and into the system browser, where it is
+ * the browser's content rather than ours (docs/10 Tier 6).
+ */
+const PORTAL_IN_BROWSER = process.env.EXPO_PUBLIC_FEATUREBASE_IN_BROWSER === 'true'
 const CONTACT = 'hello@thinkering.app'
 const MAX_MESSAGE_CHARS = 4000
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -36,7 +43,7 @@ export function FeedbackFlow({ visible, onClose }: { visible: boolean; onClose: 
     track('featurebase_opened', { screen: context.screen })
     onClose()
     // Expo web has no WebView; the portal opens in a new tab (docs/02).
-    if (Platform.OS === 'web') void Linking.openURL(portal)
+    if (Platform.OS === 'web' || PORTAL_IN_BROWSER) void Linking.openURL(portal)
     else router.push(`/feedback/portal?url=${encodeURIComponent(portal)}`)
   }
 
