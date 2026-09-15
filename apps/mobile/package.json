@@ -8,6 +8,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "export:web": "expo export -p web",
+    "test:web": "EXPO_PUBLIC_AI_MODE=fixture expo export -p web && playwright test",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "jest"
@@ -50,6 +51,7 @@
     "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@testing-library/react-native": "^14.0.1",
     "@types/jest": "^30.0.0",
     "@types/react": "~19.2.2",
