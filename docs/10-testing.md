@@ -38,8 +38,8 @@ This is the irreversible surface: an applied migration can't be edited (see CLAU
 - **Migration chain**: empty → head applies cleanly; and every committed historical snapshot (`fixtures/db/v<N>.sql`, dumped when a migration ships) migrates forward to head with its rows intact. A copy-migrate-swap migration gets its own data-preservation test (D17).
 - **Additive-first check**: a test fails on any column drop or retype that isn't in an explicit, commented allowlist.
 - **Repositories**: soft-deleted rows never come back from a query; every write bumps `updated_at`.
-- **Sync merge**: the LWW resolver lives as a pure function in `packages/core` so conflicts are unit-testable without a server — concurrent edits, tombstone vs. update, clock skew.
-- **Export/import**: round-trip (export → wipe → import) is deep-equal; an import file newer than the app is refused; an older one migrates forward.
+- **Sync merge**: the LWW resolver lives as a pure function in `packages/core` so conflicts are unit-testable without a server — concurrent edits, tombstone vs. update, exact ties, clock skew (`src/sync/merge.test.ts`). The SQLite side (`packages/db/test/sync.test.ts`) covers what the resolver can't see: first sync vs. nothing-changed, a batch refused because a row came from a newer schema, and a row this build can't parse being skipped rather than wedging the sync.
+- **Export/import**: round-trip (export → wipe → import) is deep-equal; import replaces rather than merges; an import file newer than the app — in either version — is refused; an older one migrates forward on the row schemas' defaults.
 
 ### Tier 3 — `apps/web/app/api`
 

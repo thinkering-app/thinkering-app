@@ -28,13 +28,11 @@ export function onAccountChange(listener: (account: Account | null) => void): ()
 }
 
 export async function createAccount(email: string, password: string): Promise<AuthResult> {
-  const { error } = await supabase().auth.signUp({ email: email.trim(), password })
-  return error ? { ok: false, message: authMessage(error) } : { ok: true }
+  return attempt(() => supabase().auth.signUp({ email: email.trim(), password }))
 }
 
 export async function signIn(email: string, password: string): Promise<AuthResult> {
-  const { error } = await supabase().auth.signInWithPassword({ email: email.trim(), password })
-  return error ? { ok: false, message: authMessage(error) } : { ok: true }
+  return attempt(() => supabase().auth.signInWithPassword({ email: email.trim(), password }))
 }
 
 export async function signOut(): Promise<void> {
@@ -42,13 +40,28 @@ export async function signOut(): Promise<void> {
 }
 
 export async function changePassword(password: string): Promise<AuthResult> {
-  const { error } = await supabase().auth.updateUser({ password })
-  return error ? { ok: false, message: authMessage(error) } : { ok: true }
+  return attempt(() => supabase().auth.updateUser({ password }))
 }
 
 export async function sendPasswordReset(email: string): Promise<AuthResult> {
-  const { error } = await supabase().auth.resetPasswordForEmail(email.trim())
-  return error ? { ok: false, message: authMessage(error) } : { ok: true }
+  return attempt(() => supabase().auth.resetPasswordForEmail(email.trim()))
+}
+
+const UNREACHABLE = "We couldn't reach the server. Check your connection and try again."
+
+/**
+ * Supabase reports most failures as a returned `error`, but a dead network
+ * rejects instead — with a message about Swift promises that means nothing to a
+ * learner. Either way the caller gets something to show; a silent button is the
+ * one outcome a sign-in screen must never have.
+ */
+async function attempt(call: () => Promise<{ error: AuthError | null }>): Promise<AuthResult> {
+  try {
+    const { error } = await call()
+    return error ? { ok: false, message: authMessage(error) } : { ok: true }
+  } catch {
+    return { ok: false, message: UNREACHABLE }
+  }
 }
 
 function toAccount(session: Session | null): Account | null {
@@ -62,6 +75,7 @@ function toAccount(session: Session | null): Account | null {
  * into "something went wrong" — a real message is more useful than a polite one.
  */
 function authMessage(error: AuthError): string {
+  if (error.name === 'AuthRetryableFetchError') return UNREACHABLE
   switch (error.code) {
     case 'invalid_credentials':
       return "That email and password don't match."

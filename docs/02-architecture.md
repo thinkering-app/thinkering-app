@@ -41,15 +41,15 @@ docs/
 
 ## Backup & sync (optional, off by default)
 
-Phase 1 — **Export/Import**: serialize all tables to a versioned JSON file (share sheet / file picker). This is the safety net and ships before sync.
+Phase 1 — **Export/Import**: serialize the ⟳ tables to a versioned JSON file (share sheet / file picker). This is the safety net and ships before sync. The envelope carries `formatVersion` (the envelope's own shape) and `schemaVersion` (the device's applied-migration count); row validators are derived from the drizzle tables, so a column added later is optional on read and an older file migrates forward on its defaults. Code in `packages/db/src/backup`.
 
 Phase 2 — **Supabase backup/sync**:
 
-- Auth: Supabase email/password (Sign in with Apple later if required). Enabling backup creates/links the account.
-- Server schema mirrors local synced tables + `user_id` with RLS (`user_id = auth.uid()`).
-- Protocol: row-level last-write-wins. Every synced row has client-generated UUIDv7 `id`, `updated_at` (epoch ms), `deleted_at` tombstone. Sync = push local rows with `updated_at > last_push`, pull server rows with `updated_at > last_pull`, newer `updated_at` wins per row. A `sync_state` table stores cursors. Runs on app foreground + after significant writes (debounced).
+- Auth: Supabase email/password (Sign in with Apple later if required). Enabling backup creates/links the account. The client talks to Supabase directly with the anon key — RLS is the boundary, and no user learning data passes through our API routes.
+- Server mirror: one generic `sync_rows(user_id, table_name, id, updated_at, deleted_at, schema_version, data jsonb)` table with RLS `user_id = auth.uid()`, rather than a mirror table per local table. Nothing server-side reads inside `data`, so there is nothing to query for — and a local migration is then never a server migration, which is what D17 asks of the mirror.
+- Protocol: row-level last-write-wins. Every synced row has client-generated UUIDv7 `id`, `updated_at` (epoch ms), `deleted_at` tombstone. Sync = pull server rows with `updated_at > last_pull`, merge, then push local rows with `updated_at > last_push`; newer `updated_at` wins per row, and a tombstone wins an exact tie. Cursors live in the local `settings` table. Runs on app foreground + debounced after significant writes — read off SQLite's own change hook for the ⟳ tables rather than called from each repository. The resolver itself is pure (`packages/core/src/sync`).
 - Turning backup **off** deletes server-side rows (confirmed destructive action), local data untouched.
-- Not synced: `llm_calls` (debug), device settings/keys.
+- Not synced: `llm_calls` (debug), `gen_cache`, `analytics_buffer`, device settings/keys.
 - Rejected for v1: PowerSync/ElectricSQL (extra service + protocol dependency; LWW suffices for single-user data). Revisit if real multi-device concurrency becomes a need.
 
 ### Schema evolution & compatibility (D17)
@@ -58,7 +58,7 @@ How table changes avoid breaking someone on an older build:
 
 - **Local DB**: migrations only run on the build that ships them, so a device's app code and local schema always match — an old build never sees new columns. Migrations are **additive-first**: add columns (nullable or defaulted) and tables; never rename/retype in place; drop only after a deprecation window. Destructive rewrites get a copy-migrate-swap migration with a test.
 - **Versioned payloads**: `ActivityDoc.version`, export files, and any JSON column payload carry a version; readers handle known versions and fail visibly (not silently) on unknown ones. Unknown block kinds render as an "update the app" placeholder (`05`).
-- **Sync**: the client sends its `schema_version` (= latest applied migration); the server stores per-table rows as JSON alongside version. Server enforces a **minimum supported version** — an out-of-date build gets a clear "update the app to sync" response instead of writing rows a newer device can't reconcile. Server mirror schema changes are additive-only.
+- **Sync**: every pushed row carries the client's `schema_version` (= latest applied migration) alongside its JSON. The floor is enforced in the `sync_rows` RLS `with check`, so an out-of-date build fails its writes rather than putting rows a newer device can't reconcile into the mirror; on the way down, a client that sees a row from a newer schema refuses the whole batch and says "update the app to keep syncing" instead of dropping the fields it doesn't know. Server mirror schema changes are additive-only — and with a JSON mirror there are none to make.
 - **Export/import**: import validates the file's version and migrates it forward through the same migration chain before inserting; importing a file _newer_ than the app is refused with an update prompt.
 
 ## AI access

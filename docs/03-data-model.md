@@ -107,11 +107,11 @@ Pruned to last ~200 calls. Never synced.
 
 ## settings — local key/value
 
-`key pk, value json` — device_id + secret ref, backup on/off, sync cursors (`sync_state` may be its own table), posthog_opt_in (default false), byok flag (key itself in SecureStore), last_seen_version.
+`key pk, value json` — device_id + secret ref, `backup_enabled` (default false), `sync_state` (`{lastPullAt, lastPushAt, lastSyncedAt}` — cursors stayed here rather than becoming their own table: two numbers and a timestamp, none of it synced), `ai_mode`, posthog_opt_in (default false), byok flag (key itself in SecureStore), last_seen_version.
 
 ## Supabase (server) tables
 
-- Mirrors of all ⟳ tables + `user_id uuid` with RLS `user_id = auth.uid()`.
+- `sync_rows(user_id uuid, table_name, id, updated_at, deleted_at, schema_version, data jsonb)` — one row per synced local row, its columns carried as JSON, primary key `(user_id, table_name, id)`, RLS `user_id = auth.uid()` (and a `schema_version` floor on write, docs/02 D17). One generic table rather than a mirror per ⟳ table: nothing server-side reads inside `data`, and a local migration is then never a server migration.
 - `devices(device_id, secret, platform, created_at, attested bool)` and `device_usage(device_id, day, input_tokens, output_tokens, calls, kind_calls json)` — operational, service-role only. The secret is stored raw, not hashed: the server must verify HMAC request signatures (docs/02), which a one-way hash cannot do; access is service-role only and App Attest hardens issuance later. `kind_calls` carries per-kind counts for the burst limits in `04`.
 
 ## Invariants

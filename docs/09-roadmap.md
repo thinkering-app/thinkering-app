@@ -64,8 +64,10 @@ Milestones broken into session-sized work packages (WP) suitable for one agent s
 
 ## M8 — Backup & sync
 
-- **WP8.1 Export/import**: versioned JSON export via share sheet; import with validation + confirm-replace; round-trip and version-refusal tests.
-- **WP8.2 Supabase sync**: auth screens (email/password), server schema + RLS, LWW push/pull with cursors, off-switch server-data deletion, conflict tests.
+**Done 2026-09-15** (the sync half is built and typechecked but **not exercised against a live Supabase project** — the fresh project from D19 still doesn't exist, so `supabase/schema.sql`, including the new `sync_rows` table, is still waiting to be applied). Deviations, recorded in the docs they touch: the server mirror is one generic `sync_rows` JSON table rather than a mirror table per ⟳ table (`02`, `03`) — nothing server-side reads inside `data`, and it makes D17's "additive-only server schema" true by construction; the schema-version floor is enforced in that table's RLS `with check` rather than by route code, since sync goes client-to-Supabase with the anon key and there is no server code in the path (`02`); sync cursors stayed in `settings` instead of becoming a `sync_state` table (`03`); export covers the ⟳ tables only, and its row validators are derived from the drizzle tables rather than hand-written, which is also how an older file migrates forward (`02`). Sync is triggered off expo-sqlite's own change hook rather than `scheduleSync()` calls sprinkled through the repositories. The restore also sits on the intake welcome screen, because Me is unreachable on the fresh install where a restore matters most (`01`). `TextField` gained the keyboard/autofill props the sign-in fields need (`07`). Verified on the iOS simulator in fixture mode: export → share sheet → a 20 KB file, import → confirm → picker → the restored interest showing through on Today and Me, the Backup screen with and without Supabase configured, and the account screen's sign-in error path. One bug that found: `signInWithPassword` **throws** on an unreachable host instead of returning an error, so the button did nothing at all until `account.ts` caught it.
+
+- ~~**WP8.1 Export/import**~~ ✅: versioned JSON export via share sheet; import with validation + confirm-replace; round-trip and version-refusal tests.
+- ~~**WP8.2 Supabase sync**~~ ✅: auth screens (email/password), server schema + RLS, LWW push/pull with cursors, off-switch server-data deletion, conflict tests.
 
 ## M9 — Analytics, polish, release
 
