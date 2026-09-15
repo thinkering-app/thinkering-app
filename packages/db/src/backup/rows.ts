@@ -22,13 +22,16 @@ export function syncedTable(name: SyncedTableName): SQLiteTable {
 
 export type Row = Record<string, unknown>
 
-/** The three columns every ⟳ table carries, as drizzle columns for query building. */
-export function syncColumns(table: SQLiteTable): { id: SQLiteColumn; updatedAt: SQLiteColumn } {
+/** The columns every ⟳ table carries, as drizzle columns for query building. */
+export function syncColumns(table: SQLiteTable): {
+  id: SQLiteColumn
+  updatedAt: SQLiteColumn
+  deletedAt: SQLiteColumn
+} {
   const columns = getTableColumns(table) as Record<string, SQLiteColumn>
-  const id = columns.id
-  const updatedAt = columns.updatedAt
-  if (!id || !updatedAt) throw new Error(`${getTableName(table)} is not a synced table`)
-  return { id, updatedAt }
+  const { id, updatedAt, deletedAt } = columns
+  if (!id || !updatedAt || !deletedAt) throw new Error(`${getTableName(table)} is not a synced table`)
+  return { id, updatedAt, deletedAt }
 }
 
 /**

@@ -114,16 +114,22 @@ export function applyPull(db: Database, payloads: unknown[], sinceCursor: number
       if (!incoming?.length) continue
 
       const t = syncedTable(table)
-      const { id } = syncColumns(t)
+      const { id, updatedAt, deletedAt } = syncColumns(t)
+      // Metadata only: LWW needs three columns, and the rest of an activities
+      // row is an ActivityDoc we would deserialize for nothing.
       const local = new Map<string, SyncRowMeta>(
-        (tx.select().from(t).all() as Row[]).map((row) => [
-          row.id as string,
-          {
-            id: row.id as string,
-            updatedAt: row.updatedAt as number,
-            deletedAt: (row.deletedAt as number | null) ?? null,
-          },
-        ]),
+        tx
+          .select({ id, updatedAt, deletedAt })
+          .from(t)
+          .all()
+          .map((row) => [
+            row.id as string,
+            {
+              id: row.id as string,
+              updatedAt: row.updatedAt as number,
+              deletedAt: (row.deletedAt as number | null) ?? null,
+            },
+          ]),
       )
       const merged = mergePull(local, incoming, cursor)
       cursor = merged.cursor
