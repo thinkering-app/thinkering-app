@@ -18,6 +18,8 @@ type ActivityCardProps = {
   /** For Explore → All, where cards from several interests share a section. */
   interestName?: string
   onPress?: () => void
+  /** Stable handle for the Maestro flows (docs/10 Tier 6). */
+  testID?: string
 }
 
 const EDGE: Record<Section, string> = {
@@ -36,9 +38,11 @@ export function ActivityCard({
   inProgress = false,
   interestName,
   onPress,
+  testID,
 }: ActivityCardProps) {
   return (
     <PressScale
+      testID={testID}
       accessibilityRole="button"
       accessibilityLabel={`${title}. ${goalLine}. ${estMinutes} minutes`}
       onPress={onPress}

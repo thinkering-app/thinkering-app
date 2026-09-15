@@ -80,7 +80,12 @@ export function StepScreen({
 
         <View className="px-5 pb-2 pt-2">
           {footer ?? (
-            <PrimaryAction label={continueLabel} onPress={advance} disabled={continueDisabled} />
+            <PrimaryAction
+              testID="intake-continue"
+              label={continueLabel}
+              onPress={advance}
+              disabled={continueDisabled}
+            />
           )}
         </View>
       </KeyboardAvoidingView>
@@ -93,13 +98,17 @@ export function PrimaryAction({
   label,
   onPress,
   disabled = false,
+  testID,
 }: {
   label: string
   onPress?: () => void
   disabled?: boolean
+  /** Stable handle for the Maestro flows (docs/10 Tier 6). */
+  testID?: string
 }) {
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       disabled={disabled}

@@ -22,6 +22,7 @@ export default function LearnStep() {
       onContinue={() => router.push('/intake/why')}
     >
       <TextField
+        testID="intake-learn"
         value={answers.wantToLearn}
         onChangeText={(wantToLearn) => update({ wantToLearn })}
         placeholder="Anything you're curious about"

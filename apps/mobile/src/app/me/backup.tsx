@@ -121,11 +121,13 @@ export default function BackupScreen() {
           device.
         </Text>
         <Button
+          testID="backup-export"
           label={busy === 'export' ? 'Exporting…' : 'Export data'}
           onPress={() => void runExport()}
           disabled={busy !== null}
         />
         <Button
+          testID="backup-import"
           label={busy === 'import' ? 'Importing…' : 'Import data'}
           variant="quiet"
           onPress={() => void runImport()}

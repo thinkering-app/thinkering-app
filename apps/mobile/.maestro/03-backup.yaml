@@ -1,0 +1,34 @@
+# Flow 3 (docs/10 Tier 6): the export/import round trip, as far as a flow can
+# drive it. The file round trip itself — export, wipe, import, deep-equal — is
+# a packages/db test; what only the simulator can show is that the buttons
+# reach the system sheets at all, and that import confirms before it replaces.
+appId: ${APP_ID}
+name: backup
+---
+- runFlow:
+    file: helpers/open-app.yaml
+    env:
+      CLEAR_STATE: 'false'
+- tapOn:
+    id: 'tab-me'
+- tapOn:
+    id: 'me-backup'
+- assertVisible: 'A file you keep'
+
+# Export opens the share sheet with a file in it.
+- tapOn:
+    id: 'backup-export'
+- extendedWaitUntil:
+    visible: 'thinkering'
+    timeout: 20000
+- assertVisible:
+    text: '.*\.json.*'
+    optional: true
+- tapOn: 'Close'
+
+# Import asks before it replaces anything, and backing out changes nothing.
+- tapOn:
+    id: 'backup-import'
+- assertVisible: 'Replace everything on this device?'
+- tapOn: 'Cancel'
+- assertVisible: 'A file you keep'

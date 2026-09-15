@@ -1,0 +1,60 @@
+# Flow 2 (docs/10 Tier 6): Today → complete an activity → a history entry and
+# the goal's status advanced. Continues from flow 1's state — no clearState.
+appId: ${APP_ID}
+name: activity
+---
+- runFlow:
+    file: helpers/open-app.yaml
+    env:
+      CLEAR_STATE: 'false'
+- tapOn:
+    id: 'tab-today'
+- extendedWaitUntil:
+    visible:
+      id: 'activity-card-next'
+    timeout: 45000
+- tapOn:
+    id: 'activity-card-next'
+
+# G5b streams the document; page one renders as soon as it parses.
+- extendedWaitUntil:
+    visible:
+      id: 'player-continue'
+      enabled: true
+    timeout: 60000
+
+# Forward to the end. Pages vary by tier, so this walks until Done appears
+# rather than assuming a count.
+- repeat:
+    while:
+      notVisible:
+        id: 'player-done'
+    maxRuns: 15
+    commands:
+      - tapOn:
+          id: 'player-continue'
+      - extendedWaitUntil:
+          visible:
+            id: 'player-continue'
+            enabled: true
+          timeout: 20000
+          optional: true
+
+- assertVisible: 'Was this useful?'
+- tapOn: 'Useful'
+- tapOn:
+    id: 'player-done'
+
+# The completion shows on Today, and the activity is in History.
+- extendedWaitUntil:
+    visible: 'Done today'
+    timeout: 20000
+- tapOn:
+    id: 'tab-history'
+- assertVisible: 'Today'
+- assertNotVisible: 'Activities you finish show up here.'
+
+# And the goal it targeted has moved off not_started.
+- tapOn:
+    id: 'tab-path'
+- assertVisible: 'Introduced'

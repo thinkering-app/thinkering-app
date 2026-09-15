@@ -42,7 +42,7 @@ export default function DirectionStep() {
     <StepScreen
       step={6}
       question="Here's a direction we can start with."
-      footer={<PrimaryAction label="Go to Today" onPress={finish} disabled={!ready} />}
+      footer={<PrimaryAction testID="intake-finish" label="Go to Today" onPress={finish} disabled={!ready} />}
     >
       {path.status === 'error' ? (
         <GenerationError message={path.message} onRetry={retryPath} />

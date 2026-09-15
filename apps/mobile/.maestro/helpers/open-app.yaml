@@ -1,0 +1,19 @@
+# Launching the app under test. A standalone build (the `e2e` EAS profile) just
+# starts; Expo Go needs the Metro URL, because clearing its state also clears
+# which project it had open.
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: ${CLEAR_STATE == 'true'}
+- runFlow:
+    when:
+      true: ${APP_ID == 'host.exp.Exponent'}
+    commands:
+      - openLink: ${DEV_URL}
+      - tapOn:
+          text: 'Open'
+          optional: true
+      - extendedWaitUntil:
+          notVisible: 'Opening project'
+          timeout: 120000
+          optional: true

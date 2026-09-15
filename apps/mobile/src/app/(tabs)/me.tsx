@@ -69,7 +69,7 @@ export default function MeScreen() {
 
         <View className="gap-2">
           <Text className="font-heading-bold text-heading text-ink">Settings</Text>
-          <Row label="Backup" onPress={() => router.push('/me/backup')} />
+          <Row testID="me-backup" label="Backup" onPress={() => router.push('/me/backup')} />
           <Row label="AI usage" onPress={() => router.push('/me/ai-usage')} />
           <Row label="Privacy" onPress={() => router.push('/me/privacy')} />
           <Row label="Feedback" onPress={() => setFeedbackOpen(true)} />
@@ -139,9 +139,19 @@ export default function MeScreen() {
   )
 }
 
-function Row({ label, onPress }: { label: string; onPress: () => void }) {
+function Row({
+  label,
+  onPress,
+  testID,
+}: {
+  label: string
+  onPress: () => void
+  /** Stable handle for the Maestro flows (docs/10 Tier 6). */
+  testID?: string
+}) {
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="button"
       onPress={onPress}
       className="flex-row items-center justify-between rounded-card border border-hairline bg-surface px-4 py-4 active:bg-cornflower-tint"

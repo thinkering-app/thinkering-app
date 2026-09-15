@@ -5,13 +5,22 @@ type ButtonProps = {
   onPress?: () => void
   variant?: 'primary' | 'quiet'
   disabled?: boolean
+  /** Stable handle for the Maestro flows (docs/10 Tier 6); label matching is flaky. */
+  testID?: string
 }
 
 /** Primary cornflower / quiet ghost (docs/07). */
-export function Button({ label, onPress, variant = 'primary', disabled = false }: ButtonProps) {
+export function Button({
+  label,
+  onPress,
+  variant = 'primary',
+  disabled = false,
+  testID,
+}: ButtonProps) {
   const primary = variant === 'primary'
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       disabled={disabled}

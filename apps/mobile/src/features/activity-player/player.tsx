@@ -148,9 +148,10 @@ export function ActivityPlayer({
           </Pressable>
           <View className="flex-1">
             {isSummary ? (
-              <Button label="Done" onPress={onDone} />
+              <Button testID="player-done" label="Done" onPress={onDone} />
             ) : (
               <Button
+                testID="player-continue"
                 label={streaming && atEnd ? 'Writing…' : 'Continue'}
                 disabled={streaming && atEnd}
                 onPress={() => go(index + 1)}

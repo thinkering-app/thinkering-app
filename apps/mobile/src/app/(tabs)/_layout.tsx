@@ -26,6 +26,7 @@ export default function TabsLayout() {
           name="today"
           options={{
             title: 'Today',
+            tabBarButtonTestID: 'tab-today',
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="sunny-outline" size={size} color={color} />
             ),
@@ -35,6 +36,7 @@ export default function TabsLayout() {
           name="path"
           options={{
             title: 'Path',
+            tabBarButtonTestID: 'tab-path',
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="map-outline" size={size} color={color} />
             ),
@@ -44,6 +46,7 @@ export default function TabsLayout() {
           name="history"
           options={{
             title: 'History',
+            tabBarButtonTestID: 'tab-history',
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="time-outline" size={size} color={color} />
             ),
@@ -53,6 +56,7 @@ export default function TabsLayout() {
           name="me"
           options={{
             title: 'Me',
+            tabBarButtonTestID: 'tab-me',
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="person-outline" size={size} color={color} />
             ),

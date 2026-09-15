@@ -138,6 +138,7 @@ function SectionRow({
           {view.cards.map((card) => (
             <ActivityCard
               key={card.activity.id}
+              testID={`activity-card-${view.section}`}
               title={card.activity.title}
               goalLine={card.goalLine}
               estMinutes={card.activity.estMinutes}

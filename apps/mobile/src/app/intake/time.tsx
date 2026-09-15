@@ -39,6 +39,7 @@ export default function TimeStep() {
           {FREQUENCIES.map((option) => (
             <ChoiceChip
               key={option.value}
+              testID={`intake-frequency-${option.value}`}
               label={option.label}
               selected={answers.frequency === option.value}
               onPress={() => update({ frequency: option.value })}
@@ -53,6 +54,7 @@ export default function TimeStep() {
           {PRESET_MINUTES.map((minutes) => (
             <ChoiceChip
               key={minutes}
+              testID={`intake-minutes-${minutes}`}
               label={`${minutes} min`}
               selected={answers.sessionMinutes === minutes}
               onPress={() => {

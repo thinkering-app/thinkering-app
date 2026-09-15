@@ -32,6 +32,7 @@ export default function ExperienceStep() {
         {OPTIONS.map((option) => (
           <ChoiceChip
             key={option.value}
+            testID={`intake-experience-${option.value}`}
             label={option.label}
             selected={answers.experienceChoice === option.value}
             onPress={() => update({ experienceChoice: option.value })}

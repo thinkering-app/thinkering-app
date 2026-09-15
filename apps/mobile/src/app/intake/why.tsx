@@ -31,6 +31,7 @@ export default function WhyStep() {
         {OPTIONS.map((option) => (
           <ChoiceChip
             key={option.value}
+            testID={`intake-why-${option.value}`}
             label={option.label}
             selected={answers.whyChoice === option.value}
             onPress={() => update({ whyChoice: option.value })}

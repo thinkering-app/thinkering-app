@@ -35,7 +35,11 @@ export default function WelcomeScreen() {
           <Text className="mt-6 font-sans text-secondary text-peach">{error}</Text>
         ) : null}
         <View className="mt-10">
-          <PrimaryAction label="Get started" onPress={() => router.push('/intake/learn')} />
+          <PrimaryAction
+            testID="intake-start"
+            label="Get started"
+            onPress={() => router.push('/intake/learn')}
+          />
         </View>
         <Pressable
           accessibilityRole="button"

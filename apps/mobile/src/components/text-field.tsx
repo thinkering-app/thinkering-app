@@ -15,6 +15,8 @@ type TextFieldProps = {
   keyboardType?: TextInputProps['keyboardType']
   autoCapitalize?: TextInputProps['autoCapitalize']
   autoComplete?: TextInputProps['autoComplete']
+  /** Stable handle for the Maestro flows (docs/10 Tier 6). */
+  testID?: string
 }
 
 /** Single- or multi-line input on a surface card (docs/07). No labels above — the question is the label. */
@@ -30,10 +32,12 @@ export function TextField({
   keyboardType,
   autoCapitalize,
   autoComplete,
+  testID,
 }: TextFieldProps) {
   return (
     <View className="rounded-card border border-hairline bg-surface px-4 py-3">
       <TextInput
+        testID={testID}
         accessibilityLabel={accessibilityLabel ?? placeholder}
         value={value}
         onChangeText={onChangeText}
