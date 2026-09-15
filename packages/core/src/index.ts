@@ -68,6 +68,8 @@ export { activityQuestionTemplate, type ActivityQuestionParams } from './prompts
 export { routineCustomizeTemplate, type RoutineCustomizeParams } from './prompts/kinds/routine-customize'
 export { pathSuggestGoalsTemplate, type PathSuggestGoalsParams } from './prompts/kinds/path-suggest-goals'
 export { reflectUpdateTemplate, type ReflectUpdateParams } from './prompts/kinds/reflect-update'
+export { resourcesSearchTemplate, type ResourcesSearchParams } from './prompts/kinds/resources-search'
+export { resourceDescribeTemplate, type ResourceDescribeParams } from './prompts/kinds/resource-describe'
 export { sortOrderBetween, respreadSortOrders } from './path/ordering'
 export { conceptCoverage, type CoverageActivity } from './path/coverage'
 export { pathSignature } from './path/signature'

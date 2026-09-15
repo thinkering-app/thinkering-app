@@ -86,7 +86,7 @@ For the selected single interest:
 
 List of resources for the interest. Each has: title, link, short description, "how this could be used" (user-entered, or generated if blank, or empty), and a longer summary stored for generation purposes but not shown.
 
-- **Add by link**: paste URL → **G10** fetches and drafts title/description/how-to-use/summary; user can edit before saving.
+- **Add by link**: paste URL → the proxy fetches the page and **G10** drafts title/description/how-to-use/summary; user can edit before saving. In fixture AI mode the fetch is served from a canned page, so the flow runs offline.
 - **Initial seeding**: after intake, **G4** web-searches for reputable, goal-specific YouTube videos and articles and saves them (marked as app-suggested; user can delete).
 - Resources are considered by activity generation (follow-along worked examples, things to study/notice, material for In-the-Wild activities).
 

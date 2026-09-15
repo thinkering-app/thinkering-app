@@ -136,4 +136,11 @@ describe('extractJsonText', () => {
     const inline = '{"md":"```code```"}'
     expect(extractJsonText(inline)).toBe(inline)
   })
+
+  it('finds the object after the narration a web-search turn writes first', () => {
+    const object = '{"resources":[{"url":"https://example.com"}]}'
+    expect(extractJsonText(`I searched for a few sources. Here they are:\n\n${object}`)).toBe(object)
+    // A stray brace in the narration doesn't win — the real object is larger.
+    expect(extractJsonText(`Nothing usable {yet}.\n${object}`)).toBe(object)
+  })
 })

@@ -16,6 +16,7 @@ import {
   listGoals,
   listLibraryPrefs,
   listPlannedForDate,
+  resourcesByGoal,
   schedulerGoals,
   softDeleteActivity,
   type Goal,
@@ -109,6 +110,8 @@ export async function ensureDailyPlan(
     },
     activeItems: activeIds,
     yesterdayItems: yesterdayItems(interest.id, today),
+    // Lets G5a prefer a resource-shaped item for a goal that actually has one.
+    matchedResources: resourcesByGoal(db, interest.id),
   }
 
   if (SECTIONS.every((section) => picks[SECTION_KEYS[section]].length === 0)) return

@@ -62,6 +62,36 @@ export const suggestedGoalsOutputSchema = z.object({
 export type SuggestedGoalsOutput = z.infer<typeof suggestedGoalsOutputSchema>
 
 /**
+ * G4 `resources.search` — reputable articles and videos found with the web
+ * search tool after intake, matched to specific goals by title. Saved as
+ * app-suggested resources the learner can delete (docs/01 §5).
+ */
+export const resourceDraftSchema = z.object({
+  url: z.string().url(),
+  title: z.string().min(1).max(160),
+  description: z.string().min(1).max(400),
+  /** How this could be used in their learning — the field the UI shows. */
+  howToUse: z.string().min(1).max(400),
+  /** Longer, for generation context only; never shown (docs/01 §5). */
+  summary: z.string().min(1).max(2000),
+  /** Titles of goals it serves; the client maps them back to ids, dropping unknown ones. */
+  goalTitles: z.array(z.string()).max(6).default([]),
+})
+export type ResourceDraft = z.infer<typeof resourceDraftSchema>
+
+export const resourcesSearchOutputSchema = z.object({
+  resources: z.array(resourceDraftSchema).max(8),
+})
+export type ResourcesSearchOutput = z.infer<typeof resourcesSearchOutputSchema>
+
+/**
+ * G10 `resource.describe` — a link the learner pasted, drafted from the page
+ * text the proxy fetched. The draft is editable before it is saved.
+ */
+export const resourceDescribeOutputSchema = resourceDraftSchema.omit({ url: true })
+export type ResourceDescribeOutput = z.infer<typeof resourceDescribeOutputSchema>
+
+/**
  * G8 `reflect.update` — the reflection flow's proposed path edits (docs/01 §5).
  * Goals are addressed by the short ref the params assign them ("G1", "G2", …)
  * rather than by id: refs are short enough to copy without drift, and the

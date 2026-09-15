@@ -6,13 +6,15 @@ import { intakePathTemplate } from './kinds/intake-path'
 import { intakeTopicsTemplate } from './kinds/intake-topics'
 import { pathSuggestGoalsTemplate } from './kinds/path-suggest-goals'
 import { reflectUpdateTemplate } from './kinds/reflect-update'
+import { resourceDescribeTemplate } from './kinds/resource-describe'
+import { resourcesSearchTemplate } from './kinds/resources-search'
 import { routineCustomizeTemplate } from './kinds/routine-customize'
 import { todayPlanTemplate } from './kinds/today-plan'
 import type { AnyPromptTemplate, GenerationKind } from './types'
 
 /**
- * Every implemented prompt template by kind. G4 and G10 arrive with their work
- * packages (docs/09); the proxy rejects kinds not present here.
+ * Every implemented prompt template by kind — all twelve of docs/04's
+ * generation map. The proxy rejects kinds not present here.
  */
 export const PROMPTS = {
   'intake.approach': intakeApproachTemplate,
@@ -25,6 +27,8 @@ export const PROMPTS = {
   'routine.customize': routineCustomizeTemplate,
   'path.suggestGoals': pathSuggestGoalsTemplate,
   'reflect.update': reflectUpdateTemplate,
+  'resources.search': resourcesSearchTemplate,
+  'resource.describe': resourceDescribeTemplate,
 } as const
 
 export type ImplementedKind = keyof typeof PROMPTS

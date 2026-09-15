@@ -57,6 +57,16 @@ export default function PathScreen() {
             {interest ? (
               <Pressable
                 accessibilityRole="button"
+                accessibilityLabel="Resources"
+                onPress={() => router.push(`/path/resources?interestId=${interest.id}`)}
+                hitSlop={10}
+              >
+                <Ionicons name="book-outline" size={22} color={colors.ink.soft} />
+              </Pressable>
+            ) : null}
+            {interest ? (
+              <Pressable
+                accessibilityRole="button"
                 accessibilityLabel="Path settings"
                 onPress={() => router.push(`/path/settings?interestId=${interest.id}`)}
                 hitSlop={10}

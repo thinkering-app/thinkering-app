@@ -6,9 +6,11 @@ import {
   type LibrarySituation,
 } from '@thinkering/core'
 import {
+  listContexts,
   listGoals,
   listHistory,
   listLibraryPrefs,
+  listResources,
   listRoutineNotes,
   type Goal,
   type Interest,
@@ -60,6 +62,22 @@ export function interestContext(interest: Interest, goals?: Goal[]): InterestCon
     activeLibraryItems: SECTIONS.flatMap((section) =>
       activeLibraryItems(section, prefs, situation).map((item) => ({ section, id: item.id })),
     ),
+    // Assembly decides what to include: contexts only reach apply-tier
+    // generation (docs/04), which is the caller's `includeContexts`.
+    contexts: listContexts(db, interest.id).map((c) => ({
+      kind: c.kind,
+      label: c.label,
+      notes: c.notes,
+    })),
+    resources: listResources(db, interest.id).map((r) => ({
+      title: r.title,
+      description: r.description,
+      howToUse: r.howToUse,
+      goalTitles: (r.goalIds ?? []).flatMap((id) => {
+        const title = goalTitles.get(id)
+        return title ? [title] : []
+      }),
+    })),
     routineNotes: listRoutineNotes(db, interest.id).map((n) => n.note),
   }
 }

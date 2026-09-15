@@ -45,6 +45,15 @@ export interface RenderedPrompt {
   messages: PromptMessage[]
 }
 
+/**
+ * Anthropic server-side tools a kind runs with (docs/04). Declared abstractly
+ * here — packages/core has no SDK dependency — and mapped to the wire shape by
+ * the proxy and the BYO-key client, which also own the tool version.
+ */
+export interface PromptTools {
+  webSearch?: { maxUses: number }
+}
+
 export interface PromptTemplate<TParams, TOutput> {
   kind: GenerationKind
   /** Recorded in llm_calls as PROMPT_VERSION; bump on any render change. */
@@ -56,6 +65,8 @@ export interface PromptTemplate<TParams, TOutput> {
    * (temperature/top_p/top_k) — callers must omit temperature for sonnet.
    */
   temperature?: number
+  /** Only G4 uses these today: reputable-source search needs the live web. */
+  tools?: PromptTools
   paramsSchema: z.ZodType<TParams>
   outputSchema: z.ZodType<TOutput>
   render: (params: TParams) => RenderedPrompt

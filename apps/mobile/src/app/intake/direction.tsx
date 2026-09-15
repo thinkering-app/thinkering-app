@@ -8,6 +8,7 @@ import { Generating } from '@/components/generating'
 import { useIntake } from '@/intake/context'
 import { GenerationError } from '@/components/generation-error'
 import { PrimaryAction, StepScreen } from '@/intake/step-screen'
+import { seedResources } from '@/resources/seed'
 import { colors } from '@/theme/tokens'
 
 /**
@@ -27,9 +28,13 @@ export default function DirectionStep() {
   const mode = answers.statusOverride ?? placement
 
   const finish = () => {
-    save()
-    // Today plans the day and prefetches the Next card on arrival; G4 (resource
-    // search) hangs off this point too, and arrives with WP5.3.
+    const interestId = save()
+    // Today plans the day and prefetches the Next card on arrival. G4 searches
+    // for resources from here, fully in the background: nobody is waiting on
+    // it, so a failure is silent and the resources simply don't appear.
+    seedResources(interestId).catch((e: unknown) => {
+      if (__DEV__) console.warn('[resources] seeding failed', e)
+    })
     router.replace('/today')
   }
 

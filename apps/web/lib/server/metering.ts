@@ -24,6 +24,9 @@ export const BURST_LIMITS: Record<string, number> = {
   'activity.generate': 80,
   'today.plan': 60,
   'reflect.update': 15,
+  'resource.describe': 40,
+  /** Not a model call — the page fetch behind add-by-link, limited for the same reason. */
+  'fetch.url': 60,
 }
 
 export function weightedUsed(usage: UsageRecord): number {
