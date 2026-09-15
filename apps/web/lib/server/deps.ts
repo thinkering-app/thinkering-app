@@ -4,9 +4,9 @@ import { SupabaseStore } from './supabase-store'
 
 /**
  * Server dependencies with test injection. Production wiring comes from env:
- * ANTHROPIC_API_KEY (required for /api/ai), SUPABASE_URL +
- * SUPABASE_SERVICE_ROLE_KEY (metering; falls back to per-instance memory in
- * dev), RESEND_API_KEY (feedback).
+ * ANTHROPIC_API_KEY (required for /api/ai), SUPABASE_URL + SUPABASE_SECRET_KEY
+ * (metering; falls back to per-instance memory in dev), RESEND_API_KEY
+ * (feedback).
  */
 
 export interface ServerDeps {
@@ -30,9 +30,9 @@ let deps: ServerDeps | undefined
 
 function defaultDeps(): ServerDeps {
   const url = process.env.SUPABASE_URL
-  const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const secretKey = process.env.SUPABASE_SECRET_KEY
   return {
-    store: url && serviceRole ? new SupabaseStore(url, serviceRole) : new MemoryStore(),
+    store: url && secretKey ? new SupabaseStore(url, secretKey) : new MemoryStore(),
     anthropic: () => new Anthropic(),
     now: () => Date.now(),
     fetch: (...args) => fetch(...args),

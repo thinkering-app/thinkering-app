@@ -2,8 +2,10 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { EMPTY_USAGE, type DeviceRecord, type MeteringStore, type UsageDelta, type UsageRecord } from './store'
 
 /**
- * Supabase-backed metering store (service role — operational tables only; RLS
- * user-data tables are untouched here). Schema: supabase/schema.sql.
+ * Supabase-backed metering store. The secret key puts it on the `service_role`
+ * Postgres role, so it reaches the operational tables and bypasses RLS — which
+ * is why it stays away from the user-data mirror entirely. Schema:
+ * supabase/schema.sql.
  *
  * addUsage is read-modify-write: at beta scale a lost increment costs us a few
  * tokens of accounting, not correctness. Move to an RPC if it ever matters.
@@ -11,8 +13,8 @@ import { EMPTY_USAGE, type DeviceRecord, type MeteringStore, type UsageDelta, ty
 export class SupabaseStore implements MeteringStore {
   private client: SupabaseClient
 
-  constructor(url: string, serviceRoleKey: string) {
-    this.client = createClient(url, serviceRoleKey, { auth: { persistSession: false } })
+  constructor(url: string, secretKey: string) {
+    this.client = createClient(url, secretKey, { auth: { persistSession: false } })
   }
 
   async createDevice(device: DeviceRecord): Promise<void> {

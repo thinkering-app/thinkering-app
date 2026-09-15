@@ -2,10 +2,11 @@
 -- Supabase SQL editor (fresh project, D19).
 --
 -- Two halves that never mix:
---   * the operational metering tables — service-role only, no RLS policies, so
---     anon/authenticated get nothing;
+--   * the operational metering tables — reached only with the secret key (the
+--     `service_role` Postgres role) and carrying no RLS policies, so anon and
+--     authenticated get nothing;
 --   * `sync_rows`, the user-data mirror — reached only by the signed-in user's
---     own client through RLS, never by the service role.
+--     own client through RLS, never with the secret key.
 
 create table if not exists devices (
   device_id uuid primary key,

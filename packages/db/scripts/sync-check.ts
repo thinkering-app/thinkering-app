@@ -4,9 +4,10 @@
  * RLS in the path.
  *
  * Needs the network and a project, so it is deliberately a script and not a
- * test — `pnpm verify` must never touch either (docs/10). Reads
- * SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY + SUPABASE_ANON_KEY from the
- * environment (`apps/web/.env` carries the first two).
+ * test — `pnpm verify` must never touch either (docs/10). Reads SUPABASE_URL +
+ * SUPABASE_SECRET_KEY + SUPABASE_PUBLISHABLE_KEY from the environment
+ * (`apps/web/.env` carries the first two; the publishable key is the one the
+ * app ships with, and using it here is what puts real RLS in the path).
  *
  * It creates two throwaway confirmed users, exercises push/pull/LWW/tombstones/
  * RLS/the schema-version floor, and deletes both users at the end. Nothing it
@@ -24,10 +25,12 @@ import * as schema from '../src/schema'
 import { interests } from '../src/schema'
 
 const url = required('SUPABASE_URL')
-const anonKey = required('SUPABASE_ANON_KEY')
-const serviceRoleKey = required('SUPABASE_SERVICE_ROLE_KEY')
+// The mobile app's name for it is accepted too, so sourcing both .env files is
+// enough to run this — no keys on the command line.
+const publishableKey = required('SUPABASE_PUBLISHABLE_KEY', 'EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY')
+const secretKey = required('SUPABASE_SECRET_KEY')
 
-const admin = createClient(url, serviceRoleKey, { auth: { persistSession: false } })
+const admin = createClient(url, secretKey, { auth: { persistSession: false } })
 const migrationsFolder = join(import.meta.dirname, '../migrations')
 
 let failures = 0
@@ -113,7 +116,7 @@ async function signedInClient(label: string): Promise<Signed> {
   if (error || !data.user) throw new Error(`could not create the ${label} test user: ${error?.message}`)
   createdUsers.push(data.user.id)
 
-  const client = createClient(url, anonKey, { auth: { persistSession: false } })
+  const client = createClient(url, publishableKey, { auth: { persistSession: false } })
   const { error: signInError } = await client.auth.signInWithPassword({ email, password })
   if (signInError) throw new Error(`could not sign ${label} in: ${signInError.message}`)
   return { id: data.user.id, client }
@@ -201,13 +204,15 @@ function check(what: string, passed: boolean, detail = ''): void {
   }
 }
 
-function required(name: string): string {
-  const value = process.env[name]
-  if (value) return value
+function required(...names: string[]): string {
+  for (const name of names) {
+    const value = process.env[name]
+    if (value) return value
+  }
   console.error(
-    `${name} is not set. SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY live in apps/web/.env;\n` +
-      'SUPABASE_ANON_KEY is the project\'s publishable key, from Project Settings → API.\n' +
-      'Run as: set -a && . ./apps/web/.env && set +a && SUPABASE_ANON_KEY=… pnpm sync:check',
+    `${names[0]} is not set. Fill in apps/web/.env (URL + secret key) and\n` +
+      'apps/mobile/.env (URL + publishable key), then run:\n\n' +
+      '  set -a && . ./apps/web/.env && . ./apps/mobile/.env && set +a && pnpm sync:check',
   )
   process.exit(1)
 }

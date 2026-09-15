@@ -45,7 +45,7 @@ Phase 1 — **Export/Import**: serialize the ⟳ tables to a versioned JSON file
 
 Phase 2 — **Supabase backup/sync**:
 
-- Auth: Supabase email/password (Sign in with Apple later if required). Enabling backup creates/links the account. The client talks to Supabase directly with the anon key — RLS is the boundary, and no user learning data passes through our API routes.
+- Auth: Supabase email/password (Sign in with Apple later if required). Enabling backup creates/links the account. The client talks to Supabase directly with the publishable key — RLS is the boundary, and no user learning data passes through our API routes.
 - Server mirror: one generic `sync_rows(user_id, table_name, id, updated_at, deleted_at, schema_version, data jsonb)` table with RLS `user_id = auth.uid()`, rather than a mirror table per local table. Nothing server-side reads inside `data`, so there is nothing to query for — and a local migration is then never a server migration, which is what D17 asks of the mirror.
 - Protocol: row-level last-write-wins. Every synced row has client-generated UUIDv7 `id`, `updated_at` (epoch ms), `deleted_at` tombstone. Sync = pull server rows with `updated_at > last_pull`, merge, then push local rows with `updated_at > last_push`; newer `updated_at` wins per row, and a tombstone wins an exact tie. Cursors live in the local `settings` table. Runs on app foreground + debounced after significant writes — read off SQLite's own change hook for the ⟳ tables rather than called from each repository. The resolver itself is pure (`packages/core/src/sync`).
 - Turning backup **off** deletes server-side rows (confirmed destructive action), local data untouched.
@@ -73,7 +73,7 @@ The mode is a setting (Me, dev builds), defaulting to proxy. `EXPO_PUBLIC_AI_MOD
 
 ### Device identity & metering (D10)
 
-- First launch: `POST /api/device/register` → `{device_id, secret}` stored in SecureStore. Requests carry `device_id` + HMAC signature (timestamped, replay-window). Server keeps a `devices` + `device_usage` table in Supabase (service role — operational data, not user learning data).
+- First launch: `POST /api/device/register` → `{device_id, secret}` stored in SecureStore. Requests carry `device_id` + HMAC signature (timestamped, replay-window). Server keeps a `devices` + `device_usage` table in Supabase (reached with the secret key, i.e. the `service_role` Postgres role — operational data, not user learning data).
 - Budgets are **token-based per day per device**, with per-kind weights (see `04-ai-pipeline.md`). 429 + reset time when exhausted; the app shows the meter in Me → AI usage and degrades gracefully (existing content still works).
 - Hardening later: iOS App Attest to sign registration, simple velocity limits, key rotation.
 
@@ -91,10 +91,11 @@ PostHog via `posthog-react-native`, anonymous random distinct_id generated local
 
 ## Security summary
 
-- Secrets server-side: Anthropic key, Resend key, Supabase service role. Client env: Supabase URL + anon key, PostHog key (public by design), API base URL, and the public Featurebase portal URL.
+- Secrets server-side: Anthropic key, Resend key, Supabase **secret key** (`SUPABASE_SECRET_KEY`). Client env: Supabase URL + **publishable key** (`EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`), PostHog key (public by design), API base URL, and the public Featurebase portal URL.
+- **API key format**: the new `sb_publishable_…` / `sb_secret_…` keys, not the legacy `anon` / `service_role` JWTs. The publishable key is no less exposed than `anon` was — both ship in the client and both rely on RLS — but a secret key is opaque, individually revocable, and rotatable (create new → deploy → revoke old) without invalidating the access tokens the project has already issued, which rotating the JWT secret would. supabase-js sends new-format keys only in the `apikey` header, never as a Bearer token. Nothing in our code inspects a key, so the format is a configuration concern, not a code one.
 - BYO Anthropic key: SecureStore on native; web localStorage with explicit warning.
 - All API routes validate input with Zod, sign-check device tokens, and rate-limit.
-- Supabase RLS on all user-data tables; service-role usage confined to metering and operational rate-limit counters.
+- Supabase RLS on all user-data tables; the secret key (`service_role`, which bypasses RLS) is confined to metering and operational rate-limit counters and never touches `sync_rows`.
 
 ## Dev experience
 
