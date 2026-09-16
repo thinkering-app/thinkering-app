@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Put the running simulator into a known, seeded state — the fixture interest,
+# a path, a week of history, and today's cards with their documents attached.
+#
+# This is the cheap way to look at an iOS change (docs/10 Tier 6): the app is
+# where you need it in a second or two, with no tokens and no network. Running
+# the Maestro suite to get there costs minutes and is not what it is for.
+#
+# The app must already be running against this workspace's Metro
+# (.conductor/run-ios.sh). Seeding is idempotent, so re-running is a no-op.
+#
+# Env: METRO_PORT (default 8081; Conductor's iOS script uses $CONDUCTOR_PORT + 2)
+#      EXPO_GO=1  (drive Expo Go instead of the dev client)
+set -euo pipefail
+
+port="${METRO_PORT:-8081}"
+
+udid="$(xcrun simctl list devices booted | sed -n 's/.*(\([0-9A-F-]\{36\}\)) (Booted).*/\1/p' | head -1)"
+if [ -z "$udid" ]; then
+  echo "No booted simulator. Start the app first: .conductor/run-ios.sh" >&2
+  exit 1
+fi
+
+if [ "${EXPO_GO:-0}" = "1" ]; then
+  url="exp://127.0.0.1:$port/--/dev/seed"
+else
+  url="thinkering://dev/seed"
+fi
+
+echo "==> $url"
+xcrun simctl openurl "$udid" "$url"

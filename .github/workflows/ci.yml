@@ -6,6 +6,8 @@ on:
   pull_request:
 
 jobs:
+  # The gate (docs/10): typecheck + lint + vitest, offline, coverage thresholds
+  # on. Runs alongside the two slower checks rather than ahead of them.
   verify:
     runs-on: ubuntu-latest
     steps:
@@ -15,9 +17,40 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+      # Turbo's cache is content-addressed, so restoring any earlier run's cache
+      # skips every package this branch didn't touch. Without it each PR pays
+      # for the whole monorepo from cold.
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ github.sha }}
+          restore-keys: turbo-
       - run: pnpm install --frozen-lockfile
       - run: pnpm verify
-      - name: Web app smoke test
-        run: pnpm --filter @thinkering/mobile test:web
-      - name: Landing build
-        run: pnpm --filter @thinkering/web build
+
+  # The one end-to-end smoke test (docs/10 Tier 6): export the production web
+  # app in fixture mode, serve it with vercel.json's headers, drive Chrome
+  # through a backup restore.
+  web-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @thinkering/mobile test:web
+
+  landing-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @thinkering/web build

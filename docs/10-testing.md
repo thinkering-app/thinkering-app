@@ -8,6 +8,21 @@ The goal is a small suite that runs in seconds, guards the things that are expen
 
 Nothing in the gate touches the network, a model, a simulator, or a real Supabase project.
 
+### The inner loop
+
+The gate is for the end of a work package. While working, run only what you're
+changing — `pnpm --filter @thinkering/core test src/scheduler` is sub-second
+against `pnpm verify`'s ~20, and every package has a `test:watch`.
+
+Two things exist to keep that loop honest. Coverage is **off locally and on in
+CI** (`packages/core/vitest.config.ts` keys off `process.env.CI`): the
+thresholds are global, so with coverage always on, a focused run reports ~20%
+and exits non-zero with nothing wrong — the fastest command in the repo looking
+like a failing test. `pnpm --filter @thinkering/core test:cov` turns it on by
+hand. And turbo's cache is content-addressed and lives in the repo root's
+`.turbo/cache`, shared across git worktrees, so a run in one Conductor
+workspace warms every other one.
+
 ## Where the effort goes
 
 | Tier | Surface                                                                 | Tool                              | Share of effort     |
@@ -29,7 +44,7 @@ Nothing in the gate touches the network, a model, a simulator, or a real Supabas
 - **Feedback helpers**: context sanitization and Featurebase URL construction are unit-tested without network access; only coarse screen, platform, and app version can survive the allowlist.
 - **Library definitions** (`06`): every item has a valid page skeleton, an `outcomeLabel`, and a unique id.
 
-Coverage threshold: 90% on `scheduler/` and `schemas/`. No thresholds anywhere else.
+Coverage threshold: 90% on `scheduler/` and `schemas/`, enforced in CI. No thresholds anywhere else.
 
 ### Tier 2 — `packages/db`
 
@@ -72,9 +87,25 @@ Quality judgment stays human: eyeball the output in the AI Inspector, and record
 
 ### Tier 6 — E2E
 
+**Not an iteration tool.** A Maestro run needs a booted simulator, an install,
+and Metro in fixture mode; it takes minutes; and by design it asserts nothing
+about screen layout, which is what most iOS changes touch. Running it after an
+iOS edit is the most expensive way to learn the least. To _see_ a change, run
+the app (`.conductor/run-ios.sh`) and seed it: `pnpm seed:sim` deep-links
+`thinkering://dev/seed`, which writes the fixture interest, a path, a week of
+history, and today's cards with their documents attached, then lands on Today.
+That route is dev- and fixture-mode-only and is the same `seedFixtureData` the
+Me screen's dev panel calls. Reach for `pnpm e2e` when the task is a release,
+or when the change _is_ to a flow.
+
 Three Maestro flows on the iOS simulator, run before a release, not per PR: intake → a path exists; Today → complete an activity → history entry and goal status advanced; export → import. They live in `apps/mobile/.maestro` with a README, run with `pnpm e2e`, and share one install — flow 1 leaves the interest that flows 2 and 3 use. They run in **fixture AI mode**, so they're deterministic and free.
 
-CI also runs `pnpm --filter @thinkering/mobile test:web`: it exports the production web app in fixture mode, serves it with the headers from `vercel.json`, and drives Chrome from a fresh install through a backup restore. Re-entering `/` must land on Today, proving that the SQLite worker started, migrations ran, an Interest was written, and browser-local data persisted. This is intentionally one end-to-end smoke test; component behavior remains covered at the cheaper tiers above.
+CI runs the gate, the web smoke test, and the landing build as three parallel
+jobs, so the slowest one sets the wall clock rather than the sum. The gate job
+restores `.turbo` from any earlier run's cache, which is what keeps a one-package
+PR from paying for the whole monorepo.
+
+The web smoke test is `pnpm --filter @thinkering/mobile test:web`: it exports the production web app in fixture mode, serves it with the headers from `vercel.json`, and drives Chrome from a fresh install through a backup restore. Re-entering `/` must land on Today, proving that the SQLite worker started, migrations ran, an Interest was written, and browser-local data persisted. This is intentionally one end-to-end smoke test; component behavior remains covered at the cheaper tiers above.
 
 Three things about them are worth knowing before editing one:
 

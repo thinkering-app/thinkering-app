@@ -10,6 +10,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage.enabled",
     "prompt:run": "tsx scripts/prompt-run.ts",
     "prompt:check": "tsx scripts/prompt-check.ts"
   },

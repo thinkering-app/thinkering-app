@@ -3,7 +3,11 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   test: {
     coverage: {
-      enabled: true,
+      // Off locally, on in CI. Thresholds are global, so a focused run
+      // (`pnpm test src/scheduler`) would otherwise "fail" at 20% coverage
+      // with nothing wrong — the fastest inner loop looking like a red test.
+      // `pnpm test:cov` turns it on by hand.
+      enabled: !!process.env.CI,
       provider: 'v8',
       // Thresholds only where bugs are expensive (docs/10): scheduler and schemas.
       include: ['src/scheduler/**', 'src/schemas/**'],
