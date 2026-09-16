@@ -30,7 +30,7 @@ docs/
 ## Platform strategy
 
 - **iOS first** via Expo dev builds + EAS. Not Expo Go (we need expo-sqlite, SecureStore, fonts, later share extension).
-- **Web (mobile + desktop)**: same Expo app exported with `npx expo export -p web`, deployed to Vercel at `app.thinkering.app`. expo-sqlite's web support (sqlite wasm + OPFS) requires cross-origin isolation headers (`Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Embedder-Policy: require-corp`) — set in Vercel config. If OPFS is unavailable (older Safari), fall back to in-memory DB + a visible "data won't persist on this browser" state, or gate on support. Web is a capable secondary target, not the design driver.
+- **Web (mobile + desktop)**: same Expo app exported with `npx expo export -p web`, deployed to Vercel at `web.thinkering.app`. expo-sqlite's web support (sqlite wasm + OPFS) requires cross-origin isolation headers (`Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Embedder-Policy: require-corp`) — set in Vercel config. If OPFS is unavailable (older Safari), fall back to in-memory DB + a visible "data won't persist on this browser" state, or gate on support. Web is a capable secondary target, not the design driver. Because it lives on its own origin, every call it makes to the API routes is cross-origin: `apps/web/middleware.ts` answers the preflight for an allowlist of app origins (`WEB_APP_ORIGINS` adds to it), and `EXPO_PUBLIC_API_URL` must name the host that answers directly — a redirected preflight, as the apex→www hop is, fails outright.
 - **Android**: keep it compiling (CI), polish later.
 
 ## Local-first data
