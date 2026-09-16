@@ -1,0 +1,37 @@
+# Conductor workspace configuration (https://conductor.build/docs/reference/settings).
+#
+# Gitignored .env files are not listed here: Conductor's default "Files to copy"
+# pattern (`.env*`) already brings apps/mobile/.env and apps/web/.env into every
+# new workspace. setup.sh falls back to .env.example if one is ever missing.
+"$schema" = "https://conductor.build/schemas/settings.repo.schema.json"
+
+[scripts]
+setup = "bash .conductor/setup.sh"
+
+# Every run script binds to the workspace's own ports, so parallel workspaces
+# don't collide. (One exception: the iOS script drives a simulator, and a
+# simulator can only point at one workspace's Metro at a time.)
+run_mode = "concurrent"
+
+# The app itself, in a browser: the static web export served with the
+# deployment's COOP/COEP headers. In fixture AI mode it needs no key and no
+# network. No hot reload — restart the script to pick up changes.
+[scripts.run.app]
+command = "PORT=$CONDUCTOR_PORT bash .conductor/run-web.sh"
+default = true
+icon = "globe"
+available_in = ["local"]
+
+# The app on the iOS simulator. First run compiles a development client (~10
+# min) and caches it outside the worktree; every later run and every later
+# workspace just reinstalls it and points it at this workspace's Metro.
+[scripts.run.ios]
+command = "METRO_PORT=$((CONDUCTOR_PORT + 2)) bash .conductor/run-ios.sh"
+icon = "smartphone"
+available_in = ["local"]
+
+# The Next.js landing page and the /api proxy routes. Needs apps/web/.env.
+[scripts.run.landing]
+command = "pnpm --filter @thinkering/web exec next dev --port $((CONDUCTOR_PORT + 1))"
+icon = "server"
+available_in = ["local"]
