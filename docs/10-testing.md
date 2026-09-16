@@ -94,9 +94,10 @@ iOS edit is the most expensive way to learn the least. To _see_ a change, run
 the app (`.conductor/run-ios.sh`) and seed it: `pnpm seed:sim` deep-links
 `thinkering://dev/seed`, which writes the fixture interest, a path, a week of
 history, and today's cards with their documents attached, then lands on Today.
-That route is dev- and fixture-mode-only and is the same `seedFixtureData` the
-Me screen's dev panel calls. Reach for `pnpm e2e` when the task is a release,
-or when the change _is_ to a flow.
+That route is reachable only in a dev or fixture-mode build (`__DEV__` or
+`EXPO_PUBLIC_AI_MODE=fixture`, both fixed at bundle time) and is the same
+`seedFixtureData` the Me screen's dev panel calls. Reach for `pnpm e2e` when
+the task is a release, or when the change _is_ to a flow.
 
 Three Maestro flows on the iOS simulator, run before a release, not per PR: intake → a path exists; Today → complete an activity → history entry and goal status advanced; export → import. They live in `apps/mobile/.maestro` with a README, run with `pnpm e2e`, and share one install — flow 1 leaves the interest that flows 2 and 3 use. They run in **fixture AI mode**, so they're deterministic and free.
 

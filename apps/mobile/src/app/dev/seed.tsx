@@ -2,7 +2,7 @@ import { router } from 'expo-router'
 import { useEffect } from 'react'
 import { seedFixtureData } from '@thinkering/db'
 
-import { getAiMode } from '@/ai/settings'
+import { BUILD_AI_MODE } from '@/ai/settings'
 import { db, repoContext } from '@/db'
 import { useLocalToday } from '@/time'
 
@@ -12,14 +12,15 @@ import { useLocalToday } from '@/time'
  * lands on Today. It exists so an iOS change can be looked at in a seeded app
  * in a second, instead of replaying intake or running a Maestro flow.
  *
- * Reachable in dev, and in a fixture-mode build (the `e2e` EAS profile). Not
- * reachable in production: fixture mode is only selectable from the Me screen's
- * `__DEV__` panel, and `EXPO_PUBLIC_AI_MODE` is unset in every other EAS
- * profile, so `getAiMode()` there can only be proxy or byok.
+ * Reachable in dev, and in a build made in fixture mode (the `e2e` EAS
+ * profile). Gated on the build rather than on `getAiMode()`, which reads a
+ * setting the user's device may carry over from an earlier dev install:
+ * `EXPO_PUBLIC_AI_MODE` is inlined at bundle time and unset in every other EAS
+ * profile, so a production build can never reach this route.
  */
 export default function DevSeed() {
   const today = useLocalToday()
-  const allowed = __DEV__ || getAiMode() === 'fixture'
+  const allowed = __DEV__ || BUILD_AI_MODE === 'fixture'
 
   useEffect(() => {
     // Idempotent per interest name, so a re-entered link is a no-op.
