@@ -61,7 +61,17 @@ describe('activity player', () => {
     }
     await renderPlayer({ doc: partial, streaming: true })
     expect(screen.getByText('A new colleague, day one')).toBeTruthy()
-    expect(screen.getByText('Writing…')).toBeTruthy()
+    expect(screen.getByText('Writing page 2…')).toBeTruthy()
+  })
+
+  it('holds the wait inside the player until the first page arrives', async () => {
+    await renderPlayer({
+      doc: { ...FIXTURE_DOC_INTRODUCE, pages: [] },
+      streaming: true,
+      waitLabel: 'Planning your activity',
+    })
+    expect(screen.getByLabelText('Planning your activity')).toBeTruthy()
+    expect(screen.getByLabelText('Close')).toBeTruthy()
   })
 
   it('waits for the review page rather than showing an empty one', async () => {

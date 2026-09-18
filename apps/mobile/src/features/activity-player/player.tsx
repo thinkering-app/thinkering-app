@@ -24,6 +24,8 @@ export interface PlayerProps {
   doc: ActivityDoc
   /** Pages still arriving from G5b; forward navigation stops at what exists. */
   streaming?: boolean
+  /** What the wait says while a streaming document has no pages yet. */
+  waitLabel?: string
   sink: ResponseSink
   /** Controlled: the route owns the page so Ask can jump to the page it inserted. */
   page: number
@@ -44,6 +46,7 @@ export interface PlayerProps {
 export function ActivityPlayer({
   doc,
   streaming = false,
+  waitLabel = 'Writing your activity',
   sink,
   page: requested,
   onPageChange,
@@ -76,7 +79,7 @@ export function ActivityPlayer({
   const atEnd = index >= doc.pages.length - 1
 
   const content = useMemo(() => {
-    if (!page) return null
+    if (!page) return streaming ? <Generating label={waitLabel} /> : null
     if (page.kind === 'review' && page.blocks === null) {
       return <Generating label="One more look at your answers" />
     }
@@ -87,7 +90,7 @@ export function ActivityPlayer({
         ))}
       </View>
     )
-  }, [page])
+  }, [page, streaming, waitLabel])
 
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right', 'bottom']}>
@@ -157,7 +160,9 @@ export function ActivityPlayer({
             ) : (
               <Button
                 testID="player-continue"
-                label={streaming && atEnd ? 'Writing…' : 'Continue'}
+                label={
+                  page && streaming && atEnd ? `Writing page ${doc.pages.length + 1}…` : 'Continue'
+                }
                 disabled={streaming && atEnd}
                 onPress={() => go(index + 1)}
               />
