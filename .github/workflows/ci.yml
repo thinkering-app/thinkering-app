@@ -20,6 +20,17 @@ jobs:
       - name: Install WebKit for the browser tests
         run: pnpm --filter @thinkering/mobile exec playwright install webkit --with-deps
       - name: Web app smoke test
+        id: web-smoke
         run: pnpm --filter @thinkering/mobile test:web
+      # Traces are the only way to see a browser failure that happens on this
+      # engine and no other. Without this step the runner deletes them.
+      - name: Keep the browser test traces
+        if: failure() && steps.web-smoke.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: apps/mobile/test-results
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Landing build
         run: pnpm --filter @thinkering/web build

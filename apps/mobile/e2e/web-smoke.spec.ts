@@ -1,12 +1,6 @@
 import { expect, test } from './fixtures/persistent-context'
 
-test('fresh browser starts, writes local data, and keeps it', async ({ page }) => {
-  const browserErrors: string[] = []
-  page.on('pageerror', (error) => browserErrors.push(error.message))
-  page.on('console', (message) => {
-    if (message.type() === 'error') browserErrors.push(message.text())
-  })
-
+test('fresh browser starts, writes local data, and keeps it', async ({ page, browserErrors }) => {
   await page.goto('/')
 
   await expect(page).toHaveURL(/\/intake\/welcome$/)
