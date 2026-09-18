@@ -1,21 +1,14 @@
-import { Image, View } from 'react-native'
+import { Image, Platform, View, type ViewStyle } from 'react-native'
+
+import { colors } from '@/theme/tokens'
 
 /**
  * The paper treatment (docs/07 §Texture & depth): a tiled grain over the whole
- * app, and the watercolor blobs that sit behind empty states and the quiet
- * moments. Both are decoration — never behind body text, never touchable.
+ * app, and the watercolor washes at the edges of the quiet moments. Both are
+ * decoration — never behind body text, never touchable.
  */
 
 const GRAIN = require('../../assets/images/grain.png')
-
-const BLOBS = {
-  cornflower: require('../../assets/images/blob-cornflower.png'),
-  peach: require('../../assets/images/blob-peach.png'),
-  leaf: require('../../assets/images/blob-leaf.png'),
-  sun: require('../../assets/images/blob-sun.png'),
-} as const
-
-export type BlobColor = keyof typeof BLOBS
 
 /**
  * Tiled grain across the app. Rendered once at the root, above the screens and
@@ -24,28 +17,45 @@ export type BlobColor = keyof typeof BLOBS
 export function PaperGrain() {
   return (
     <View pointerEvents="none" className="absolute inset-0 opacity-[0.035]">
-      <Image source={GRAIN} resizeMode="repeat" className="h-full w-full" />
+      {/* Sized inline, not by className: on web the Image gives itself the
+          asset's 128px as an inline style, which beats a class — one tile. */}
+      <Image source={GRAIN} resizeMode="repeat" style={{ width: '100%', height: '100%' }} />
     </View>
   )
 }
 
+export type WashColor = 'cornflower' | 'leaf' | 'sun' | 'peach'
+
 /**
- * A watercolor wash behind something quiet. `size` is in pixels because these
- * are deliberately larger than their container — the blob should bleed past
- * the content it sits behind.
+ * A palette tint fading to nothing — the landing hero's blurred wash, drawn as
+ * a radial gradient. Position it with `className` so it bleeds off an edge of
+ * a clipped parent; use two or three, never one centred shape.
  */
-export function Watercolor({
-  color = 'cornflower',
-  size = 260,
-  opacity = 0.5,
+export function Wash({
+  color,
+  size,
+  className,
 }: {
-  color?: BlobColor
-  size?: number
-  opacity?: number
+  color: WashColor
+  /** Diameter in pixels; the solid core is the middle third. */
+  size: number
+  className: string
 }) {
+  const tint = colors[color].tint
+  const gradient = `radial-gradient(circle closest-side, ${tint} 0%, ${tint} 35%, ${tint}00 100%)`
   return (
-    <View pointerEvents="none" className="absolute inset-0 items-center justify-center">
-      <Image source={BLOBS[color]} style={{ width: size, height: size, opacity }} />
-    </View>
+    <View
+      pointerEvents="none"
+      className={`absolute opacity-60 ${className}`}
+      style={[{ width: size, height: size }, gradientStyle(gradient)]}
+    />
   )
+}
+
+// Native reads the gradient from the experimental prop; react-native-web
+// passes `backgroundImage` straight through to CSS.
+function gradientStyle(gradient: string): ViewStyle {
+  return Platform.OS === 'web'
+    ? ({ backgroundImage: gradient } as ViewStyle)
+    : { experimental_backgroundImage: gradient }
 }
