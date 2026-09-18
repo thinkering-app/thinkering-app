@@ -1,28 +1,26 @@
 import { useEffect, useState } from 'react'
-import { Platform, Switch, Text, View } from 'react-native'
+import { Platform, Text, View } from 'react-native'
 
 import { getAiMode, setAiMode, type AiMode } from '@/ai/settings'
 import { KEYS, secureDelete, secureGet, secureSet } from '@/ai/secure-store'
 import { fetchUsage, type UsageSnapshot } from '@/ai/usage'
-import { isAnalyticsOptedIn, setAnalyticsConsent, track } from '@/analytics'
+import { track } from '@/analytics'
 import { Button } from '@/components/button'
 import { Meter } from '@/components/meter'
 import { SubScreen } from '@/components/sub-screen'
 import { TextField } from '@/components/text-field'
-import { colors } from '@/theme/tokens'
 
 /**
- * Me → AI usage (docs/01 §7): today's usage against the included daily amount,
- * the option to bring your own Anthropic key (D10 — SecureStore, calls go
- * direct and unmetered), and the anonymous-analytics opt-in (D9).
+ * Me → Settings → AI (docs/01 §7): today's usage against the included daily
+ * amount, and the option to bring your own Anthropic key (D10 — SecureStore,
+ * calls go direct and unmetered).
  */
 
-export default function AiUsageScreen() {
+export default function AiScreen() {
   const [usage, setUsage] = useState<UsageSnapshot | null>(null)
   const [usageError, setUsageError] = useState(false)
   const [byok, setByok] = useState<boolean | null>(null)
   const [key, setKey] = useState('')
-  const [optedIn, setOptedIn] = useState(() => isAnalyticsOptedIn())
   const mode: AiMode = getAiMode()
 
   useEffect(() => {
@@ -64,7 +62,7 @@ export default function AiUsageScreen() {
   }
 
   return (
-    <SubScreen title="AI usage">
+    <SubScreen title="AI">
       {mode === 'byok' ? (
         <Text className="font-sans text-body text-ink-soft">
           Your own key is in use, so we don&apos;t meter these calls.
@@ -113,28 +111,6 @@ export default function AiUsageScreen() {
             <Button label="Save key" onPress={() => void saveKey()} disabled={key.trim() === ''} />
           </>
         )}
-      </View>
-
-      <View className="gap-3">
-        <View className="flex-row items-center gap-4">
-          <Text className="flex-1 font-sans text-body text-ink">
-            Share anonymous usage to improve thinkering
-          </Text>
-          <Switch
-            value={optedIn}
-            onValueChange={(next) => {
-              // A yes here flushes the pre-consent buffer; a no deletes it (docs/08).
-              setAnalyticsConsent(next)
-              setOptedIn(next)
-              if (next) track('settings_changed', { key: 'analytics_opt_in' })
-            }}
-            trackColor={{ false: colors.hairline, true: colors.cornflower.DEFAULT }}
-            thumbColor={colors.surface}
-          />
-        </View>
-        <Text className="font-sans text-caption text-ink-soft">
-          Counts and ratings only — never what you write, learn, or look at. Not linked to you.
-        </Text>
       </View>
     </SubScreen>
   )

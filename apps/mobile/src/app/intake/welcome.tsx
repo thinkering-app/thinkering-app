@@ -22,12 +22,21 @@ export default function WelcomeScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right', 'bottom']}>
-      {/* The one place a wash gets the whole upper half of the screen (docs/07). */}
-      <View className="absolute inset-x-0 top-0 h-1/2">
-        <Watercolor color="cornflower" size={340} opacity={0.5} />
+      {/* Washes bleed off the edges like the landing hero (docs/07) — a field, not a shape. */}
+      <View pointerEvents="none" className="absolute inset-0 overflow-hidden">
+        <View className="absolute -left-32 -top-20 h-80 w-80">
+          <Watercolor color="cornflower" size={320} opacity={0.4} />
+        </View>
+        <View className="absolute -right-28 top-1/4 h-72 w-72">
+          <Watercolor color="peach" size={288} opacity={0.3} />
+        </View>
+        <View className="absolute -bottom-24 -left-16 h-72 w-72">
+          <Watercolor color="sun" size={288} opacity={0.35} />
+        </View>
       </View>
-      <View className="flex-1 justify-end px-5 pb-2">
-        <Text className="font-heading-bold text-display text-ink">thinkering</Text>
+      <View className="flex-1 justify-center px-5 pb-16">
+        <Text className="font-sans-medium text-body text-ink-soft">Welcome to</Text>
+        <Text className="mt-1 font-heading-bold text-display text-ink">thinkering</Text>
         <Text className="mt-3 font-sans text-body text-ink-soft">
           Pick something you want to learn. We&apos;ll build a path and a few things to do each day.
         </Text>

@@ -275,7 +275,7 @@ async function byokCall(
   opts: AiCallOptions,
 ): Promise<Execution> {
   const apiKey = await secureGet(KEYS.byokKey)
-  if (!apiKey) throw new Error('no Anthropic key saved — add one in Me → AI usage')
+  if (!apiKey) throw new Error('no Anthropic key saved — add one in Me → Settings → AI')
 
   const messages: { role: 'user' | 'assistant'; content: string }[] = rendered.messages.map((m) => ({
     role: m.role,

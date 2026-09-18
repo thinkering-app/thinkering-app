@@ -21,5 +21,10 @@
   "devDependencies": {
     "prettier": "^3.4.2",
     "turbo": "^2.3.3"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "expo-sqlite@57.0.3": "patches/expo-sqlite@57.0.3.patch"
+    }
   }
 }

@@ -7,6 +7,7 @@ import { Card } from '@/components/card'
 import { Generating } from '@/components/generating'
 import { useIntake } from '@/intake/context'
 import { GenerationError } from '@/components/generation-error'
+import { selectOnArrival } from '@/interests/selection'
 import { PrimaryAction, StepScreen } from '@/intake/step-screen'
 import { seedResources } from '@/resources/seed'
 import { colors } from '@/theme/tokens'
@@ -29,6 +30,8 @@ export default function DirectionStep() {
 
   const finish = () => {
     const interestId = save()
+    // Today opens on the interest they just added, not the one they left.
+    selectOnArrival(interestId)
     // Today plans the day and prefetches the Next card on arrival. G4 searches
     // for resources from here, fully in the background: nobody is waiting on
     // it, so a failure is silent and the resources simply don't appear.
