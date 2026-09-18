@@ -1,5 +1,5 @@
 diff --git a/web/WorkerChannel.ts b/web/WorkerChannel.ts
-index 7fba380845e3338b7d8d253013fbf73896070cde..49657256e8bebcb21ad8a151addc46dc3273b6f6 100644
+index 7fba380845e3338b7d8d253013fbf73896070cde..7c09853f8cc3b32303d53ea8f38e302ddc1c0241 100644
 --- a/web/WorkerChannel.ts
 +++ b/web/WorkerChannel.ts
 @@ -37,10 +37,24 @@ export function sendWorkerResult({
@@ -31,3 +31,56 @@ index 7fba380845e3338b7d8d253013fbf73896070cde..49657256e8bebcb21ad8a151addc46dc
      resultArray.set(resultBytes, 4);
      Atomics.store(lock, 0, RESOLVED);
    } else {
+@@ -85,6 +99,14 @@ export async function invokeWorkerAsync<T extends SQLiteWorkerMessageType & keyo
+   return deferred.getPromise();
+ }
+ 
++/**
++ * How long a synchronous call waits for the worker before giving up. Long
++ * enough that only a worker that is never going to answer reaches it: the
++ * screen is blocked for the whole wait, but a database that doesn't answer
++ * takes the screen down anyway.
++ */
++const SYNC_TIMEOUT_MS = 10_000;
++
+ /**
+  * For main thread to invoke worker function synchronously.
+  */
+@@ -117,24 +139,27 @@ export function invokeWorkerSync<T extends SQLiteWorkerMessageType & keyof Resul
+   });
+ 
+   let i = 0;
++  // A budget counted in spins is really a budget of this thread's CPU time: a
++  // million `Atomics.pause`es is tens of milliseconds on an idle laptop, and
++  // the worker it is waiting for may not have been scheduled once in that time
++  // on a machine with other work to do — which is a slow answer, not a broken
++  // one. Waiting by the clock instead lets a loaded machine take longer rather
++  // than fail sooner. The check is throttled because reading the clock every
++  // iteration costs more than the spin it is guarding.
++  const deadline = Date.now() + SYNC_TIMEOUT_MS;
+   // @ts-expect-error: Remove this when TypeScript supports Atomics.pause
+   const useAtomicsPause = typeof Atomics.pause === 'function';
+   while (Atomics.load(lock, 0) === PENDING) {
+-    ++i;
++    if (++i % 4096 === 0 && Date.now() > deadline) {
++      throw new Error('Sync operation timeout');
++    }
+ 
+     if (useAtomicsPause) {
+-      if (i > 1_000_000) {
+-        throw new Error('Sync operation timeout');
+-      }
+       // @ts-expect-error: Remove this when TypeScript supports Atomics.pause
+       Atomics.pause();
+-    } else {
+-      // NOTE(kudo): Unfortunate for the busy loop,
+-      // because we don't have a way for main thread to yield its execution to other callbacks.
+-      if (i > 1000_000_000) {
+-        throw new Error('Sync operation timeout');
+-      }
+     }
++    // NOTE(kudo): Unfortunate for the busy loop,
++    // because we don't have a way for main thread to yield its execution to other callbacks.
+   }
+ 
+   const length = new Uint32Array(resultArray.buffer, 0, 1)[0];
