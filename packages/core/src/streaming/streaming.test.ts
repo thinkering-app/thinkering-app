@@ -143,4 +143,12 @@ describe('extractJsonText', () => {
     // A stray brace in the narration doesn't win — the real object is larger.
     expect(extractJsonText(`Nothing usable {yet}.\n${object}`)).toBe(object)
   })
+
+  it('escapes a raw line break inside a string, as Sonnet sometimes emits', () => {
+    const raw = '{\n  "description": "so exchanges don\'t dead-end.\n",\n  "tab": "a\tb"\n}'
+    expect(JSON.parse(extractJsonText(raw))).toEqual({
+      description: "so exchanges don't dead-end.\n",
+      tab: 'a\tb',
+    })
+  })
 })
