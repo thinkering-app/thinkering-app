@@ -31,7 +31,6 @@ import {
 import { describeAiError } from '@/ai/generation'
 import { AnalyticsAskSheet, shouldAskForAnalytics, track } from '@/analytics'
 import { Button } from '@/components/button'
-import { Generating } from '@/components/generating'
 import { GenerationError } from '@/components/generation-error'
 import { db, repoContext } from '@/db'
 import { AskSheet } from '@/features/activity-player/ask-sheet'
@@ -109,12 +108,14 @@ export default function ActivityScreen() {
   }, [activity])
 
   // G5b on first open of a card that has no document yet (docs/04: streamed,
-  // page 1 renders as soon as it parses).
+  // page 1 renders as soon as it parses). If the Next-card prefetch is still
+  // writing it, this joins that generation rather than starting another.
   useEffect(() => {
     if (!activity || activity.doc) return
     const controller = new AbortController()
     const run = async () => {
       setGenError(null)
+      setPartial(null)
       try {
         setDoc(
           await generateActivityDoc(activity, { signal: controller.signal, onPartial: setPartial }),
@@ -126,8 +127,6 @@ export default function ActivityScreen() {
     void run()
     return () => controller.abort()
   }, [activity, attempt])
-
-  const shown = doc ?? provisionalDoc(activity, partial)
 
   /** G6, once they move past the last page that asked them anything. */
   const maybeGenerateReview = useCallback(
@@ -242,18 +241,15 @@ export default function ActivityScreen() {
       </Missing>
     )
   }
-  if (!shown) {
-    return (
-      <Missing>
-        <Generating label="Writing your activity" />
-      </Missing>
-    )
-  }
+  const shown = doc ?? provisionalDoc(activity, partial)
 
   return (
     <ActivityPlayer
       doc={shown}
       streaming={doc === null}
+      // Before any text, the model is still working out the activity (docs/04
+      // §Thinking); once it writes, the title and pages follow.
+      waitLabel={partial === null ? 'Planning your activity' : 'Writing your activity'}
       sink={sink}
       page={page}
       onPageChange={changePage}
@@ -291,23 +287,23 @@ export default function ActivityScreen() {
       onAsk={doc ? () => setAskOpen(true) : undefined}
       overlay={
         <>
-        <AskSheet
-          visible={askOpen}
-          onClose={() => {
-            setAskOpen(false)
-            setAskState('idle')
-          }}
-          onAsk={ask}
-          state={askState}
-          error={askError}
-        />
-        <AnalyticsAskSheet
-          visible={askConsent}
-          onAnswered={() => {
-            setAskConsent(false)
-            router.back()
-          }}
-        />
+          <AskSheet
+            visible={askOpen}
+            onClose={() => {
+              setAskOpen(false)
+              setAskState('idle')
+            }}
+            onAsk={ask}
+            state={askState}
+            error={askError}
+          />
+          <AnalyticsAskSheet
+            visible={askConsent}
+            onAnswered={() => {
+              setAskConsent(false)
+              router.back()
+            }}
+          />
         </>
       }
     />
@@ -316,22 +312,19 @@ export default function ActivityScreen() {
 
 /**
  * What the player renders while G5b is still writing: the pages that have
- * closed so far (docs/04 §Latency). Concepts arrive with the finished document
- * — only the summary page needs them, and that's the last page.
+ * closed so far (docs/04 §Latency), and before the first one, none — the
+ * player's frame with the wait inside it. Concepts arrive with the finished
+ * document — only the summary page needs them, and that's the last page.
  */
-function provisionalDoc(
-  activity: Activity | undefined,
-  partial: PartialActivityDoc | null,
-): ActivityDoc | null {
-  if (!activity || !partial || partial.pages.length === 0) return null
+function provisionalDoc(activity: Activity, partial: PartialActivityDoc | null): ActivityDoc {
   return {
     version: 1,
-    title: partial.title ?? activity.title,
-    estMinutes: partial.estMinutes ?? activity.estMinutes,
+    title: partial?.title ?? activity.title,
+    estMinutes: partial?.estMinutes ?? activity.estMinutes,
     tier: activity.tier,
     libraryItemId: activity.libraryItemId,
     concepts: [],
-    pages: partial.pages,
+    pages: partial?.pages ?? [],
   }
 }
 

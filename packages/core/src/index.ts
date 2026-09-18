@@ -52,6 +52,15 @@ export {
   lastInteractivePageIndex,
   interactiveBlocksBeforeReview,
 } from './activity/doc-ops'
+export {
+  youtubeVideoId,
+  resourceMediaOf,
+  pickResource,
+  groundBlocks,
+  groundPages,
+  type SavedResourceRef,
+  type ResourceMedia,
+} from './activity/resources'
 export * from './prompts/types'
 export { modelRequestFields, type ModelRequestFields } from './prompts/request'
 export {

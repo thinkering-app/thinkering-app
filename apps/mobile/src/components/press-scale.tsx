@@ -10,8 +10,15 @@ export function PressScale({
   children,
   className,
   scale = 0.97,
+  wrapperClassName,
   ...props
-}: PressableProps & { children?: ReactNode; className?: string; scale?: number }) {
+}: PressableProps & {
+  children?: ReactNode
+  className?: string
+  scale?: number
+  /** Classes for the animated wrapper, e.g. `w-72` so it sizes the card. */
+  wrapperClassName?: string
+}) {
   // State, not a ref: reading a ref during render is a lint error here, and the
   // value is created once either way (same pattern as `Generating`).
   const [value] = useState(() => new Animated.Value(1))
@@ -25,10 +32,10 @@ export function PressScale({
     }).start()
 
   return (
-    <Animated.View style={{ transform: [{ scale: value }] }}>
+    <Animated.View className={wrapperClassName} style={{ transform: [{ scale: value }] }}>
       <Pressable
         {...props}
-        className={className}
+        className={`flex-1 ${className ?? ''}`}
         onPressIn={(e) => {
           spring(scale)
           props.onPressIn?.(e)

@@ -99,8 +99,10 @@ export function useToday(interests: Interest[]): TodayView {
         if (cancelled) return
         setGenerating(false)
         bump()
+        // Not on this effect's signal: the bump above re-runs the effect, and
+        // its cleanup would cancel the prefetch the moment it started.
         for (const interest of missing) {
-          prefetchNextActivity(listPlannedForDate(db, interest.id, today), controller.signal)
+          prefetchNextActivity(listPlannedForDate(db, interest.id, today))
         }
       } catch (e) {
         if (cancelled || controller.signal.aborted) return
