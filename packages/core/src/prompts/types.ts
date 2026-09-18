@@ -47,8 +47,7 @@ export interface RenderedPrompt {
 
 /**
  * Anthropic server-side tools a kind runs with (docs/04). Declared abstractly
- * here — packages/core has no SDK dependency — and mapped to the wire shape by
- * the proxy and the BYO-key client, which also own the tool version.
+ * here and mapped to the wire shape by `modelRequestFields` (./request.ts).
  */
 export interface PromptTools {
   webSearch?: { maxUses: number }
@@ -59,18 +58,28 @@ export interface PromptTemplate<TParams, TOutput> {
   /** Recorded in llm_calls as PROMPT_VERSION; bump on any render change. */
   version: number
   model: PromptModel
+  /** Thinking and output together — leave thinking room on Sonnet kinds. */
   maxTokens: number
   /**
    * Only meaningful on haiku kinds: Sonnet 5 rejects sampling parameters
    * (temperature/top_p/top_k) — callers must omit temperature for sonnet.
    */
   temperature?: number
+  /** Sonnet kinds only, and required there (asserted in prompts.test.ts). */
+  effort?: PromptEffort
   /** Only G4 uses these today: reputable-source search needs the live web. */
   tools?: PromptTools
   paramsSchema: z.ZodType<TParams>
   outputSchema: z.ZodType<TOutput>
   render: (params: TParams) => RenderedPrompt
 }
+
+/**
+ * How hard a Sonnet kind thinks (docs/04 §Thinking). Sonnet 5 thinks by
+ * default, the thinking shares `maxTokens`, and nothing streams until it's
+ * done — so every Sonnet kind states its level rather than inheriting one.
+ */
+export type PromptEffort = 'low' | 'medium' | 'high'
 
 /** Existentially-typed view for registry consumers (proxy, client wrapper). */
 export type AnyPromptTemplate = PromptTemplate<never, unknown> & {

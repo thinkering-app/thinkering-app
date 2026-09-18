@@ -4,7 +4,8 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import Anthropic from '@anthropic-ai/sdk'
 import { getPromptTemplate } from '../src/prompts/registry'
-import { MODEL_IDS, type AnyPromptTemplate } from '../src/prompts/types'
+import { modelRequestFields } from '../src/prompts/request'
+import type { AnyPromptTemplate } from '../src/prompts/types'
 
 export const pkgRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -49,15 +50,16 @@ export interface LiveResult {
 export async function runLive(template: AnyPromptTemplate, params: unknown): Promise<LiveResult> {
   const parsed = template.paramsSchema.parse(params)
   const rendered = template.render(parsed as never)
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.error('No ANTHROPIC_API_KEY: put it in apps/web/.env or export it.')
+    process.exit(1)
+  }
   const client = new Anthropic()
   const started = Date.now()
 
   const stream = client.messages.stream({
-    model: MODEL_IDS[template.model],
-    max_tokens: template.maxTokens,
-    ...(template.model === 'haiku' && template.temperature !== undefined
-      ? { temperature: template.temperature }
-      : {}),
+    // Exactly the fields the proxy sends, so a live run is the app's call.
+    ...(modelRequestFields(template) as Omit<Anthropic.MessageStreamParams, 'messages'>),
     system: rendered.system.map((b) => ({
       type: 'text' as const,
       text: b.text,

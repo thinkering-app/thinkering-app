@@ -1,10 +1,10 @@
 # 10 — Testing strategy
 
-The goal is a small suite that runs in seconds, guards the things that are expensive or impossible to fix later, and gives an agent session an unambiguous definition of "done". Everything else is deliberately untested.
+The goal is a small suite that runs in seconds, guards the things that are expensive or impossible to fix later, and gives an agent session an unambiguous definition of "done".
 
 ## The gate
 
-`pnpm verify` = `typecheck` + `lint` + `vitest run` (core, db, web routes). Target **under 60 seconds**. Every session runs it before claiming a work package complete; CI runs it on every PR. If a WP's acceptance criteria name a test, that test is part of the gate for that WP.
+`pnpm verify` = `typecheck` + `lint` + `test` — vitest in core, db and web routes; jest (`jest-expo`) in `apps/mobile`. Target **under 60 seconds**. Every session runs it before claiming a work package complete; CI runs it on every PR. If a WP's acceptance criteria name a test, that test is part of the gate for that WP.
 
 Nothing in the gate touches the network, a model, a simulator, or a real Supabase project.
 
@@ -23,6 +23,19 @@ hand. And turbo's cache is content-addressed and lives in the repo root's
 `.turbo/cache`, shared across git worktrees, so a run in one Conductor
 workspace warms every other one.
 
+### What a change needs
+
+| You changed                                 | Write                                          | Check before done                                               |
+| ------------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------- |
+| Scheduler, schemas, other `packages/core`   | Table-driven vitest cases (Tier 1)             | The package's tests, then `pnpm verify`                         |
+| The database schema                         | Migration + snapshot (Tier 2)                  | `packages/db` tests, then `pnpm verify`                         |
+| An `/api` route                             | A handler test (Tier 3)                        | `apps/web` tests, then `pnpm verify`                            |
+| A block type or the activity player         | One behavioral test (Tier 4)                   | `apps/mobile` tests, then `pnpm verify`                         |
+| A prompt template                           | The updated snapshot (Tier 5)                  | `pnpm prompt:check <kind>` (live — ask first), the AI Inspector |
+| A screen's layout, copy, or styling         | Nothing                                        | Look at it: run the app and seed it (Tier 6)                    |
+| Web startup, storage, or the SQLite worker  | A browser spec if it's a new way to break      | `pnpm --filter @thinkering/mobile test:web`                     |
+| A Maestro flow, or cutting a release        | —                                              | `pnpm e2e`, and `RELEASING.md`                                  |
+
 ## Where the effort goes
 
 | Tier | Surface                                                                 | Tool                              | Share of effort     |
@@ -38,7 +51,7 @@ workspace warms every other one.
 
 - **Scheduler** (D7): table-driven cases for Today selection per section, fallback chains, section completion, `not_started` counts driving the reflect card, and day boundaries (D12) across timezones and a DST transition.
 - **Determinism**: core takes `now()` and `newId()` from an injected context. `Date.now()`, `Math.random()`, and direct UUID generation are lint-banned inside `packages/core` — this is what keeps scheduler tests from flaking.
-- **Zod schemas**: valid fixtures parse; a committed corpus of _broken_ model output (truncated JSON, missing review page, two review pages, unknown block kind, non-interactive content page, concept ids that don't exist on the goal) fails with a useful error and never reaches a renderer.
+- **Zod schemas**: valid fixtures parse, and broken model output never gets through. Every kind's recording is cut off at several points and must be rejected, as must an empty object (`src/fixtures/recorded.test.ts`) — which catches a schema loose enough to accept a fragment. The Activity Document, the most complex output and the one rendered page by page, also keeps a committed corpus (`fixtures/malformed/activity-doc`: truncated JSON, missing review page, two review pages, unknown block kind, non-interactive content page, concept ids that don't exist on the goal) that must fail with a useful error. When a real bad response turns up — in the AI Inspector, say — add it to its kind's corpus.
 - **Prompt assembly**: snapshot the rendered `{system, messages}` per kind. Prompts are the artifact, so string snapshots are correct here — the diff is the review. Assert the cache breakpoint sits after the shared preamble; a moved breakpoint silently doubles cost.
 - **Context assembly**: token budget respected, ordering stable across runs (prompt-cache safety), truncation deterministic.
 - **Feedback helpers**: context sanitization and Featurebase URL construction are unit-tested without network access; only coarse screen, platform, and app version can survive the allowlist.
@@ -48,7 +61,7 @@ Coverage threshold: 90% on `scheduler/` and `schemas/`, enforced in CI. No thres
 
 ### Tier 2 — `packages/db`
 
-This is the irreversible surface: an applied migration can't be edited (see CLAUDE.md) and users have data on disk.
+This is the irreversible surface: an applied migration can't be edited (see AGENTS.md) and users have data on disk.
 
 - **Migration chain**: empty → head applies cleanly; and every committed historical snapshot (`fixtures/db/v<N>.sql`, dumped when a migration ships) migrates forward to head with its rows intact. A copy-migrate-swap migration gets its own data-preservation test (D17).
 - **Additive-first check**: a test fails on any column drop or retype that isn't in an explicit, commented allowlist.
@@ -83,7 +96,7 @@ CI never calls a model. Two separate things:
 - **Recorded fixtures**: `pnpm prompt:run <kind> --record` saves a real response into `fixtures/recorded/<kind>/`. Tests and fixture mode replay those. Re-record deliberately; the diff is reviewable.
 - **`pnpm prompt:check <kind>`**: runs live against N fixture inputs and asserts _structure_, never string equality — schema valid, page count in range for `estMinutes`, exactly one review page second-to-last, every non-summary page interactive, declared concepts resolve to real goal concepts, and tone lints (no "Great job!", no "you haven't learned X yet" per `04`). Run it on any prompt change; its cost is a handful of calls.
 
-Quality judgment stays human: eyeball the output in the AI Inspector, and record the verdict next to the fixture so the assessment isn't lost between sessions.
+Quality judgment stays human: eyeball the output in the AI Inspector, and write the verdict in the PR description — what was checked, what's good, what's still off — so the assessment travels with the change it judges and a later session can find it (`gh pr view`).
 
 ### Tier 6 — E2E
 
@@ -94,10 +107,12 @@ iOS edit is the most expensive way to learn the least. To _see_ a change, run
 the app (`.conductor/run-ios.sh`) and seed it: `pnpm seed:sim` deep-links
 `thinkering://dev/seed`, which writes the fixture interest, a path, a week of
 history, and today's cards with their documents attached, then lands on Today.
-That route is reachable only in a dev or fixture-mode build (`__DEV__` or
-`EXPO_PUBLIC_AI_MODE=fixture`, both fixed at bundle time) and is the same
-`seedFixtureData` the Me screen's dev panel calls. Reach for `pnpm e2e` when
-the task is a release, or when the change _is_ to a flow.
+`pnpm seed:sim --fresh` clears everything first (`dev/reset?seed=1`), and
+`pnpm reset:sim` leaves the app empty on the intake welcome (`dev/reset`); on
+web the same paths are URLs. Those routes, and Me → Developer, exist only with
+`DEV_TOOLS` — a dev build, a fixture-mode build, or `EXPO_PUBLIC_DEV_TOOLS=true`,
+all fixed at bundle time (`02` §Dev experience). Reach for `pnpm e2e` when the
+task is a release, or when the change _is_ to a flow.
 
 #### Driving the simulator: semantic selectors first
 
@@ -141,12 +156,18 @@ repository is trusted. Both need Maestro and a JDK on the local machine; set
 `MAESTRO_BIN` / `MAESTRO_JAVA_HOME` if yours live elsewhere. Nothing in
 `pnpm verify` depends on them. Avoid Maestro's deprecated `query` subcommand.
 
+#### Maestro flows
+
 Three Maestro flows on the iOS simulator, run before a release, not per PR: intake → a path exists; Today → complete an activity → history entry and goal status advanced; export → import. They live in `apps/mobile/.maestro` with a README, run with `pnpm e2e`, and share one install — flow 1 leaves the interest that flows 2 and 3 use. They run in **fixture AI mode**, so they're deterministic and free.
 
-CI runs the gate, the browser tests, and the landing build as three parallel
-jobs, so the slowest one sets the wall clock rather than the sum. The gate job
-restores `.turbo` from any earlier run's cache, which is what keeps a one-package
-PR from paying for the whole monorepo.
+Two things about them are worth knowing before editing one (selectors are covered above):
+
+- **Maestro's text matching is a full-match regex**, so a substring needs `.*`. That bites on anything with an `accessibilityLabel`: a `Pressable` with one is a single accessibility element, and the `Text` nodes inside it are invisible to the driver. `'Done today'` inside an activity card can only be matched through the card's own label.
+- **What the system hides.** `UIActivityViewController`'s contents live in another process, so the export flow asserts that the app reached the sheet and came back, not what the sheet said. The file round trip is a `packages/db` test.
+
+Running them via **Expo Go** (rather than the `e2e` EAS build) needs the Metro URL, because clearing Expo Go's state also clears which project it had open, and the first launch shows a developer-menu tour over the app. `helpers/open-app.yaml` handles both.
+
+#### Browser tests
 
 The browser tier is `pnpm --filter @thinkering/mobile test:web`: it exports the
 production web app in fixture mode, serves it with the headers from
@@ -179,19 +200,20 @@ fails. What that turned up the first time was `Sync operation timeout` from
 expo-sqlite's synchronous worker bridge, which reproduces on neither engine
 locally (`docs/02`).
 
-Three things about them are worth knowing before editing one:
+#### CI
 
-- **Address elements semantically.** Prefer stable visible text when it is suitable; use a unique `testID` for dynamic content, icons, localization-sensitive copy, or controls that must survive copy changes. Never commit point-percentage taps. Shared components keep `testID` optional so flows add handles only where they need them.
-- **Maestro's text matching is a full-match regex**, so a substring needs `.*`. That bites on anything with an `accessibilityLabel`: a `Pressable` with one is a single accessibility element, and the `Text` nodes inside it are invisible to the driver. `'Done today'` inside an activity card can only be matched through the card's own label.
-- **What the system hides.** `UIActivityViewController`'s contents live in another process, so the export flow asserts that the app reached the sheet and came back, not what the sheet said. The file round trip is a `packages/db` test.
+CI runs the gate, the browser tests, and the landing build as three parallel
+jobs, so the slowest one sets the wall clock rather than the sum. The gate job
+restores `.turbo` from any earlier run's cache, which is what keeps a one-package
+PR from paying for the whole monorepo.
 
-Running them via **Expo Go** (rather than the `e2e` EAS build) needs the Metro URL, because clearing Expo Go's state also clears which project it had open, and the first launch shows a developer-menu tour over the app. `helpers/open-app.yaml` handles both.
+#### Manual pre-release checks
 
 The feedback integration also gets a manual pre-TestFlight pass: both chooser paths; all three Featurebase boards; guest participation; anonymized public author display; hidden leaderboard; post/comment moderation; public Feature requests and General feedback and discussions; author-only Bugs and issues; filtering, user reporting, blocking, and contact mechanisms required by [App Review Guideline 1.2](https://developer.apple.com/app-store/review/guidelines/); WebView loading/offline/retry/back/close/external-link behavior; Expo web's new-tab fallback; private email validation, context preview/toggle, success, and retry-preserved text. If end-user reporting is unavailable, set `EXPO_PUBLIC_FEATUREBASE_IN_BROWSER=true` and verify that iOS opens the portal in the system browser instead of the WebView.
 
 ## Fixture AI mode
 
-A third AI mode alongside proxy and BYO key (`02`): `fixture` serves recorded responses from disk with simulated streaming and latency. It is a first-class app mode, built in WP2.3 — not a test-only shim.
+A third AI mode alongside proxy and BYO key (`02`): `fixture` serves recorded responses from disk with simulated streaming and latency. It is a first-class app mode, built in WP2.3 — not a test-only shim — and the default for dev builds and the run scripts; `AI_MODE=proxy` opts into real calls.
 
 It's the single biggest accelerator here: the entire app runs deterministically, offline, and at zero token cost, which is what makes E2E possible, makes UI sessions fast, and lets someone new run the app without an API key.
 

@@ -33,9 +33,10 @@ Rules:
 
 export const activityQuestionTemplate: PromptTemplate<ActivityQuestionParams, QuestionOutput> = {
   kind: 'activity.question',
-  version: 1,
+  version: 2,
   model: 'sonnet',
-  maxTokens: 2000,
+  maxTokens: 8000,
+  effort: 'low',
   paramsSchema: activityQuestionParamsSchema,
   outputSchema: questionOutputSchema,
   render: (params) => ({

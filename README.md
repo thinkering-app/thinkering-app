@@ -14,9 +14,9 @@ pnpm --filter @thinkering/mobile dev    # Expo dev server (press i for iOS simul
 pnpm --filter @thinkering/web dev       # landing page at localhost:3000
 ```
 
-With no API key configured the app runs in **fixture AI mode** (`EXPO_PUBLIC_AI_MODE=fixture`): every generation is a recorded response, so the whole app works offline and at zero cost. That's also how the three Maestro end-to-end flows run — `pnpm e2e`, see `apps/mobile/.maestro/README.md`.
+Dev builds run in **fixture AI mode** unless told otherwise: every generation is a recorded response, so the whole app works offline and at zero cost. Set `EXPO_PUBLIC_AI_MODE=proxy` (or run the `.conductor` scripts with `AI_MODE=proxy`) for real generations. Fixture mode is also how the three Maestro end-to-end flows run — `pnpm e2e`, see `apps/mobile/.maestro/README.md`. To start over, Me → Settings → Developer clears or reseeds the data; on the simulator, `pnpm reset:sim` and `pnpm seed:sim --fresh` do the same.
 
-Workspace layout: `apps/mobile` (Expo app), `apps/web` (Next.js landing + future API), `packages/core` (pure-TS domain), `packages/config` (shared tokens, tsconfig, eslint). See `docs/02-architecture.md`.
+Workspace layout: `apps/mobile` (Expo app), `apps/web` (Next.js landing + API proxy), `packages/core` (pure-TS domain), `packages/db` (Drizzle schema, migrations, repositories), `packages/config` (shared tokens, tsconfig, eslint). See `docs/02-architecture.md`.
 
 Deploys (Vercel, manual for now): `apps/web` is a standard Next.js project; the Expo web export deploys from `apps/mobile` (`vercel.json` there sets the COOP/COEP headers expo-sqlite's wasm build needs) to `web.thinkering.app`.
 
@@ -44,7 +44,7 @@ Deploys (Vercel, manual for now): `apps/web` is a standard Next.js project; the 
 | [10-testing](docs/10-testing.md)                             | Test strategy: what gets tested, what deliberately doesn't                  |
 | [RELEASING](RELEASING.md)                                    | Versioning, changelog conventions, cutting a build, pre-submission checks   |
 
-## Planned stack
+## Stack
 
 pnpm monorepo · Expo (iOS-first, Android + web capable) · expo-router · TypeScript strict · expo-sqlite + Drizzle ORM · Next.js on Vercel (landing + API proxy) · Claude API · Supabase (optional backup/sync, usage metering) · Featurebase (community feedback) · Resend (private feedback) · PostHog (anonymous, opt-in) · NativeWind + shared Tailwind tokens.
 

@@ -33,9 +33,10 @@ Return JSON: {
 
 export const intakePathTemplate: PromptTemplate<IntakePathParams, z.infer<typeof pathOutputSchema>> = {
   kind: 'intake.path',
-  version: 2,
+  version: 3,
   model: 'sonnet',
-  maxTokens: 4000,
+  maxTokens: 16000,
+  effort: 'high',
   paramsSchema: intakePathParamsSchema,
   outputSchema: pathOutputSchema,
   render: (params) => ({

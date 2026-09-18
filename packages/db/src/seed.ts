@@ -4,6 +4,8 @@ import { createActivity, completeActivity } from './repos/activities'
 import { createGoal } from './repos/goals'
 import { createInterest, listInterests } from './repos/interests'
 import { saveResponse } from './repos/responses'
+import { SYNCED_TABLE_NAMES, syncedTable } from './backup/rows'
+import { analyticsBuffer, genCache, llmCalls, settings } from './schema'
 
 /**
  * Seeds the fixture interest — "Understanding LLMs" with a path, a week of
@@ -160,4 +162,21 @@ export function seedFixtureData(db: Database, ctx: RepoContext, opts: { today: L
   })
 
   return true
+}
+
+/**
+ * Empties the device's database — a dev-only "start over" (docs/10 Tier 6), not
+ * a user action, so it hard-deletes rather than tombstoning. Settings go too,
+ * which switches backup off before anything could push: the server copy is
+ * left exactly as it was. Children before parents, for the foreign keys.
+ */
+export function clearAllData(db: Database): void {
+  db.transaction((tx) => {
+    for (const name of [...SYNCED_TABLE_NAMES].reverse()) {
+      tx.delete(syncedTable(name)).run()
+    }
+    for (const table of [genCache, llmCalls, analyticsBuffer, settings]) {
+      tx.delete(table).run()
+    }
+  })
 }

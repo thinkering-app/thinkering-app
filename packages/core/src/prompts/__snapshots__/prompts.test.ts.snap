@@ -695,7 +695,7 @@ Output contract: respond with a single JSON object exactly matching the schema i
 Return JSON: {
   "goals": [{
     "title": string,                 // outcome-flavored, like the goals already on their path
-    "description": string,           // one–two plain lines on what it covers
+    "description": string,           // what it covers, one or two plain sentences, 30 words at most
     "concepts": [{ "label": string, "kind": "concept"|"skill" }]   // 2–4 items, 2–5 words each — they render as chips
   }]
 }

@@ -57,9 +57,10 @@ Rules:
 
 export const reflectUpdateTemplate: PromptTemplate<ReflectUpdateParams, ReflectUpdateOutput> = {
   kind: 'reflect.update',
-  version: 1,
+  version: 2,
   model: 'sonnet',
-  maxTokens: 3000,
+  maxTokens: 8000,
+  effort: 'low',
   paramsSchema: reflectUpdateParamsSchema,
   outputSchema: reflectUpdateOutputSchema,
   render: (params) => ({

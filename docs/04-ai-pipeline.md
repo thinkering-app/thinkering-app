@@ -46,6 +46,20 @@ A deterministic builder in `packages/core/context` produces the per-interest con
 - **Prefetch, don't pre-generate everything**: only the Next card's full activity is prefetched (highest likelihood of use). Strengthen/Go further generate on tap with streaming. Completed-activity docs are kept locally, so replay/history is free.
 - **Cache aggressively**: G5a per interest+date; G9 per path hash; regenerating requires explicit user action.
 - Max_tokens tuned per kind. Temperature applies to **Haiku kinds only** — Sonnet 5 rejects sampling parameters (temperature/top_p/top_k), so Sonnet kinds run at the model default; lower temperature is set on extraction-shaped Haiku kinds (G5a, G10, G11).
+- One request shape: the model, limits, thinking, temperature and tools a template decides are built once, by `modelRequestFields` (`packages/core/src/prompts/request.ts`), and spread by the proxy, the BYO-key client and the prompt scripts alike — so a `prompt:run` is the call the app makes. (G4's recordings were made without its web-search tool until this, and invented their links.)
+
+### Thinking
+
+Sonnet 5 thinks unless told otherwise, and the thinking counts against `max_tokens` and precedes the first streamed token. It never reaches the learner: the thinking comes back as separate, empty blocks, and the client reads only text deltas. So every Sonnet kind states an `effort`, and its `max_tokens` leaves room for thinking plus output (a test enforces the first). Before this, G8 spent its whole 3,000-token budget thinking and returned nothing, and G3 was using 3,028 of 4,000.
+
+| Kind | Effort | max_tokens | Why |
+| --- | --- | --- | --- |
+| G5b `activity.generate` | high | 16000 | Measurably better teaching (2026-09-18: a real discovery built around a test case, plurals covered; low effort hands over the rule on page one). ~37s to first page, largely hidden by the Next-card prefetch. |
+| G3 `intake.path` | high | 16000 | Better prerequisite ordering; a one-time, streamed moment. ~23s to the first goal; `low` (~1s) is the fallback if it feels long. |
+| G4 `resources.search` | high | 16000 | Background, and only as good as its searching. ~3 min, ~$0.20 per intake. |
+| G1, G2, G7, G8 | low | 8000 | Short, structured output, or (G7) a learner waiting mid-activity. |
+
+Measured once per level on the committed fixtures; revisit with the AI Inspector if a kind's quality or wait feels off. Stay at 16k or below — the SDK refuses larger non-streaming requests, and the proxy still has a non-streaming path.
 
 ## Usage metering (default proxy mode)
 
