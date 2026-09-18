@@ -46,8 +46,9 @@ const ROUTES: Record<string, FeedbackScreen> = {
   'path/reflect': 'reflect',
   'path/settings': 'settings',
   'me/interests': 'interests',
-  'me/ai-usage': 'ai-usage',
+  'me/ai': 'ai-usage',
   'me/privacy': 'privacy',
+  'me/feedback': 'feedback',
 }
 
 const VERSION = /^\d+(\.\d+){0,2}(-[A-Za-z0-9.]+)?$/

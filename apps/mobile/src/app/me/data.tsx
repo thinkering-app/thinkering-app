@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Switch, Text, View } from 'react-native'
 
 import { exportToFile, importFromFile, refusalMessage } from '@/backup/actions'
+import { isAnalyticsOptedIn, setAnalyticsConsent, track } from '@/analytics'
 import { Button } from '@/components/button'
 import { confirmDestructive } from '@/components/confirm'
 import { SubScreen } from '@/components/sub-screen'
@@ -12,12 +13,15 @@ import { useBackup } from '@/sync/use-backup'
 import { colors } from '@/theme/tokens'
 
 /**
- * Me → Backup (docs/01 §7): a file you keep, and — off by default — a synced
- * copy in your own account. Turning sync off deletes the server copy.
+ * Me → Settings → Account and data (docs/01 §7): a file you keep, and — off by
+ * default — a synced copy in your own account. Turning sync off deletes the
+ * server copy. The anonymous-analytics opt-in (D9) is here too: it is about
+ * what leaves the device, not about the model.
  */
 
-export default function BackupScreen() {
+export default function DataScreen() {
   const backup = useBackup()
+  const [optedIn, setOptedIn] = useState(() => isAnalyticsOptedIn())
   const [busy, setBusy] = useState<'export' | 'import' | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [fileError, setFileError] = useState<string | null>(null)
@@ -67,7 +71,7 @@ export default function BackupScreen() {
   }
 
   return (
-    <SubScreen title="Backup">
+    <SubScreen title="Account and data">
       {backup.configured ? (
         <View className="gap-3">
           <Text className="font-heading-bold text-heading text-ink">Synced backup</Text>
@@ -134,6 +138,29 @@ export default function BackupScreen() {
           disabled={busy !== null}
         />
         {fileError ? <Text className="font-sans text-secondary text-peach">{fileError}</Text> : null}
+      </View>
+
+      <View className="gap-3">
+        <Text className="font-heading-bold text-heading text-ink">Anonymous usage</Text>
+        <View className="flex-row items-center gap-4">
+          <Text className="flex-1 font-sans text-body text-ink">
+            Share anonymous usage to improve thinkering
+          </Text>
+          <Switch
+            value={optedIn}
+            onValueChange={(next) => {
+              // A yes here flushes the pre-consent buffer; a no deletes it (docs/08).
+              setAnalyticsConsent(next)
+              setOptedIn(next)
+              if (next) track('settings_changed', { key: 'analytics_opt_in' })
+            }}
+            trackColor={{ false: colors.hairline, true: colors.cornflower.DEFAULT }}
+            thumbColor={colors.surface}
+          />
+        </View>
+        <Text className="font-sans text-caption text-ink-soft">
+          Counts and ratings only — never what you write, learn, or look at. Not linked to you.
+        </Text>
       </View>
 
       <Toast message={toast} onHide={() => setToast(null)} />

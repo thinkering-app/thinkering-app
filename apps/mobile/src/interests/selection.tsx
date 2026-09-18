@@ -27,6 +27,17 @@ interface SelectionValue {
 
 const SelectionContext = createContext<SelectionValue | null>(null)
 
+/**
+ * Intake finishes above this provider (it lives in the tabs layout), so it
+ * leaves the interest it just created here and the provider selects it on the
+ * way back to Today.
+ */
+let pendingId: string | null = null
+
+export function selectOnArrival(interestId: string) {
+  pendingId = interestId
+}
+
 export function useInterestSelection(): SelectionValue {
   const value = useContext(SelectionContext)
   if (!value)
@@ -38,7 +49,14 @@ export function InterestSelectionProvider({ children }: { children: ReactNode })
   const [interests, setInterests] = useState<Interest[]>(() => listInterests(db))
   const [chosen, setChosen] = useState<Selection | null>(null)
 
-  const reload = useCallback(() => setInterests(listInterests(db)), [])
+  const reload = useCallback(() => {
+    const next = listInterests(db)
+    setInterests(next)
+    const arrived = pendingId ? next.find((i) => i.id === pendingId) : undefined
+    pendingId = null
+    if (arrived?.status === 'focus') setChosen({ kind: 'interest', interestId: arrived.id })
+    else if (arrived?.status === 'exploring') setChosen({ kind: 'explore', interestId: arrived.id })
+  }, [])
   // A new interest can appear while a tab is mounted (intake finishes, Me reorders).
   useFocusEffect(reload)
 

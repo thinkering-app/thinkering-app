@@ -33,8 +33,15 @@ export function isInspectorEnabled(): boolean {
   return __DEV__ || (getSetting<boolean>(db, INSPECTOR_KEY) ?? false)
 }
 
-export function setInspectorEnabled(enabled: boolean): void {
-  setSetting(db, INSPECTOR_KEY, enabled)
+/**
+ * Flips the stored flag behind the hidden long-press on About (docs/02) and
+ * returns the new value. It reads the flag rather than `isInspectorEnabled`,
+ * which is always true in dev and so would never flip.
+ */
+export function toggleInspectorEnabled(): boolean {
+  const next = !(getSetting<boolean>(db, INSPECTOR_KEY) ?? false)
+  setSetting(db, INSPECTOR_KEY, next)
+  return next
 }
 
 /**

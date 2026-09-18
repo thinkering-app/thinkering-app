@@ -116,5 +116,8 @@ name: optin
 # And the Me toggle reflects the answer.
 - tapOn:
     id: 'tab-me'
-- tapOn: 'AI usage'
+- tapOn:
+    id: 'me-settings'
+- tapOn:
+    id: 'settings-data'
 - assertVisible: 'Share anonymous usage to improve thinkering'

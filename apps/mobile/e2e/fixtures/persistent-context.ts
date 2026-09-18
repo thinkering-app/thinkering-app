@@ -1,4 +1,4 @@
-import { test as base, type BrowserContext, type Page } from '@playwright/test'
+import { test as base, type BrowserContext, type Page, type TestInfo } from '@playwright/test'
 
 /**
  * OPFS — where the web build keeps its SQLite file — needs a browsing context
@@ -18,48 +18,50 @@ export const test = base.extend<{ context: BrowserContext; browserErrors: string
     await provide(context)
     await context.close()
   },
-  page: async ({ context }, provide) => {
+  /** Everything the page complained about; ask for it to assert it stayed quiet. */
+  // eslint-disable-next-line no-empty-pattern
+  browserErrors: async ({}, provide) => {
+    await provide([])
+  },
+  page: async ({ context, browserErrors }, provide, testInfo) => {
     const page = context.pages()[0] ?? (await context.newPage())
     await emptyOriginPrivateFileSystem(page)
+    // Only from here: the wipe deliberately loads a page that isn't there, and
+    // its 404 is not something the app under test did.
+    page.on('pageerror', (error) => browserErrors.push(`pageerror: ${error.message}`))
+    page.on('console', (message) => {
+      if (message.type() === 'error') browserErrors.push(`console: ${message.text()}`)
+    })
+
     await provide(page)
+
+    if (testInfo.status !== testInfo.expectedStatus) {
+      await reportPage(page, browserErrors, testInfo)
+    }
   },
-  /**
-   * Everything the page complained about, and — when the test failed — what it
-   * was showing while it complained. These runs happen on engines and machines
-   * nobody is sitting in front of, and a failure that won't reproduce anywhere
-   * else is only as debuggable as what the run wrote down. Always on, so a spec
-   * gets this without asking; ask for it by name to assert the page stayed
-   * quiet.
-   */
-  browserErrors: [
-    async ({ page }, provide, testInfo) => {
-      const errors: string[] = []
-      page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`))
-      page.on('console', (message) => {
-        if (message.type() === 'error') errors.push(`console: ${message.text()}`)
-      })
-
-      await provide(errors)
-
-      if (testInfo.status === testInfo.expectedStatus) return
-      const rendered = await page
-        .locator('body')
-        .innerText()
-        .catch((error: unknown) => `unavailable: ${String(error)}`)
-      const report = [
-        `url: ${page.url()}`,
-        `browser errors:\n${errors.join('\n') || '(none)'}`,
-        `rendered text:\n${rendered}`,
-      ].join('\n\n')
-      // Both, deliberately: the attachment travels with the trace for anyone
-      // who downloads it, and the log is all you get from a CI run whose
-      // artifacts have expired.
-      await testInfo.attach('page-at-failure', { body: report, contentType: 'text/plain' })
-      console.log(`\n--- page at failure: ${testInfo.title} ---\n${report}\n---\n`)
-    },
-    { auto: true },
-  ],
 })
+
+/**
+ * These runs happen on engines and machines nobody is sitting in front of, and
+ * a failure that won't reproduce anywhere else is only as debuggable as what
+ * the run wrote down. A timed-out assertion names the locator it wanted; this
+ * names what was on the screen instead.
+ */
+async function reportPage(page: Page, errors: string[], testInfo: TestInfo): Promise<void> {
+  const rendered = await page
+    .locator('body')
+    .innerText()
+    .catch((error: unknown) => `unavailable: ${String(error)}`)
+  const report = [
+    `url: ${page.url()}`,
+    `browser errors:\n${errors.join('\n') || '(none)'}`,
+    `rendered text:\n${rendered}`,
+  ].join('\n\n')
+  // Both, deliberately: the attachment travels with the trace for anyone who
+  // downloads it, and the log is all a run whose artifacts have expired leaves.
+  await testInfo.attach('page-at-failure', { body: report, contentType: 'text/plain' })
+  console.log(`\n--- page at failure: ${testInfo.title} ---\n${report}\n---\n`)
+}
 
 /**
  * WebKit keeps OPFS outside the profile directory, so yesterday's database is
