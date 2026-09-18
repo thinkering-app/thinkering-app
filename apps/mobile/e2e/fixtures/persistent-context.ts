@@ -74,32 +74,36 @@ async function reportPage(page: Page, errors: string[], testInfo: TestInfo): Pro
 function keepSyncWaitsAcrossNavigations(): void {
   const KEY = '__syncWaitsAll'
   window.addEventListener('pagehide', () => {
-    const kept: number[] = JSON.parse(sessionStorage.getItem(KEY) ?? '[]')
-    const current = (globalThis as unknown as { __syncWaits?: number[] }).__syncWaits ?? []
+    const kept: unknown[] = JSON.parse(sessionStorage.getItem(KEY) ?? '[]')
+    const current = (globalThis as unknown as { __syncWaits?: unknown[] }).__syncWaits ?? []
     sessionStorage.setItem(KEY, JSON.stringify([...kept, ...current]))
   })
 }
 
 /** TEMPORARY: how long the sync SQLite bridge spun, so the timeout can be a measured number. */
 async function reportSyncWaits(page: Page, testInfo: TestInfo): Promise<void> {
+  type Wait = [ms: number, type: string, data: string]
   const waits = await page
     .evaluate(() => {
-      const kept: number[] = JSON.parse(sessionStorage.getItem('__syncWaitsAll') ?? '[]')
-      const current = (globalThis as unknown as { __syncWaits?: number[] }).__syncWaits ?? []
-      return [...kept, ...current]
+      const kept: unknown[] = JSON.parse(sessionStorage.getItem('__syncWaitsAll') ?? '[]')
+      const current = (globalThis as unknown as { __syncWaits?: unknown[] }).__syncWaits ?? []
+      return [...kept, ...current] as [number, string, string][]
     })
-    .catch(() => [] as number[])
+    .catch(() => [] as Wait[])
   if (waits.length === 0) {
     console.log(`SYNCWAIT ${testInfo.project.name} "${testInfo.title}": none recorded`)
     return
   }
-  const sorted = [...waits].sort((a, b) => a - b)
-  const at = (q: number) => sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))]!
+  const sorted = [...waits].sort((a, b) => a[0] - b[0])
+  const at = (q: number) => sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))]![0]
   const ms = (n: number) => n.toFixed(2)
+  const slowest = sorted
+    .slice(-5)
+    .map(([wait, type, data]) => `${ms(wait)} ${type} ${data}`)
+    .join('\n    ')
   console.log(
     `SYNCWAIT ${testInfo.project.name} "${testInfo.title}": n=${sorted.length} ` +
-      `p50=${ms(at(0.5))} p95=${ms(at(0.95))} p99=${ms(at(0.99))} max=${ms(sorted.at(-1)!)} ` +
-      `top5=[${sorted.slice(-5).map(ms).join(', ')}]`,
+      `p50=${ms(at(0.5))} p95=${ms(at(0.95))} p99=${ms(at(0.99))} max=${ms(sorted.at(-1)![0])}\n    ${slowest}`,
   )
 }
 

@@ -1,5 +1,5 @@
 diff --git a/web/WorkerChannel.ts b/web/WorkerChannel.ts
-index 7fba380845e3338b7d8d253013fbf73896070cde..92f1ee15830b416f0f85f118dbe5779a8344509d 100644
+index 7fba380845e3338b7d8d253013fbf73896070cde..b7fbf33be566430411fb13a2b9429d5b6607c107 100644
 --- a/web/WorkerChannel.ts
 +++ b/web/WorkerChannel.ts
 @@ -37,10 +37,24 @@ export function sendWorkerResult({
@@ -86,7 +86,7 @@ index 7fba380845e3338b7d8d253013fbf73896070cde..92f1ee15830b416f0f85f118dbe5779a
    }
  
 +  // TEMPORARY instrumentation: how long the main thread actually spun.
-+  ((globalThis as any).__syncWaits ??= []).push(performance.now() - startedAt);
++  ((globalThis as any).__syncWaits ??= []).push([performance.now() - startedAt, type, JSON.stringify(data).slice(0, 80)]);
 +
    const length = new Uint32Array(resultArray.buffer, 0, 1)[0];
    const resultCopy = new Uint8Array(length);
