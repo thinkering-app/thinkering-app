@@ -50,7 +50,8 @@ export function ActivityCard({
         completed ? 'Done today' : inProgress ? 'Continue' : `${estMinutes} minutes`
       }`}
       onPress={onPress}
-      className={`w-72 gap-2 rounded-card border border-hairline bg-surface p-5 shadow-card ${
+      wrapperClassName="w-72"
+      className={`gap-2 rounded-card border border-hairline bg-surface p-5 shadow-card ${
         completed ? 'opacity-60' : ''
       }`}
     >
@@ -60,7 +61,7 @@ export function ActivityCard({
       ) : null}
       <Text className="font-heading text-heading text-ink">{title}</Text>
       <Text className="font-sans text-secondary text-ink-soft">{goalLine}</Text>
-      <View className="flex-row pt-1">
+      <View className="mt-auto flex-row pt-1">
         <View
           className={`flex-row items-center gap-1.5 rounded-pill px-2.5 py-1 ${
             completed ? 'bg-leaf-tint' : ACCENT[section].chip
