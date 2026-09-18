@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures/persistent-context'
 
 import backup from './fixtures/web-smoke-backup.json'
 
@@ -15,13 +15,7 @@ test('the fixture interest is large enough to cross a sync result boundary', () 
   expect(backup.tables.interests[0].approachNotes.length).toBeGreaterThan(256)
 })
 
-test('fresh browser starts, writes local data, and keeps it', async ({ page }) => {
-  const browserErrors: string[] = []
-  page.on('pageerror', (error) => browserErrors.push(error.message))
-  page.on('console', (message) => {
-    if (message.type() === 'error') browserErrors.push(message.text())
-  })
-
+test('fresh browser starts, writes local data, and keeps it', async ({ page, browserErrors }) => {
   await page.goto('/')
 
   await expect(page).toHaveURL(/\/intake\/welcome$/)

@@ -143,23 +143,41 @@ repository is trusted. Both need Maestro and a JDK on the local machine; set
 
 Three Maestro flows on the iOS simulator, run before a release, not per PR: intake → a path exists; Today → complete an activity → history entry and goal status advanced; export → import. They live in `apps/mobile/.maestro` with a README, run with `pnpm e2e`, and share one install — flow 1 leaves the interest that flows 2 and 3 use. They run in **fixture AI mode**, so they're deterministic and free.
 
-CI runs the gate, the web smoke test, and the landing build as three parallel
+CI runs the gate, the browser tests, and the landing build as three parallel
 jobs, so the slowest one sets the wall clock rather than the sum. The gate job
 restores `.turbo` from any earlier run's cache, which is what keeps a one-package
 PR from paying for the whole monorepo.
 
-The web smoke test is `pnpm --filter @thinkering/mobile test:web`: it exports
-the production web app in fixture mode, serves it with the headers from
-`vercel.json`, and drives Chrome from a fresh install through a backup restore.
-Re-entering `/` must land on Today, proving that the SQLite worker started,
-migrations ran, an Interest was written, and browser-local data persisted. This
-is intentionally one end-to-end smoke test; component behavior remains covered
-at the cheaper tiers above. Its backup fixture carries a deliberately long
-`approachNotes` — expo-sqlite's web worker returns a synchronous result through
-a shared buffer and wrote the payload length one byte wide, so anything from 256
-bytes up came back truncated (`patches/expo-sqlite@57.0.3.patch`). A short
-fixture row reads back fine either way, so the spec asserts the length rather
-than trusting it.
+The browser tier is `pnpm --filter @thinkering/mobile test:web`: it exports the
+production web app in fixture mode, serves it with the headers from
+`vercel.json`, and drives a fresh install through intake and through a backup
+restore. Re-entering `/` must land on Today, proving that the SQLite worker
+started, migrations ran, an Interest was written, and browser-local data
+persisted. The tier stays deliberately small — `web-intake.spec.ts` and
+`web-smoke.spec.ts` are the two ways a person's data gets created, and component
+behavior remains covered at the cheaper tiers above. The backup fixture carries
+a deliberately long `approachNotes` — expo-sqlite's web worker returns a
+synchronous result through a shared buffer and wrote the payload length one byte
+wide, so anything from 256 bytes up came back truncated
+(`patches/expo-sqlite@57.0.3.patch`). A short fixture row reads back fine either
+way, so the spec asserts the length rather than trusting it.
+
+Every spec runs on both Chrome and mobile WebKit. WebKit is where the worker,
+OPFS and SharedArrayBuffer behavior diverges from Chromium, and a divergence
+there takes the whole app down instead of degrading it — `web-sqlite-worker.spec.ts`
+covers the two that already have: the worker outliving the blob URL it was
+started from (`patches/expo@57.0.22.patch`), and a second tab being told what to
+do about a database it can't open. Both engines run against a profile on disk
+(`e2e/fixtures/persistent-context.ts`), because OPFS needs real storage behind it
+and WebKit refuses it outright in an ephemeral context.
+
+That fixture also collects the page's console errors, and on failure records the
+URL, those errors and the rendered text — as a test attachment and on stdout,
+since the reason a browser test fails on CI's engine and nowhere else is rarely
+in the assertion that timed out. CI keeps the traces for a week when the run
+fails. What that turned up the first time was `Sync operation timeout` from
+expo-sqlite's synchronous worker bridge, which reproduces on neither engine
+locally (`docs/02`).
 
 Three things about them are worth knowing before editing one:
 

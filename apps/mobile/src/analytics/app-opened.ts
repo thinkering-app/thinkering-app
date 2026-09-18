@@ -15,15 +15,20 @@ export function useAppOpened(ready: boolean): void {
   useEffect(() => {
     if (!ready) return
     const fire = () => {
-      const { platform, appVersion: version } = sanitizeFeedbackContext({
-        platform: Platform.OS,
-        appVersion: appVersion(),
-      })
-      track('app_opened', {
-        platform,
-        app_version: version,
-        days_since_install: daysSinceInstallBucket(installedAt(), Date.now()),
-      })
+      try {
+        const { platform, appVersion: version } = sanitizeFeedbackContext({
+          platform: Platform.OS,
+          appVersion: appVersion(),
+        })
+        track('app_opened', {
+          platform,
+          app_version: version,
+          days_since_install: daysSinceInstallBucket(installedAt(), Date.now()),
+        })
+      } catch {
+        // `track` guards itself, but `installedAt` reads and writes the settings
+        // table out here. Same rule: telemetry never takes a screen down with it.
+      }
     }
     fire()
     const subscription = AppState.addEventListener('change', (state) => {

@@ -36,9 +36,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm verify
 
-  # The one end-to-end smoke test (docs/10 Tier 6): export the production web
-  # app in fixture mode, serve it with vercel.json's headers, drive Chrome
-  # through a backup restore.
+  # The browser tier (docs/10 Tier 6): export the production web app in fixture
+  # mode, serve it with vercel.json's headers, drive it through intake and a
+  # backup restore on both engines it ships to.
   web-smoke:
     runs-on: ubuntu-latest
     steps:
@@ -49,7 +49,22 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @thinkering/mobile test:web
+      # Chrome is already on the runner; WebKit is not.
+      - name: Install WebKit for the browser tests
+        run: pnpm --filter @thinkering/mobile exec playwright install webkit --with-deps
+      - name: Browser tests
+        id: browser-tests
+        run: pnpm --filter @thinkering/mobile test:web
+      # Traces are the only way to see a failure that happens on one engine and
+      # no other. Without this step the runner deletes them.
+      - name: Keep the browser test traces
+        if: failure() && steps.browser-tests.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: apps/mobile/test-results
+          if-no-files-found: ignore
+          retention-days: 7
 
   landing-build:
     runs-on: ubuntu-latest

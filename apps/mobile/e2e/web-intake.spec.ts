@@ -1,10 +1,6 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures/persistent-context'
 
 test('intake finishes into today', async ({ page }) => {
-  const errors: string[] = []
-  page.on('pageerror', (e) => errors.push(`PAGEERROR: ${e.message}`))
-  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
-
   await page.goto('/')
   await page.getByTestId('intake-start').click()
   await page.getByTestId('intake-learn').last().fill('Conversational German')
@@ -24,9 +20,6 @@ test('intake finishes into today', async ({ page }) => {
   await finish.click()
 
   await expect(page).toHaveURL(/\/today$/)
-  await page.waitForTimeout(4000)
-  await page.screenshot({ path: '../../.context/today-after-intake.png', fullPage: true })
-  console.log('ERRORS:', errors.join('\n') || 'none')
 
   // Reload proves the write landed and the router sends a returning user to Today.
   await page.goto('/')

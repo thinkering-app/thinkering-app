@@ -1,0 +1,29 @@
+diff --git a/src/async-require/asyncRequireModule.ts b/src/async-require/asyncRequireModule.ts
+index 03f7738b2e60a89153737c13853b8419806a2dcf..73ff84ef253d758566c293880eb1351429b67a06 100644
+--- a/src/async-require/asyncRequireModule.ts
++++ b/src/async-require/asyncRequireModule.ts
+@@ -154,13 +154,17 @@ asyncRequire.unstable_createWorker = function unstable_createWorker(
+   workerOpts?: WorkerOptions
+ ) {
+   if (typeof crossOriginIsolated !== 'undefined' && crossOriginIsolated) {
+-    try {
+-      const content = makeWorkerContent(workerUrl);
+-      workerUrl = URL.createObjectURL(new Blob([content], { type: 'text/javascript' }));
+-      return new Worker(workerUrl, workerOpts);
+-    } finally {
+-      URL.revokeObjectURL(workerUrl);
+-    }
++    const content = makeWorkerContent(workerUrl);
++    const blobUrl = URL.createObjectURL(new Blob([content], { type: 'text/javascript' }));
++    const worker = new Worker(blobUrl, workerOpts);
++    // Revoking synchronously (or on the next task) breaks the worker in WebKit:
++    // it resolves the script URL asynchronously and finds the blob already gone,
++    // so the worker never loads and every message to it goes unanswered. Wait
++    // for proof that the script was fetched before releasing the URL.
++    const revoke = () => URL.revokeObjectURL(blobUrl);
++    worker.addEventListener('message', revoke, { once: true });
++    worker.addEventListener('error', revoke, { once: true });
++    return worker;
+   } else {
+     return new Worker(workerUrl, workerOpts);
+   }
