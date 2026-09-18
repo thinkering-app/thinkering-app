@@ -14,6 +14,7 @@
     "format": "prettier --write .",
     "seed": "pnpm --filter @thinkering/db seed",
     "seed:sim": "pnpm --filter @thinkering/mobile seed:sim",
+    "ui:tree": "pnpm --filter @thinkering/mobile ui:tree",
     "prompt:run": "pnpm --filter @thinkering/core prompt:run",
     "prompt:check": "pnpm --filter @thinkering/core prompt:check",
     "sync:check": "pnpm --filter @thinkering/db sync:check",

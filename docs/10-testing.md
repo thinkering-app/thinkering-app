@@ -99,6 +99,48 @@ That route is reachable only in a dev or fixture-mode build (`__DEV__` or
 `seedFixtureData` the Me screen's dev panel calls. Reach for `pnpm e2e` when
 the task is a release, or when the change _is_ to a flow.
 
+#### Driving the simulator: semantic selectors first
+
+Use a known `testID` or stable visible text directly. When the selector is
+unknown or an interaction fails, `pnpm ui:tree` prints every addressable element
+on the current screen with its `testID`, text, and bounds:
+
+```
+testID                      text                                     bounds
+activity-card-next-0        Family words and mein/dein. Greet some…   [17,181][269,340]
+activity-card-strengthen-0  Ordering practice: hätte gern drills. …   [17,409][269,568]
+activity-card-strengthen-1  Quick retrieval: greetings and introdu…   [280,409][532,568]
+tab-path                    Path, tab, 2 of 4                        [100,791][201,840]
+```
+
+The tree distinguishes a bad selector from a stale bundle or a control that is
+not in the accessibility hierarchy. Use text for stable, user-visible controls;
+use a `testID` for dynamic content, icons, localization-sensitive copy, or an
+element a committed flow must keep addressing across copy changes. `testID`
+remains optional on shared components so exploratory testing does not create an
+identifier-maintenance obligation across the whole UI.
+
+Maestro treats text and ids as full-match regular expressions. For example,
+`assertVisible: 'Greet someone'` does not match "Greet someone at a Munich
+dinner — Not started"; use the exact label, `.*` deliberately, or a stable id.
+An `ActivityCard` exposes its title, goal line, and status as one accessibility
+label, so its flow uses `activity-card-${section}-${index}`. If several elements
+legitimately share a selector, Maestro's zero-based `index` can disambiguate;
+`ui:tree` reports repeated ids so the choice is explicit.
+
+Committed flows never tap raw screen coordinates: those are device- and
+layout-dependent. A coordinate is acceptable only as an ad-hoc last resort for
+something outside the app's accessibility tree, not as a reason to add handles
+throughout unrelated application code.
+
+`maestro hierarchy` restarts the XCUITest driver on each invocation (~40–60s per
+call). For repeated inspection, the optional Maestro MCP server holds a session
+open: use `inspect_view_hierarchy` for the tree and `take_screenshot` for the
+image. Claude Code reads `.mcp.json`; Codex reads `.codex/config.toml` after the
+repository is trusted. Both need Maestro and a JDK on the local machine; set
+`MAESTRO_BIN` / `MAESTRO_JAVA_HOME` if yours live elsewhere. Nothing in
+`pnpm verify` depends on them. Avoid Maestro's deprecated `query` subcommand.
+
 Three Maestro flows on the iOS simulator, run before a release, not per PR: intake → a path exists; Today → complete an activity → history entry and goal status advanced; export → import. They live in `apps/mobile/.maestro` with a README, run with `pnpm e2e`, and share one install — flow 1 leaves the interest that flows 2 and 3 use. They run in **fixture AI mode**, so they're deterministic and free.
 
 CI runs the gate, the web smoke test, and the landing build as three parallel
@@ -110,7 +152,7 @@ The web smoke test is `pnpm --filter @thinkering/mobile test:web`: it exports th
 
 Three things about them are worth knowing before editing one:
 
-- **Address elements by `testID`.** Matching our `Pressable`s by visible text is unreliable and point-percentage taps break the moment a layout moves. Several components take a `testID` purely for this.
+- **Address elements semantically.** Prefer stable visible text when it is suitable; use a unique `testID` for dynamic content, icons, localization-sensitive copy, or controls that must survive copy changes. Never commit point-percentage taps. Shared components keep `testID` optional so flows add handles only where they need them.
 - **Maestro's text matching is a full-match regex**, so a substring needs `.*`. That bites on anything with an `accessibilityLabel`: a `Pressable` with one is a single accessibility element, and the `Text` nodes inside it are invisible to the driver. `'Done today'` inside an activity card can only be matched through the card's own label.
 - **What the system hides.** `UIActivityViewController`'s contents live in another process, so the export flow asserts that the app reached the sheet and came back, not what the sheet said. The file round trip is a `packages/db` test.
 

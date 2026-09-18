@@ -1,0 +1,7 @@
+# Optional local simulator tooling. Codex loads project MCP configuration only
+# for trusted repositories; sessions still work when Maestro is unavailable.
+[mcp_servers.maestro]
+command = "sh"
+args = ["-c", "JAVA_HOME=\"${MAESTRO_JAVA_HOME:-/usr/local/opt/openjdk}\" exec \"${MAESTRO_BIN:-$HOME/.maestro/bin/maestro}\" mcp"]
+required = false
+startup_timeout_sec = 60
