@@ -35,6 +35,8 @@ export const test = base.extend<{ context: BrowserContext; browserErrors: string
 
     await provide(page)
 
+    await reportSyncWaits(page, testInfo)
+
     if (testInfo.status !== testInfo.expectedStatus) {
       await reportPage(page, browserErrors, testInfo)
     }
@@ -61,6 +63,25 @@ async function reportPage(page: Page, errors: string[], testInfo: TestInfo): Pro
   // downloads it, and the log is all a run whose artifacts have expired leaves.
   await testInfo.attach('page-at-failure', { body: report, contentType: 'text/plain' })
   console.log(`\n--- page at failure: ${testInfo.title} ---\n${report}\n---\n`)
+}
+
+/** TEMPORARY: how long the sync SQLite bridge spun, so the timeout can be a measured number. */
+async function reportSyncWaits(page: Page, testInfo: TestInfo): Promise<void> {
+  const waits = await page
+    .evaluate(() => (globalThis as unknown as { __syncWaits?: number[] }).__syncWaits ?? [])
+    .catch(() => [] as number[])
+  if (waits.length === 0) {
+    console.log(`SYNCWAIT ${testInfo.project.name} "${testInfo.title}": none recorded`)
+    return
+  }
+  const sorted = [...waits].sort((a, b) => a - b)
+  const at = (q: number) => sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))]!
+  const ms = (n: number) => n.toFixed(2)
+  console.log(
+    `SYNCWAIT ${testInfo.project.name} "${testInfo.title}": n=${sorted.length} ` +
+      `p50=${ms(at(0.5))} p95=${ms(at(0.95))} p99=${ms(at(0.99))} max=${ms(sorted.at(-1)!)} ` +
+      `top5=[${sorted.slice(-5).map(ms).join(', ')}]`,
+  )
 }
 
 /**

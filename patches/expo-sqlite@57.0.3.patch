@@ -1,5 +1,5 @@
 diff --git a/web/WorkerChannel.ts b/web/WorkerChannel.ts
-index 7fba380845e3338b7d8d253013fbf73896070cde..7c09853f8cc3b32303d53ea8f38e302ddc1c0241 100644
+index 7fba380845e3338b7d8d253013fbf73896070cde..92f1ee15830b416f0f85f118dbe5779a8344509d 100644
 --- a/web/WorkerChannel.ts
 +++ b/web/WorkerChannel.ts
 @@ -37,10 +37,24 @@ export function sendWorkerResult({
@@ -46,9 +46,11 @@ index 7fba380845e3338b7d8d253013fbf73896070cde..7c09853f8cc3b32303d53ea8f38e302d
  /**
   * For main thread to invoke worker function synchronously.
   */
-@@ -117,24 +139,27 @@ export function invokeWorkerSync<T extends SQLiteWorkerMessageType & keyof Resul
+@@ -116,27 +138,34 @@ export function invokeWorkerSync<T extends SQLiteWorkerMessageType & keyof Resul
+     resultBuffer,
    });
  
++  const startedAt = performance.now();
    let i = 0;
 +  // A budget counted in spins is really a budget of this thread's CPU time: a
 +  // million `Atomics.pause`es is tens of milliseconds on an idle laptop, and
@@ -83,4 +85,9 @@ index 7fba380845e3338b7d8d253013fbf73896070cde..7c09853f8cc3b32303d53ea8f38e302d
 +    // because we don't have a way for main thread to yield its execution to other callbacks.
    }
  
++  // TEMPORARY instrumentation: how long the main thread actually spun.
++  ((globalThis as any).__syncWaits ??= []).push(performance.now() - startedAt);
++
    const length = new Uint32Array(resultArray.buffer, 0, 1)[0];
+   const resultCopy = new Uint8Array(length);
+   resultCopy.set(new Uint8Array(resultArray.buffer, 4, length));
