@@ -7,6 +7,7 @@ import {
   fixtureDocForGoal,
   getPromptTemplate,
   MODEL_IDS,
+  modelRequestFields,
   parseActivityDoc,
   RECORDED_RESPONSES,
   SseParser,
@@ -302,25 +303,9 @@ async function byokCall(
       'anthropic-dangerous-direct-browser-access': 'true',
     },
     body: JSON.stringify({
-      model: MODEL_IDS[template.model],
-      max_tokens: template.maxTokens,
-      // Server-side tools the kind declares (docs/04). The proxy builds the
-      // same list; the tool type version lives at both call sites, next to the
-      // API they talk to.
-      ...(template.tools?.webSearch
-        ? {
-            tools: [
-              {
-                type: 'web_search_20260209',
-                name: 'web_search',
-                max_uses: template.tools.webSearch.maxUses,
-              },
-            ],
-          }
-        : {}),
-      ...(template.model === 'haiku' && template.temperature !== undefined
-        ? { temperature: template.temperature }
-        : {}),
+      // Model, limits, thinking, sampling and tools — the same fields the
+      // proxy sends (packages/core/src/prompts/request.ts).
+      ...modelRequestFields(template),
       system: rendered.system.map((b) => ({
         type: 'text',
         text: b.text,

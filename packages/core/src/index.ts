@@ -41,6 +41,7 @@ export {
   interactiveBlocksBeforeReview,
 } from './activity/doc-ops'
 export * from './prompts/types'
+export { modelRequestFields, type ModelRequestFields } from './prompts/request'
 export { PROMPTS, getPromptTemplate, isGenerationKind, type ImplementedKind } from './prompts/registry'
 export { SHARED_PREAMBLE, ACTIVITY_DOC_FORMAT, libraryReference } from './prompts/preamble'
 export {

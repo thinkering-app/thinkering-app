@@ -48,6 +48,10 @@ describe('prompt templates', () => {
       expect(t.maxTokens).toBeGreaterThan(0)
       // Sonnet 5 rejects sampling params — temperature is haiku-only.
       if (t.model === 'sonnet') expect(t.temperature).toBeUndefined()
+      // Sonnet 5 thinks unless told otherwise, inside maxTokens: every Sonnet
+      // kind states its effort (docs/04 §Thinking); Haiku 4.5 takes none.
+      if (t.model === 'sonnet') expect(t.effort, `${kind} needs an effort`).toBeDefined()
+      else expect(t.effort).toBeUndefined()
     }
   })
 })

@@ -59,10 +59,16 @@ export const activityGenerateTemplate: PromptTemplate<ActivityGenerateParams, Ac
   kind: 'activity.generate',
   // v2: the block format spells out the "kind" discriminator — models were
   // emitting "type" and every document needed a repair round-trip.
-  version: 2,
+  // v3: thinking stated explicitly (docs/04 §Thinking).
+  version: 3,
   model: 'sonnet',
-  // A 10-minute activity runs 4–6k output tokens; 15-minute ones need the room.
-  maxTokens: 12000,
+  // Thinking plus the document: a 10-minute activity ran ~5.6k at high effort,
+  // and 15-minute ones need the room.
+  maxTokens: 16000,
+  // High effort measurably teaches better — it builds the discovery around a
+  // test case where low effort hands over the rule — and the Next card is
+  // prefetched, which hides most of the wait (docs/04 §Thinking).
+  effort: 'high',
   paramsSchema: activityGenerateParamsSchema,
   outputSchema: activityDocSchema,
   render: (params) => ({
