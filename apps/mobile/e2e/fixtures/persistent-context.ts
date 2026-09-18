@@ -25,6 +25,7 @@ export const test = base.extend<{ context: BrowserContext; browserErrors: string
   },
   page: async ({ context, browserErrors }, provide, testInfo) => {
     const page = context.pages()[0] ?? (await context.newPage())
+    await page.addInitScript(keepSyncWaitsAcrossNavigations)
     await emptyOriginPrivateFileSystem(page)
     // Only from here: the wipe deliberately loads a page that isn't there, and
     // its 404 is not something the app under test did.
@@ -65,10 +66,28 @@ async function reportPage(page: Page, errors: string[], testInfo: TestInfo): Pro
   console.log(`\n--- page at failure: ${testInfo.title} ---\n${report}\n---\n`)
 }
 
+/**
+ * TEMPORARY: the patched bridge records its waits on `globalThis`, which a
+ * navigation throws away — and the interesting ones happen before this spec's
+ * last `goto`. Park them in sessionStorage on the way out instead.
+ */
+function keepSyncWaitsAcrossNavigations(): void {
+  const KEY = '__syncWaitsAll'
+  window.addEventListener('pagehide', () => {
+    const kept: number[] = JSON.parse(sessionStorage.getItem(KEY) ?? '[]')
+    const current = (globalThis as unknown as { __syncWaits?: number[] }).__syncWaits ?? []
+    sessionStorage.setItem(KEY, JSON.stringify([...kept, ...current]))
+  })
+}
+
 /** TEMPORARY: how long the sync SQLite bridge spun, so the timeout can be a measured number. */
 async function reportSyncWaits(page: Page, testInfo: TestInfo): Promise<void> {
   const waits = await page
-    .evaluate(() => (globalThis as unknown as { __syncWaits?: number[] }).__syncWaits ?? [])
+    .evaluate(() => {
+      const kept: number[] = JSON.parse(sessionStorage.getItem('__syncWaitsAll') ?? '[]')
+      const current = (globalThis as unknown as { __syncWaits?: number[] }).__syncWaits ?? []
+      return [...kept, ...current]
+    })
     .catch(() => [] as number[])
   if (waits.length === 0) {
     console.log(`SYNCWAIT ${testInfo.project.name} "${testInfo.title}": none recorded`)
