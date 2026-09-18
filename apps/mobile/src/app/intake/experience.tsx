@@ -14,9 +14,12 @@ const OPTIONS: { value: ExperienceChoice; label: string }[] = [
   { value: 'experienced', label: 'Have a lot of experience' },
 ]
 
-/** Step 3 (docs/01 §1). On advance, G2 goes out — it waits on G1 and has step 4 to finish. */
+/**
+ * Step 3 (docs/01 §1). On advance, G2 (waits on G1) and G2b go out together:
+ * topics for step 4, what success could look like for step 5.
+ */
 export default function ExperienceStep() {
-  const { answers, update, startTopics } = useIntake()
+  const { answers, update, startTopics, startSuccess } = useIntake()
 
   return (
     <StepScreen
@@ -25,7 +28,8 @@ export default function ExperienceStep() {
       continueDisabled={!answers.experienceChoice}
       onContinue={() => {
         startTopics()
-        router.push('/intake/time')
+        startSuccess()
+        router.push('/intake/topics')
       }}
     >
       <View className="flex-row flex-wrap gap-2">
@@ -40,7 +44,7 @@ export default function ExperienceStep() {
         ))}
       </View>
       <OptionalNote
-        label="Anything more?"
+        question="What have you tried before, and how did it go?"
         value={answers.experienceText}
         onChangeText={(experienceText) => update({ experienceText })}
       />

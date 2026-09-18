@@ -39,7 +39,7 @@ export default function WhyStep() {
         ))}
       </View>
       <OptionalNote
-        label="Anything more? (helps us tailor things)"
+        question="What do you want to be able to do, and why?"
         value={answers.whyText}
         onChangeText={(whyText) => update({ whyText })}
       />

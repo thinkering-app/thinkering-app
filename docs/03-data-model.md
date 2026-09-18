@@ -13,6 +13,7 @@ SQLite via Drizzle (`packages/db`). Conventions: `id` = client-generated UUIDv7 
 | why_text                             | text?   |                                                           |
 | experience_choice                    | text    | `getting_started \| explored \| in_middle \| experienced` |
 | experience_text                      | text?   |                                                           |
+| success_outcomes                     | json?   | `string[]`, what would feel like success (intake step 5)  |
 | frequency                            | text    | `daily \| several_weekly \| when_i_can`                   |
 | session_minutes                      | int     | 5 / 10 / 15 / custom value                                |
 | approach_notes                       | text    | from G1, editable in path settings                        |
@@ -117,5 +118,5 @@ Pruned to last ~200 calls. Never synced.
 ## Invariants
 
 - Goal status only moves forward; timestamps set once per transition (completing a strengthen activity on an `applied` goal updates `strengthened_at` but not status).
-- One `planned` daily-plan set per interest per local date; regenerated only via explicit refresh or config change. A configure change drops that section's *untouched* cards and re-plans only that section — anything started or completed stays.
+- One `planned` daily-plan set per interest per local date; regenerated only via explicit refresh or config change. A configure change drops that section's _untouched_ cards and re-plans only that section — anything started or completed stays.
 - Deleting an interest soft-deletes its children (cascade in application code).

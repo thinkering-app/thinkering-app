@@ -38,6 +38,7 @@ export interface SaveIntakeInput {
   whyText?: string | null
   experienceChoice: ExperienceChoice
   experienceText?: string | null
+  successOutcomes?: string[]
   frequency: Frequency
   sessionMinutes: number
   approachNotes: string
@@ -64,6 +65,8 @@ export function saveIntake(
     whyText: input.whyText ?? null,
     experienceChoice: input.experienceChoice,
     experienceText: input.experienceText ?? null,
+    successOutcomes:
+      input.successOutcomes && input.successOutcomes.length > 0 ? input.successOutcomes : null,
     frequency: input.frequency,
     sessionMinutes: input.sessionMinutes,
     approachNotes: input.approachNotes,
@@ -86,7 +89,11 @@ export function saveIntake(
       interestId: interest.id,
       title: goal.title,
       description: goal.description,
-      concepts: goal.concepts.map<GoalConcept>((c) => ({ id: ctx.newId(), label: c.label, kind: c.kind })),
+      concepts: goal.concepts.map<GoalConcept>((c) => ({
+        id: ctx.newId(),
+        label: c.label,
+        kind: c.kind,
+      })),
       sortOrder: index + 1,
       source: 'intake',
     }),

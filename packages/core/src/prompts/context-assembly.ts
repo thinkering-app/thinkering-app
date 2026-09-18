@@ -16,6 +16,7 @@ export interface InterestContextInput {
     whyText?: string | null
     experienceChoice: string
     experienceText?: string | null
+    successOutcomes?: string[] | null
     frequency: string
     sessionMinutes: number
     approachNotes?: string | null
@@ -31,7 +32,12 @@ export interface InterestContextInput {
   activeLibraryItems?: { section: Section; id: string }[]
   /** Included for apply-tier generation only (docs/04). */
   contexts?: { kind: ContextKind; label: string; notes?: string | null }[]
-  resources?: { title: string; description?: string | null; howToUse?: string | null; goalTitles?: string[] }[]
+  resources?: {
+    title: string
+    description?: string | null
+    howToUse?: string | null
+    goalTitles?: string[]
+  }[]
   routineNotes?: string[]
 }
 
@@ -69,6 +75,9 @@ export function buildInterestContext(
   lines.push(
     `Why: ${i.whyChoice}${i.whyText ? ` — ${i.whyText}` : ''} · Experience: ${i.experienceChoice}${i.experienceText ? ` — ${i.experienceText}` : ''}`,
   )
+  if (i.successOutcomes && i.successOutcomes.length > 0) {
+    lines.push(`What would feel like success: ${i.successOutcomes.join(' · ')}`)
+  }
   lines.push(`Rhythm: ${i.frequency}, ${i.sessionMinutes}-minute sessions`)
   if (i.approachNotes) lines.push(`Approach notes: ${i.approachNotes}`)
 
@@ -101,15 +110,20 @@ export function buildInterestContext(
   if (input.resources && input.resources.length > 0) {
     lines.push('### Saved resources')
     for (const r of input.resources) {
-      const goalPart = r.goalTitles && r.goalTitles.length > 0 ? ` (for: ${r.goalTitles.join(', ')})` : ''
-      lines.push(`- ${r.title}${goalPart}${r.description ? ` — ${r.description}` : ''}${r.howToUse ? ` · use: ${r.howToUse}` : ''}`)
+      const goalPart =
+        r.goalTitles && r.goalTitles.length > 0 ? ` (for: ${r.goalTitles.join(', ')})` : ''
+      lines.push(
+        `- ${r.title}${goalPart}${r.description ? ` — ${r.description}` : ''}${r.howToUse ? ` · use: ${r.howToUse}` : ''}`,
+      )
     }
   }
 
   if (input.recentHistory && input.recentHistory.length > 0) {
     lines.push('### Recent activity in thinkering (newest first)')
     for (const h of input.recentHistory.slice(0, 10)) {
-      lines.push(`- ${h.title} (${h.tier} · ${h.goalTitle})${h.rating ? ` — rated ${h.rating}` : ''}`)
+      lines.push(
+        `- ${h.title} (${h.tier} · ${h.goalTitle})${h.rating ? ` — rated ${h.rating}` : ''}`,
+      )
     }
   }
 

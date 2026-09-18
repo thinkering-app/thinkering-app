@@ -2,6 +2,7 @@ import activityQuestion from '../../fixtures/recorded/activity.question/default.
 import activityReview from '../../fixtures/recorded/activity.review/default.json'
 import intakeApproach from '../../fixtures/recorded/intake.approach/default.json'
 import intakePath from '../../fixtures/recorded/intake.path/default.json'
+import intakeSuccess from '../../fixtures/recorded/intake.success/default.json'
 import intakeTopics from '../../fixtures/recorded/intake.topics/default.json'
 import pathSuggestGoals from '../../fixtures/recorded/path.suggestGoals/default.json'
 import reflectUpdate from '../../fixtures/recorded/reflect.update/default.json'
@@ -23,13 +24,19 @@ export interface RecordedResponse {
   fixture: string
   /** The raw model output text (JSON string for our kinds). */
   text: string
-  usage: { inputTokens: number; outputTokens: number; cacheReadTokens: number; cacheWriteTokens: number }
+  usage: {
+    inputTokens: number
+    outputTokens: number
+    cacheReadTokens: number
+    cacheWriteTokens: number
+  }
   latencyMs: number
 }
 
 export const RECORDED_RESPONSES: Record<string, RecordedResponse> = {
   'intake.approach': intakeApproach,
   'intake.topics': intakeTopics,
+  'intake.success': intakeSuccess,
   'intake.path': intakePath,
   'today.plan': todayPlan,
   'activity.review': activityReview,

@@ -13,9 +13,14 @@ import { seedResources } from '@/resources/seed'
 import { colors } from '@/theme/tokens'
 
 /**
- * Step 6 (docs/01 §1) — the generated interest name and goals, filling in as G3
+ * Step 7 (docs/01 §1) — the generated interest name and goals, filling in as G3
  * streams, plus where the interest landed (D15) with a one-tap override.
  */
+const MODE_HINT = {
+  focus: 'For things you want to make steady progress on.',
+  exploring: "For things you're curious about, with no rush.",
+} as const
+
 export default function DirectionStep() {
   const { answers, update, path, partialPath, startPath, retryPath, placement, save } = useIntake()
 
@@ -43,14 +48,44 @@ export default function DirectionStep() {
 
   return (
     <StepScreen
-      step={6}
+      step={7}
       question="Here's a direction we can start with."
-      footer={<PrimaryAction testID="intake-finish" label="Go to Today" onPress={finish} disabled={!ready} />}
+      footer={
+        <PrimaryAction
+          testID="intake-finish"
+          label="Go to Today"
+          onPress={finish}
+          disabled={!ready}
+        />
+      }
     >
       {path.status === 'error' ? (
         <GenerationError message={path.message} onRetry={retryPath} />
       ) : (
         <View className="gap-6">
+          <View className="gap-3">
+            <Text className="font-sans text-secondary text-ink-soft">
+              We&apos;ll keep evolving this as you go.
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ selected: mode === 'focus' }}
+              accessibilityLabel={`Mode: ${mode === 'focus' ? 'in focus' : 'exploring'}. Tap to switch.`}
+              onPress={() => update({ statusOverride: mode === 'focus' ? 'exploring' : 'focus' })}
+              className="flex-row items-center gap-2 self-start rounded-pill border border-hairline px-3 py-2 active:bg-cornflower-tint"
+            >
+              <Ionicons
+                name={mode === 'focus' ? 'flag' : 'compass-outline'}
+                size={15}
+                color={mode === 'focus' ? colors.cornflower.deep : colors.ink.soft}
+              />
+              <Text className="font-sans text-secondary text-ink-soft">
+                {mode === 'focus' ? 'In focus' : 'Exploring'}
+              </Text>
+            </Pressable>
+            <Text className="font-sans text-secondary text-ink-soft">{MODE_HINT[mode]}</Text>
+          </View>
+
           {name ? (
             <Text className="font-heading-bold text-display text-ink">{name}</Text>
           ) : (
@@ -61,34 +96,12 @@ export default function DirectionStep() {
             {goals.map((goal) => (
               <Card key={goal.title}>
                 <Text className="font-heading text-heading text-ink">{goal.title}</Text>
-                <Text className="mt-1 font-sans text-secondary text-ink-soft">{goal.description}</Text>
+                <Text className="mt-1 font-sans text-secondary text-ink-soft">
+                  {goal.description}
+                </Text>
               </Card>
             ))}
           </View>
-
-          {ready ? (
-            <View className="gap-4">
-              <Pressable
-                accessibilityRole="button"
-                accessibilityState={{ selected: mode === 'focus' }}
-                accessibilityLabel={`Mode: ${mode === 'focus' ? 'in focus' : 'exploring'}. Tap to switch.`}
-                onPress={() => update({ statusOverride: mode === 'focus' ? 'exploring' : 'focus' })}
-                className="flex-row items-center gap-2 self-start rounded-pill border border-hairline px-3 py-2 active:bg-cornflower-tint"
-              >
-                <Ionicons
-                  name={mode === 'focus' ? 'flag' : 'compass-outline'}
-                  size={15}
-                  color={mode === 'focus' ? colors.cornflower.deep : colors.ink.soft}
-                />
-                <Text className="font-sans text-secondary text-ink-soft">
-                  {mode === 'focus' ? 'In focus' : 'Exploring'}
-                </Text>
-              </Pressable>
-              <Text className="font-sans text-secondary text-ink-soft">
-                We&apos;ll keep evolving this as you go.
-              </Text>
-            </View>
-          ) : null}
         </View>
       )}
     </StepScreen>

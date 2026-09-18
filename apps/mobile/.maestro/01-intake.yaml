@@ -1,5 +1,5 @@
 # Flow 1 (docs/10 Tier 6): intake → a path exists.
-# Runs in fixture AI mode, so the three generations are recorded responses and
+# Runs in fixture AI mode, so the four generations are recorded responses and
 # the run is deterministic and free.
 appId: ${APP_ID}
 name: intake
@@ -35,15 +35,7 @@ name: intake
 - tapOn:
     id: 'intake-continue'
 
-# 4 — how often, how long
-- tapOn:
-    id: 'intake-frequency-daily'
-- tapOn:
-    id: 'intake-minutes-10'
-- tapOn:
-    id: 'intake-continue'
-
-# 5 — topics (G2). Selecting none is allowed; the wait is the assertion.
+# 4 — topics (G2). Selecting none is allowed; the wait is the assertion.
 - extendedWaitUntil:
     visible:
       id: 'intake-continue'
@@ -52,7 +44,24 @@ name: intake
 - tapOn:
     id: 'intake-continue'
 
-# 6 — the generated path (G3), streamed
+# 5 — what would feel like success (G2b). Same: none selected, wait for it.
+- extendedWaitUntil:
+    visible:
+      id: 'intake-continue'
+      enabled: true
+    timeout: 30000
+- tapOn:
+    id: 'intake-continue'
+
+# 6 — how often, how long
+- tapOn:
+    id: 'intake-frequency-daily'
+- tapOn:
+    id: 'intake-minutes-10'
+- tapOn:
+    id: 'intake-continue'
+
+# 7 — the generated path (G3), streamed
 - extendedWaitUntil:
     visible:
       id: 'intake-finish'
