@@ -135,10 +135,13 @@ function SectionRow({
           snapToInterval={300}
           contentContainerClassName="gap-3 px-5"
         >
-          {view.cards.map((card) => (
+          {view.cards.map((card, index) => (
             <ActivityCard
               key={card.activity.id}
-              testID={`activity-card-${view.section}`}
+              // Position, not activity id: a flow wants "the second Strengthen
+              // card", and the id is a fresh UUID on every run. Sharing one id
+              // across a section made the selector ambiguous.
+              testID={`activity-card-${view.section}-${index}`}
               title={card.activity.title}
               goalLine={card.goalLine}
               estMinutes={card.activity.estMinutes}

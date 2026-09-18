@@ -2,7 +2,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import BetterSqlite3 from 'better-sqlite3'
 import { describe, expect, it } from 'vitest'
-import { migrateToHead, migrationsFolder, openTestDb, pkgRoot } from './helpers'
+import { migrateFresh, migrateToHead, migrationsFolder, openTestDb, pkgRoot } from './helpers'
 
 const migrationFiles = readdirSync(migrationsFolder)
   .filter((f) => f.endsWith('.sql'))
@@ -10,7 +10,9 @@ const migrationFiles = readdirSync(migrationsFolder)
 
 describe('migration chain', () => {
   it('empty → head applies cleanly and creates every schema table', () => {
-    const { sqlite } = openTestDb()
+    // migrateFresh, not openTestDb: this test is the one that has to actually
+    // run the chain rather than restore the image built from it.
+    const sqlite = migrateFresh()
     const tables = new Set(
       (sqlite.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all() as { name: string }[]).map(
         (r) => r.name,

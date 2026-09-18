@@ -11,10 +11,10 @@ name: activity
     id: 'tab-today'
 - extendedWaitUntil:
     visible:
-      id: 'activity-card-next'
+      id: 'activity-card-next-0'
     timeout: 45000
 - tapOn:
-    id: 'activity-card-next'
+    id: 'activity-card-next-0'
 
 # G5b streams the document; page one renders as soon as it parses.
 - extendedWaitUntil:

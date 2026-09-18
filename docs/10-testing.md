@@ -8,6 +8,21 @@ The goal is a small suite that runs in seconds, guards the things that are expen
 
 Nothing in the gate touches the network, a model, a simulator, or a real Supabase project.
 
+### The inner loop
+
+The gate is for the end of a work package. While working, run only what you're
+changing — `pnpm --filter @thinkering/core test src/scheduler` is sub-second
+against `pnpm verify`'s ~20, and every package has a `test:watch`.
+
+Two things exist to keep that loop honest. Coverage is **off locally and on in
+CI** (`packages/core/vitest.config.ts` keys off `process.env.CI`): the
+thresholds are global, so with coverage always on, a focused run reports ~20%
+and exits non-zero with nothing wrong — the fastest command in the repo looking
+like a failing test. `pnpm --filter @thinkering/core test:cov` turns it on by
+hand. And turbo's cache is content-addressed and lives in the repo root's
+`.turbo/cache`, shared across git worktrees, so a run in one Conductor
+workspace warms every other one.
+
 ## Where the effort goes
 
 | Tier | Surface                                                                 | Tool                              | Share of effort     |
@@ -29,7 +44,7 @@ Nothing in the gate touches the network, a model, a simulator, or a real Supabas
 - **Feedback helpers**: context sanitization and Featurebase URL construction are unit-tested without network access; only coarse screen, platform, and app version can survive the allowlist.
 - **Library definitions** (`06`): every item has a valid page skeleton, an `outcomeLabel`, and a unique id.
 
-Coverage threshold: 90% on `scheduler/` and `schemas/`. No thresholds anywhere else.
+Coverage threshold: 90% on `scheduler/` and `schemas/`, enforced in CI. No thresholds anywhere else.
 
 ### Tier 2 — `packages/db`
 
@@ -72,17 +87,101 @@ Quality judgment stays human: eyeball the output in the AI Inspector, and record
 
 ### Tier 6 — E2E
 
+**Not an iteration tool.** A Maestro run needs a booted simulator, an install,
+and Metro in fixture mode; it takes minutes; and by design it asserts nothing
+about screen layout, which is what most iOS changes touch. Running it after an
+iOS edit is the most expensive way to learn the least. To _see_ a change, run
+the app (`.conductor/run-ios.sh`) and seed it: `pnpm seed:sim` deep-links
+`thinkering://dev/seed`, which writes the fixture interest, a path, a week of
+history, and today's cards with their documents attached, then lands on Today.
+That route is reachable only in a dev or fixture-mode build (`__DEV__` or
+`EXPO_PUBLIC_AI_MODE=fixture`, both fixed at bundle time) and is the same
+`seedFixtureData` the Me screen's dev panel calls. Reach for `pnpm e2e` when
+the task is a release, or when the change _is_ to a flow.
+
+#### Driving the simulator: semantic selectors first
+
+Use a known `testID` or stable visible text directly. When the selector is
+unknown or an interaction fails, `pnpm ui:tree` prints every addressable element
+on the current screen with its `testID`, text, and bounds:
+
+```
+testID                      text                                     bounds
+activity-card-next-0        Family words and mein/dein. Greet some…   [17,181][269,340]
+activity-card-strengthen-0  Ordering practice: hätte gern drills. …   [17,409][269,568]
+activity-card-strengthen-1  Quick retrieval: greetings and introdu…   [280,409][532,568]
+tab-path                    Path, tab, 2 of 4                        [100,791][201,840]
+```
+
+The tree distinguishes a bad selector from a stale bundle or a control that is
+not in the accessibility hierarchy. Use text for stable, user-visible controls;
+use a `testID` for dynamic content, icons, localization-sensitive copy, or an
+element a committed flow must keep addressing across copy changes. `testID`
+remains optional on shared components so exploratory testing does not create an
+identifier-maintenance obligation across the whole UI.
+
+Maestro treats text and ids as full-match regular expressions. For example,
+`assertVisible: 'Greet someone'` does not match "Greet someone at a Munich
+dinner — Not started"; use the exact label, `.*` deliberately, or a stable id.
+An `ActivityCard` exposes its title, goal line, and status as one accessibility
+label, so its flow uses `activity-card-${section}-${index}`. If several elements
+legitimately share a selector, Maestro's zero-based `index` can disambiguate;
+`ui:tree` reports repeated ids so the choice is explicit.
+
+Committed flows never tap raw screen coordinates: those are device- and
+layout-dependent. A coordinate is acceptable only as an ad-hoc last resort for
+something outside the app's accessibility tree, not as a reason to add handles
+throughout unrelated application code.
+
+`maestro hierarchy` restarts the XCUITest driver on each invocation (~40–60s per
+call). For repeated inspection, the optional Maestro MCP server holds a session
+open: use `inspect_screen` for the tree and `take_screenshot` for the image.
+Claude Code reads `.mcp.json`; Codex reads `.codex/config.toml` after the
+repository is trusted. Both need Maestro and a JDK on the local machine; set
+`MAESTRO_BIN` / `MAESTRO_JAVA_HOME` if yours live elsewhere. Nothing in
+`pnpm verify` depends on them. Avoid Maestro's deprecated `query` subcommand.
+
 Three Maestro flows on the iOS simulator, run before a release, not per PR: intake → a path exists; Today → complete an activity → history entry and goal status advanced; export → import. They live in `apps/mobile/.maestro` with a README, run with `pnpm e2e`, and share one install — flow 1 leaves the interest that flows 2 and 3 use. They run in **fixture AI mode**, so they're deterministic and free.
 
-CI also runs `pnpm --filter @thinkering/mobile test:web`: it exports the production web app in fixture mode, serves it with the headers from `vercel.json`, and drives a fresh install through intake and through a backup restore. Re-entering `/` must land on Today, proving that the SQLite worker started, migrations ran, an Interest was written, and browser-local data persisted. The web tier stays deliberately small — `web-intake.spec.ts` and `web-smoke.spec.ts` are the two ways a person's data gets created, and component behavior remains covered at the cheaper tiers above. Its backup fixture carries a deliberately long `approachNotes` — expo-sqlite's web worker returns a synchronous result through a shared buffer and wrote the payload length one byte wide, so anything from 256 bytes up came back truncated (`patches/expo-sqlite@57.0.3.patch`). A short fixture row reads back fine either way, so the spec asserts the length rather than trusting it.
+CI runs the gate, the browser tests, and the landing build as three parallel
+jobs, so the slowest one sets the wall clock rather than the sum. The gate job
+restores `.turbo` from any earlier run's cache, which is what keeps a one-package
+PR from paying for the whole monorepo.
 
-Every spec runs on both Chrome and mobile WebKit. WebKit is where the worker, OPFS and SharedArrayBuffer behavior diverges from Chromium, and a divergence there takes the whole app down instead of degrading it — `web-sqlite-worker.spec.ts` covers the two that already have: the worker outliving the blob URL it was started from (`patches/expo@57.0.22.patch`), and a second tab being told what to do about a database it can't open. Both engines run against a profile on disk (`e2e/fixtures/persistent-context.ts`), because OPFS needs real storage behind it and WebKit refuses it outright in an ephemeral context.
+The browser tier is `pnpm --filter @thinkering/mobile test:web`: it exports the
+production web app in fixture mode, serves it with the headers from
+`vercel.json`, and drives a fresh install through intake and through a backup
+restore. Re-entering `/` must land on Today, proving that the SQLite worker
+started, migrations ran, an Interest was written, and browser-local data
+persisted. The tier stays deliberately small — `web-intake.spec.ts` and
+`web-smoke.spec.ts` are the two ways a person's data gets created, and component
+behavior remains covered at the cheaper tiers above. The backup fixture carries
+a deliberately long `approachNotes` — expo-sqlite's web worker returns a
+synchronous result through a shared buffer and wrote the payload length one byte
+wide, so anything from 256 bytes up came back truncated
+(`patches/expo-sqlite@57.0.3.patch`). A short fixture row reads back fine either
+way, so the spec asserts the length rather than trusting it.
 
-That fixture also collects the page's console errors, and on failure records the URL, those errors and the rendered text — as a test attachment and on stdout, since the reason a browser test fails on CI's engine and nowhere else is rarely in the assertion that timed out. CI keeps the traces for a week when the run fails.
+Every spec runs on both Chrome and mobile WebKit. WebKit is where the worker,
+OPFS and SharedArrayBuffer behavior diverges from Chromium, and a divergence
+there takes the whole app down instead of degrading it — `web-sqlite-worker.spec.ts`
+covers the two that already have: the worker outliving the blob URL it was
+started from (`patches/expo@57.0.22.patch`), and a second tab being told what to
+do about a database it can't open. Both engines run against a profile on disk
+(`e2e/fixtures/persistent-context.ts`), because OPFS needs real storage behind it
+and WebKit refuses it outright in an ephemeral context.
+
+That fixture also collects the page's console errors, and on failure records the
+URL, those errors and the rendered text — as a test attachment and on stdout,
+since the reason a browser test fails on CI's engine and nowhere else is rarely
+in the assertion that timed out. CI keeps the traces for a week when the run
+fails. What that turned up the first time was `Sync operation timeout` from
+expo-sqlite's synchronous worker bridge, which reproduces on neither engine
+locally (`docs/02`).
 
 Three things about them are worth knowing before editing one:
 
-- **Address elements by `testID`.** Matching our `Pressable`s by visible text is unreliable and point-percentage taps break the moment a layout moves. Several components take a `testID` purely for this.
+- **Address elements semantically.** Prefer stable visible text when it is suitable; use a unique `testID` for dynamic content, icons, localization-sensitive copy, or controls that must survive copy changes. Never commit point-percentage taps. Shared components keep `testID` optional so flows add handles only where they need them.
 - **Maestro's text matching is a full-match regex**, so a substring needs `.*`. That bites on anything with an `accessibilityLabel`: a `Pressable` with one is a single accessibility element, and the `Text` nodes inside it are invisible to the driver. `'Done today'` inside an activity card can only be matched through the card's own label.
 - **What the system hides.** `UIActivityViewController`'s contents live in another process, so the export flow asserts that the app reached the sheet and came back, not what the sheet said. The file round trip is a `packages/db` test.
 

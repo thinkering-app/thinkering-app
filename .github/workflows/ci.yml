@@ -5,7 +5,17 @@ on:
     branches: [main]
   pull_request:
 
+# A newer push makes an older PR result obsolete, so PRs share a per-ref group
+# and cancel. Push runs get a per-run group instead: a shared group would queue
+# at most one pending run and cancel the older pending one even with
+# cancel-in-progress false, so every commit on main gets a durable result.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  # The gate (docs/10): typecheck + lint + vitest, offline, coverage thresholds
+  # on. Runs alongside the two slower checks rather than ahead of them.
   verify:
     runs-on: ubuntu-latest
     steps:
@@ -15,22 +25,55 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+      # Turbo's cache is content-addressed, so restoring any earlier run's cache
+      # skips every package this branch didn't touch. Without it each PR pays
+      # for the whole monorepo from cold.
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ github.sha }}
+          restore-keys: turbo-
       - run: pnpm install --frozen-lockfile
       - run: pnpm verify
+
+  # The browser tier (docs/10 Tier 6): export the production web app in fixture
+  # mode, serve it with vercel.json's headers, drive it through intake and a
+  # backup restore on both engines it ships to.
+  web-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Chrome is already on the runner; WebKit is not.
       - name: Install WebKit for the browser tests
         run: pnpm --filter @thinkering/mobile exec playwright install webkit --with-deps
-      - name: Web app smoke test
-        id: web-smoke
+      - name: Browser tests
+        id: browser-tests
         run: pnpm --filter @thinkering/mobile test:web
-      # Traces are the only way to see a browser failure that happens on this
-      # engine and no other. Without this step the runner deletes them.
+      # Traces are the only way to see a failure that happens on one engine and
+      # no other. Without this step the runner deletes them.
       - name: Keep the browser test traces
-        if: failure() && steps.web-smoke.outcome == 'failure'
+        if: failure() && steps.browser-tests.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: playwright-traces
           path: apps/mobile/test-results
           if-no-files-found: ignore
           retention-days: 7
-      - name: Landing build
-        run: pnpm --filter @thinkering/web build
+
+  landing-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @thinkering/web build
