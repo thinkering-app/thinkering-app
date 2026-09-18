@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { listGoals, listHistory, listInterests, listPlannedForDate } from '../src'
-import { seedFixtureData } from '../src/seed'
+import { listGoals, listHistory, listInterests, listPlannedForDate, setSetting } from '../src'
+import { clearAllData, seedFixtureData } from '../src/seed'
 import { openTestDb, testContext } from './helpers'
 
 describe('seedFixtureData', () => {
@@ -37,5 +37,23 @@ describe('seedFixtureData', () => {
     seedFixtureData(db, ctx, { today: '2026-09-15' })
     expect(seedFixtureData(db, ctx, { today: '2026-09-15' })).toBe(false)
     expect(listInterests(db)).toHaveLength(1)
+  })
+
+  it('clearAllData empties every table, including ones added after it was written', () => {
+    const { db, sqlite } = openTestDb()
+    seedFixtureData(db, testContext(), { today: '2026-09-15' })
+    setSetting(db, 'backup_enabled', true)
+
+    clearAllData(db)
+
+    const tables = sqlite
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name != '__drizzle_migrations'",
+      )
+      .all() as { name: string }[]
+    const nonEmpty = tables.filter(
+      ({ name }) => (sqlite.prepare(`SELECT count(*) AS n FROM "${name}"`).get() as { n: number }).n > 0,
+    )
+    expect(nonEmpty.map((t) => t.name)).toEqual([])
   })
 })

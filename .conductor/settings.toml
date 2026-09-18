@@ -14,19 +14,36 @@ setup = "bash .conductor/setup.sh"
 run_mode = "concurrent"
 
 # The app itself, in a browser: the static web export served with the
-# deployment's COOP/COEP headers. In fixture AI mode it needs no key and no
-# network. No hot reload — restart the script to pick up changes.
+# deployment's COOP/COEP headers. Fixture AI mode — no key, no network, no
+# tokens. No hot reload — restart the script to pick up changes.
 [scripts.run.app]
 command = "PORT=$CONDUCTOR_PORT bash .conductor/run-web.sh"
 default = true
 icon = "globe"
 available_in = ["local"]
 
-# The app on the iOS simulator. First run compiles a development client (~10
-# min) and caches it outside the worktree; every later run and every later
-# workspace just reinstalls it and points it at this workspace's Metro.
+# The same, with real generations through this workspace's own proxy — start
+# the landing script too; it needs ANTHROPIC_API_KEY in apps/web/.env. (The
+# production proxy won't answer a browser on localhost.) Shares the app port,
+# so stop the fixture one first.
+[scripts.run.app-proxy]
+command = "PORT=$CONDUCTOR_PORT AI_MODE=proxy API_URL=http://localhost:$((CONDUCTOR_PORT + 1)) bash .conductor/run-web.sh"
+icon = "globe"
+available_in = ["local"]
+
+# The app on the iOS simulator, in fixture AI mode. First run compiles a
+# development client (~10 min) and caches it outside the worktree; every later
+# run and every later workspace just reinstalls it and points it at this
+# workspace's Metro.
 [scripts.run.ios]
 command = "METRO_PORT=$((CONDUCTOR_PORT + 2)) bash .conductor/run-ios.sh"
+icon = "smartphone"
+available_in = ["local"]
+
+# The same, with real generations through the proxy in apps/mobile/.env
+# (production unless you've pointed it elsewhere).
+[scripts.run.ios-proxy]
+command = "METRO_PORT=$((CONDUCTOR_PORT + 2)) AI_MODE=proxy bash .conductor/run-ios.sh"
 icon = "smartphone"
 available_in = ["local"]
 

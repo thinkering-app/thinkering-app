@@ -42,9 +42,10 @@ Rules:
 export const resourcesSearchTemplate: PromptTemplate<ResourcesSearchParams, ResourcesSearchOutput> =
   {
     kind: 'resources.search',
-    version: 1,
+    version: 2,
     model: 'sonnet',
-    maxTokens: 4000,
+    maxTokens: 16000,
+    effort: 'high',
     tools: { webSearch: { maxUses: 6 } },
     paramsSchema: resourcesSearchParamsSchema,
     outputSchema: resourcesSearchOutputSchema,

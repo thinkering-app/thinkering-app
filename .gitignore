@@ -24,3 +24,7 @@ apps/mobile/android/
 
 # supabase cli scratch state
 supabase/.temp/
+
+# written by `next dev` (Next's own agent guidance); the repo's is ./AGENTS.md
+apps/web/AGENTS.md
+apps/web/CLAUDE.md

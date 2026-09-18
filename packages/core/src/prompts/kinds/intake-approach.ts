@@ -39,9 +39,10 @@ export const intakeApproachTemplate: PromptTemplate<
   z.infer<typeof approachOutputSchema>
 > = {
   kind: 'intake.approach',
-  version: 3,
+  version: 4,
   model: 'sonnet',
-  maxTokens: 1400,
+  maxTokens: 8000,
+  effort: 'low',
   paramsSchema: intakeApproachParamsSchema,
   outputSchema: approachOutputSchema,
   render: (params) => ({

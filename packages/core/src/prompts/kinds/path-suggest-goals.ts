@@ -23,7 +23,7 @@ const INSTRUCTIONS = `Task: suggest three goals this learner could add to their 
 Return JSON: {
   "goals": [{
     "title": string,                 // outcome-flavored, like the goals already on their path
-    "description": string,           // one–two plain lines on what it covers
+    "description": string,           // what it covers, one or two plain sentences, 30 words at most
     "concepts": [{ "label": string, "kind": "concept"|"skill" }]   // 2–4 items, 2–5 words each — they render as chips
   }]
 }
@@ -39,7 +39,7 @@ export const pathSuggestGoalsTemplate: PromptTemplate<
   SuggestedGoalsOutput
 > = {
   kind: 'path.suggestGoals',
-  version: 1,
+  version: 2,
   model: 'haiku',
   maxTokens: 1200,
   temperature: 0.7,

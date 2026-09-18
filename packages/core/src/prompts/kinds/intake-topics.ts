@@ -25,9 +25,10 @@ Labels: 2–5 words, chip-sized, concrete, no jargon the learner wouldn't recogn
 
 export const intakeTopicsTemplate: PromptTemplate<IntakeTopicsParams, z.infer<typeof topicsOutputSchema>> = {
   kind: 'intake.topics',
-  version: 1,
+  version: 2,
   model: 'sonnet',
-  maxTokens: 2000,
+  maxTokens: 8000,
+  effort: 'low',
   paramsSchema: intakeTopicsParamsSchema,
   outputSchema: topicsOutputSchema,
   render: (params) => ({

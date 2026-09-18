@@ -17,3 +17,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 - A new app icon, paper texture throughout, and watercolor washes behind the
   quieter screens.
+
+### Fixed
+
+- Reflecting on your progress suggests changes to your path again, instead of
+  failing partway.
