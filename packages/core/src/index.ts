@@ -87,6 +87,17 @@ export { extractPartialPath, type PartialPath, type PathGoal } from './streaming
 export { extractPartialBlocks } from './streaming/partial-blocks'
 export { extractJsonText } from './streaming/json'
 export { placeInterest } from './intake/placement'
+export {
+  EMPTY_INTAKE_ANSWERS,
+  furthestIntakeStep,
+  intakeAnswersSchema,
+  intakeDraftSchema,
+  isDraftWorthKeeping,
+  parseIntakeDraft,
+  resumeIntakeStep,
+  type IntakeAnswers,
+  type IntakeDraft,
+} from './intake/draft'
 export { RECORDED_RESPONSES, type RecordedResponse } from './fixtures/recorded'
 export { intakeApproachTemplate, type IntakeApproachParams } from './prompts/kinds/intake-approach'
 export { intakeTopicsTemplate, type IntakeTopicsParams } from './prompts/kinds/intake-topics'

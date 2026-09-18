@@ -67,10 +67,11 @@ async function reportPage(page: Page, errors: string[], testInfo: TestInfo): Pro
  * WebKit keeps OPFS outside the profile directory, so yesterday's database is
  * still there in a profile the runner considers brand new. Wipe it from a page
  * on the origin that isn't the app — nothing holds the files open there, which
- * is the only moment they can be removed.
+ * is the only moment they can be removed. The extension keeps the server from
+ * answering with the app shell, as it does for any unknown page path.
  */
 async function emptyOriginPrivateFileSystem(page: Page): Promise<void> {
-  await page.goto('/e2e-blank')
+  await page.goto('/e2e-blank.txt')
   await page.evaluate(async () => {
     const root = await navigator.storage.getDirectory()
     for await (const name of root.keys()) await root.removeEntry(name, { recursive: true })

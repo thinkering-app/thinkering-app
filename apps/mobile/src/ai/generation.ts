@@ -25,6 +25,14 @@ export interface GenerationRunner<T> {
   start: (key: string, run: (signal: AbortSignal) => Promise<T>) => Promise<T>
   /** Runs the current key again — the Retry affordance on an error state. */
   retry: () => void
+  /** The finished result and its key, for keeping it past this screen's life. */
+  settled: () => Settled<T> | undefined
+}
+
+/** A finished generation and the key it was started with. */
+export interface Settled<T> {
+  key: string
+  value: T
 }
 
 interface Entry<T> {
@@ -35,9 +43,23 @@ interface Entry<T> {
   failed: boolean
 }
 
-export function useGeneration<T>(): GenerationRunner<T> {
-  const [state, setState] = useState<GenerationState<T>>({ status: 'idle' })
-  const current = useRef<Entry<T> | null>(null)
+/** `restored` is a result kept from earlier, which `start` reuses for the same key. */
+export function useGeneration<T>(restored?: Settled<T>): GenerationRunner<T> {
+  const [state, setState] = useState<GenerationState<T>>(() =>
+    restored ? { status: 'ready', value: restored.value } : { status: 'idle' },
+  )
+  const [restoredEntry] = useState((): Entry<T> | null => {
+    if (!restored) return null
+    const promise = Promise.resolve(restored.value)
+    return {
+      key: restored.key,
+      run: () => promise,
+      controller: new AbortController(),
+      promise,
+      failed: false,
+    }
+  })
+  const current = useRef<Entry<T> | null>(restoredEntry)
 
   const launch = useCallback((key: string, run: (signal: AbortSignal) => Promise<T>) => {
     current.current?.controller.abort()
@@ -79,7 +101,12 @@ export function useGeneration<T>(): GenerationRunner<T> {
     if (entry) launch(entry.key, entry.run).catch(() => {})
   }, [launch])
 
-  return { state, start, retry }
+  const settled = useCallback((): Settled<T> | undefined => {
+    const entry = current.current
+    return entry && state.status === 'ready' ? { key: entry.key, value: state.value } : undefined
+  }, [state])
+
+  return { state, start, retry, settled }
 }
 
 /** Calm, plain failure copy (docs/07 voice) — no error codes in front of the user. */

@@ -21,7 +21,7 @@ Never in any property: interest names, goal titles, activity titles, user text, 
 | event                                | properties                                                                                                                                             |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `app_opened`                         | platform, app_version, days_since_install (bucket)                                                                                                     |
-| `intake_started`                     | is_first_interest                                                                                                                                      |
+| `intake_started`                     | is_first_interest, resumed                                                                                                                             |
 | `intake_step_completed`              | step (1–7), duration_bucket                                                                                                                            |
 | `intake_completed`                   | topics_selected_count, frequency, session_minutes                                                                                                      |
 | `intake_abandoned`                   | last_step                                                                                                                                              |

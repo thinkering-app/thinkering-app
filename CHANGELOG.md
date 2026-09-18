@@ -15,6 +15,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 - A new intake step, "What would feel like success?", with suggestions to pick
   from. Your path is shaped around what you choose.
 - Add your own topics and outcomes during intake.
+- Leave intake from any step, and choose to save it for later or discard it.
+  A saved one picks up where you left off, from Me → Interests or the next
+  time you add an interest.
 
 ### Changed
 
@@ -29,5 +32,6 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Fixed
 
+- Reloading the web app on any screen but the first no longer shows a 404.
 - Reflecting on your progress suggests changes to your path again, instead of
   failing partway.
