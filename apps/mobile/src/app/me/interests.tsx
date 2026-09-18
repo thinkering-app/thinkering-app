@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
+import { router } from 'expo-router'
 import { useMemo, useReducer, useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import { INTEREST_STATUSES, type InterestStatus } from '@thinkering/core'
@@ -53,7 +54,19 @@ export default function ManageInterestsScreen() {
           <Pressable accessibilityRole="button" onPress={() => setReordering(false)} hitSlop={10}>
             <Text className="font-sans-medium text-body text-cornflower-deep">Done</Text>
           </Pressable>
-        ) : null
+        ) : (
+          // Existing users skip the welcome screen (docs/01 §1), same as the
+          // selector's + on Today.
+          <Pressable
+            testID="me-add-interest"
+            accessibilityRole="button"
+            accessibilityLabel="Add an interest"
+            onPress={() => router.push('/intake/learn')}
+            hitSlop={10}
+          >
+            <Ionicons name="add" size={24} color={colors.ink.DEFAULT} />
+          </Pressable>
+        )
       }
     >
       <View className="gap-3">

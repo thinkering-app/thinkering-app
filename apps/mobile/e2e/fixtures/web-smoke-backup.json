@@ -11,6 +11,7 @@
         "wantToLearn": "Whether browser-local data survives navigation",
         "whyChoice": "fun",
         "experienceChoice": "explored",
+        "approachNotes": "They have poked at this before and want it to stay enjoyable, so keep sessions short and end each one with something that works. Start from what a browser actually does with local data rather than from storage APIs in the abstract, and give every idea a small thing to try before moving on. Reach for a longer explanation only when a result surprises them.",
         "frequency": "daily",
         "sessionMinutes": 5,
         "status": "focus",

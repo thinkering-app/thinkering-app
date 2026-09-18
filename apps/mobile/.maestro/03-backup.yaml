@@ -12,7 +12,9 @@ name: backup
 - tapOn:
     id: 'tab-me'
 - tapOn:
-    id: 'me-backup'
+    id: 'me-settings'
+- tapOn:
+    id: 'settings-data'
 - assertVisible: 'A file you keep'
 
 # Export hands a file to the share sheet. What the sheet contains is in a
