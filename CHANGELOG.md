@@ -26,8 +26,15 @@ build; internal refactors and docs don't appear here. The conventions are in
   ready by the time you reach it.
 - The last intake step leads with In focus or Exploring, and says what each
   one is for.
+- Opening an activity shows what's happening while it's written — planning,
+  then writing, then which page is next — and you can close it while you wait.
 
 ### Fixed
 
+- Today's next activity is written ahead again, so it's usually ready when you
+  open it. Opening it while it's still being written picks up where that left
+  off instead of starting over.
 - Reflecting on your progress suggests changes to your path again, instead of
   failing partway.
+- The loading dots keep moving while an activity is being written, instead of
+  stopping on the first one.
