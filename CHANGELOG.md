@@ -38,3 +38,5 @@ build; internal refactors and docs don't appear here. The conventions are in
   failing partway.
 - The loading dots keep moving while an activity is being written, instead of
   stopping on the first one.
+- Video activities play one of your saved videos in the activity, instead of
+  pointing you to a YouTube channel.

@@ -99,7 +99,8 @@ Additional rules for this task:
   The summary is "kind": "summary", not "content" — a content page would fail validation.
 - "concepts": declare which of the goal's concept/skill ids this activity genuinely targets (use their exact ids in goalConceptId). Don't claim coverage you don't deliver.
 - Ground apply-tier activities in the learner's contexts and resources only when they genuinely fit — never force it.
-- If a resource is provided, build around it with resourceEmbed blocks: short segments, focus prompts, interaction after each segment. Never "watch this 20-minute video".
+- If a resource is provided, build around it with resourceEmbed blocks carrying its exact url, resourceId and media: short segments, focus prompts, interaction after each segment. Never "watch this 20-minute video". Embed no other video.
+- Without a provided resource, don't embed a video or send the learner off to find one — no channels, no "search YouTube for". Teach it on the page instead.
 - estMinutes and page count must match the requested session length.
 - Use the provided card title as the document title unless it's clearly wrong for the content you wrote.
 

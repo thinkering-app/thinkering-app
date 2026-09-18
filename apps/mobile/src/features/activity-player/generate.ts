@@ -3,9 +3,13 @@ import {
   extractPartialBlocks,
   extractPartialActivityDoc,
   fillReviewPage,
+  getLibraryItem,
+  groundBlocks,
+  groundPages,
   interactiveBlocksBeforeReview,
   pageToPlainText,
   parseResponsePayload,
+  pickResource,
   type ActivityDoc,
   type ActivityGenerateParams,
   type ActivityQuestionParams,
@@ -20,6 +24,7 @@ import {
   getActivity,
   getGoal,
   getInterest,
+  listResources,
   listResponses,
   type Activity,
 } from '@thinkering/db'
@@ -100,16 +105,12 @@ const inFlight = new Map<string, Generation>()
 
 function startGeneration(activity: Activity): Generation {
   const controller = new AbortController()
-  const emit = onNewPartial(
-    extractPartialActivityDoc,
-    (partial) => {
-      run.latest = partial
-      for (const listener of run.listeners) listener(partial)
-    },
-    docShape,
-  )
+  const publish = (partial: PartialActivityDoc) => {
+    run.latest = partial
+    for (const listener of run.listeners) listener(partial)
+  }
   const run: Generation = {
-    promise: writeActivityDoc(activity, controller.signal, emit).finally(() => {
+    promise: writeActivityDoc(activity, controller.signal, publish).finally(() => {
       if (inFlight.get(activity.id) === run) inFlight.delete(activity.id)
     }),
     controller,
@@ -124,7 +125,7 @@ function startGeneration(activity: Activity): Generation {
 async function writeActivityDoc(
   activity: Activity,
   signal: AbortSignal,
-  onText: (text: string) => void,
+  onPartial: (partial: PartialActivityDoc) => void,
 ): Promise<ActivityDoc> {
   // The caller's row may predate a generation that has since finished.
   const written = getActivity(db, activity.id)?.doc
@@ -133,6 +134,8 @@ async function writeActivityDoc(
   const interest = getInterest(db, activity.interestId)
   if (!interest) throw new Error('interest is gone')
   const goal = activity.goalId ? getGoal(db, activity.goalId) : undefined
+  const saved = listResources(db, activity.interestId)
+  const resource = pickResource(getLibraryItem(activity.libraryItemId), activity.goalId, saved)
 
   const params: ActivityGenerateParams = {
     context: interestContext(interest),
@@ -156,16 +159,36 @@ async function writeActivityDoc(
     libraryItemId: activity.libraryItemId,
     title: activity.title,
     estMinutes: activity.estMinutes,
+    ...(resource
+      ? {
+          resource: {
+            id: resource.id,
+            url: resource.url,
+            title: resource.title,
+            summary: resource.summary,
+            howToUse: resource.howToUse,
+          },
+        }
+      : {}),
   }
 
   const { output } = await callAi<ActivityDoc>('activity.generate', params, {
     interestId: activity.interestId,
     activityId: activity.id,
     signal,
-    onText,
+    onText: onNewPartial(
+      (text) => {
+        const partial = extractPartialActivityDoc(text)
+        return { ...partial, pages: groundPages(partial.pages, saved) }
+      },
+      onPartial,
+      docShape,
+    ),
   })
-  attachDoc(db, repoContext, activity.id, output)
-  return output
+  // Embeds only play what the learner has saved (docs/05).
+  const doc = { ...output, pages: groundPages(output.pages, saved) }
+  attachDoc(db, repoContext, activity.id, doc)
+  return doc
 }
 
 /**
@@ -246,6 +269,7 @@ export async function generateAskPage(
   if (!interest) throw new Error('interest is gone')
   const goal = activity.goalId ? getGoal(db, activity.goalId) : undefined
   const page = doc.pages[pageIndex]
+  const saved = listResources(db, activity.interestId)
 
   const params: ActivityQuestionParams = {
     context: interestContext(interest),
@@ -263,10 +287,14 @@ export async function generateAskPage(
     activityId: activity.id,
     signal: opts.signal,
     onText: opts.onPartial
-      ? onNewPartial(extractPartialBlocks, opts.onPartial, (blocks) => `${blocks.length}`)
+      ? onNewPartial(
+          (text) => groundBlocks(extractPartialBlocks(text), saved),
+          opts.onPartial,
+          (blocks) => `${blocks.length}`,
+        )
       : undefined,
   })
-  return output.blocks
+  return groundBlocks(output.blocks, saved)
 }
 
 /**
