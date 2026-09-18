@@ -135,8 +135,8 @@ throughout unrelated application code.
 
 `maestro hierarchy` restarts the XCUITest driver on each invocation (~40–60s per
 call). For repeated inspection, the optional Maestro MCP server holds a session
-open: use `inspect_view_hierarchy` for the tree and `take_screenshot` for the
-image. Claude Code reads `.mcp.json`; Codex reads `.codex/config.toml` after the
+open: use `inspect_screen` for the tree and `take_screenshot` for the image.
+Claude Code reads `.mcp.json`; Codex reads `.codex/config.toml` after the
 repository is trusted. Both need Maestro and a JDK on the local machine; set
 `MAESTRO_BIN` / `MAESTRO_JAVA_HOME` if yours live elsewhere. Nothing in
 `pnpm verify` depends on them. Avoid Maestro's deprecated `query` subcommand.

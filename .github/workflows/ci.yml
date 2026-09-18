@@ -5,10 +5,12 @@ on:
     branches: [main]
   pull_request:
 
-# A newer push makes an older PR result obsolete. Keep main runs complete so a
-# pushed commit always has a durable result.
+# A newer push makes an older PR result obsolete, so PRs share a per-ref group
+# and cancel. Push runs get a per-run group instead: a shared group would queue
+# at most one pending run and cancel the older pending one even with
+# cancel-in-progress false, so every commit on main gets a durable result.
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
