@@ -13,15 +13,17 @@ const INSPECTOR_KEY = 'ai_inspector_enabled'
 const AI_MODES: AiMode[] = ['proxy', 'byok', 'fixture']
 
 /**
- * The mode before the user has chosen one. `EXPO_PUBLIC_AI_MODE=fixture` is how
- * a dev run or a Maestro flow (docs/10 Tier 6) starts in fixture mode — the Me
- * toggle isn't reachable until intake is done.
+ * The mode baked into the bundle, and the mode before the user has chosen one.
+ * `EXPO_PUBLIC_AI_MODE=fixture` is how a dev run or a Maestro flow (docs/10
+ * Tier 6) starts in fixture mode — the Me toggle isn't reachable until intake
+ * is done. Unlike `getAiMode()`, this is a property of the build rather than of
+ * mutable device state, so it's what dev-only surfaces gate on.
  */
-const DEFAULT_MODE: AiMode =
+export const BUILD_AI_MODE: AiMode =
   AI_MODES.find((m) => m === process.env.EXPO_PUBLIC_AI_MODE) ?? 'proxy'
 
 export function getAiMode(): AiMode {
-  return getSetting<AiMode>(db, AI_MODE_KEY) ?? DEFAULT_MODE
+  return getSetting<AiMode>(db, AI_MODE_KEY) ?? BUILD_AI_MODE
 }
 
 export function setAiMode(mode: AiMode): void {

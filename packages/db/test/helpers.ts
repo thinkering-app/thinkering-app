@@ -9,10 +9,28 @@ import * as schema from '../src/schema'
 export const pkgRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 export const migrationsFolder = join(pkgRoot, 'migrations')
 
-export function openTestDb(): { db: Database; sqlite: BetterSqlite3.Database } {
+/** An empty database with the migration chain applied, no shortcuts. */
+export function migrateFresh(): BetterSqlite3.Database {
   const sqlite = new BetterSqlite3(':memory:')
+  migrate(drizzle(sqlite, { schema }), { migrationsFolder })
+  return sqlite
+}
+
+let templateImage: Buffer | undefined
+
+export function openTestDb(): { db: Database; sqlite: BetterSqlite3.Database } {
+  // Applying the chain is the most expensive thing a repo test does, it happens
+  // in every beforeEach, and it produces identical bytes every time — a cost
+  // that grows with each migration shipped. Build it once, then restore each
+  // test from the serialized image. The real empty → head path is still
+  // exercised, by migrations.test.ts through migrateFresh().
+  if (!templateImage) {
+    const seed = migrateFresh()
+    templateImage = seed.serialize()
+    seed.close()
+  }
+  const sqlite = new BetterSqlite3(templateImage)
   const concrete = drizzle(sqlite, { schema })
-  migrate(concrete, { migrationsFolder })
   // The repo-facing Database type erases the driver's run-result type; the cast is
   // safe because repositories only use select/insert/update with run/get/all.
   return { db: concrete as unknown as Database, sqlite }

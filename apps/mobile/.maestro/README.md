@@ -20,6 +20,14 @@ JAVA_HOME=/usr/local/opt/openjdk APP_ID=host.exp.Exponent \
 EAS profile (`eas build -p ios --profile e2e`), which bakes
 `EXPO_PUBLIC_AI_MODE=fixture` in and needs no Metro.
 
-Flows address elements by `testID` (`id:` in the yaml). Matching by visible text
-is unreliable on our `Pressable`s, and point percentages break the moment a
-layout moves — if a flow needs a new handle, add a `testID`, don't tap a point.
+Flows use semantic selectors: stable visible text where practical, or a unique
+`testID` (`id:` in the yaml) for dynamic content, icons, localization-sensitive
+copy, and controls that must survive copy changes. Point percentages break the
+moment a layout moves, so never commit coordinate taps.
+
+When a selector is unknown or fails, run **`pnpm ui:tree`** with the app on that
+screen. It prints every element's `testID`, text, and bounds, and reports ids
+that need a unique selector or Maestro's zero-based `index`. This distinguishes
+a wrong selector from a stale bundle without making every application control
+carry a test-only handle. See `docs/10` Tier 6. Don't use the deprecated
+`maestro query` command.

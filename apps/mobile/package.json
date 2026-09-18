@@ -6,12 +6,15 @@
   "scripts": {
     "dev": "expo start",
     "ios": "expo run:ios",
+    "seed:sim": "bash scripts/seed-sim.sh",
+    "ui:tree": "node scripts/ui-tree.mjs",
     "web": "expo start --web",
     "export:web": "expo export -p web",
     "test:web": "EXPO_PUBLIC_AI_MODE=fixture expo export -p web && playwright test",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "jest"
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "@expo-google-fonts/arvo": "^0.4.1",

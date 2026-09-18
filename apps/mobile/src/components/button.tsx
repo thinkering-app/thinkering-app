@@ -5,7 +5,7 @@ type ButtonProps = {
   onPress?: () => void
   variant?: 'primary' | 'quiet'
   disabled?: boolean
-  /** Stable handle for the Maestro flows (docs/10 Tier 6); label matching is flaky. */
+  /** Stable handle when an automated flow cannot use visible text. */
   testID?: string
 }
 
