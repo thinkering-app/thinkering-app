@@ -17,6 +17,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm verify
+      - name: Install WebKit for the browser tests
+        run: pnpm --filter @thinkering/mobile exec playwright install webkit --with-deps
       - name: Web app smoke test
         run: pnpm --filter @thinkering/mobile test:web
       - name: Landing build

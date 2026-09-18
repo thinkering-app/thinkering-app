@@ -21,5 +21,10 @@
   "devDependencies": {
     "prettier": "^3.4.2",
     "turbo": "^2.3.3"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "expo@57.0.22": "patches/expo@57.0.22.patch"
+    }
   }
 }

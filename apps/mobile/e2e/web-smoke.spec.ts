@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures/persistent-context'
 
 test('fresh browser starts, writes local data, and keeps it', async ({ page }) => {
   const browserErrors: string[] = []
