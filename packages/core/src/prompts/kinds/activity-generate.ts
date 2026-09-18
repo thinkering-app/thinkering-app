@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { activityDocSchema, type ActivityDoc } from '../../schemas/activity-doc'
+import { resourceMediaOf } from '../../activity/resources'
 import { buildInterestContext, type InterestContextInput } from '../context-assembly'
 import { ACTIVITY_DOC_FORMAT, libraryReference, SHARED_PREAMBLE } from '../preamble'
 import type { PromptTemplate } from '../types'
@@ -17,7 +18,9 @@ export const activityGenerateParamsSchema = z.object({
     title: z.string(),
     description: z.string(),
     status: z.string(),
-    concepts: z.array(z.object({ id: z.string(), label: z.string(), kind: z.enum(['concept', 'skill']) })),
+    concepts: z.array(
+      z.object({ id: z.string(), label: z.string(), kind: z.enum(['concept', 'skill']) }),
+    ),
   }),
   tier: z.enum(['introduce', 'strengthen', 'apply']),
   libraryItemId: z.string(),
@@ -49,7 +52,8 @@ Additional rules for this task:
   The summary is "kind": "summary", not "content" — a content page would fail validation.
 - "concepts": declare which of the goal's concept/skill ids this activity genuinely targets (use their exact ids in goalConceptId). Don't claim coverage you don't deliver.
 - Ground apply-tier activities in the learner's contexts and resources only when they genuinely fit — never force it.
-- If a resource is provided, build around it with resourceEmbed blocks: short segments, focus prompts, interaction after each segment. Never "watch this 20-minute video".
+- If a resource is provided, build around it with resourceEmbed blocks carrying its exact url, resourceId and media: short segments, focus prompts, interaction after each segment. Never "watch this 20-minute video". Embed no other video.
+- Without a provided resource, don't embed a video or send the learner off to find one — no channels, no "search YouTube for". Teach it on the page instead.
 - estMinutes and page count must match the requested session length.
 - Use the provided card title as the document title unless it's clearly wrong for the content you wrote.
 
@@ -60,7 +64,9 @@ export const activityGenerateTemplate: PromptTemplate<ActivityGenerateParams, Ac
   // v2: the block format spells out the "kind" discriminator — models were
   // emitting "type" and every document needed a repair round-trip.
   // v3: thinking stated explicitly (docs/04 §Thinking).
-  version: 3,
+  // v4: the matched resource arrives with its id, url and media, and videos
+  // are embedded from it only — cards were pointing at YouTube channels.
+  version: 4,
   model: 'sonnet',
   // Thinking plus the document: a 10-minute activity ran ~5.6k at high effort,
   // and 15-minute ones need the room.
@@ -89,7 +95,7 @@ export const activityGenerateTemplate: PromptTemplate<ActivityGenerateParams, Ac
           `- Goal concepts: ${params.goal.concepts.map((c) => `${c.id} = ${c.label} (${c.kind})`).join(', ')}`,
           ...(params.resource
             ? [
-                `- Resource to build around: ${params.resource.title} (${params.resource.url})${params.resource.howToUse ? ` · use: ${params.resource.howToUse}` : ''}${params.resource.summary ? `\n  Summary: ${params.resource.summary}` : ''}`,
+                `- Resource to build around: ${params.resource.title} · resourceId: ${params.resource.id} · url: ${params.resource.url} · media: ${resourceMediaOf(params.resource.url)}${params.resource.howToUse ? ` · use: ${params.resource.howToUse}` : ''}${params.resource.summary ? `\n  Summary: ${params.resource.summary}` : ''}`,
               ]
             : []),
         ].join('\n'),

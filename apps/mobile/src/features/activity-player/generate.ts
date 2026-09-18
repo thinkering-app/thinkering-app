@@ -3,9 +3,13 @@ import {
   extractPartialBlocks,
   extractPartialActivityDoc,
   fillReviewPage,
+  getLibraryItem,
+  groundBlocks,
+  groundPages,
   interactiveBlocksBeforeReview,
   pageToPlainText,
   parseResponsePayload,
+  pickResource,
   type ActivityDoc,
   type ActivityGenerateParams,
   type ActivityQuestionParams,
@@ -15,7 +19,14 @@ import {
   type QuestionOutput,
   type ReviewOutput,
 } from '@thinkering/core'
-import { attachDoc, getGoal, getInterest, listResponses, type Activity } from '@thinkering/db'
+import {
+  attachDoc,
+  getGoal,
+  getInterest,
+  listResources,
+  listResponses,
+  type Activity,
+} from '@thinkering/db'
 
 import { callAi } from '@/ai'
 import { interestContext } from '@/ai/context'
@@ -36,6 +47,8 @@ export async function generateActivityDoc(
   const interest = getInterest(db, activity.interestId)
   if (!interest) throw new Error('interest is gone')
   const goal = activity.goalId ? getGoal(db, activity.goalId) : undefined
+  const saved = listResources(db, activity.interestId)
+  const resource = pickResource(getLibraryItem(activity.libraryItemId), activity.goalId, saved)
 
   const params: ActivityGenerateParams = {
     context: interestContext(interest),
@@ -59,16 +72,34 @@ export async function generateActivityDoc(
     libraryItemId: activity.libraryItemId,
     title: activity.title,
     estMinutes: activity.estMinutes,
+    ...(resource
+      ? {
+          resource: {
+            id: resource.id,
+            url: resource.url,
+            title: resource.title,
+            summary: resource.summary,
+            howToUse: resource.howToUse,
+          },
+        }
+      : {}),
   }
 
   const { output } = await callAi<ActivityDoc>('activity.generate', params, {
     interestId: activity.interestId,
     activityId: activity.id,
     signal: opts.signal,
-    onText: opts.onPartial ? (text) => opts.onPartial!(extractPartialActivityDoc(text)) : undefined,
+    onText: opts.onPartial
+      ? (text) => {
+          const partial = extractPartialActivityDoc(text)
+          opts.onPartial!({ ...partial, pages: groundPages(partial.pages, saved) })
+        }
+      : undefined,
   })
-  attachDoc(db, repoContext, activity.id, output)
-  return output
+  // Embeds only play what the learner has saved (docs/05).
+  const doc = { ...output, pages: groundPages(output.pages, saved) }
+  attachDoc(db, repoContext, activity.id, doc)
+  return doc
 }
 
 /**
@@ -149,6 +180,7 @@ export async function generateAskPage(
   if (!interest) throw new Error('interest is gone')
   const goal = activity.goalId ? getGoal(db, activity.goalId) : undefined
   const page = doc.pages[pageIndex]
+  const saved = listResources(db, activity.interestId)
 
   const params: ActivityQuestionParams = {
     context: interestContext(interest),
@@ -165,9 +197,11 @@ export async function generateAskPage(
     interestId: activity.interestId,
     activityId: activity.id,
     signal: opts.signal,
-    onText: opts.onPartial ? (text) => opts.onPartial!(extractPartialBlocks(text)) : undefined,
+    onText: opts.onPartial
+      ? (text) => opts.onPartial!(groundBlocks(extractPartialBlocks(text), saved))
+      : undefined,
   })
-  return output.blocks
+  return groundBlocks(output.blocks, saved)
 }
 
 function persist(activity: Activity, doc: ActivityDoc): ActivityDoc {

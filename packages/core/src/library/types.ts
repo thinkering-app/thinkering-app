@@ -27,4 +27,6 @@ export interface LibraryItem {
   outcomeLabel?: string
   /** Item is built around a saved resource (video/article). */
   usesResources?: boolean
+  /** The kind of saved resource the item prefers, when it has one. */
+  resourceMedia?: 'video' | 'article'
 }

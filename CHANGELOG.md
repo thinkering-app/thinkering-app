@@ -31,3 +31,5 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 - Reflecting on your progress suggests changes to your path again, instead of
   failing partway.
+- Video activities play one of your saved videos in the activity, instead of
+  pointing you to a YouTube channel.

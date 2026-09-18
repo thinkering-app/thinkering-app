@@ -79,6 +79,7 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     defaultActive: true,
     goodFor: 'demos, technique, worked examples on video',
     usesResources: true,
+    resourceMedia: 'video',
   },
   {
     id: 'guided-reading',
@@ -92,6 +93,7 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     defaultActive: true,
     goodFor: 'knowledge-rich domains, language comprehensible input',
     usesResources: true,
+    resourceMedia: 'article',
   },
 
   // ── Strengthen ────────────────────────────────────────────────────────────

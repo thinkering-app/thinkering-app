@@ -3,6 +3,7 @@ import type { Database, RepoContext } from './database'
 import { createActivity, completeActivity } from './repos/activities'
 import { createGoal } from './repos/goals'
 import { createInterest, listInterests } from './repos/interests'
+import { createResource } from './repos/resources'
 import { saveResponse } from './repos/responses'
 import { SYNCED_TABLE_NAMES, syncedTable } from './backup/rows'
 import { analyticsBuffer, genCache, llmCalls, settings } from './schema'
@@ -94,6 +95,26 @@ export function seedFixtureData(db: Database, ctx: RepoContext, opts: { today: L
   const goals = goalDefs.map((g, i) =>
     createGoal(db, ctx, { interestId: interest.id, ...g, sortOrder: i + 1, source: 'intake' }),
   )
+
+  // The apply fixture's embeds, saved against its goal: generation only plays
+  // saved resources (docs/05).
+  const resourceDefs = [
+    {
+      url: 'https://www.youtube.com/watch?v=zjkBMFhNj_g',
+      title: 'Intro to Large Language Models',
+      description: 'Andrej Karpathy\'s hour-long talk: what an LLM is, how it\'s trained, where it\'s going.',
+      howToUse: 'Long, so take it a segment at a time. The context window part starts around 21 minutes in.',
+    },
+    {
+      url: 'https://arxiv.org/abs/2307.03172',
+      title: 'Lost in the Middle: How Language Models Use Long Contexts',
+      description: 'The paper showing models use the start and end of a long context best.',
+      howToUse: 'The abstract and first figure are enough.',
+    },
+  ]
+  for (const r of resourceDefs) {
+    createResource(db, ctx, { interestId: interest.id, ...r, source: 'suggested', goalIds: [goals[1]!.id] })
+  }
 
   // A week of history. Completing via the repos drives the goal statuses to:
   // g1 applied · g2 strengthened · g3 introduced · g4–g6 not started (reflect card shows at ≤3).

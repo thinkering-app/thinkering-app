@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
+import { youtubeVideoId } from '@thinkering/core'
 import { Linking, Pressable, Text, View } from 'react-native'
 
 import { colors } from '@/theme/tokens'
@@ -9,9 +10,11 @@ import type { BlockOf } from './types'
 /**
  * A resource inside an activity (docs/05): a short video segment played inline,
  * or an article as a link card. The `focus` line comes first either way —
- * knowing what to watch or read for is what makes the segment work.
+ * knowing what to watch or read for is what makes the segment work. A "video"
+ * that isn't a single YouTube video (a channel, a playlist) is a link card too.
  */
 export function ResourceEmbedBlock({ block }: { block: BlockOf<'resourceEmbed'> }) {
+  const embedUrl = block.media === 'video' ? youtubeEmbedUrl(block) : undefined
   return (
     <View className="gap-3">
       {block.focus ? (
@@ -20,8 +23,8 @@ export function ResourceEmbedBlock({ block }: { block: BlockOf<'resourceEmbed'> 
           <Markdown md={block.focus} className="flex-1 font-sans text-body text-ink" />
         </View>
       ) : null}
-      {block.media === 'video' ? (
-        <VideoEmbed embedUrl={youtubeEmbedUrl(block)} title={block.title} />
+      {embedUrl ? (
+        <VideoEmbed embedUrl={embedUrl} title={block.title} />
       ) : (
         <Pressable
           accessibilityRole="link"
@@ -38,30 +41,23 @@ export function ResourceEmbedBlock({ block }: { block: BlockOf<'resourceEmbed'> 
           </View>
         </Pressable>
       )}
-      {block.media === 'video' ? (
+      {embedUrl ? (
         <Text className="font-sans text-caption text-ink-soft">{block.title}</Text>
       ) : null}
     </View>
   )
 }
 
-/** The privacy-preserving embed URL for a clip, clipped to its segment. */
-export function youtubeEmbedUrl(
+/** The privacy-preserving embed URL for a clip, clipped to its segment; undefined if the URL isn't one video. */
+function youtubeEmbedUrl(
   block: Pick<BlockOf<'resourceEmbed'>, 'url' | 'startSec' | 'endSec'>,
-): string {
-  const id = youtubeId(block.url)
+): string | undefined {
+  const id = youtubeVideoId(block.url)
+  if (!id) return undefined
   const params = new URLSearchParams({ rel: '0', modestbranding: '1' })
   if (block.startSec !== undefined) params.set('start', String(block.startSec))
   if (block.endSec !== undefined) params.set('end', String(block.endSec))
-  return id ? `https://www.youtube-nocookie.com/embed/${id}?${params.toString()}` : block.url
-}
-
-function youtubeId(url: string): string | undefined {
-  const match =
-    /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/.exec(
-      url,
-    )
-  return match?.[1]
+  return `https://www.youtube-nocookie.com/embed/${id}?${params.toString()}`
 }
 
 function hostOf(url: string): string {
