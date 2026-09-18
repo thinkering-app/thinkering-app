@@ -26,6 +26,13 @@ export default function Privacy() {
           </section>
         ))}
         <section>
+          <h2 className="font-heading-bold text-title font-bold text-ink">This website</h2>
+          <p className="mt-3 max-w-2xl text-body text-ink-soft">
+            We count anonymous page views on this site. No cookies, no accounts, and nothing that
+            follows you from one day to the next.
+          </p>
+        </section>
+        <section>
           <h2 className="font-heading-bold text-title font-bold text-ink">Questions</h2>
           <p className="mt-3 text-body text-ink-soft">
             Ask anything about your data at{' '}
