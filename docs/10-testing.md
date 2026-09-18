@@ -148,7 +148,18 @@ jobs, so the slowest one sets the wall clock rather than the sum. The gate job
 restores `.turbo` from any earlier run's cache, which is what keeps a one-package
 PR from paying for the whole monorepo.
 
-The web smoke test is `pnpm --filter @thinkering/mobile test:web`: it exports the production web app in fixture mode, serves it with the headers from `vercel.json`, and drives Chrome from a fresh install through a backup restore. Re-entering `/` must land on Today, proving that the SQLite worker started, migrations ran, an Interest was written, and browser-local data persisted. This is intentionally one end-to-end smoke test; component behavior remains covered at the cheaper tiers above.
+The web smoke test is `pnpm --filter @thinkering/mobile test:web`: it exports
+the production web app in fixture mode, serves it with the headers from
+`vercel.json`, and drives Chrome from a fresh install through a backup restore.
+Re-entering `/` must land on Today, proving that the SQLite worker started,
+migrations ran, an Interest was written, and browser-local data persisted. This
+is intentionally one end-to-end smoke test; component behavior remains covered
+at the cheaper tiers above. Its backup fixture carries a deliberately long
+`approachNotes` — expo-sqlite's web worker returns a synchronous result through
+a shared buffer and wrote the payload length one byte wide, so anything from 256
+bytes up came back truncated (`patches/expo-sqlite@57.0.3.patch`). A short
+fixture row reads back fine either way, so the spec asserts the length rather
+than trusting it.
 
 Three things about them are worth knowing before editing one:
 

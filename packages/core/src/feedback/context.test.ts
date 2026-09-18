@@ -11,7 +11,7 @@ describe('coarseScreen', () => {
     expect(coarseScreen('/(tabs)/today')).toBe('today')
     expect(coarseScreen('/activity/0199a0f0-8b6c-7000-8000-000000000001')).toBe('activity')
     expect(coarseScreen('/path/settings?interestId=0199a0f0')).toBe('settings')
-    expect(coarseScreen('/me/ai-usage')).toBe('ai-usage')
+    expect(coarseScreen('/me/ai')).toBe('ai-usage')
     expect(coarseScreen('/')).toBe('today')
   })
 
