@@ -26,7 +26,7 @@ The app is feature-complete for a first beta and heading to TestFlight; what's l
 - **No secrets in the client.** The Anthropic key lives only in `apps/web` API routes. The only client-side key is a user's own BYO Anthropic key in SecureStore.
 - **All LLM output crosses a Zod boundary.** Never render or store unvalidated model output. Schemas live in `packages/core`.
 - **Prompts are code.** Every prompt is a versioned template in `packages/core/src/prompts` with a `kind` id; every call is logged to the local `llm_calls` table so the AI Inspector can show it. No inline ad-hoc prompts.
-- **Minimal user-facing text.** No helper paragraphs, no onboarding tooltips, no exclamation-mark cheerleading. If a screen needs explaining, redesign the screen. Copy is sentence case, short, warm but plain.
+- **Minimal user-facing text.** No excessive helper paragraphs, no onboarding tooltips, no exclamation-mark cheerleading. If a screen needs explaining, consider redesigning the screen. Copy is sentence case, short, warm but plain.
 - **Deterministic scheduling.** Which activities appear on Today is decided by plain code in `packages/core/src/scheduler`, from what's in the database: the same data on the same day always gives the same Today. The model writes activities; it never picks them. For the same reason, code in `packages/core` receives the time and new IDs (`now()`, `newId()`) instead of calling `Date.now()` or `Math.random()` — lint blocks both — so a test can fix the clock.
 
 ## Commands

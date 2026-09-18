@@ -1,6 +1,6 @@
 # 10 — Testing strategy
 
-The goal is a small suite that runs in seconds, guards the things that are expensive or impossible to fix later, and gives an agent session an unambiguous definition of "done". Everything else is deliberately untested.
+The goal is a small suite that runs in seconds, guards the things that are expensive or impossible to fix later, and gives an agent session an unambiguous definition of "done".
 
 ## The gate
 
