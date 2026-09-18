@@ -68,13 +68,13 @@ How table changes avoid breaking someone on an older build:
 
 ## AI access
 
-Three modes, same prompt code (`packages/core/prompts`):
+Three modes, same prompt code (`packages/core/src/prompts`):
 
-1. **Default — metered proxy**: `apps/web/app/api/ai/*` holds the Anthropic key. The client sends a call `kind` + structured params (not raw prompts); the server assembles the prompt from the same `packages/core` templates, calls Anthropic with streaming SSE passthrough, and meters usage. This keeps the key safe and prevents the proxy being a generic Anthropic relay.
+1. **Metered proxy** (the release default): `apps/web/app/api/ai/*` holds the Anthropic key. The client sends a call `kind` + structured params (not raw prompts); the server assembles the prompt from the same `packages/core` templates, calls Anthropic with streaming SSE passthrough, and meters usage. This keeps the key safe and prevents the proxy being a generic Anthropic relay.
 2. **BYO key**: user's Anthropic key in SecureStore (Keychain); client assembles the same prompts and calls Anthropic directly (`anthropic-dangerous-direct-browser-access` on web). Unmetered by us. On web, warn that the key is stored in browser storage.
-3. **Fixture** (dev, CI, and E2E): serves recorded responses from `fixtures/recorded/<kind>/` with simulated streaming and latency — no network, no key, deterministic. A first-class mode, not a test shim: it's how the whole app runs at zero token cost and how someone new runs it without an API key. See `10-testing.md`.
+3. **Fixture** (the dev default; CI and E2E): serves recorded responses from `fixtures/recorded/<kind>/` with simulated streaming and latency — no network, no key, deterministic. A first-class mode, not a test shim: it's how the whole app runs at zero token cost and how someone new runs it without an API key. See `10-testing.md`.
 
-The mode is a setting (Me, dev builds), defaulting to proxy. `EXPO_PUBLIC_AI_MODE=fixture` overrides the default for a run — needed because intake happens before the Me screen is reachable, and it is how the Maestro flows start (`10`).
+The mode is a setting (Me → Developer, with dev tools), starting from the build's mode: `EXPO_PUBLIC_AI_MODE` if set, otherwise fixture in a dev build and proxy in a release build — so a fresh checkout never spends tokens and a store build never serves fixtures. The Conductor run scripts set it (`AI_MODE=proxy` for real calls), and the e2e EAS profile sets `fixture` for the Maestro flows (`10`). A mode picked in Me persists until the data is cleared.
 
 ### Device identity & metering (D10)
 
@@ -111,6 +111,7 @@ The client's PostHog key/value store is backed by our own `settings` table (`cus
 
 ## Dev experience
 
-- **AI Inspector** (in-app, dev builds + hidden toggle in production builds): reads local `llm_calls` — full rendered prompt, response, model, token counts, latency, per-call cost estimate. This is the primary tool for iterating on prompts.
-- Seed script: `pnpm seed` loads a fixture interest with a path and history for UI work without burning tokens; fixture activity documents for renderer development.
+- **AI Inspector** (in-app, with dev tools + hidden toggle in production builds): reads local `llm_calls` — full rendered prompt, response, model, token counts, latency, per-call cost estimate. This is the primary tool for iterating on prompts.
+- **Dev tools** (`DEV_TOOLS` in `apps/mobile/src/ai/settings.ts`: dev builds, fixture-mode builds, and `EXPO_PUBLIC_DEV_TOOLS=true`, which the run scripts set; never a store build): Me → Developer switches AI mode, loads the fixture interest, and starts over empty or with only the fixture interest. The same resets are links — `dev/seed`, `dev/reset`, `dev/reset?seed=1` — driven by `pnpm seed:sim [--fresh]` and `pnpm reset:sim` on the simulator, or opened as URLs on web. A reset clears SQLite only (settings included, so backup switches off and the server copy is untouched); SecureStore keeps the device token, BYO key and backup sign-in.
+- Seed script: `pnpm seed` writes the same fixture interest to `packages/db/.data/seed.db` for poking at in node; fixture activity documents for renderer development.
 - CI (GitHub Actions): `pnpm verify` (typecheck, lint, vitest on core/db/web routes), `expo export` smoke build for web, EAS build on release tags. Strategy and boundaries in `10-testing.md`.

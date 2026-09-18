@@ -1,14 +1,14 @@
 {
   "kind": "path.suggestGoals",
-  "promptVersion": 1,
-  "model": "hand-authored",
+  "promptVersion": 2,
+  "model": "claude-haiku-4-5-20251001",
   "fixture": "default",
-  "text": "```json\n{\n  \"goals\": [\n    {\n      \"title\": \"Ask questions that keep a conversation going\",\n      \"description\": \"Turn statements into questions so you can hand the conversation back instead of stalling after your sentence.\",\n      \"concepts\": [\n        {\n          \"label\": \"W-questions\",\n          \"kind\": \"concept\"\n        },\n        {\n          \"label\": \"Yes/no question word order\",\n          \"kind\": \"concept\"\n        },\n        {\n          \"label\": \"Asking follow-ups\",\n          \"kind\": \"skill\"\n        }\n      ]\n    },\n    {\n      \"title\": \"Order a whole meal, start to finish\",\n      \"description\": \"Extend ordering beyond one dish: the table, the menu, a change to the order, and paying.\",\n      \"concepts\": [\n        {\n          \"label\": \"Paying and splitting\",\n          \"kind\": \"skill\"\n        },\n        {\n          \"label\": \"Modifying an order\",\n          \"kind\": \"skill\"\n        },\n        {\n          \"label\": \"Restaurant small talk\",\n          \"kind\": \"concept\"\n        }\n      ]\n    },\n    {\n      \"title\": \"Understand spoken Bavarian greetings\",\n      \"description\": \"Munich does not sound like the audio in a course. Learn the regional greetings and fillers you will actually hear at dinner.\",\n      \"concepts\": [\n        {\n          \"label\": \"Servus, Grüß Gott\",\n          \"kind\": \"concept\"\n        },\n        {\n          \"label\": \"Regional pronunciation\",\n          \"kind\": \"concept\"\n        },\n        {\n          \"label\": \"Catching fast speech\",\n          \"kind\": \"skill\"\n        }\n      ]\n    }\n  ]\n}\n```",
+  "text": "```json\n{\n  \"goals\": [\n    {\n      \"title\": \"Ask and answer basic questions about daily life\",\n      \"description\": \"Build the questions you'll actually hear at dinner: Wie geht's? Was machst du beruflich? Wo wohnst du? Learn to ask back and give short answers.\",\n      \"concepts\": [\n        { \"label\": \"Question words (W-Fragen)\", \"kind\": \"concept\" },\n        { \"label\": \"Present tense conjugation\", \"kind\": \"skill\" },\n        { \"label\": \"Answering naturally\", \"kind\": \"skill\" }\n      ]\n    },\n    {\n      \"title\": \"Understand and use German word order patterns\",\n      \"description\": \"German word order trips up English speakers. See why the verb moves, where objects go, and practice spotting patterns in real sentences so you can both parse what you hear and construct replies correctly.\",\n      \"concepts\": [\n        { \"label\": \"Verb-second rule (SVO)\", \"kind\": \"concept\" },\n        { \"label\": \"Subordinate clause order\", \"kind\": \"concept\" },\n        { \"label\": \"Parsing by position\", \"kind\": \"skill\" }\n      ]\n    },\n    {\n      \"title\": \"Talk about food, preferences, and cooking\",\n      \"description\": \"Extend your restaurant knowledge: discuss what you like to eat, cook, or order at home. Pair with Bavarian food specifics so you can engage when family talks about regional dishes.\",\n      \"concepts\": [\n        { \"label\": \"Food and cooking vocabulary\", \"kind\": \"concept\" },\n        { \"label\": \"Mögen and gefallen\", \"kind\": \"skill\" },\n        { \"label\": \"Bavarian specialties\", \"kind\": \"concept\" }\n      ]\n    }\n  ]\n}\n```",
   "usage": {
-    "inputTokens": 0,
-    "outputTokens": 0,
+    "inputTokens": 1417,
+    "outputTokens": 431,
     "cacheReadTokens": 0,
     "cacheWriteTokens": 0
   },
-  "latencyMs": 0
+  "latencyMs": 4268
 }

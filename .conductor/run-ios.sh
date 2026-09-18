@@ -9,14 +9,20 @@
 # Rebuild only when native dependencies change (a new Expo module, an SDK bump,
 # an app.config.ts native field): .conductor/run-ios.sh --rebuild
 #
-# Env: THINKERING_SIM (simulator name, default "iPhone 17 Pro")
+# Env: THINKERING_SIM (simulator name, default "iPhone 17")
 #      METRO_PORT     (default 8081; Conductor passes $CONDUCTOR_PORT + 2)
+#      AI_MODE        fixture (default) | proxy — overrides apps/mobile/.env
+#
+# Once it's up, `pnpm reset:sim` empties the app and `pnpm seed:sim --fresh`
+# starts it over with only the fixture interest.
 set -euo pipefail
+
+ai_mode="${AI_MODE:-fixture}"
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 mobile="$root/apps/mobile"
 port="${METRO_PORT:-8081}"
-sim_name="${THINKERING_SIM:-iPhone 17 Pro}"
+sim_name="${THINKERING_SIM:-iPhone 17}"
 cache="${THINKERING_DEV_CLIENT:-$HOME/Library/Caches/thinkering/dev-client}"
 app="$cache/thinkering.app"
 
@@ -72,27 +78,39 @@ xcrun simctl terminate "$udid" app.thinkering >/dev/null 2>&1 || true
 
 # --- metro ----------------------------------------------------------------
 cd "$mobile"
-npx expo start --dev-client --port "$port" &
-metro=$!
-trap 'kill $metro 2>/dev/null || true' INT TERM EXIT
+# The mode is inlined into the bundle, so a change of mode clears Metro's cache
+# rather than trusting it to notice.
+clear=()
+mode_file="$mobile/.expo/thinkering-ai-mode"
+if [ "$(cat "$mode_file" 2>/dev/null)" != "$ai_mode" ]; then clear=(--clear); fi
+mkdir -p "$(dirname "$mode_file")"
+echo "$ai_mode" >"$mode_file"
 
 running() {
   xcrun simctl spawn "$udid" launchctl list 2>/dev/null | grep -q "UIKitApplication:app.thinkering"
 }
 
-for _ in $(seq 1 90); do
-  curl -sf "http://localhost:$port/status" >/dev/null 2>&1 && break
-  sleep 1
-done
+# Opens the app once Metro answers. It runs alongside Metro rather than the
+# other way round: Metro stays the foreground process, so its output — build
+# progress, errors, the app's logs — is this script's output, and Conductor's
+# Stop reaches it directly instead of orphaning a backgrounded server on the port.
+open_app() {
+  for _ in $(seq 1 90); do
+    curl -sf "http://localhost:$port/status" >/dev/null 2>&1 && break
+    sleep 1
+  done
 
-# A freshly booted simulator sometimes swallows the first open, so keep asking
-# until the app is actually running.
-for _ in 1 2 3 4 5; do
-  running && break
-  echo "==> opening the app against http://localhost:$port"
-  xcrun simctl openurl "$udid" "thinkering://expo-development-client/?url=http%3A%2F%2Flocalhost%3A$port" || true
-  sleep 5
-done
-running || echo "The app didn't come up. Open it by hand from the simulator's home screen — the dev launcher remembers this URL." >&2
+  # A freshly booted simulator sometimes swallows the first open, so keep asking
+  # until the app is actually running.
+  for _ in 1 2 3 4 5; do
+    running && return
+    echo "==> opening the app against http://localhost:$port"
+    xcrun simctl openurl "$udid" "thinkering://expo-development-client/?url=http%3A%2F%2Flocalhost%3A$port" || true
+    sleep 5
+  done
+  running || echo "The app didn't come up. Open it by hand from the simulator's home screen — the dev launcher remembers this URL." >&2
+}
+open_app &
 
-wait $metro
+echo "==> metro in $ai_mode mode"
+EXPO_PUBLIC_AI_MODE="$ai_mode" exec npx expo start --dev-client --port "$port" ${clear[@]+"${clear[@]}"}

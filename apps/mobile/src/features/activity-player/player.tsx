@@ -7,7 +7,7 @@ import type { ActivityDoc, Page, Rating } from '@thinkering/core'
 import { Button } from '@/components/button'
 import { FadeIn } from '@/components/fade-in'
 import { Generating } from '@/components/generating'
-import { Watercolor } from '@/components/texture'
+import { Wash } from '@/components/texture'
 import { ProgressBar } from '@/components/progress-bar'
 import { colors } from '@/theme/tokens'
 import { BlockView } from './blocks'
@@ -109,8 +109,13 @@ export function ActivityPlayer({
           </View>
         </View>
 
-        {/* The summary is the one page that gets a wash behind it (docs/07). */}
-        {isSummary ? <Watercolor color="sun" size={300} opacity={0.35} /> : null}
+        {/* The summary is the one page that gets washes, at its edges (docs/07). */}
+        {isSummary ? (
+          <View pointerEvents="none" className="absolute inset-0 overflow-hidden">
+            <Wash color="sun" size={320} className="-right-32 top-16" />
+            <Wash color="peach" size={280} className="-bottom-24 -left-28" />
+          </View>
+        ) : null}
 
         <ResponsesProvider sink={sink}>
           <ScrollView

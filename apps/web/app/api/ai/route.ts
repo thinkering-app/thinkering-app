@@ -1,6 +1,6 @@
 import type Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
-import { getPromptTemplate, MODEL_IDS, type RenderedPrompt } from '@thinkering/core'
+import { getPromptTemplate, modelRequestFields, type RenderedPrompt } from '@thinkering/core'
 import { verifyDeviceAuth } from '@/lib/server/auth'
 import { getDeps } from '@/lib/server/deps'
 import { budgetHeaders, checkBudget, nextUtcMidnight, utcDayOf } from '@/lib/server/metering'
@@ -27,35 +27,14 @@ const bodySchema = z.object({
     .optional(),
 })
 
-/**
- * Server-side tools a kind declares (docs/04). packages/core names them
- * abstractly; the tool type version lives here, next to the SDK that has to
- * accept it. `web_search_20260209` needs Sonnet 4.6 or newer — the only kind
- * using it (G4) is a Sonnet kind.
- */
-function toAnthropicTools(template: NonNullable<ReturnType<typeof getPromptTemplate>>) {
-  if (!template.tools?.webSearch) return undefined
-  return [
-    {
-      type: 'web_search_20260209' as const,
-      name: 'web_search' as const,
-      max_uses: template.tools.webSearch.maxUses,
-    },
-  ] as unknown as Anthropic.ToolUnion[]
-}
-
 function toAnthropicRequest(
   template: NonNullable<ReturnType<typeof getPromptTemplate>>,
   rendered: RenderedPrompt,
 ): Anthropic.MessageCreateParamsNonStreaming {
-  const tools = toAnthropicTools(template)
   return {
-    model: MODEL_IDS[template.model],
-    max_tokens: template.maxTokens,
-    ...(tools ? { tools } : {}),
-    ...(template.model === 'haiku' && template.temperature !== undefined
-      ? { temperature: template.temperature }
-      : {}),
+    // Model, limits, thinking, sampling and tools, shared with the BYO-key
+    // client and the prompt scripts (packages/core/src/prompts/request.ts).
+    ...(modelRequestFields(template) as Omit<Anthropic.MessageCreateParamsNonStreaming, 'messages'>),
     system: rendered.system.map((b) => ({
       type: 'text' as const,
       text: b.text,
