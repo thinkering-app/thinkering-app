@@ -41,6 +41,8 @@ export const interests = sqliteTable('interests', {
   whyText: text('why_text'),
   experienceChoice: text('experience_choice').$type<ExperienceChoice>().notNull(),
   experienceText: text('experience_text'),
+  /** What would feel like success, picked or written on intake step 5. Null for interests that predate it. */
+  successOutcomes: text('success_outcomes', { mode: 'json' }).$type<string[]>(),
   frequency: text('frequency').$type<Frequency>().notNull(),
   sessionMinutes: integer('session_minutes').notNull(),
   approachNotes: text('approach_notes').notNull().default(''),
@@ -290,7 +292,9 @@ export const llmCalls = sqliteTable('llm_calls', {
 export const analyticsBuffer = sqliteTable('analytics_buffer', {
   id: id(),
   event: text('event').notNull(),
-  properties: text('properties', { mode: 'json' }).$type<Record<string, AnalyticsValue>>().notNull(),
+  properties: text('properties', { mode: 'json' })
+    .$type<Record<string, AnalyticsValue>>()
+    .notNull(),
   createdAt: createdAt(),
 })
 

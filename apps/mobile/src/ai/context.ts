@@ -44,6 +44,7 @@ export function interestContext(interest: Interest, goals?: Goal[]): InterestCon
       whyText: interest.whyText,
       experienceChoice: interest.experienceChoice,
       experienceText: interest.experienceText,
+      successOutcomes: interest.successOutcomes,
       frequency: interest.frequency,
       sessionMinutes: interest.sessionMinutes,
       approachNotes: interest.approachNotes,

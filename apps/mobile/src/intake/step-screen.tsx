@@ -10,11 +10,11 @@ import { useIntake } from './context'
 import { INTAKE_STEP_COUNT } from './steps'
 
 type StepScreenProps = {
-  /** 1-based position in the six intake questions. */
+  /** 1-based position in the seven intake questions. */
   step: number
   question: string
   children: ReactNode
-  /** Replaces the default primary button — step 6 needs two actions. */
+  /** Replaces the default primary button — the last step has its own action. */
   footer?: ReactNode
   onContinue?: () => void
   continueLabel?: string
@@ -35,7 +35,7 @@ export function StepScreen({
   continueLabel = 'Continue',
   continueDisabled = false,
 }: StepScreenProps) {
-  // Steps 1–5 finish here; step 6 replaces the action and is counted by
+  // Steps 1–6 finish here; step 7 replaces the action and is counted by
   // `intake_completed` instead (docs/08).
   const { completeStep } = useIntake()
   const advance = onContinue

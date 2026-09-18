@@ -3,6 +3,7 @@ import { activityQuestionTemplate } from './kinds/activity-question'
 import { activityReviewTemplate } from './kinds/activity-review'
 import { intakeApproachTemplate } from './kinds/intake-approach'
 import { intakePathTemplate } from './kinds/intake-path'
+import { intakeSuccessTemplate } from './kinds/intake-success'
 import { intakeTopicsTemplate } from './kinds/intake-topics'
 import { pathSuggestGoalsTemplate } from './kinds/path-suggest-goals'
 import { reflectUpdateTemplate } from './kinds/reflect-update'
@@ -13,12 +14,13 @@ import { todayPlanTemplate } from './kinds/today-plan'
 import type { AnyPromptTemplate, GenerationKind } from './types'
 
 /**
- * Every implemented prompt template by kind — all twelve of docs/04's
+ * Every implemented prompt template by kind — all thirteen of docs/04's
  * generation map. The proxy rejects kinds not present here.
  */
 export const PROMPTS = {
   'intake.approach': intakeApproachTemplate,
   'intake.topics': intakeTopicsTemplate,
+  'intake.success': intakeSuccessTemplate,
   'intake.path': intakePathTemplate,
   'today.plan': todayPlanTemplate,
   'activity.generate': activityGenerateTemplate,

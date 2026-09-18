@@ -517,13 +517,13 @@ exports[`prompt templates > intake.path renders stably (snapshot) 1`] = `
       "content": "They want to learn: Get conversational in German
 Why: personal_goal — Partner’s family is in Munich; I want to hold my own at dinner.
 Experience: explored — Two Duolingo streaks that died; I can order food.
-Session length: 10 minutes
 Domain: language acquisition
 Approach notes: You'll get the most from comprehensible input paired with real output: hear or read German at your level, then produce your own sentences, not just recognize them. Since Munich dinners are the goal, build around spoken, social register — greetings, family talk, food, opinions — over textbook grammar drills. Until we know your level, early sessions will test where you land; if you already know some German, we'll skip basics and go straight to gaps. As you progress, scaffolding (translations, sentence starters) fades and improvisation load increases.
 Progression principles: Start with high-frequency social phrases and questions before tackling grammar rules abstractly. · Interleave listening and speaking early so output habits form alongside comprehension. · Sequence topics around real family-dinner scenarios: introductions, food, opinions, small talk.
 Pitfalls to design around: Recognizing words when reading feels like fluency but doesn't mean you can produce them aloud. · Overusing English grammar logic causes systematic errors in case endings and word order. · Politeness and small talk phrases get neglected in favor of vocabulary lists, hurting real dinners.
 Topics they selected: Family introductions, Talking about food, Sharing opinions politely
-Topics shown but not selected: Small talk starters, Du vs Sie, Present tense verbs, Asking questions naturally, German word order, Bavarian everyday phrases, Munich table customs, Telling stories about your day",
+Topics shown but not selected: Small talk starters, Du vs Sie, Present tense verbs, Asking questions naturally, German word order, Bavarian everyday phrases, Munich table customs, Telling stories about your day
+What would feel like success: I can follow a dinner conversation · I can tell a short story about my week · I feel relaxed speaking with family",
       "role": "user",
     },
   ],
@@ -568,7 +568,57 @@ Return JSON: {
   }]
 }
 
-5–8 goals, pedagogically sequenced by the progression principles: prerequisites before dependents, concrete before abstract, early wins first. Each goal must be introducible in one session of the learner's stated length (see their session length below). Selected topics get priority coverage; weave in unselected foundational ground where skipping it would hurt. Goals are not topics: scope each to what one session can genuinely teach.",
+5–8 goals, pedagogically sequenced by the progression principles: prerequisites before dependents, concrete before abstract, early wins first. Each goal must be introducible in one short session (5–15 minutes). Selected topics get priority coverage; weave in unselected foundational ground where skipping it would hurt. Goals are not topics: scope each to what one session can genuinely teach. When they've said what would feel like success, the path should lead there: the later goals are the ones that get them to it.",
+    },
+  ],
+}
+`;
+
+exports[`prompt templates > intake.success renders stably (snapshot) 1`] = `
+{
+  "messages": [
+    {
+      "content": "They want to learn: Get conversational in German
+Why: personal_goal — Partner’s family is in Munich; I want to hold my own at dinner.
+Experience: explored — Two Duolingo streaks that died; I can order food.",
+      "role": "user",
+    },
+  ],
+  "system": [
+    {
+      "cache": true,
+      "text": "You are the generation engine inside thinkering, a local-first mobile app that helps adults make steady, real progress on things they want to learn — in the time they actually have (5–15 minute sessions).
+
+How the product works: an Interest is something the user wants to learn. Its Path is an ordered list of Goals — each one a well-scoped unit teachable in one session, carrying named concepts and skills. Each day the Today tab offers three lanes: Next (introduce a new goal), Strengthen (consolidate via retrieval and practice), and Go further (apply learning to the user's life, or extend it deeper/wider). Completing an activity advances the goal's status: not_started → introduced → strengthened → applied. Activities are multi-page interactive documents built from a library of learning strategies; a deterministic scheduler picks the goals — you never decide scheduling, only content.
+
+Ground everything in well-replicated learning science:
+- Retrieval practice and spacing beat re-reading; corrective feedback amplifies both.
+- Worked examples first for novices, then faded examples, then independent practice (expertise-reversal: fade scaffolding as experience grows).
+- Interleave related material once several ideas exist; contrast confusable ideas directly.
+- Generation effect: have the learner attempt or predict before the explanation when scaffolding is tight.
+- Self-explanation and elaboration: asking "why" and "in your own words" builds durable understanding.
+- Manage cognitive load: one idea at a time, concrete examples before abstractions, no decorative content.
+- Transfer needs explicit bridges: connect ideas to the learner's own projects, contexts, and prior knowledge.
+- Misconceptions: surface and correct them directly and kindly; never let a wrong idea pass to be polite.
+
+Per-domain emphases (apply the ones matching the domain):
+- Languages: heavy comprehensible input at the right level PLUS pushed output — produce sentences, not just recognize them.
+- Creative & physical skills (drawing, music, cooking): deliberate practice loops — isolate one sub-skill, rep it just past comfort, immediate specific feedback; study references, then make things with a critique pass.
+- Strategy games (chess): pattern recognition through many short classification reps, tactics drills, annotated study.
+- Quantitative/technical (finance, LLMs, coding): worked examples → faded examples → retrieval, honoring the expertise-reversal effect.
+- Knowledge-rich domains (climate, PM, history): elaboration and cases, retrieval with feedback, applying frameworks to real situations.
+
+Tone for everything the learner sees: plain, warm, adult, concise. Sentence case. No filler praise — "Great job!" never; specific praise only when an answer was actually good, and say why. Never patronize or assume: app history is not the learner's whole knowledge — they may know things they haven't done here. Avoid "you haven't learned X yet" framings; phrase recaps as "in thinkering you've covered…" and treat prior knowledge as plausible. No exclamation-mark cheerleading, no cutesy naming.
+
+Output contract: respond with a single JSON object exactly matching the schema in the task instructions — no markdown fences, no commentary before or after the JSON.",
+    },
+    {
+      "cache": true,
+      "text": "Task: propose outcomes the learner could pick in answer to "What would feel like success?". They pick any that fit, or none.
+
+Return JSON: { "outcomes": string[] }
+3–5 outcomes. Each is first person, in the learner's own voice: "I can…", "I understand…", "I've made…", "I feel confident…". 3–10 words, sentence case, no trailing period.
+Make them genuinely varied, and a bit longer term — cover different kinds of success, not one kind restated: understanding something, doing something, making or finishing something, a real moment in their life tied to why they're learning, and confidence or habit. Concrete and specific to what they told you, and pitched to their experience: reachable in weeks to months, not years.",
     },
   ],
 }

@@ -17,8 +17,8 @@ const FREQUENCIES: { value: Frequency; label: string }[] = [
 const PRESET_MINUTES = [5, 10, 15]
 
 /**
- * Step 4 (docs/01 §1) — frequency and session length together. This screen is
- * also what buys G2 its time; nothing here waits on a generation.
+ * Step 6 (docs/01 §1) — frequency and session length together. This screen is
+ * also what buys G3 its time; nothing here waits on a generation.
  */
 export default function TimeStep() {
   const { answers, update } = useIntake()
@@ -28,10 +28,10 @@ export default function TimeStep() {
 
   return (
     <StepScreen
-      step={4}
+      step={6}
       question="How much time do you want to spend?"
       continueDisabled={!ready}
-      onContinue={() => router.push('/intake/topics')}
+      onContinue={() => router.push('/intake/direction')}
     >
       <View className="gap-3">
         <Text className="font-sans text-secondary text-ink-soft">How often</Text>

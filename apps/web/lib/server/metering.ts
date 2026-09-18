@@ -19,6 +19,7 @@ export const PROTECTED_KINDS = new Set(['activity.review', 'activity.question'])
 export const BURST_LIMITS: Record<string, number> = {
   'intake.approach': 10,
   'intake.topics': 10,
+  'intake.success': 10,
   'intake.path': 15,
   'resources.search': 10,
   'activity.generate': 80,
@@ -43,8 +44,7 @@ export function nextUtcMidnight(nowMs: number): string {
 }
 
 export type BudgetDecision =
-  | { allowed: true }
-  | { allowed: false; reason: 'budget_exhausted' | 'kind_limit_reached' }
+  { allowed: true } | { allowed: false; reason: 'budget_exhausted' | 'kind_limit_reached' }
 
 /**
  * Reserved headroom: generation-heavy kinds stop at budget − reserve; the
@@ -58,7 +58,9 @@ export function checkBudget(kind: string, usage: UsageRecord): BudgetDecision {
     return { allowed: false, reason: 'kind_limit_reached' }
   }
   const used = weightedUsed(usage)
-  const ceiling = PROTECTED_KINDS.has(kind) ? DAILY_BUDGET_WEIGHTED : DAILY_BUDGET_WEIGHTED - RESERVED_WEIGHTED
+  const ceiling = PROTECTED_KINDS.has(kind)
+    ? DAILY_BUDGET_WEIGHTED
+    : DAILY_BUDGET_WEIGHTED - RESERVED_WEIGHTED
   if (used >= ceiling) return { allowed: false, reason: 'budget_exhausted' }
   return { allowed: true }
 }

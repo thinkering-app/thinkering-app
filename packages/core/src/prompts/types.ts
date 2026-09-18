@@ -9,6 +9,7 @@ import type { z } from 'zod'
 export const GENERATION_KINDS = [
   'intake.approach', // G1
   'intake.topics', // G2
+  'intake.success', // G2b
   'intake.path', // G3
   'resources.search', // G4
   'today.plan', // G5a

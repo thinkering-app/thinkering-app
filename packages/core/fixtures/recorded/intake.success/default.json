@@ -1,0 +1,14 @@
+{
+  "kind": "intake.success",
+  "promptVersion": 1,
+  "model": "hand-authored",
+  "fixture": "default",
+  "text": "{\"outcomes\":[\"I can follow most of a dinner conversation\",\"I understand when to use du or Sie\",\"I've had a whole call with family in German\",\"I feel relaxed speaking, even with mistakes\",\"I practice a little most days without forcing it\"]}",
+  "usage": {
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0
+  },
+  "latencyMs": 0
+}

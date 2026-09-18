@@ -4,7 +4,6 @@
   "whyText": "Partner’s family is in Munich; I want to hold my own at dinner.",
   "experienceChoice": "explored",
   "experienceText": "Two Duolingo streaks that died; I can order food.",
-  "sessionMinutes": 10,
   "approach": {
     "domain": "language acquisition",
     "approachNotes": "You'll get the most from comprehensible input paired with real output: hear or read German at your level, then produce your own sentences, not just recognize them. Since Munich dinners are the goal, build around spoken, social register — greetings, family talk, food, opinions — over textbook grammar drills. Until we know your level, early sessions will test where you land; if you already know some German, we'll skip basics and go straight to gaps. As you progress, scaffolding (translations, sentence starters) fades and improvisation load increases.",
@@ -19,11 +18,7 @@
       "Sequence topics around real family-dinner scenarios: introductions, food, opinions, small talk."
     ]
   },
-  "selectedTopics": [
-    "Family introductions",
-    "Talking about food",
-    "Sharing opinions politely"
-  ],
+  "selectedTopics": ["Family introductions", "Talking about food", "Sharing opinions politely"],
   "unselectedTopics": [
     "Small talk starters",
     "Du vs Sie",
@@ -33,5 +28,10 @@
     "Bavarian everyday phrases",
     "Munich table customs",
     "Telling stories about your day"
+  ],
+  "successOutcomes": [
+    "I can follow a dinner conversation",
+    "I can tell a short story about my week",
+    "I feel relaxed speaking with family"
   ]
 }

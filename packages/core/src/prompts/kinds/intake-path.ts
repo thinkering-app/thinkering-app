@@ -3,7 +3,11 @@ import { approachOutputSchema, pathOutputSchema } from '../../schemas/generation
 import { SHARED_PREAMBLE } from '../preamble'
 import type { PromptTemplate } from '../types'
 
-/** G3 `intake.path` — fired on intake step 5 → 6; streamed onto step 6 (name first, then goals). */
+/**
+ * G3 `intake.path` — fired on intake step 5 → 6 and streamed onto step 7 (name
+ * first, then goals); the time question on step 6 covers the wait. Session
+ * length isn't known yet when it goes out, so goals are scoped to a short session.
+ */
 
 export const intakePathParamsSchema = z.object({
   wantToLearn: z.string().min(1),
@@ -11,10 +15,11 @@ export const intakePathParamsSchema = z.object({
   whyText: z.string().optional(),
   experienceChoice: z.enum(['getting_started', 'explored', 'in_middle', 'experienced']),
   experienceText: z.string().optional(),
-  sessionMinutes: z.number().int().positive(),
   approach: approachOutputSchema,
   selectedTopics: z.array(z.string()),
   unselectedTopics: z.array(z.string()).optional(),
+  /** What would feel like success — picked or written on step 5. */
+  successOutcomes: z.array(z.string()).optional(),
 })
 export type IntakePathParams = z.infer<typeof intakePathParamsSchema>
 
@@ -29,11 +34,14 @@ Return JSON: {
   }]
 }
 
-5–8 goals, pedagogically sequenced by the progression principles: prerequisites before dependents, concrete before abstract, early wins first. Each goal must be introducible in one session of the learner's stated length (see their session length below). Selected topics get priority coverage; weave in unselected foundational ground where skipping it would hurt. Goals are not topics: scope each to what one session can genuinely teach.`
+5–8 goals, pedagogically sequenced by the progression principles: prerequisites before dependents, concrete before abstract, early wins first. Each goal must be introducible in one short session (5–15 minutes). Selected topics get priority coverage; weave in unselected foundational ground where skipping it would hurt. Goals are not topics: scope each to what one session can genuinely teach. When they've said what would feel like success, the path should lead there: the later goals are the ones that get them to it.`
 
-export const intakePathTemplate: PromptTemplate<IntakePathParams, z.infer<typeof pathOutputSchema>> = {
+export const intakePathTemplate: PromptTemplate<
+  IntakePathParams,
+  z.infer<typeof pathOutputSchema>
+> = {
   kind: 'intake.path',
-  version: 3,
+  version: 4,
   model: 'sonnet',
   maxTokens: 16000,
   effort: 'high',
@@ -51,7 +59,6 @@ export const intakePathTemplate: PromptTemplate<IntakePathParams, z.infer<typeof
           `They want to learn: ${params.wantToLearn}`,
           `Why: ${params.whyChoice}${params.whyText ? ` — ${params.whyText}` : ''}`,
           `Experience: ${params.experienceChoice}${params.experienceText ? ` — ${params.experienceText}` : ''}`,
-          `Session length: ${params.sessionMinutes} minutes`,
           `Domain: ${params.approach.domain}`,
           `Approach notes: ${params.approach.approachNotes}`,
           `Progression principles: ${params.approach.progressionPrinciples.join(' · ')}`,
@@ -59,6 +66,9 @@ export const intakePathTemplate: PromptTemplate<IntakePathParams, z.infer<typeof
           `Topics they selected: ${params.selectedTopics.length > 0 ? params.selectedTopics.join(', ') : '(none selected)'}`,
           ...(params.unselectedTopics && params.unselectedTopics.length > 0
             ? [`Topics shown but not selected: ${params.unselectedTopics.join(', ')}`]
+            : []),
+          ...(params.successOutcomes && params.successOutcomes.length > 0
+            ? [`What would feel like success: ${params.successOutcomes.join(' · ')}`]
             : []),
         ].join('\n'),
       },

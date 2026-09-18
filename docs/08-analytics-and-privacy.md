@@ -18,29 +18,29 @@ Learning data is personal. It lives on the device; the only ways it leaves are t
 
 Never in any property: interest names, goal titles, activity titles, user text, URLs, email. Durations/latencies as buckets, not raw ms.
 
-| event                                | properties                                                                            |
-| ------------------------------------ | ------------------------------------------------------------------------------------- |
-| `app_opened`                         | platform, app_version, days_since_install (bucket)                                    |
-| `intake_started`                     | is_first_interest                                                                     |
-| `intake_step_completed`              | step (1–6), duration_bucket                                                           |
-| `intake_completed`                   | topics_selected_count, frequency, session_minutes                                     |
-| `intake_abandoned`                   | last_step                                                                             |
+| event                                | properties                                                                                                                                             |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `app_opened`                         | platform, app_version, days_since_install (bucket)                                                                                                     |
+| `intake_started`                     | is_first_interest                                                                                                                                      |
+| `intake_step_completed`              | step (1–7), duration_bucket                                                                                                                            |
+| `intake_completed`                   | topics_selected_count, frequency, session_minutes                                                                                                      |
+| `intake_abandoned`                   | last_step                                                                                                                                              |
 | `activity_started`                   | section, tier, library_item_id, source (card/prefetch/resume — `prefetch` is reserved; prefetching generates a document, it doesn't start an activity) |
-| `activity_completed`                 | section, tier, library_item_id, duration_bucket, pages, questions_asked_count, rating |
-| `activity_abandoned`                 | tier, last_page_index                                                                 |
-| `question_asked`                     | tier                                                                                  |
-| `reflection_completed`               | changes_count                                                                         |
-| `goal_added`                         | source (suggestion/reflection/user)                                                   |
-| `resource_added`                     | source (user/suggested)                                                               |
-| `routine_configured`                 | via (checkboxes/free_text)                                                            |
-| `backup_enabled` / `backup_disabled` | —                                                                                     |
-| `byok_enabled`                       | —                                                                                     |
-| `ai_call`                            | kind, model, latency_bucket, status (ok/error/rate_limited)                           |
-| `cap_reached`                        | —                                                                                     |
-| `featurebase_opened`                 | screen                                                                                |
-| `email_feedback_sent`                | screen, included_context                                                              |
-| `activity_report_sent`               | —                                                                                     |
-| `settings_changed`                   | key (enum)                                                                            |
+| `activity_completed`                 | section, tier, library_item_id, duration_bucket, pages, questions_asked_count, rating                                                                  |
+| `activity_abandoned`                 | tier, last_page_index                                                                                                                                  |
+| `question_asked`                     | tier                                                                                                                                                   |
+| `reflection_completed`               | changes_count                                                                                                                                          |
+| `goal_added`                         | source (suggestion/reflection/user)                                                                                                                    |
+| `resource_added`                     | source (user/suggested)                                                                                                                                |
+| `routine_configured`                 | via (checkboxes/free_text)                                                                                                                             |
+| `backup_enabled` / `backup_disabled` | —                                                                                                                                                      |
+| `byok_enabled`                       | —                                                                                                                                                      |
+| `ai_call`                            | kind, model, latency_bucket, status (ok/error/rate_limited)                                                                                            |
+| `cap_reached`                        | —                                                                                                                                                      |
+| `featurebase_opened`                 | screen                                                                                                                                                 |
+| `email_feedback_sent`                | screen, included_context                                                                                                                               |
+| `activity_report_sent`               | —                                                                                                                                                      |
+| `settings_changed`                   | key (enum)                                                                                                                                             |
 
 Implementation: the schema is a discriminated union in `packages/core/src/analytics/events.ts` — in core rather than the app so its buckets and allowlist are unit-testable — and `track()` in `apps/mobile/src/analytics/track.ts` is typed by it. Adding an event means editing the union, the runtime allowlist beside it (a type error if they disagree), and this table. No stray `posthog.capture` calls.
 
@@ -67,14 +67,14 @@ We want to see whether generated activities are actually good without ambient co
 
 What App Privacy on App Store Connect should say, and why. **"Do you use data to track users?" — No**: nothing is shared with data brokers or used for cross-app advertising, and no identifier is linked to an identity.
 
-| Data type                        | Collected                       | Linked to the user | Purpose             | Why                                                                              |
-| -------------------------------- | ------------------------------- | ------------------ | ------------------- | -------------------------------------------------------------------------------- |
-| Contact info → Email address     | Yes                             | **Yes**            | App functionality   | Only if the user opts into backup (Supabase auth), or supplies a reply address on private feedback. |
-| User content → Other user content| Yes                             | Yes                | App functionality   | Backup rows are the user's own learning data under RLS. Off by default.          |
-| User content → Other user content| Yes                             | **No**             | App functionality   | Prompt content through the AI proxy, and explicitly shared activity reports. Neither is stored. |
-| Identifiers → User ID            | No                              | —                  | —                   | The analytics id is random, device-local and never linked; PostHog's `$ip` is suppressed. |
-| Usage data → Product interaction | Yes                             | **No**             | Analytics           | The docs/08 event schema, opt-in only. Declare it — "the user can turn it off" does not exempt it. |
-| Diagnostics                      | No                              | —                  | —                   | No crash reporter, no performance SDK, no error tracking.                        |
+| Data type                         | Collected | Linked to the user | Purpose           | Why                                                                                                 |
+| --------------------------------- | --------- | ------------------ | ----------------- | --------------------------------------------------------------------------------------------------- |
+| Contact info → Email address      | Yes       | **Yes**            | App functionality | Only if the user opts into backup (Supabase auth), or supplies a reply address on private feedback. |
+| User content → Other user content | Yes       | Yes                | App functionality | Backup rows are the user's own learning data under RLS. Off by default.                             |
+| User content → Other user content | Yes       | **No**             | App functionality | Prompt content through the AI proxy, and explicitly shared activity reports. Neither is stored.     |
+| Identifiers → User ID             | No        | —                  | —                 | The analytics id is random, device-local and never linked; PostHog's `$ip` is suppressed.           |
+| Usage data → Product interaction  | Yes       | **No**             | Analytics         | The docs/08 event schema, opt-in only. Declare it — "the user can turn it off" does not exempt it.  |
+| Diagnostics                       | No        | —                  | —                 | No crash reporter, no performance SDK, no error tracking.                                           |
 
 Also before submission:
 

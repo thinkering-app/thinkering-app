@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 import {
   durationBucket,
   extractPartialPath,
@@ -9,6 +17,7 @@ import {
   type InterestStatus,
   type PartialPath,
   type PathOutput,
+  type SuccessOutput,
   type TopicsOutput,
   type WhyChoice,
 } from '@thinkering/core'
@@ -18,6 +27,7 @@ import { callAi } from '@/ai'
 import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
 import { useGeneration, type GenerationState } from '@/ai/generation'
+import { currentPicks } from './chip-picker'
 
 /**
  * Intake state for one run of the flow (docs/01 §1): the answers so far plus
@@ -25,8 +35,10 @@ import { useGeneration, type GenerationState } from '@/ai/generation'
  * it survives back navigation between steps and is discarded on exit.
  *
  * Generation timing (docs/04): G1 goes out when they leave step 2 and has
- * step 3 to finish; G2 goes out when they leave step 3, waits on G1, and has
- * step 4 to finish; G3 goes out when they leave step 5 and streams onto step 6.
+ * step 3 to finish. G2 (topics, waits on G1) and G2b (what success looks like)
+ * go out together when they leave step 3, for steps 4 and 5. G3 goes out when
+ * they leave step 5 — step 6 is the time question, which covers most of its
+ * wait — and streams onto step 7.
  */
 
 export type Mode = Extract<InterestStatus, 'focus' | 'exploring'>
@@ -37,11 +49,17 @@ export interface IntakeAnswers {
   whyText: string
   experienceChoice: ExperienceChoice | null
   experienceText: string
+  /** Topics they wrote on step 4. */
+  customTopics: string[]
+  /** Topic labels selected on step 4, generated or their own; selecting none is allowed. */
+  selectedTopics: string[]
+  /** What they wrote on step 5. */
+  customOutcomes: string[]
+  /** What would feel like success, selected on step 5; selecting none is allowed. */
+  selectedOutcomes: string[]
   frequency: Frequency | null
   sessionMinutes: number | null
-  /** Topic labels selected on step 5; selecting none is allowed. */
-  selectedTopics: string[]
-  /** Set only when the user overrides the D15 placement on step 6. */
+  /** Set only when the user overrides the D15 placement on step 7. */
   statusOverride: Mode | null
 }
 
@@ -51,9 +69,12 @@ const EMPTY: IntakeAnswers = {
   whyText: '',
   experienceChoice: null,
   experienceText: '',
+  customTopics: [],
+  selectedTopics: [],
+  customOutcomes: [],
+  selectedOutcomes: [],
   frequency: null,
   sessionMinutes: null,
-  selectedTopics: [],
   statusOverride: null,
 }
 
@@ -62,20 +83,23 @@ interface IntakeValue {
   update: (patch: Partial<IntakeAnswers>) => void
   approach: GenerationState<ApproachOutput>
   topics: GenerationState<TopicsOutput>
+  success: GenerationState<SuccessOutput>
   path: GenerationState<PathOutput>
   /** G3's output as it streams — the name lands well before the goals do. */
   partialPath: PartialPath
   /** Kick-offs, called as the user leaves the step that unlocks them. */
   startApproach: () => void
   startTopics: () => void
+  startSuccess: () => void
   startPath: () => void
   retryTopics: () => void
+  retrySuccess: () => void
   retryPath: () => void
   /** The D15 placement for the current answers, before any override. */
   placement: Mode
   /** Writes the interest, its topics and its path. Returns the new interest id. */
   save: () => string
-  /** Records a finished step (docs/08). Steps 1–5 — step 6 is `intake_completed`. */
+  /** Records a finished step (docs/08). Steps 1–6 — step 7 is `intake_completed`. */
   completeStep: (step: number) => void
 }
 
@@ -92,6 +116,7 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
   const [partialPath, setPartialPath] = useState<PartialPath>({ goals: [] })
   const approach = useGeneration<ApproachOutput>()
   const topics = useGeneration<TopicsOutput>()
+  const success = useGeneration<SuccessOutput>()
   const path = useGeneration<PathOutput>()
 
   const update = useCallback((patch: Partial<IntakeAnswers>) => {
@@ -156,10 +181,22 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
       .catch(() => {})
   }, [answers, ensureApproach, topics])
 
+  const startSuccess = useCallback(() => {
+    if (!answers.experienceChoice) return
+    const params = topicsParams(answers, answers.experienceChoice)
+    success
+      .start(JSON.stringify(params), (signal) =>
+        callAi<SuccessOutput>('intake.success', params, { signal }).then((r) => r.output),
+      )
+      .catch(() => {})
+  }, [answers, success])
+
   const startPath = useCallback(() => {
-    if (!answers.experienceChoice || !answers.sessionMinutes) return
-    const offered = topics.state.status === 'ready' ? topics.state.value.topics.map((t) => t.label) : []
-    const params = pathParams(answers, answers.experienceChoice, answers.sessionMinutes, offered)
+    if (!answers.experienceChoice) return
+    const offeredTopics =
+      topics.state.status === 'ready' ? topics.state.value.topics.map((t) => t.label) : []
+    const offeredOutcomes = success.state.status === 'ready' ? success.state.value.outcomes : []
+    const params = pathParams(answers, answers.experienceChoice, offeredTopics, offeredOutcomes)
     path
       .start(JSON.stringify(params), async (signal) => {
         setPartialPath({ goals: [] })
@@ -172,7 +209,7 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
         return result.output
       })
       .catch(() => {})
-  }, [answers, ensureApproach, path, topics.state])
+  }, [answers, ensureApproach, path, topics.state, success.state])
 
   const placement: Mode =
     answers.frequency && answers.whyChoice
@@ -188,6 +225,12 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
       throw new Error('intake is not ready to save: an answer is missing')
     }
     const offered = topics.state.status === 'ready' ? topics.state.value.topics : []
+    const offeredLabels = offered.map((t) => t.label)
+    const offeredOutcomes = success.state.status === 'ready' ? success.state.value.outcomes : []
+    const selectedTopics = currentPicks(
+      { custom: answers.customTopics, selected: answers.selectedTopics },
+      offeredLabels,
+    )
     const { interest } = saveIntake(db, repoContext, {
       name: path.state.value.name,
       wantToLearn: answers.wantToLearn.trim(),
@@ -195,37 +238,53 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
       whyText: optional(answers.whyText) ?? null,
       experienceChoice,
       experienceText: optional(answers.experienceText) ?? null,
+      successOutcomes: currentPicks(
+        { custom: answers.customOutcomes, selected: answers.selectedOutcomes },
+        offeredOutcomes,
+      ),
       frequency,
       sessionMinutes,
       approachNotes: approach.state.value.approachNotes,
       status: answers.statusOverride ?? placement,
-      topics: offered.map((t) => ({
-        label: t.label,
-        origin: t.origin,
-        selected: answers.selectedTopics.includes(t.label),
-      })),
+      topics: [
+        ...answers.customTopics.map((label) => ({
+          label,
+          origin: 'user' as const,
+          selected: selectedTopics.includes(label),
+        })),
+        ...offered
+          .filter((t) => !answers.customTopics.includes(t.label))
+          .map((t) => ({
+            label: t.label,
+            origin: t.origin,
+            selected: selectedTopics.includes(t.label),
+          })),
+      ],
       goals: path.state.value.goals,
     })
     finished.current = true
     track('intake_completed', {
-      topics_selected_count: answers.selectedTopics.length,
+      topics_selected_count: selectedTopics.length,
       frequency,
       session_minutes: sessionMinutes,
     })
     return interest.id
-  }, [answers, approach.state, path.state, placement, topics.state])
+  }, [answers, approach.state, path.state, placement, topics.state, success.state])
 
   const value: IntakeValue = {
     answers,
     update,
     approach: approach.state,
     topics: topics.state,
+    success: success.state,
     path: path.state,
     partialPath,
     startApproach,
     startTopics,
+    startSuccess,
     startPath,
     retryTopics: topics.retry,
+    retrySuccess: success.retry,
     retryPath: path.retry,
     placement,
     save,
@@ -255,16 +314,24 @@ function topicsParams(a: IntakeAnswers, experienceChoice: ExperienceChoice) {
   return { ...approachParams(a), experienceChoice, experienceText: optional(a.experienceText) }
 }
 
+/** G3 params. Session length is deliberately absent — they're answering it as this goes out. */
 function pathParams(
   a: IntakeAnswers,
   experienceChoice: ExperienceChoice,
-  sessionMinutes: number,
   offeredTopics: string[],
+  offeredOutcomes: string[],
 ) {
+  const selectedTopics = currentPicks(
+    { custom: a.customTopics, selected: a.selectedTopics },
+    offeredTopics,
+  )
   return {
     ...topicsParams(a, experienceChoice),
-    sessionMinutes,
-    selectedTopics: a.selectedTopics,
-    unselectedTopics: offeredTopics.filter((label) => !a.selectedTopics.includes(label)),
+    selectedTopics,
+    unselectedTopics: offeredTopics.filter((label) => !selectedTopics.includes(label)),
+    successOutcomes: currentPicks(
+      { custom: a.customOutcomes, selected: a.selectedOutcomes },
+      offeredOutcomes,
+    ),
   }
 }

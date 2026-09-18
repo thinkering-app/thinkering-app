@@ -15,6 +15,13 @@
       "when": 1789451368506,
       "tag": "0001_sleepy_strong_guy",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1789759292459,
+      "tag": "0002_add_interest_success_outcomes",
+      "breakpoints": true
     }
   ]
 }

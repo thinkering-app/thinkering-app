@@ -4,32 +4,35 @@ Authoritative description of user-facing behavior. Vocabulary per `00-overview.m
 
 ## 1. Intake flow
 
-Runs for a brand-new user (after a brief welcome screen) and every time an existing user adds a new interest. One question per screen, progress dots, back navigation allowed. Answers are editable later in Path settings.
+Runs for a brand-new user (after a brief welcome screen) and every time an existing user adds a new interest. One question per screen, progress dots, back navigation allowed. Answers are editable later in Path settings, except what would feel like success (not yet).
 
 **Step 1 — What do you want to learn?**
 Free text. Below the field, a few subtle example chips (rotate from a pool; show ~4, tappable to fill): _Understand LLMs and AI · Improve my approach to personal finance · Product management skills · More about climate and sustainability · Learn how to draw · Get back into Spanish · Get conversational in German · Improve my chess skills_.
 
 **Step 2 — Why do you want to learn it?**
-Single select: **For my career / For a personal goal / For fun**, plus an optional free-text "Anything more? (helps us tailor things)" — keep the affordance small.
+Single select: **For my career / For a personal goal / For fun**, plus an open free-text follow-up, marked optional: _"What do you want to be able to do, and why?"_ The field grows as they write.
 → On advance, fire **G1** (approach & pedagogy notes) in the background.
 
 **Step 3 — How much experience do you have?**
-Single select: **Just getting started / Explored a bit / In the middle / Have a lot of experience**, optional small free-text detail.
-→ On advance, fire **G2** (topic candidates) in the background, consuming G1's result (or its streamed partial; G2 waits on G1).
+Single select: **Just getting started / Explored a bit / In the middle / Have a lot of experience**, plus the same optional, growing follow-up: _"What have you tried before, and how did it go?"_
+→ On advance, fire **G2** (topic candidates; waits on G1) and **G2b** (what success could look like) together in the background.
 
-**Step 4 — How much time do you want to spend?**
+**Step 4 — Which topics feel most relevant?**
+Multi-select chips from G2's ~10 topics (mix of motivation-aligned, foundational/prerequisite, and adjacent-but-interesting; the mix is invisible to the user). A small field with a **+** above the chips adds their own topic, selected straight away. Selecting none is allowed. If G2 hasn't finished, a brief, branded generating state shows below the field.
+
+**Step 5 — What would feel like success?**
+Multi-select chips from G2b's 3–5 short, varied, first-person outcomes (_"I can follow a dinner conversation"_, _"I understand when to use du or Sie"_), with the same add-your-own field. Selecting none is allowed, and so is moving on if G2b failed.
+→ On advance, fire **G3** (initial path: short interest name + 5–8 sequenced goals, shaped by the topics and outcomes they picked).
+
+**Step 6 — How much time do you want to spend?**
 Two choices on one screen: frequency (**Daily / Several times a week / When I can**) and session length (**5 / 10 / 15 min / Custom**).
-This screen buys time for G2; if G2 hasn't finished when the user advances, show a brief, branded generating state.
+This screen buys time for G3, which is why it comes after topics and success: G3 doesn't need the answer, and firing it earlier takes most of its wait off the last step.
 
-**Step 5 — Which topics feel most relevant?**
-Multi-select chips from G2's ~10 topics (mix of motivation-aligned, foundational/prerequisite, and adjacent-but-interesting; the mix is invisible to the user). Selecting none is allowed.
-→ On advance, fire **G3** (initial path: short interest name + 5–8 sequenced goals).
-
-**Step 6 — "Here's a direction we can start with."**
-Show the generated interest name and the goal list (title + one-line description each). Single reassuring line: _"We'll keep evolving this as you go."_ Primary button starts the first activity or goes to Today.
+**Step 7 — "Here's a direction we can start with."**
+Show the generated interest name and the goal list (title + one-line description each), streaming in if G3 is still going. Single reassuring line: _"We'll keep evolving this as you go."_ Primary button starts the first activity or goes to Today.
 → On completion, fire **G4** (background web search for resources) and **G5-prefetch** (today's Next activity).
 
-**Mode placement (D15)**: this step also shows, subtly, where the interest landed — **In focus** if frequency is daily/several-times-a-week or the why is career/personal-goal; **Exploring** for for-fun + when-I-can. One tap toggles it; changeable anytime in Manage Interests.
+**Mode placement (D15)**: this step also shows, subtly, where the interest landed, together with the reassuring line above the name and goals, and a one-line hint for the current mode — **In focus** if frequency is daily/several-times-a-week or the why is career/personal-goal; **Exploring** for for-fun + when-I-can. One tap toggles it; changeable anytime in Manage Interests.
 
 ## 2. App shell
 
@@ -108,12 +111,12 @@ For the selected focused interest, all-explore, or an individual explore interes
 - **Manage Interests** (top): reorder interests; set each to **In focus / Exploring / Archived**; unarchive freely. A **+** in the header starts intake for a new one, the same as the selector's.
 - **Calendar**: current month, days with completed activities highlighted; tapping a day lists that day's activities chronologically, grouped by interest. Swipe/navigate to load other months.
 - **Settings**: reached from the **⚙** in the Me header — an index of categories, each its own pushed screen. Nothing on the tab itself is a setting, so Me stays the interests and the calendar.
-  - **Account and data** — default off. Three things that share one question, *what leaves this device*: a **file you keep** (export to a versioned JSON file through the share sheet; import replaces everything on the device after a confirm); **synced backup** — create/sign in to a Supabase email/password account, change password, sign out, delete the account, toggle sync, back up now (turning the toggle off deletes the server-side copy after confirmation; local data is untouched), with the sync half hiding itself in a build with no Supabase project configured; and the **PostHog toggle** ("Share anonymous usage to improve thinkering" — opt-in, default off, not linked to identity). The one-time analytics ask is a sheet on the summary page of the **first** completed activity: two buttons and one line about what it does and doesn't include, with a link to Privacy. However it is answered, it never appears again, and it doesn't appear at all in a build with no PostHog key. The same restore also sits on the intake welcome screen, quietly: a fresh install is when you need it most and is the one moment Me isn't reachable.
+  - **Account and data** — default off. Three things that share one question, _what leaves this device_: a **file you keep** (export to a versioned JSON file through the share sheet; import replaces everything on the device after a confirm); **synced backup** — create/sign in to a Supabase email/password account, change password, sign out, delete the account, toggle sync, back up now (turning the toggle off deletes the server-side copy after confirmation; local data is untouched), with the sync half hiding itself in a build with no Supabase project configured; and the **PostHog toggle** ("Share anonymous usage to improve thinkering" — opt-in, default off, not linked to identity). The one-time analytics ask is a sheet on the summary page of the **first** completed activity: two buttons and one line about what it does and doesn't include, with a link to Privacy. However it is answered, it never appears again, and it doesn't appear at all in a build with no PostHog key. The same restore also sits on the intake welcome screen, quietly: a fresh install is when you need it most and is the one moment Me isn't reachable.
   - **AI** — today's usage vs. the daily included cap (meter), and the option to add their own Anthropic API key (stored in SecureStore/Keychain; unmetered, calls go direct).
   - **Privacy** — the landing page's `/privacy` copy, rendered from the same source in `packages/core` so the two can't drift.
   - **Feedback** — the same community/private chooser as the global feedback button, but pushed like everything else under the ⚙ rather than raised as a sheet, with `hello@thinkering.app` visible for questions or privacy concerns. Both entry points are built from one hook so the two channels can't drift apart.
   - **About** — an early-stage project, actively in development, built by Rebecca Hao with the support of Assembly Code; an invitation to be in touch about the user's experience with thinkering, personal learning, the science of learning, and AI, with `hello@thinkering.app`. The version line lives here, and is also the hidden long-press (`02`) that reveals **Developer**.
-  - **Developer** — absent unless the Inspector is enabled: always in a dev build, and in production only after the long-press on About. Holds the **AI Inspector**, plus — dev builds only — the **AI mode** switch (proxy · byok · fixture) and fixture-data seeding. Switching mode changes only which way the *next* generation is made; it never touches what is already stored, and because the choice is a local setting it outlives any change to `EXPO_PUBLIC_AI_MODE`, which is only the default before one is chosen.
+  - **Developer** — absent unless the Inspector is enabled: always in a dev build, and in production only after the long-press on About. Holds the **AI Inspector**, plus — dev builds only — the **AI mode** switch (proxy · byok · fixture) and fixture-data seeding. Switching mode changes only which way the _next_ generation is made; it never touches what is already stored, and because the choice is a local setting it outlives any change to `EXPO_PUBLIC_AI_MODE`, which is only the default before one is chosen.
 
 ## 8. Landing page (`apps/web`)
 

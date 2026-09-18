@@ -27,6 +27,7 @@ export interface NewInterest {
   whyText?: string | null
   experienceChoice: ExperienceChoice
   experienceText?: string | null
+  successOutcomes?: string[] | null
   frequency: Frequency
   sessionMinutes: number
   approachNotes?: string
@@ -46,6 +47,7 @@ export function createInterest(db: Database, ctx: RepoContext, input: NewInteres
     whyText: input.whyText ?? null,
     experienceChoice: input.experienceChoice,
     experienceText: input.experienceText ?? null,
+    successOutcomes: input.successOutcomes ?? null,
     frequency: input.frequency,
     sessionMinutes: input.sessionMinutes,
     approachNotes: input.approachNotes ?? '',
@@ -94,7 +96,12 @@ export function reorderInterests(db: Database, ctx: RepoContext, orderedIds: str
 
 export type InterestPatch = Partial<Omit<Interest, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt'>>
 
-export function updateInterest(db: Database, ctx: RepoContext, id: string, patch: InterestPatch): void {
+export function updateInterest(
+  db: Database,
+  ctx: RepoContext,
+  id: string,
+  patch: InterestPatch,
+): void {
   db.update(interests)
     .set({ ...patch, updatedAt: ctx.now() })
     .where(and(eq(interests.id, id), isNull(interests.deletedAt)))
@@ -122,14 +129,38 @@ export function softDeleteInterest(db: Database, ctx: RepoContext, id: string): 
       .run()
   }
 
-  db.update(topics).set(tombstone).where(and(eq(topics.interestId, id), isNull(topics.deletedAt))).run()
-  db.update(goals).set(tombstone).where(and(eq(goals.interestId, id), isNull(goals.deletedAt))).run()
-  db.update(activities).set(tombstone).where(and(eq(activities.interestId, id), isNull(activities.deletedAt))).run()
-  db.update(resources).set(tombstone).where(and(eq(resources.interestId, id), isNull(resources.deletedAt))).run()
-  db.update(contexts).set(tombstone).where(and(eq(contexts.interestId, id), isNull(contexts.deletedAt))).run()
-  db.update(reflections).set(tombstone).where(and(eq(reflections.interestId, id), isNull(reflections.deletedAt))).run()
-  db.update(routineNotes).set(tombstone).where(and(eq(routineNotes.interestId, id), isNull(routineNotes.deletedAt))).run()
-  db.update(libraryPrefs).set(tombstone).where(and(eq(libraryPrefs.interestId, id), isNull(libraryPrefs.deletedAt))).run()
+  db.update(topics)
+    .set(tombstone)
+    .where(and(eq(topics.interestId, id), isNull(topics.deletedAt)))
+    .run()
+  db.update(goals)
+    .set(tombstone)
+    .where(and(eq(goals.interestId, id), isNull(goals.deletedAt)))
+    .run()
+  db.update(activities)
+    .set(tombstone)
+    .where(and(eq(activities.interestId, id), isNull(activities.deletedAt)))
+    .run()
+  db.update(resources)
+    .set(tombstone)
+    .where(and(eq(resources.interestId, id), isNull(resources.deletedAt)))
+    .run()
+  db.update(contexts)
+    .set(tombstone)
+    .where(and(eq(contexts.interestId, id), isNull(contexts.deletedAt)))
+    .run()
+  db.update(reflections)
+    .set(tombstone)
+    .where(and(eq(reflections.interestId, id), isNull(reflections.deletedAt)))
+    .run()
+  db.update(routineNotes)
+    .set(tombstone)
+    .where(and(eq(routineNotes.interestId, id), isNull(routineNotes.deletedAt)))
+    .run()
+  db.update(libraryPrefs)
+    .set(tombstone)
+    .where(and(eq(libraryPrefs.interestId, id), isNull(libraryPrefs.deletedAt)))
+    .run()
 
   db.update(interests)
     .set(tombstone)

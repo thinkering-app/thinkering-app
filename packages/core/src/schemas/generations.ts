@@ -35,6 +35,15 @@ export const topicsOutputSchema = z.object({
 export type TopicsOutput = z.infer<typeof topicsOutputSchema>
 
 /**
+ * G2b `intake.success` — short first-person outcomes ("I can…", "I understand…")
+ * the learner picks from on "What would feel like success?".
+ */
+export const successOutputSchema = z.object({
+  outcomes: z.array(z.string().min(1).max(80)).min(3).max(6),
+})
+export type SuccessOutput = z.infer<typeof successOutputSchema>
+
+/**
  * One generated goal, as G3, G8 and G9 all emit it. Concept ids are assigned on
  * save (docs/04), so the model only supplies labels and kinds.
  */
@@ -108,7 +117,11 @@ export const reflectionChangeSchema = z.discriminatedUnion('type', [
     description: z.string().min(1).max(240),
     reason: z.string().min(1).max(200),
   }),
-  z.object({ type: z.literal('remove'), ref: z.string().min(1), reason: z.string().min(1).max(200) }),
+  z.object({
+    type: z.literal('remove'),
+    ref: z.string().min(1),
+    reason: z.string().min(1).max(200),
+  }),
   z.object({
     type: z.literal('reorder'),
     ref: z.string().min(1),
@@ -124,7 +137,12 @@ export const reflectUpdateOutputSchema = z.object({
   observations: z.string().min(1).max(600),
   suggestedChanges: z.array(reflectionChangeSchema).max(6),
   suggestedGoals: z
-    .array(generatedGoalSchema.extend({ afterRef: z.string().min(1).nullable(), reason: z.string().min(1).max(200) }))
+    .array(
+      generatedGoalSchema.extend({
+        afterRef: z.string().min(1).nullable(),
+        reason: z.string().min(1).max(200),
+      }),
+    )
     .max(4),
 })
 export type ReflectUpdateOutput = z.infer<typeof reflectUpdateOutputSchema>
