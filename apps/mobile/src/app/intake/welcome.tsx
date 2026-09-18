@@ -4,7 +4,7 @@ import { Pressable, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { importFromFile, refusalMessage } from '@/backup/actions'
-import { Watercolor } from '@/components/texture'
+import { Wash } from '@/components/texture'
 import { PrimaryAction } from '@/intake/step-screen'
 
 /** The brief welcome ahead of the six questions (docs/01 §1). Not a step — no progress dot. */
@@ -24,17 +24,11 @@ export default function WelcomeScreen() {
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right', 'bottom']}>
       {/* Washes bleed off the edges like the landing hero (docs/07) — a field, not a shape. */}
       <View pointerEvents="none" className="absolute inset-0 overflow-hidden">
-        <View className="absolute -left-32 -top-20 h-80 w-80">
-          <Watercolor color="cornflower" size={320} opacity={0.4} />
-        </View>
-        <View className="absolute -right-28 top-1/4 h-72 w-72">
-          <Watercolor color="peach" size={288} opacity={0.3} />
-        </View>
-        <View className="absolute -bottom-24 -left-16 h-72 w-72">
-          <Watercolor color="sun" size={288} opacity={0.35} />
-        </View>
+        <Wash color="cornflower" size={360} className="-left-32 -top-24" />
+        <Wash color="peach" size={320} className="-right-32 top-1/4" />
+        <Wash color="sun" size={320} className="-bottom-28 -left-20" />
       </View>
-      <View className="flex-1 justify-center px-5 pb-16">
+      <View className="flex-1 justify-end px-5 pb-2">
         <Text className="font-sans-medium text-body text-ink-soft">Welcome to</Text>
         <Text className="mt-1 font-heading-bold text-display text-ink">thinkering</Text>
         <Text className="mt-3 font-sans text-body text-ink-soft">

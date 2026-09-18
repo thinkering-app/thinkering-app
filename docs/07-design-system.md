@@ -38,8 +38,8 @@ Semantic mappings:
 ## Texture & depth
 
 - Subtle paper-grain overlay at 3.5% opacity — felt, not seen. It is rendered **once at the root**, over every screen and under every modal, rather than per screen: the alternative was remembering to add it to each `SafeAreaView`, and at this opacity the grain over a white card reads as paper too.
-- Soft watercolor blob assets (static PNGs in the palette colors, soft uneven edges) used sparingly: behind the intake welcome (a field of washes bleeding off the edges, like the landing hero — never one centered shape), every empty state (`EmptyState`), and the summary page. Never behind body text.
-- The raster assets — grain, the four blobs, the app icon, the splash mark, the Android icon layers — are **generated**, by `.context/art/make-assets.py`. Re-run it rather than hand-editing a PNG; the palette and the geometry live in that one file.
+- Soft watercolor washes: a `*-tint` color fading to nothing, bleeding off an edge — the landing hero's blurred disks, drawn in the app as a radial gradient (`Wash`). Two or three at a time at the edges — never one centered shape sitting behind the words. Used sparingly: the intake welcome, every empty state (`EmptyState`), and the summary page. They were PNG blobs in the full palette colors until 2026-09-18; at any opacity those read as a shape sitting on the page rather than color in the paper.
+- The raster assets — grain, the app icon, the splash mark, the Android icon layers — are **generated**, by `.context/art/make-assets.py`. Re-run it rather than hand-editing a PNG; the palette and the geometry live in that one file.
 - The mark is a lowercase Arvo `t` in `paper` on a cornflower field, with a `sun` spark at its shoulder. iOS ships it as a plain `icon.png`: the layered `.icon` (Liquid Glass) format can't be judged without a device build, so it waits for one.
 - Depth like Unfold: cards with soft wide shadows (`ink` at 6–8% alpha, large radius), 16–20px card corner radius, 999 for pills. One elevation step — no stacked shadow hierarchies.
 
