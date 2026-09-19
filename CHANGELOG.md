@@ -8,6 +8,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Added
 
+- thinkering in Spanish and Simplified Chinese. It follows your phone's
+  language, or choose one in Settings → Language. New activities are written
+  in that language too.
 - The end of each activity names its activity type, with an ⓘ that
   says what it is and why it helps.
 - Creating a Next or Strengthen activity, you can choose its activity type

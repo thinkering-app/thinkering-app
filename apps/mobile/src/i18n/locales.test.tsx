@@ -3,6 +3,8 @@ import { Trans } from 'react-i18next'
 import { Text } from 'react-native'
 
 import { en } from './locales/en'
+import { es } from './locales/es'
+import { zhHans } from './locales/zh-Hans'
 
 /**
  * <Trans> parses copy as HTML, so a tag named after an HTML void element
@@ -35,7 +37,7 @@ function strings(value: unknown, path: string): [string, string][] {
 
 describe('copy markup', () => {
   it('names no component tag after an HTML void element', () => {
-    const offending = strings(en, '').filter(([, s]) =>
+    const offending = strings({ en, es, zhHans }, '').filter(([, s]) =>
       [...s.matchAll(/<\/?(\w+)>/g)].some((m) => VOID_ELEMENTS.has(m[1]!.toLowerCase())),
     )
     expect(offending).toEqual([])
