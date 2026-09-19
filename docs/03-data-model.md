@@ -80,6 +80,8 @@ Kept separate from `doc` so generation (G6) and future features can query them.
 
 `id, interest_id, feeling_text, changes json (accepted path edits summary), created_at, updated_at, deleted_at`
 
+`changes` is `{added, removed, revised, reordered}` goal titles, plus `outcomes: {before, after}` when the reflection changed what they're hoping for (the interest's `success_outcomes` then holds `after`).
+
 ## library_prefs ⟳ — per-interest activation of library items
 
 `id, interest_id, section, library_item_id, active int(bool), updated_at, deleted_at`

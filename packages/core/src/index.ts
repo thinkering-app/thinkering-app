@@ -119,6 +119,7 @@ export {
   pathSuggestGoalsTemplate,
   type PathSuggestGoalsParams,
 } from './prompts/kinds/path-suggest-goals'
+export { reflectOpenTemplate, type ReflectOpenParams } from './prompts/kinds/reflect-open'
 export { reflectUpdateTemplate, type ReflectUpdateParams } from './prompts/kinds/reflect-update'
 export {
   resourcesSearchTemplate,

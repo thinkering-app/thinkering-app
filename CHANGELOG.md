@@ -12,9 +12,13 @@ build; internal refactors and docs don't appear here. The conventions are in
   your first completed activity, and never carrying anything you write.
 - Delete your backup account from inside the app.
 - A privacy page in the app that matches the one on the website.
-- A new intake step, "What would feel like success?", with suggestions to pick
+- A new intake step, "What are you hoping for?", with suggestions to pick
   from. Your path is shaped around what you choose.
 - Add your own topics and outcomes during intake.
+- Edit, add or remove what you're hoping for in Path settings.
+- Reflecting now starts with what you're hoping for — keep, drop or add to
+  it, with a few new suggestions — then a short recap of your recent learning
+  and a look at your path before you say how it's going.
 
 ### Changed
 

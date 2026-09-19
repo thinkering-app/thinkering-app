@@ -1,7 +1,7 @@
 import { and, asc, eq, isNull } from 'drizzle-orm'
 import type { ConceptKind, GoalConcept, GoalSource, ReflectionChanges } from '@thinkering/core'
 import type { Database, RepoContext } from '../database'
-import { goals, reflections } from '../schema'
+import { goals, interests, reflections } from '../schema'
 import { createGoal, listGoals, softDeleteGoal } from './goals'
 
 /**
@@ -30,6 +30,8 @@ export interface PathUpdate {
   /** The path as the learner accepted it, in order. */
   entries: ReflectionEntry[]
   changes: ReflectionChanges
+  /** What they're hoping for, as they left it; absent leaves it untouched. */
+  successOutcomes?: string[]
 }
 
 export function applyReflection(db: Database, ctx: RepoContext, update: PathUpdate): Reflection {
@@ -67,6 +69,16 @@ export function applyReflection(db: Database, ctx: RepoContext, update: PathUpda
         source: entry.source,
       })
     })
+
+    if (update.successOutcomes) {
+      tx.update(interests)
+        .set({
+          successOutcomes: update.successOutcomes.length > 0 ? update.successOutcomes : null,
+          updatedAt: now,
+        })
+        .where(and(eq(interests.id, update.interestId), isNull(interests.deletedAt)))
+        .run()
+    }
 
     const id = ctx.newId()
     tx.insert(reflections)

@@ -4,7 +4,7 @@ Authoritative description of user-facing behavior. Vocabulary per `00-overview.m
 
 ## 1. Intake flow
 
-Runs for a brand-new user (after a brief welcome screen) and every time an existing user adds a new interest. One question per screen, progress dots, back navigation allowed. Answers are editable later in Path settings, except what would feel like success (not yet).
+Runs for a brand-new user (after a brief welcome screen) and every time an existing user adds a new interest. One question per screen, progress dots, back navigation allowed. Answers are editable later in Path settings.
 
 **Step 1 — What do you want to learn?**
 Free text. Below the field, a few subtle example chips (rotate from a pool; show ~4, tappable to fill): _Understand LLMs and AI · Improve my approach to personal finance · Product management skills · More about climate and sustainability · Learn how to draw · Get back into Spanish · Get conversational in German · Improve my chess skills_.
@@ -20,13 +20,13 @@ Single select: **Just getting started / Explored a bit / In the middle / Have a 
 **Step 4 — Which topics feel most relevant?**
 Multi-select chips from G2's ~10 topics (mix of motivation-aligned, foundational/prerequisite, and adjacent-but-interesting; the mix is invisible to the user). A small field with a **+** above the chips adds their own topic, selected straight away. Selecting none is allowed. If G2 hasn't finished, a brief, branded generating state shows below the field.
 
-**Step 5 — What would feel like success?**
-Multi-select chips from G2b's 3–5 short, varied, first-person outcomes (_"I can follow a dinner conversation"_, _"I understand when to use du or Sie"_), with the same add-your-own field. Selecting none is allowed, and so is moving on if G2b failed.
+**Step 5 — What are you hoping for?**
+Multi-select chips from G2b's 3–5 short, varied, first-person outcomes (_"I can follow a dinner conversation"_, _"I understand when to use du or Sie"_), with the same add-your-own field. Selecting none is allowed, and so is moving on if G2b failed. (The prompt still frames these as what success would feel like; the learner-facing question is softer on purpose.)
 → On advance, fire **G3** (initial path: short interest name + 5–8 sequenced goals, shaped by the topics and outcomes they picked).
 
 **Step 6 — How much time do you want to spend?**
 Two choices on one screen: frequency (**Daily / Several times a week / When I can**) and session length (**5 / 10 / 15 min / Custom**).
-This screen buys time for G3, which is why it comes after topics and success: G3 doesn't need the answer, and firing it earlier takes most of its wait off the last step.
+This screen buys time for G3, which is why it comes after topics and outcomes: G3 doesn't need the answer, and firing it earlier takes most of its wait off the last step.
 
 **Step 7 — "Here's a direction we can start with."**
 Show the generated interest name and the goal list (title + one-line description each), streaming in if G3 is still going. Single reassuring line: _"We'll keep evolving this as you go."_ Primary button starts the first activity or goes to Today.
@@ -87,7 +87,7 @@ For the selected single interest:
 
 - **Goal list**, in path order. Status shown by color treatment, not pills: `not_started` = plain white card, `introduced` = light cornflower wash, `strengthened` = solid cornflower (light text), `applied` ("Put to use") = a distinct warm celebratory treatment (peach edge/glow — a delighter, since going further is optional). Long-press a goal to turn on reorder mode — each card grows up/down controls and the header a Done button (a drag gesture was not worth a reanimated gesture handler for a 5–8 item list). Tap a goal to expand it; the pencil opens its title/description for editing, or removes it.
 - **Expandable goals (D16)**: tapping a goal expands it to show the concepts and skills beneath it, with subtle coverage indicators for those already targeted by completed activities. Activities highlight these same concept/skill labels (summary chips, in-page emphasis) so the user can see what they're building.
-- **Reflection card** ("Reflect on progress and update path"): opens the Reflection flow — (1) a prompt on how their learning feels and what they want to focus on next (free text); (2) their current goal list with the ability to remove/reorder, a field to add their own goal, and **G8**-generated suggestions based on the reflection, their interests, and adjacent topics. Accepting produces an updated path.
+- **Reflection card** ("Reflect on progress and update path"): opens the Reflection flow, three steps with progress dots. **G8a** goes out as it opens and gates nothing — its parts appear when ready, and are simply absent if it fails. (1) **"Is this still what you're hoping for?"** — their saved outcomes as selected chips, the same add-your-own field as intake, and 2–3 more outcomes from G8a, unselected. Deselecting one means it no longer applies. (2) G8a's 1–2 sentence recap of what and how they've been learning lately, a collapsed **Your path** (the Path goal cards, read-only) and the question on how their learning feels and what they want to focus on next (free text). (3) Their current goal list with the ability to remove/reorder, a field to add their own goal, and **G8**-generated suggestions based on the reflection, the outcomes from step 1, their interests and adjacent topics. Nothing is written until **Update path**, which saves the path and the outcomes together (dropped outcomes leave the interest; the reflection records before and after).
 - **3 suggested goals** always at the bottom (from **G9**, cached, regenerated when the path changes) — one tap to add.
 
 ### Resources (book icon on Path)
@@ -100,7 +100,7 @@ List of resources for the interest. Each has: title, link, short description, "h
 
 ### Path settings (⚙ icon on Path)
 
-Reached from the ⚙ in the Path header. Text fields commit with **Save**; the lists (topics, contexts) act as they are tapped. Editable fields, all from intake: short interest name · what they want to learn · why (selection) · why (text) · experience (selection) · experience (text) · frequency · session length · topics of interest (add/delete; considered when suggesting goals) · approach notes (from G1, editable) · **Contexts**: projects, environments, and people related to this interest (add/edit/delete) — considered when generating Go further activities, included only when they genuinely add value.
+Reached from the ⚙ in the Path header. Text fields and outcomes commit with **Save**; the lists (topics, contexts) act as they are tapped. Editable fields, all from intake: short interest name · what they want to learn · why (selection) · why (text) · experience (selection) · experience (text) · what they're hoping for (outcomes; add/edit/remove) · frequency · session length · topics of interest (add/delete; considered when suggesting goals) · approach notes (from G1, editable) · **Contexts**: projects, environments, and people related to this interest (add/edit/delete) — considered when generating Go further activities, included only when they genuinely add value.
 
 ## 6. History
 

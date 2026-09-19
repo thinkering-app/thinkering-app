@@ -44,6 +44,18 @@ export const successOutputSchema = z.object({
 export type SuccessOutput = z.infer<typeof successOutputSchema>
 
 /**
+ * G8a `reflect.open` — what the reflection flow shows before the learner
+ * writes anything: a short recap of their recent learning, and a few more
+ * outcomes to consider alongside the ones they already hold.
+ */
+export const reflectOpenOutputSchema = z.object({
+  /** What and how they've been learning lately — 1–2 plain sentences. */
+  recap: z.string().min(1).max(400),
+  outcomes: z.array(z.string().min(1).max(80)).max(4),
+})
+export type ReflectOpenOutput = z.infer<typeof reflectOpenOutputSchema>
+
+/**
  * One generated goal, as G3, G8 and G9 all emit it. Concept ids are assigned on
  * save (docs/04), so the model only supplies labels and kinds.
  */
