@@ -25,7 +25,7 @@ export type ActivityReviewParams = z.infer<typeof activityReviewParamsSchema>
 
 const INSTRUCTIONS = `Task: write the review page of an activity the learner has just worked through. You see their actual answers.
 
-Return JSON: { "blocks": Block[] }  — 2–4 blocks, using the same Block types as an Activity Document.
+Return JSON: { "blocks": Block[] }  — 1–3 blocks, using the same Block types as an Activity Document.
 
 ${ACTIVITY_DOC_FORMAT}
 
@@ -36,14 +36,16 @@ Choose exactly one thing to do, whichever is most valuable for this learner righ
 If their answers were sparse or mostly blank, reinforce the trickiest concept in the activity instead, without remarking on how little they wrote.
 
 Rules:
-- Two to four blocks: a short heading is optional, then the substance. An interactive block is allowed but not required — never add one just to have one.
+- Short: a heading is optional, then one or two short paragraphs — under 80 words in all. It's read on a phone.
+- One thing only. Don't walk through their answers one by one; leave the rest unsaid.
+- An interactive block is allowed but not required — never add one just to have one.
 - Speak to what they wrote. Quote or paraphrase their words when you correct or extend them.
 - Praise only when it's earned and specific about why. No "Great job!", no filler.
 - Never imply their knowledge is limited to this app.`
 
 export const activityReviewTemplate: PromptTemplate<ActivityReviewParams, ReviewOutput> = {
   kind: 'activity.review',
-  version: 1,
+  version: 2,
   model: 'haiku',
   maxTokens: 1200,
   temperature: 0.6,

@@ -107,6 +107,12 @@ describe('interactive blocks', () => {
       answers: { [blank.id]: ` ${blank.answer.toUpperCase()} ` },
     })
     expect((last()?.payload as { correct: boolean }).correct).toBe(block.blanks.length === 1)
+
+    // A wrong answer shows the right one only once the learner leaves the blank.
+    await fireEvent.changeText(screen.getByLabelText('Blank 1'), 'zzz')
+    expect(screen.queryByText(/^Answers?:/)).toBeNull()
+    await fireEvent(screen.getByLabelText('Blank 1'), 'blur')
+    expect(screen.getByText(/^Answers?:/)).toHaveTextContent(blank.answer, { exact: false })
   })
 
   it('ordering records the sequence after a move', async () => {

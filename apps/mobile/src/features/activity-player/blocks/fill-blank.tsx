@@ -1,8 +1,9 @@
+import { Fragment, useState } from 'react'
 import { Text, TextInput, View } from 'react-native'
 import { gradeBlank, gradeFillBlank, type ResponsePayloadFor } from '@thinkering/core'
 
 import { colors } from '@/theme/tokens'
-import { Markdown } from '../markdown'
+import { MarkdownWords } from '../markdown'
 import { useResponse } from '../responses'
 import type { BlockOf } from './types'
 
@@ -13,13 +14,26 @@ import type { BlockOf } from './types'
 export function FillBlankBlock({ pageId, block }: { pageId: string; block: BlockOf<'fillBlank'> }) {
   const [answer, respond] = useResponse<ResponsePayloadFor<'fillBlank'>>(pageId, block.id)
   const answers = answer?.answers ?? {}
+  // A blank is graded once the learner leaves it, so typing "1" on the way to
+  // "100" doesn't flag it or give the answer away. Restored answers count as left.
+  const [left, setLeft] = useState<ReadonlySet<string>>(
+    () => new Set(Object.keys(answers).filter((id) => (answers[id] ?? '').length > 0)),
+  )
 
   const setBlank = (blankId: string, text: string) => {
     const next = { ...answers, [blankId]: text }
     respond({ kind: 'fillBlank', answers: next, correct: gradeFillBlank(block, next) })
   }
 
+  const verdict = (blankId: string): boolean | undefined => {
+    const blank = block.blanks.find((b) => b.id === blankId)
+    const text = answers[blankId] ?? ''
+    if (!blank || !left.has(blankId) || text.length === 0) return undefined
+    return gradeBlank(blank, text)
+  }
+
   const segments = block.md.split('___')
+  const missed = block.blanks.filter((b) => verdict(b.id) === false)
 
   return (
     <View className="gap-3">
@@ -27,27 +41,24 @@ export function FillBlankBlock({ pageId, block }: { pageId: string; block: Block
         {segments.map((segment, i) => {
           const blank = block.blanks[i]
           return (
-            <View key={i} className="flex-row items-center">
-              {segment.length > 0 ? <Markdown md={segment} /> : null}
+            <Fragment key={i}>
+              <MarkdownWords md={segment} />
               {blank ? (
                 <BlankInput
                   label={`Blank ${i + 1}`}
                   value={answers[blank.id] ?? ''}
-                  correct={
-                    (answers[blank.id] ?? '').length > 0
-                      ? gradeBlank(blank, answers[blank.id] ?? '')
-                      : undefined
-                  }
+                  correct={verdict(blank.id)}
                   onChangeText={(text) => setBlank(blank.id, text)}
+                  onBlur={() => setLeft((prev) => new Set(prev).add(blank.id))}
                 />
               ) : null}
-            </View>
+            </Fragment>
           )
         })}
       </View>
-      {answer && !answer.correct ? (
+      {missed.length > 0 ? (
         <Text className="font-sans text-secondary text-ink-soft">
-          {block.blanks.map((b) => b.answer).join(' · ')}
+          {missed.length === 1 ? 'Answer' : 'Answers'}: {missed.map((b) => b.answer).join(' · ')}
         </Text>
       ) : null}
     </View>
@@ -59,11 +70,13 @@ function BlankInput({
   value,
   correct,
   onChangeText,
+  onBlur,
 }: {
   label: string
   value: string
   correct?: boolean
   onChangeText: (text: string) => void
+  onBlur: () => void
 }) {
   const tone =
     correct === undefined
@@ -76,10 +89,11 @@ function BlankInput({
       accessibilityLabel={label}
       value={value}
       onChangeText={onChangeText}
+      onBlur={onBlur}
       autoCapitalize="none"
       autoCorrect={false}
       selectionColor={colors.cornflower.DEFAULT}
-      className={`mx-1 min-w-24 rounded-lg border-b-2 px-2 py-1 font-sans-medium text-body text-ink ${tone}`}
+      className={`mx-1 w-32 rounded-lg border-b-2 px-2 py-1 font-sans-medium text-body text-ink ${tone}`}
     />
   )
 }
