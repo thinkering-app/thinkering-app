@@ -21,6 +21,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- Configure learning routine now shows the suggested daily routine, with a
+  link to the feedback board if you'd like to shape your own.
 - On Today, what you've done stands out: a finished card takes its section's
   colour with a yellow "Done today", and the section gets a check by its name
   that pops in when you come back from the activity.

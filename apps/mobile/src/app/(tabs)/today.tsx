@@ -96,12 +96,7 @@ export default function TodayScreen() {
             section={configuring ?? 'next'}
             onChanged={onConfigured}
           />
-          <RoutineSheet
-            visible={routineOpen}
-            onClose={() => setRoutineOpen(false)}
-            interestId={configurable.id}
-            onChanged={() => onConfigured()}
-          />
+          <RoutineSheet visible={routineOpen} onClose={() => setRoutineOpen(false)} />
         </>
       ) : null}
       <FeedbackButton />

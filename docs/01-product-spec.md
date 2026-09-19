@@ -71,7 +71,7 @@ Sheet listing that section's library items as small cards with checkboxes (activ
 
 ### Configure learning routine (bottom button)
 
-Sheet showing the three section names (read-only) and a single free-text question: **"How would you want to customize your learning routine?"** → **G11** interprets it into library activations/preference notes and confirms the change in one line.
+Read-only sheet showing the suggested routine — **Next** (1 a day), **Strengthen** (1 a day), **Go further** (optional), each with a one-line description — and a link to the "customize learning routine" post on the feedback board. The free-text question (**G11**) is off for now while we gauge demand; the prompt kind, schema and `routine_notes` table stay in place so it can come back.
 
 ## 4. Activities
 
