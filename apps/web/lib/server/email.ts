@@ -9,6 +9,8 @@ import { getDeps } from './deps'
 export const FEEDBACK_ADDRESS = 'feedback@thinkering.app'
 /** The landing page's contact form (docs/02 §Feedback). */
 export const CONTACT_ADDRESS = 'contact@thinkering.app'
+/** Spend alerts from the AI proxy (docs/04 §Usage metering). */
+export const ALERTS_ADDRESS = 'alerts@thinkering.app'
 
 export type SendResult = { ok: true } | { ok: false; status: number; error: string }
 

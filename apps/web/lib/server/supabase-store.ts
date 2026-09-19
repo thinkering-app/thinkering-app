@@ -15,9 +15,10 @@ import {
  * is why it stays away from the user-data mirror entirely. Schema:
  * supabase/schema.sql.
  *
- * addUsage and countIpAction are single-statement RPCs, so concurrent requests
- * can't lose each other's increments; addAction is still read-modify-write,
- * which only costs a feedback message or two past its limit.
+ * addUsage and countIpAction are single-statement RPCs and claimSpendAlert a
+ * single insert, so concurrent requests can't lose each other's writes;
+ * addAction is still read-modify-write, which only costs a feedback message or
+ * two past its limit.
  */
 export class SupabaseStore implements MeteringStore {
   private client: SupabaseClient
@@ -138,5 +139,15 @@ export class SupabaseStore implements MeteringStore {
     })
     if (error) throw new Error(`count_ip_action failed: ${error.message}`)
     return data as number
+  }
+
+  async claimSpendAlert(day: string, level: number): Promise<boolean> {
+    // A duplicate is skipped and returns no row: the insert is the claim.
+    const { data, error } = await this.client
+      .from('spend_alerts')
+      .upsert({ day, level }, { onConflict: 'day,level', ignoreDuplicates: true })
+      .select('level')
+    if (error) throw new Error(`spend_alerts insert failed: ${error.message}`)
+    return data.length > 0
   }
 }
