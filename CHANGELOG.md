@@ -27,6 +27,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- The web app no longer takes your own Anthropic key, since a browser can't
+  store it securely. A key saved there before is deleted; the phone app still
+  offers it.
 - On Today, what you've done stands out: a finished card takes its section's
   colour with a yellow "Done today", and the section gets a check by its name
   that pops in when you come back from the activity.

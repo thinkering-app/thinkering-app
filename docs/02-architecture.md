@@ -71,7 +71,7 @@ How table changes avoid breaking someone on an older build:
 Three modes, same prompt code (`packages/core/src/prompts`):
 
 1. **Metered proxy** (the release default): `apps/web/app/api/ai/*` holds the Anthropic key. The client sends a call `kind` + structured params (not raw prompts); the server assembles the prompt from the same `packages/core` templates, calls Anthropic with streaming SSE passthrough, and meters usage. This keeps the key safe and prevents the proxy being a generic Anthropic relay.
-2. **BYO key**: user's Anthropic key in SecureStore (Keychain); client assembles the same prompts and calls Anthropic directly (`anthropic-dangerous-direct-browser-access` on web). Unmetered by us. On web, warn that the key is stored in browser storage.
+2. **BYO key**: user's Anthropic key in SecureStore (Keychain); client assembles the same prompts and calls Anthropic directly. Unmetered by us. Native only (`BYOK_AVAILABLE`): a browser has no keychain, so the key would sit in localStorage readable by any script on the page. Web hides the option, reads a stored `byok` mode as proxy, and deletes any key an earlier web build saved.
 3. **Fixture** (the dev default; CI and E2E): serves recorded responses from `fixtures/recorded/<kind>/` with simulated streaming and latency — no network, no key, deterministic. A first-class mode, not a test shim: it's how the whole app runs at zero token cost and how someone new runs it without an API key. See `10-testing.md`.
 
 The mode is a setting (Me → Developer, with dev tools), starting from the build's mode: `EXPO_PUBLIC_AI_MODE` if set, otherwise fixture in a dev build and proxy in a release build — so a fresh checkout never spends tokens and a store build never serves fixtures. The Conductor run scripts set it (`AI_MODE=proxy` for real calls), and the e2e EAS profile sets `fixture` for the Maestro flows (`10`). A mode picked in Me persists until the data is cleared.
@@ -105,7 +105,7 @@ The client's PostHog key/value store is backed by our own `settings` table (`cus
 
 - Secrets server-side: Anthropic key, Resend key, Supabase **secret key** (`SUPABASE_SECRET_KEY`). Client env: Supabase URL + **publishable key** (`EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`), PostHog key (public by design), API base URL, and the public Featurebase portal URL.
 - **API key format**: the new `sb_publishable_…` / `sb_secret_…` keys, not the legacy `anon` / `service_role` JWTs. The publishable key is no less exposed than `anon` was — both ship in the client and both rely on RLS — but a secret key is opaque, individually revocable, and rotatable (create new → deploy → revoke old) without invalidating the access tokens the project has already issued, which rotating the JWT secret would. supabase-js sends new-format keys only in the `apikey` header, never as a Bearer token. Nothing in our code inspects a key, so the format is a configuration concern, not a code one.
-- BYO Anthropic key: SecureStore on native; web localStorage with explicit warning.
+- BYO Anthropic key: SecureStore on native; not offered on web.
 - All API routes validate input with Zod, sign-check device tokens, and rate-limit.
 - Supabase RLS on all user-data tables; the secret key (`service_role`, which bypasses RLS) is confined to metering and operational rate-limit counters and never touches `sync_rows`.
 

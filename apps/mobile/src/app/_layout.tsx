@@ -9,6 +9,7 @@ import { Text, View } from 'react-native'
 
 import '../global.css'
 import { useDbMigrations, type DbUnavailableReason } from '../db'
+import { forgetWebByokKey } from '@/ai/secure-store'
 import { useAppOpened } from '@/analytics'
 import { Button } from '@/components/button'
 import { PaperGrain } from '@/components/texture'
@@ -56,6 +57,8 @@ export default function RootLayout() {
   useEffect(() => {
     if (ready) SplashScreen.hideAsync()
   }, [ready])
+
+  useEffect(forgetWebByokKey, [])
 
   if (!ready) return null
 

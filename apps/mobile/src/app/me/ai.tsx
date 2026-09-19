@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Platform, Text, View } from 'react-native'
+import { Text, View } from 'react-native'
 
-import { getAiMode, setAiMode, type AiMode } from '@/ai/settings'
+import { BYOK_AVAILABLE, getAiMode, setAiMode, type AiMode } from '@/ai/settings'
 import { KEYS, secureDelete, secureGet, secureSet } from '@/ai/secure-store'
 import { fetchUsage, type UsageSnapshot } from '@/ai/usage'
 import { track } from '@/analytics'
@@ -13,7 +13,7 @@ import { TextField } from '@/components/text-field'
 /**
  * Me → Settings → AI (docs/01 §7): today's usage against the included daily
  * amount, and the option to bring your own Anthropic key (D10 — SecureStore,
- * calls go direct and unmetered).
+ * calls go direct and unmetered). Native only: web has no keychain.
  */
 
 export default function AiScreen() {
@@ -25,9 +25,11 @@ export default function AiScreen() {
 
   useEffect(() => {
     let live = true
-    void secureGet(KEYS.byokKey).then((stored) => {
-      if (live) setByok(stored !== null)
-    })
+    if (BYOK_AVAILABLE) {
+      void secureGet(KEYS.byokKey).then((stored) => {
+        if (live) setByok(stored !== null)
+      })
+    }
     // Only the metered proxy has a meter: a BYO key is billed by Anthropic, and
     // fixture mode never touches the network (docs/10).
     if (mode === 'proxy') {
@@ -85,33 +87,33 @@ export default function AiScreen() {
         <Text className="font-sans text-body text-ink-soft">Checking today&apos;s usage…</Text>
       )}
 
-      <View className="gap-3">
-        <Text className="font-heading-bold text-heading text-ink">Your own Anthropic key</Text>
-        {byok ? (
-          <>
-            <Text className="font-sans text-secondary text-ink-soft">
-              A key is saved on this device. Calls go straight to Anthropic.
-            </Text>
-            <Button label="Remove key" variant="quiet" onPress={() => void removeKey()} />
-          </>
-        ) : (
-          <>
-            <TextField
-              value={key}
-              onChangeText={setKey}
-              placeholder="sk-ant-…"
-              accessibilityLabel="Anthropic API key"
-            />
-            {Platform.OS === 'web' ? (
-              <Text className="font-sans text-caption text-ink-soft">
-                On the web the key is kept in browser storage, which is less protected than the
-                keychain on a phone.
+      {BYOK_AVAILABLE ? (
+        <View className="gap-3">
+          <Text className="font-heading-bold text-heading text-ink">Your own Anthropic key</Text>
+          {byok ? (
+            <>
+              <Text className="font-sans text-secondary text-ink-soft">
+                A key is saved on this device. Calls go straight to Anthropic.
               </Text>
-            ) : null}
-            <Button label="Save key" onPress={() => void saveKey()} disabled={key.trim() === ''} />
-          </>
-        )}
-      </View>
+              <Button label="Remove key" variant="quiet" onPress={() => void removeKey()} />
+            </>
+          ) : (
+            <>
+              <TextField
+                value={key}
+                onChangeText={setKey}
+                placeholder="sk-ant-…"
+                accessibilityLabel="Anthropic API key"
+              />
+              <Button
+                label="Save key"
+                onPress={() => void saveKey()}
+                disabled={key.trim() === ''}
+              />
+            </>
+          )}
+        </View>
+      ) : null}
     </SubScreen>
   )
 }
