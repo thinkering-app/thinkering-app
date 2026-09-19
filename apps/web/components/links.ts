@@ -1,6 +1,7 @@
 // Every external URL the site links to, in one place.
 export const links = {
   betaForm: 'https://forms.gle/nbahBWqt4JXb1XKb9',
+  webApp: 'https://web.thinkering.app',
   featurebase: 'https://thinkering.featurebase.app/',
   featurebaseLibraryThread:
     'https://thinkering.featurebase.app/p/science-of-learning-library-discussion-thread-2026',
