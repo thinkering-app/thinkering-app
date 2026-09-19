@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { Animated, Pressable, type PressableProps } from 'react-native'
+import { Animated, Pressable, View, type PressableProps } from 'react-native'
 
 /**
  * The press feedback for a card-sized target (docs/07): a gentle spring inward,
@@ -32,21 +32,25 @@ export function PressScale({
     }).start()
 
   return (
-    <Animated.View className={wrapperClassName} style={{ transform: [{ scale: value }] }}>
-      <Pressable
-        {...props}
-        className={`flex-1 ${className ?? ''}`}
-        onPressIn={(e) => {
-          spring(scale)
-          props.onPressIn?.(e)
-        }}
-        onPressOut={(e) => {
-          spring(1)
-          props.onPressOut?.(e)
-        }}
-      >
-        {children}
-      </Pressable>
-    </Animated.View>
+    // The sizing classes go on a plain View: NativeWind doesn't style
+    // Animated.View, so a className there was silently dropped.
+    <View className={wrapperClassName}>
+      <Animated.View style={{ flexGrow: 1, transform: [{ scale: value }] }}>
+        <Pressable
+          {...props}
+          className={`flex-1 ${className ?? ''}`}
+          onPressIn={(e) => {
+            spring(scale)
+            props.onPressIn?.(e)
+          }}
+          onPressOut={(e) => {
+            spring(1)
+            props.onPressOut?.(e)
+          }}
+        >
+          {children}
+        </Pressable>
+      </Animated.View>
+    </View>
   )
 }
