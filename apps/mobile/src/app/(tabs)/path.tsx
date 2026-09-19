@@ -4,8 +4,16 @@ import { useState } from 'react'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import type { GeneratedGoal } from '@thinkering/core'
-import { moveGoal, softDeleteGoal, updateGoal, type Goal } from '@thinkering/db'
+import {
+  createGoal,
+  moveGoal,
+  nextGoalSortOrder,
+  softDeleteGoal,
+  updateGoal,
+  type Goal,
+} from '@thinkering/db'
 
+import { track } from '@/analytics'
 import { Button } from '@/components/button'
 import { EmptyState } from '@/components/empty-state'
 import { FeedbackButton } from '@/components/feedback-button'
@@ -24,7 +32,8 @@ import { colors } from '@/theme/tokens'
 /**
  * Path (docs/01 §5): the interest's goals in path order with their status as a
  * colour treatment, expandable to the concepts beneath them, reorderable and
- * editable — and G9's three suggestions at the bottom.
+ * editable, with a way to add a goal of their own — and G9's three suggestions
+ * at the bottom.
  */
 export default function PathScreen() {
   const interest = usePathInterest()
@@ -35,6 +44,7 @@ export default function PathScreen() {
   )
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [editing, setEditing] = useState<Goal | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
   const [reordering, setReordering] = useState(false)
 
   const move = (goalId: string, to: number) => {
@@ -93,7 +103,10 @@ export default function PathScreen() {
                 view={view}
                 expanded={expandedId === view.goal.id}
                 onToggle={() => setExpandedId((id) => (id === view.goal.id ? null : view.goal.id))}
-                onEdit={() => setEditing(view.goal)}
+                onEdit={() => {
+                  setEditing(view.goal)
+                  setSheetOpen(true)
+                }}
                 onLongPress={() => setReordering(true)}
                 onMoveUp={reordering && index > 0 ? () => move(view.goal.id, index - 1) : undefined}
                 onMoveDown={
@@ -103,6 +116,14 @@ export default function PathScreen() {
                 }
               />
             ))}
+            <Button
+              label="Add a goal"
+              variant="quiet"
+              onPress={() => {
+                setEditing(null)
+                setSheetOpen(true)
+              }}
+            />
 
             <View className="pt-6">
               <ReflectCard interestId={interest.id} />
@@ -132,18 +153,33 @@ export default function PathScreen() {
       </ScrollView>
 
       <GoalSheet
-        key={editing?.id ?? 'none'}
-        visible={editing !== null}
-        onClose={() => setEditing(null)}
+        key={sheetOpen ? (editing?.id ?? 'new') : 'closed'}
+        visible={sheetOpen}
+        onClose={() => setSheetOpen(false)}
         goal={editing}
         onSave={(draft) => {
-          if (editing) updateGoal(db, repoContext, editing.id, draft)
+          if (editing) {
+            updateGoal(db, repoContext, editing.id, draft)
+          } else if (interest) {
+            createGoal(db, repoContext, {
+              interestId: interest.id,
+              ...draft,
+              concepts: [],
+              sortOrder: nextGoalSortOrder(db, interest.id),
+              source: 'user',
+            })
+            track('goal_added', { source: 'user' })
+          }
           reload()
         }}
-        onDelete={() => {
-          if (editing) softDeleteGoal(db, repoContext, editing.id)
-          reload()
-        }}
+        onDelete={
+          editing
+            ? () => {
+                softDeleteGoal(db, repoContext, editing.id)
+                reload()
+              }
+            : undefined
+        }
       />
       <FeedbackButton />
     </SafeAreaView>
