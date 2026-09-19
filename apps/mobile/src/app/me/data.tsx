@@ -202,8 +202,8 @@ export default function DataScreen() {
           </View>
           <Text className="font-sans text-caption text-ink-soft">
             Screen recordings of your sessions help us fix problems and see how learning here feels.
-            They aren&apos;t linked to you, but they show what&apos;s on screen — your activities
-            and what you type.
+            They aren&apos;t linked to you, and your email, passwords and API key are hidden, but
+            they show what&apos;s on screen — your activities and what you type.
           </Text>
         </View>
       ) : null}
