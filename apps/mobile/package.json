@@ -20,6 +20,7 @@
     "@expo-google-fonts/arvo": "^0.4.1",
     "@expo-google-fonts/outfit": "^0.4.1",
     "@expo/vector-icons": "^15.0.0",
+    "@posthog/react-native-plugin": "^2.9.4",
     "@supabase/supabase-js": "^2.116.0",
     "@thinkering/config": "workspace:*",
     "@thinkering/core": "workspace:*",

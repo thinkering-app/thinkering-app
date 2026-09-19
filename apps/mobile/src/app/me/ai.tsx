@@ -4,7 +4,7 @@ import { Text, View } from 'react-native'
 import { BYOK_AVAILABLE, getAiMode, setAiMode, type AiMode } from '@/ai/settings'
 import { KEYS, secureDelete, secureGet, secureSet } from '@/ai/secure-store'
 import { fetchUsage, type UsageSnapshot } from '@/ai/usage'
-import { track } from '@/analytics'
+import { ReplayMask, track } from '@/analytics'
 import { Button } from '@/components/button'
 import { Meter } from '@/components/meter'
 import { SubScreen } from '@/components/sub-screen'
@@ -99,12 +99,14 @@ export default function AiScreen() {
             </>
           ) : (
             <>
-              <TextField
-                value={key}
-                onChangeText={setKey}
-                placeholder="sk-ant-…"
-                accessibilityLabel="Anthropic API key"
-              />
+              <ReplayMask>
+                <TextField
+                  value={key}
+                  onChangeText={setKey}
+                  placeholder="sk-ant-…"
+                  accessibilityLabel="Anthropic API key"
+                />
+              </ReplayMask>
               <Button
                 label="Save key"
                 onPress={() => void saveKey()}
