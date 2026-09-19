@@ -39,7 +39,7 @@ The app is feature-complete for a first beta and heading to TestFlight; what's l
 | `pnpm --filter @thinkering/core test:cov` | Coverage by hand. It's off locally and enforced in CI. |
 | `pnpm --filter @thinkering/db generate` | Generate a migration from `src/schema.ts`. |
 | `pnpm --filter @thinkering/db snapshot` | Dump `fixtures/db/v<N>.sql` after adding a migration. |
-| `pnpm prompt:check <kind>` / `pnpm prompt:run <kind> [--record]` | **Live model calls.** They read `ANTHROPIC_API_KEY` from `apps/web/.env` (or your shell) and cost money. Ask before running them. |
+| `pnpm prompt:check <kind>` / `pnpm prompt:run <kind> [--record]` | **Live model calls.** They read `ANTHROPIC_API_KEY` from `apps/web/.env` (or your shell) and cost money. Ask before running them. Each runs every input fixture for the kind; `--only <fixture>` runs one. |
 | `pnpm format` | Prettier. |
 
 `--filter <package>` runs a script in one workspace package instead of all of them. The names are in each `package.json`: `@thinkering/core`, `@thinkering/db`, `@thinkering/mobile`, `@thinkering/web`. Words after the script name go to the test runner, which treats them as a file filter.

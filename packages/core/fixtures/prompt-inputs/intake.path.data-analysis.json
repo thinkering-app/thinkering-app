@@ -1,0 +1,36 @@
+{
+  "wantToLearn": "Use Python for data analysis at work",
+  "whyChoice": "career",
+  "whyText": "I rebuild the same Excel reports every month and want to automate them, then do analysis Excel can't.",
+  "experienceChoice": "in_middle",
+  "experienceText": "I write small Python scripts for file renaming and API calls. Never used pandas; strong in Excel pivots and VLOOKUP.",
+  "approach": {
+    "domain": "quantitative-technical",
+    "approachNotes": "You already think in tables and write Python, so skip language basics and map pandas onto what you do in Excel: filters, pivots, lookups. Work on your own report data from the start, with worked examples you then adapt. The shift that matters is from clicking to describing a transformation in code you can rerun, so each session should end with a script that does one real step of your monthly report.",
+    "pitfalls": [
+      "Looping over rows like a script instead of using vectorized column operations.",
+      "Silent join mistakes that duplicate or drop rows, unnoticed without row-count checks.",
+      "Copying notebook snippets that work once but can't be rerun on next month's file."
+    ],
+    "progressionPrinciples": [
+      "Anchor each pandas idea to the Excel operation it replaces before going beyond Excel.",
+      "Loading, selecting and filtering come before grouping, joining and reshaping.",
+      "Move from one-off exploration to a rerunnable script early, then build on it."
+    ]
+  },
+  "selectedTopics": ["Automating monthly reports", "Pivot tables in pandas", "Merging data from several files", "Charts from code"],
+  "unselectedTopics": [
+    "Python basics",
+    "Jupyter notebooks",
+    "Cleaning messy data",
+    "Dates and time series",
+    "Reading Excel and CSV files",
+    "Basic statistics",
+    "SQL from Python",
+    "Scheduling scripts"
+  ],
+  "successOutcomes": [
+    "My monthly report runs from one script",
+    "I can answer a question my manager asks without rebuilding a spreadsheet"
+  ]
+}

@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import { AppState } from 'react-native'
 import {
   describeResponse,
   extractPartialBlocks,
@@ -264,11 +265,12 @@ function persist(activity: Activity, doc: ActivityDoc): ActivityDoc {
 // ── Writing ahead (docs/04 §Latency & cost) ──────────────────────────────────
 
 /**
- * Today's cards have their documents written before the tap, one at a time in
- * section order so Next lands first. Each write is shared: opening a card whose
- * document is already being written joins that stream instead of starting a
- * second one, and leaving the screen doesn't cancel it — the document is kept
- * for when they come back.
+ * Today's cards have their documents written before the tap, two at a time in
+ * section order so Next lands first and the next section isn't far behind. Each
+ * write is shared: opening a card whose document is already being written joins
+ * that stream instead of starting a second one, and leaving the screen doesn't
+ * cancel it — the document is kept for when they come back. A write the app
+ * was put away during is queued again when it comes back.
  */
 
 const SECTION_ORDER: Record<Activity['section'], number> = { next: 0, strengthen: 1, go_further: 2 }
@@ -282,8 +284,19 @@ interface Write {
 const inFlight = new Map<string, Write>()
 /** Written ahead and failed this session — left for the learner to retry with Write. */
 const failed = new Set<string>()
+/**
+ * Failed while the app was away. The OS suspends a backgrounded app within
+ * seconds and its stream dies with it; that says nothing about the card, so
+ * these go back in the queue when the app is active again rather than to Write.
+ */
+const interrupted = new Set<string>()
+/** Counts the times the app has left the foreground, so a write can tell it was away. */
+let departures = 0
+let watchingAppState = false
 let queue: Activity[] = []
-let draining = false
+/** Streams written ahead at once: two keeps a second section close behind Next without flooding the meter. */
+const WRITERS = 2
+let writers = 0
 let writingIds: ReadonlySet<string> = new Set()
 const watchers = new Set<() => void>()
 
@@ -304,6 +317,8 @@ export function writeActivityDoc(
   if (!write) {
     const created: Write = { promise: undefined as never, latest: null, listeners: new Set() }
     failed.delete(activity.id)
+    interrupted.delete(activity.id)
+    const departuresAtStart = departures
     created.promise = generateActivityDoc(activity, {
       onPartial: (partial) => {
         created.latest = partial
@@ -311,7 +326,11 @@ export function writeActivityDoc(
       },
     })
       .catch((error: unknown) => {
-        failed.add(activity.id)
+        if (departures !== departuresAtStart || AppState.currentState !== 'active') {
+          interrupted.add(activity.id)
+        } else {
+          failed.add(activity.id)
+        }
         throw error
       })
       .finally(() => {
@@ -339,6 +358,7 @@ export function writeActivityDoc(
  * not retried here — the card offers Write instead.
  */
 export function writeAhead(activities: readonly Activity[]): void {
+  watchAppState()
   const waiting = new Set([...inFlight.keys(), ...queue.map((a) => a.id)])
   const added = activities.filter(
     (a) => a.doc === null && a.status === 'planned' && !waiting.has(a.id) && !failed.has(a.id),
@@ -346,12 +366,26 @@ export function writeAhead(activities: readonly Activity[]): void {
   if (added.length === 0) return
   queue = [...queue, ...added].sort((a, b) => SECTION_ORDER[a.section] - SECTION_ORDER[b.section])
   publish()
-  void drain()
+  while (writers < WRITERS && queue.length > 0) void drain()
+}
+
+function watchAppState() {
+  if (watchingAppState) return
+  watchingAppState = true
+  AppState.addEventListener('change', (state) => {
+    if (state !== 'active') {
+      departures += 1
+      return
+    }
+    // Re-read each card: it may have been opened, written or dropped since.
+    const again = [...interrupted].flatMap((id) => getActivity(db, id) ?? [])
+    interrupted.clear()
+    writeAhead(again)
+  })
 }
 
 async function drain() {
-  if (draining) return
-  draining = true
+  writers += 1
   try {
     for (let next = queue.shift(); next; next = queue.shift()) {
       // It may have been written, opened or dropped since it was queued.
@@ -363,7 +397,7 @@ async function drain() {
       await writeActivityDoc(fresh).promise.catch(() => {})
     }
   } finally {
-    draining = false
+    writers -= 1
   }
 }
 

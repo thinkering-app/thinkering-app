@@ -1,5 +1,5 @@
-import { memo, useEffect, useState } from 'react'
-import { Animated, Easing, Text, View } from 'react-native'
+import { Text, View } from 'react-native'
+import Animated from 'react-native-reanimated'
 
 import { colors } from '@/theme/tokens'
 
@@ -11,38 +11,14 @@ type GeneratingProps = {
 /**
  * The branded wait (docs/01 §1 step 4/5): three dots breathing in the palette.
  * Calm, no spinner, no progress theatre.
+ *
+ * A Reanimated CSS animation, not an `Animated.loop`. A native-driven loop ends
+ * for good the moment its value is detached from the view — a re-render that
+ * swaps the view's animated props is enough — and the value it leaves behind is
+ * the first frame, so the dots froze on blue after a cycle or two. This one runs
+ * on the UI thread and belongs to the view, so nothing React does can stop it.
  */
-export const Generating = memo(function Generating({ label }: GeneratingProps) {
-  // Lazy state, not a ref: the animated nodes must be stable but are read during
-  // render. The interpolations especially: a new node on re-render makes
-  // Animated rebuild the view's props from the JS-side value, which never moves
-  // under the native driver — the dots snap back to the first one, and a
-  // streaming parent re-renders often enough to hold them there.
-  const [progress] = useState(() => new Animated.Value(0))
-  const [dots] = useState(() =>
-    DOT_COLORS.map((color, i) => ({
-      color,
-      opacity: progress.interpolate({
-        inputRange: [i - 0.6, i, i + 0.6, i + 2.4, i + 3],
-        outputRange: [0.25, 1, 0.25, 0.25, 1],
-        extrapolate: 'clamp',
-      }),
-    })),
-  )
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.timing(progress, {
-        toValue: 3,
-        duration: 1800,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }),
-    )
-    loop.start()
-    return () => loop.stop()
-  }, [progress])
-
+export function Generating({ label }: GeneratingProps) {
   return (
     <View
       accessibilityRole="progressbar"
@@ -50,16 +26,53 @@ export const Generating = memo(function Generating({ label }: GeneratingProps) {
       className="items-center gap-4 py-10"
     >
       <View className="flex-row gap-2">
-        {dots.map(({ color, opacity }) => (
+        {DOTS.map(({ color, keyframes }) => (
           <Animated.View
             key={color}
-            style={{ width: 10, height: 10, borderRadius: 999, backgroundColor: color, opacity }}
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: 999,
+              backgroundColor: color,
+              animationName: keyframes,
+              animationDuration: CYCLE_MS,
+              animationIterationCount: 'infinite',
+              animationTimingFunction: 'linear',
+            }}
           />
         ))}
       </View>
       <Text className="font-sans text-secondary text-ink-soft">{label}</Text>
     </View>
   )
-})
+}
 
-const DOT_COLORS = [colors.cornflower.DEFAULT, colors.leaf.DEFAULT, colors.peach.DEFAULT]
+/** One full pass over the three dots. */
+const CYCLE_MS = 1800
+const DIM = 0.25
+
+/**
+ * Each dot brightens in turn: full at its own third of the cycle, dim again a
+ * fifth of a cycle either side of it, and dim for the rest.
+ */
+const DOTS = [colors.cornflower.DEFAULT, colors.leaf.DEFAULT, colors.peach.DEFAULT].map(
+  (color, i) => {
+    const peak = (i * 100) / 3
+    const keyframes =
+      i === 0
+        ? {
+            '0%': { opacity: 1 },
+            '20%': { opacity: DIM },
+            '80%': { opacity: DIM },
+            '100%': { opacity: 1 },
+          }
+        : {
+            '0%': { opacity: DIM },
+            [`${peak - 20}%`]: { opacity: DIM },
+            [`${peak}%`]: { opacity: 1 },
+            [`${peak + 20}%`]: { opacity: DIM },
+            '100%': { opacity: DIM },
+          }
+    return { color, keyframes }
+  },
+)
