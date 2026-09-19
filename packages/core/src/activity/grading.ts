@@ -22,12 +22,27 @@ export function gradeMcq(block: McqBlock, selectedId: string): boolean | null {
   return block.correctId === undefined ? null : block.correctId === selectedId
 }
 
-/** Blanks are forgiving: case- and whitespace-insensitive, `alts` count as right. */
+/**
+ * How a blank's answer is compared: case and spacing don't matter, full-width
+ * and half-width forms are the same (NFKC — how a Chinese keyboard types
+ * letters and digits), and neither does punctuation a sentence ends with.
+ */
+function normalizeBlank(s: string): string {
+  return s
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[.,;:!?。，；：！？、]+$/u, '')
+    .trim()
+}
+
+/** Blanks are forgiving (see `normalizeBlank`), and `alts` count as right. */
 export function gradeBlank(blank: FillBlankBlock['blanks'][number], answer: string): boolean {
-  const normalize = (s: string) => s.trim().toLowerCase()
-  const given = normalize(answer)
+  const given = normalizeBlank(answer)
   return (
-    given.length > 0 && [blank.answer, ...(blank.alts ?? [])].some((a) => normalize(a) === given)
+    given.length > 0 &&
+    [blank.answer, ...(blank.alts ?? [])].some((a) => normalizeBlank(a) === given)
   )
 }
 

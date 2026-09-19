@@ -33,6 +33,20 @@ describe('grading', () => {
     expect(gradeFillBlank(block, {})).toBe(false)
   })
 
+  it('treats full-width forms and closing punctuation as the same answer', () => {
+    const blank = (answer: string): BlockOf<'fillBlank'> => ({
+      kind: 'fillBlank',
+      id: 'f',
+      md: '___',
+      blanks: [{ id: 'b1', answer }],
+    })
+    expect(gradeFillBlank(blank('光合作用'), { b1: ' 光合作用。' })).toBe(true)
+    expect(gradeFillBlank(blank('CO2'), { b1: 'ＣＯ２' })).toBe(true)
+    expect(gradeFillBlank(blank('el café'), { b1: 'El  café.' })).toBe(true)
+    // Only closing punctuation: a sign is part of the answer.
+    expect(gradeFillBlank(blank('-1'), { b1: '1' })).toBe(false)
+  })
+
   it('requires the exact sequence for ordering', () => {
     const block: BlockOf<'ordering'> = {
       kind: 'ordering',

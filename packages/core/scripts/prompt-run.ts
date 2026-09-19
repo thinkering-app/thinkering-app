@@ -10,14 +10,18 @@ import { join } from 'node:path'
 import { loadFixtures, parseScriptArgs, pkgRoot, requireTemplate, runLive } from './prompt-lib'
 import { extractJsonText } from '../src/streaming/json'
 
-const { kind, only, record } = parseScriptArgs(process.argv.slice(2))
+const { kind, only, language, record } = parseScriptArgs(process.argv.slice(2))
 const template = requireTemplate(kind)
+if (record && language !== 'en') {
+  console.error('--record is English only: recordings back fixture mode and the tests')
+  process.exit(1)
+}
 
 for (const fixture of loadFixtures(template.kind, only)) {
   console.error(
-    `\n── ${template.kind} · ${fixture.name} · model=${template.model} v${template.version} ──`,
+    `\n── ${template.kind} · ${fixture.name} · model=${template.model} v${template.version} · ${language} ──`,
   )
-  const result = await runLive(template, fixture.params)
+  const result = await runLive(template, fixture.params, language)
 
   if (result.stopped) {
     console.log(`${fixture.name}: STOPPED (${result.stopped}) · ${result.latencyMs}ms`)

@@ -52,6 +52,12 @@ Every LLM call has a `kind` id, a versioned prompt template in `packages/core/sr
 
 A deterministic builder (`packages/core/src/prompts/context-assembly.ts`) produces the per-interest context block for G3/G5/G6/G7/G8: intake answers, approach notes, goals + statuses, recent history (titles + ratings, last ~10), active library items, contexts (G5b apply-tier only), relevant resources, routine notes. Budgeted (~2–3k tokens) and ordered stable-first for prompt caching.
 
+## Content language
+
+The learner picks a language in Me → Settings → Language (English, Spanish or Simplified Chinese, defaulting to the device's; docs/00 D23). **Prompts stay in English** whatever the language: they're tuned in English, the model's teaching knowledge doesn't depend on the prompt's language, and one set of templates is all there is to maintain. Instead, every call carries the language — the client sends `language` alongside `{kind, params}`, and `renderPrompt` (`packages/core/src/prompts/language.ts`) renders the template, then appends one system block for any language but English: write natively rather than translate, use references natural to that reader, the register (tú, 你), Chinese punctuation, how to read word limits in Chinese, and extra lines for fill-in-the-blank kinds and resource kinds. The block has no cache mark, so the cached prefix is shared across languages, and English prompts are byte-identical to the template's own render — that's asserted in `prompts.test.ts`, which also snapshots the block text. The template `version`s didn't change with it: the templates didn't.
+
+Only new generations follow the setting; what's already stored stays in the language it was written in. The output schemas' string limits leave room for Spanish, except the interest name, which stays short in every language because it labels chips and tags. Blank grading treats full-width and half-width forms, and closing punctuation, as the same answer. Recordings and fixture mode are English; `pnpm prompt:check <kind> --lang es` runs a kind live in another language (`prompt:run --record` refuses to).
+
 ## Latency & cost strategy
 
 - **Structure**: the system preamble (product, library definitions, activity schema, pedagogy) is identical across calls of a kind, with a `cache_control` breakpoint after it. Per-interest context next, volatile params last.
