@@ -12,6 +12,7 @@ import {
   utcDayOf,
   withoutDelta,
 } from '@/lib/server/metering'
+import { alertOnSpend } from '@/lib/server/spend-alert'
 import type { UsageDelta } from '@/lib/server/store'
 
 /**
@@ -124,6 +125,7 @@ export async function POST(req: Request): Promise<Response> {
   })
   if (!decision.allowed) {
     await store.addUsage(auth.deviceId, day, reverseDelta(reservation))
+    if (decision.reason === 'service_limit_reached') await alertOnSpend(day, before.total)
     return Response.json(
       { error: decision.reason, resetAt: nextUtcMidnight(now()) },
       { status: 429, headers },
@@ -155,12 +157,13 @@ export async function POST(req: Request): Promise<Response> {
       ...(e ? { errorType: (e as Error).name } : {}),
     })
     try {
-      await store.addUsage(auth.deviceId, day, {
+      const after = await store.addUsage(auth.deviceId, day, {
         counters: [],
         calls: 0,
         inputTokens,
         outputTokens: (outputTokens ?? reservedOutput) - reservedOutput,
       })
+      await alertOnSpend(day, after.total)
     } catch (err) {
       // The reservation stays: overcharging one call beats failing the response.
       logAiCall({
