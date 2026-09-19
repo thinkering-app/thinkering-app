@@ -86,6 +86,7 @@ export type ActivitySource = (typeof ACTIVITY_SOURCES)[number]
 /** Settings whose change is worth a count. Never the value — only which knob moved. */
 export const SETTINGS_KEYS = [
   'ai_mode',
+  'language',
   'analytics_opt_in',
   'session_replay_opt_in',
   'interest_status',

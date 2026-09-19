@@ -6,24 +6,27 @@ import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
 import { Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import '../global.css'
+import '@/i18n'
 import { useDbMigrations, type DbUnavailableReason } from '../db'
 import { forgetWebByokKey } from '@/ai/secure-store'
 import { useAppOpened, useSessionReplay } from '@/analytics'
 import { AppFrame } from '@/components/app-frame'
 import { Button } from '@/components/button'
+import { useAppLanguage } from '@/i18n/preference'
 import { PaperGrain } from '@/components/texture'
 import { useDevLink } from '@/dev/dev-link'
 import { useSyncLifecycle } from '@/sync/schedule'
 
 SplashScreen.preventAutoHideAsync()
 
-const DB_UNAVAILABLE_COPY: Record<DbUnavailableReason, string> = {
-  'another-tab': 'thinkering is open in another tab. Close it to carry on here.',
-  'no-storage': "This browser won't let thinkering store anything. Private browsing blocks it.",
-  unknown: 'Something went wrong preparing your data. Please restart the app.',
-}
+const DB_UNAVAILABLE_KEY = {
+  'another-tab': 'common.dbUnavailable.anotherTab',
+  'no-storage': 'common.dbUnavailable.noStorage',
+  unknown: 'common.dbUnavailable.unknown',
+} as const satisfies Record<DbUnavailableReason, string>
 
 /**
  * The last stop for anything a screen throws. Without it a single failed render
@@ -31,17 +34,17 @@ const DB_UNAVAILABLE_COPY: Record<DbUnavailableReason, string> = {
  * say — unmounts the tree and leaves a white page with nothing to act on.
  */
 export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
+  const { t } = useTranslation()
   return (
     <View className="flex-1 items-center justify-center gap-6 bg-paper px-8">
-      <Text className="text-center font-sans text-body text-ink">
-        Something went wrong on this screen.
-      </Text>
-      <Button label="Try again" onPress={() => void retry()} />
+      <Text className="text-center font-sans text-body text-ink">{t('common.screenError')}</Text>
+      <Button label={t('common.tryAgain')} onPress={() => void retry()} />
     </View>
   )
 }
 
 export default function RootLayout() {
+  const { t } = useTranslation()
   const [fontsLoaded] = useFonts({
     Arvo_400Regular,
     Arvo_700Bold,
@@ -50,7 +53,8 @@ export default function RootLayout() {
     Outfit_600SemiBold,
   })
   const migrations = useDbMigrations()
-  const ready = fontsLoaded && (migrations.success || Boolean(migrations.failure))
+  const languageApplied = useAppLanguage(migrations.success)
+  const ready = fontsLoaded && (languageApplied || Boolean(migrations.failure))
   // These wait for the schema: their effects run before the first render that
   // does, and on a fresh install the tables they read don't exist yet.
   useSyncLifecycle(migrations.success)
@@ -74,9 +78,9 @@ export default function RootLayout() {
     return (
       <View className="flex-1 items-center justify-center gap-6 bg-paper px-8">
         <Text className="text-center font-sans text-body text-ink">
-          {DB_UNAVAILABLE_COPY[migrations.failure]}
+          {t(DB_UNAVAILABLE_KEY[migrations.failure])}
         </Text>
-        <Button label="Try again" onPress={migrations.retry} />
+        <Button label={t('common.tryAgain')} onPress={migrations.retry} />
       </View>
     )
   }

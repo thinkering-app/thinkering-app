@@ -8,3 +8,7 @@ jest.mock('react-native-webview', () => {
 // The loading dots animate with Reanimated, whose native half isn't there under jest.
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'))
 jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'))
+
+// Components read copy through react-i18next; initialise it with the bundled
+// English, as the root layout does in the app.
+require('./src/i18n')
