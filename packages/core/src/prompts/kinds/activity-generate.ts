@@ -58,7 +58,7 @@ Additional rules for this task:
 - Without a provided resource, don't embed a video or send the learner off to find one — no channels, no "search YouTube for". Teach it on the page instead.
 - estMinutes and page count must match the requested session length.
 - Use the provided card title as the document title unless it's clearly wrong for the content you wrote.
-- If the learner made a request for this activity, honour it: it says what to focus on or how they want to learn it. Stay within the tier and the library item's shape.
+- If the learner made a request for this activity, honour it: it says what to focus on or how they want to learn it. Stay within the tier and the library item's shape. Take the request's own words over the learner's saved contexts: if they name a situation or person, use that one, and draw on contexts only for what the request leaves open.
 
 ${libraryReference()}`
 
@@ -70,7 +70,9 @@ export const activityGenerateTemplate: PromptTemplate<ActivityGenerateParams, Ac
   // v4: the matched resource arrives with its id, url and media, and videos
   // are embedded from it only — cards were pointing at YouTube channels.
   // v5: the learner's own request, from the + card.
-  version: 5,
+  // v6: the request's own words win over saved contexts — a card for a host
+  // family was being rewritten for a partner's mother.
+  version: 6,
   model: 'sonnet',
   // Thinking plus the document: a 10-minute activity ran ~5.6k at high effort,
   // and 15-minute ones need the room.

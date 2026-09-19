@@ -19,6 +19,16 @@ describe('checkActivityDoc', () => {
     expect(issues).toEqual([])
   })
 
+  it('asks for concept coverage only when the goal has concepts to cover', () => {
+    const uncovered = freshDoc()
+    uncovered.concepts = uncovered.concepts.map(({ goalConceptId: _, ...c }) => c)
+    const checks = (goalConceptIds: string[]) =>
+      checkActivityDoc(uncovered, { estMinutes: 5, goalConceptIds }).map((i) => i.check)
+    expect(checks(GOAL_CONCEPTS)).toContain('concepts')
+    // A goal-less card: the prerequisite fallback, or a request with no goal.
+    expect(checks([])).not.toContain('concepts')
+  })
+
   it('flags a filled review page on fresh generation and a misplaced review', () => {
     const filled = freshDoc()
     const review = filled.pages.find((p) => p.kind === 'review')!

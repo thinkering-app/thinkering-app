@@ -1,0 +1,167 @@
+{
+  "context": {
+    "interest": {
+      "name": "Conversational German",
+      "wantToLearn": "Get conversational in German",
+      "whyChoice": "personal_goal",
+      "whyText": "Partner’s family is in Munich; I want to hold my own at dinner.",
+      "experienceChoice": "explored",
+      "experienceText": "Two Duolingo streaks that died; I can order food.",
+      "frequency": "several_weekly",
+      "sessionMinutes": 10,
+      "approachNotes": "You learn a language by understanding messages and being pushed to produce them. We’ll pair short comprehensible input — reading and listening slightly above your level — with small speaking and writing reps every session, so recognition turns into production."
+    },
+    "goals": [
+      {
+        "title": "Greet and introduce yourself",
+        "status": "strengthened",
+        "concepts": [
+          {
+            "label": "Greetings by register",
+            "kind": "concept"
+          },
+          {
+            "label": "Introducing yourself",
+            "kind": "skill"
+          }
+        ]
+      },
+      {
+        "title": "Order food and drinks",
+        "status": "introduced",
+        "concepts": [
+          {
+            "label": "Restaurant phrases",
+            "kind": "concept"
+          },
+          {
+            "label": "Polite requests with hätte gern",
+            "kind": "skill"
+          }
+        ]
+      },
+      {
+        "title": "Talk about your family",
+        "status": "not_started",
+        "concepts": [
+          {
+            "label": "Family vocabulary",
+            "kind": "concept"
+          },
+          {
+            "label": "Possessives mein/dein",
+            "kind": "concept"
+          }
+        ]
+      },
+      {
+        "title": "Handle small talk about your weekend",
+        "status": "not_started",
+        "concepts": [
+          {
+            "label": "Perfekt for past events",
+            "kind": "concept"
+          },
+          {
+            "label": "Weekend vocabulary",
+            "kind": "concept"
+          }
+        ]
+      }
+    ],
+    "recentHistory": [
+      {
+        "title": "Hätte gern: ordering politely",
+        "goalTitle": "Order food and drinks",
+        "tier": "introduce",
+        "rating": "up"
+      },
+      {
+        "title": "Quick retrieval: greetings",
+        "goalTitle": "Greet and introduce yourself",
+        "tier": "strengthen",
+        "rating": null
+      }
+    ],
+    "activeLibraryItems": [
+      {
+        "section": "next",
+        "id": "plain-explainer"
+      },
+      {
+        "section": "next",
+        "id": "guided-discovery"
+      },
+      {
+        "section": "next",
+        "id": "watch-along"
+      },
+      {
+        "section": "strengthen",
+        "id": "retrieval-quiz"
+      },
+      {
+        "section": "strengthen",
+        "id": "focused-drill"
+      },
+      {
+        "section": "strengthen",
+        "id": "faded-example"
+      },
+      {
+        "section": "go_further",
+        "id": "make-something"
+      },
+      {
+        "section": "go_further",
+        "id": "put-to-work"
+      },
+      {
+        "section": "go_further",
+        "id": "connect-ideas"
+      }
+    ],
+    "contexts": [
+      {
+        "kind": "person",
+        "label": "Partner’s mother Heike",
+        "notes": "Speaks no English; loves cooking"
+      }
+    ],
+    "resources": [
+      {
+        "title": "Easy German: At the Restaurant (video)",
+        "description": "Street interviews ordering food",
+        "goalTitles": [
+          "Order food and drinks"
+        ]
+      }
+    ],
+    "routineNotes": [
+      "Prefers speaking practice over grammar drills"
+    ]
+  },
+  "goal": {
+    "id": "g2",
+    "title": "Order food and drinks",
+    "description": "Order in a café or restaurant and ask politely for what you want.",
+    "status": "introduced",
+    "concepts": [
+      {
+        "id": "c-rest-phrases",
+        "label": "Restaurant phrases",
+        "kind": "concept"
+      },
+      {
+        "id": "c-haette-gern",
+        "label": "Polite requests with hätte gern",
+        "kind": "skill"
+      }
+    ]
+  },
+  "tier": "strengthen",
+  "libraryItemId": "retrieval-quiz",
+  "title": "Einen or ein? Ordering quick-fire",
+  "estMinutes": 10,
+  "focus": "Quiz me, I keep mixing up einen and ein after hätte gern"
+}

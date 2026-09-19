@@ -88,7 +88,8 @@ export function checkActivityDoc(
       issues.push({ check: 'concepts', message: `declared goalConceptId "${c.goalConceptId}" not on the goal` })
     }
   }
-  if (!doc.concepts.some((c) => c.goalConceptId !== undefined)) {
+  // A goal-less card (prerequisite, or a request with no goal) has nothing to cover.
+  if (known.size > 0 && !doc.concepts.some((c) => c.goalConceptId !== undefined)) {
     issues.push({ check: 'concepts', message: 'activity declares no goal concept coverage at all' })
   }
 
