@@ -153,20 +153,12 @@
       {
         "goalId": "g2",
         "goalTitle": "Order food and drinks"
-      },
-      {
-        "goalId": "g1",
-        "goalTitle": "Greet and introduce yourself"
       }
     ],
     "goFurther": [
       {
         "goalId": "g1",
         "goalTitle": "Greet and introduce yourself"
-      },
-      {
-        "goalId": "g2",
-        "goalTitle": "Order food and drinks"
       }
     ]
   },

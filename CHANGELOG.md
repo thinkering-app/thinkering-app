@@ -10,11 +10,15 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 - Anonymous, opt-in usage analytics — off until you say yes, asked once on the
   welcome screen, and never carrying anything you write.
+- Share session replays with the developers, if you choose — asked after
+  the usage question on the welcome screen, and a separate setting in Account
+  and data. Off unless you turn it on.
 - Delete your backup account from inside the app.
 - A privacy page in the app that matches the one on the website.
 - A new intake step, "What are you hoping for?", with suggestions to pick
   from. Your path is shaped around what you choose.
 - Add your own topics and outcomes during intake.
+- Add a goal of your own straight from Path.
 - A + at the end of each Today section adds another activity. Pick a goal or
   say what you'd like to focus on, or leave both and get the next one.
 - Edit, add or remove what you're hoping for in Path settings.
@@ -27,6 +31,12 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- Configure learning routine shows your daily routine above the question,
+  with a link to the feedback board if you'd like a different number of
+  activities each day.
+- A section's configure sheet says what the section is for, and shows its
+  activity types as small cards, two to a row. Tap one to see what you'll do
+  and why it helps, in plain words.
 - The web app no longer takes your own Anthropic key, since a browser can't
   store it securely. A key saved there before is deleted; the phone app still
   offers it.
@@ -56,6 +66,7 @@ build; internal refactors and docs don't appear here. The conventions are in
 ### Fixed
 
 - Reloading the web app on any screen but the first no longer shows a 404.
+- Today no longer sometimes shows the same activity twice in a section.
 - Today's next activity is written ahead again, so it's usually ready when you
   open it. Opening it while it's still being written picks up where that left
   off instead of starting over.

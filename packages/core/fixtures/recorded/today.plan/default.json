@@ -3,7 +3,7 @@
   "promptVersion": 1,
   "model": "claude-haiku-4-5-20251001",
   "fixture": "default",
-  "text": "```json\n{\n  \"next\": [\n    {\n      \"goalId\": \"g3\",\n      \"libraryItemId\": \"plain-explainer\",\n      \"title\": \"Family words and mein/dein\",\n      \"estMinutes\": 10\n    }\n  ],\n  \"strengthen\": [\n    {\n      \"goalId\": \"g2\",\n      \"libraryItemId\": \"focused-drill\",\n      \"title\": \"Ordering practice: hätte gern drills\",\n      \"estMinutes\": 10\n    },\n    {\n      \"goalId\": \"g1\",\n      \"libraryItemId\": \"retrieval-quiz\",\n      \"title\": \"Quick retrieval: greetings and introductions\",\n      \"estMinutes\": 9\n    }\n  ],\n  \"goFurther\": [\n    {\n      \"goalId\": \"g1\",\n      \"libraryItemId\": \"make-something\",\n      \"title\": \"Write a dinner introduction\",\n      \"estMinutes\": 10\n    },\n    {\n      \"goalId\": \"g2\",\n      \"libraryItemId\": \"put-to-work\",\n      \"title\": \"Plan your first restaurant order\",\n      \"estMinutes\": 11\n    }\n  ]\n}\n```",
+  "text": "```json\n{\n  \"next\": [\n    {\n      \"goalId\": \"g3\",\n      \"libraryItemId\": \"plain-explainer\",\n      \"title\": \"Family words and mein/dein\",\n      \"estMinutes\": 10\n    }\n  ],\n  \"strengthen\": [\n    {\n      \"goalId\": \"g2\",\n      \"libraryItemId\": \"focused-drill\",\n      \"title\": \"Ordering practice: hätte gern drills\",\n      \"estMinutes\": 10\n    }\n  ],\n  \"goFurther\": [\n    {\n      \"goalId\": \"g1\",\n      \"libraryItemId\": \"make-something\",\n      \"title\": \"Write a dinner introduction\",\n      \"estMinutes\": 10\n    }\n  ]\n}\n```",
   "usage": {
     "inputTokens": 3639,
     "outputTokens": 307,

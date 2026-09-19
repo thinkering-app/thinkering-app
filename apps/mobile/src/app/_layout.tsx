@@ -10,7 +10,7 @@ import { Text, View } from 'react-native'
 import '../global.css'
 import { useDbMigrations, type DbUnavailableReason } from '../db'
 import { forgetWebByokKey } from '@/ai/secure-store'
-import { useAppOpened } from '@/analytics'
+import { useAppOpened, useSessionReplay } from '@/analytics'
 import { Button } from '@/components/button'
 import { PaperGrain } from '@/components/texture'
 import { useSyncLifecycle } from '@/sync/schedule'
@@ -49,10 +49,11 @@ export default function RootLayout() {
   })
   const migrations = useDbMigrations()
   const ready = fontsLoaded && (migrations.success || Boolean(migrations.failure))
-  // Both wait for the schema: their effects run before the first render that
+  // These wait for the schema: their effects run before the first render that
   // does, and on a fresh install the tables they read don't exist yet.
   useSyncLifecycle(migrations.success)
   useAppOpened(migrations.success)
+  useSessionReplay(migrations.success)
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync()
