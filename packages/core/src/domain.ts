@@ -62,6 +62,8 @@ export interface ReflectionChanges {
   removed: string[]
   revised: string[]
   reordered: boolean
+  /** What they're hoping for, when the reflection changed it. */
+  outcomes?: { before: string[]; after: string[] }
 }
 
 /** Which tier of activity each Today section serves. */

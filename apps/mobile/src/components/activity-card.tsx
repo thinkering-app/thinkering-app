@@ -27,11 +27,12 @@ type ActivityCardProps = {
 }
 
 // The landing page's card language: a small accent swatch on white carries the
-// section colour, and the meta chip picks up its tint (docs/07 §Sections).
-const ACCENT: Record<Section, { swatch: string; chip: string }> = {
-  next: { swatch: 'bg-cornflower', chip: 'bg-cornflower-tint' },
-  strengthen: { swatch: 'bg-leaf', chip: 'bg-leaf-tint' },
-  go_further: { swatch: 'bg-peach', chip: 'bg-peach-tint' },
+// section colour, and the meta chip picks up its tint (docs/07 §Sections). Done
+// today, the card takes that tint and the chip turns sun.
+const ACCENT: Record<Section, { swatch: string; tint: string }> = {
+  next: { swatch: 'bg-cornflower', tint: 'bg-cornflower-tint' },
+  strengthen: { swatch: 'bg-leaf', tint: 'bg-leaf-tint' },
+  go_further: { swatch: 'bg-peach', tint: 'bg-peach-tint' },
 }
 
 /** A Today card (docs/01 §3): what it is, the goal it moves, how long it takes. */
@@ -65,8 +66,10 @@ export function ActivityCard({
       }`}
       onPress={onPress}
       wrapperClassName="w-72"
-      className={`gap-2 rounded-card border border-hairline bg-surface p-5 shadow-card ${
-        completed ? 'opacity-60' : ''
+      className={`gap-2 rounded-card border p-5 ${
+        completed
+          ? `border-transparent ${ACCENT[section].tint}`
+          : 'border-hairline bg-surface shadow-card'
       }`}
     >
       <View className={`mb-1 h-1.5 w-8 rounded-pill ${ACCENT[section].swatch}`} />
@@ -78,13 +81,13 @@ export function ActivityCard({
       <View className="mt-auto flex-row pt-1">
         <View
           className={`flex-row items-center gap-1.5 rounded-pill px-2.5 py-1 ${
-            completed ? 'bg-leaf-tint' : ACCENT[section].chip
+            completed ? 'bg-sun' : ACCENT[section].tint
           }`}
         >
           {completed ? (
             <>
-              <Ionicons name="checkmark" size={13} color={colors.leaf.DEFAULT} />
-              <Text className="font-sans text-caption text-ink">Done today</Text>
+              <Ionicons name="checkmark" size={13} color={colors.ink.DEFAULT} />
+              <Text className="font-sans-medium text-caption text-ink">Done today</Text>
             </>
           ) : (
             <>

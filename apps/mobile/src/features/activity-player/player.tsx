@@ -7,12 +7,19 @@ import type { ActivityDoc, Page, Rating } from '@thinkering/core'
 import { Button } from '@/components/button'
 import { FadeIn } from '@/components/fade-in'
 import { Generating } from '@/components/generating'
-import { Wash } from '@/components/texture'
 import { ProgressBar } from '@/components/progress-bar'
 import { colors } from '@/theme/tokens'
 import { BlockView } from './blocks'
+import {
+  CELEBRATION_BY_TIER,
+  CELEBRATION_MS,
+  RisingDots,
+  SummaryWashes,
+  Sunlight,
+  useReduceMotion,
+} from './celebration'
 import { ResponsesProvider, type ResponseSink } from './responses'
-import { SummaryFooter } from './summary'
+import { SummaryFooter, SummaryHeader } from './summary'
 
 /**
  * The activity player (docs/05): a page at a time, progress bar across the top,
@@ -22,8 +29,12 @@ import { SummaryFooter } from './summary'
 
 export interface PlayerProps {
   doc: ActivityDoc
+  /** The goal this activity served, named on the summary page. */
+  goalTitle?: string
   /** Pages still arriving from G5b; forward navigation stops at what exists. */
   streaming?: boolean
+  /** What the wait says while a streaming document has no pages yet. */
+  waitLabel?: string
   sink: ResponseSink
   /** Controlled: the route owns the page so Ask can jump to the page it inserted. */
   page: number
@@ -33,7 +44,8 @@ export interface PlayerProps {
   onRate: (rating: Rating, text: string) => void
   onDone: () => void
   onClose: () => void
-  onShare: (includeResponses: boolean) => void
+  /** Sends the activity, rating and note to the developers (D18). */
+  onShare: (comment: string) => void
   shareState: 'idle' | 'pending' | 'done' | 'error'
   /** The Ask button (G7); absent until an activity is generated. */
   onAsk?: () => void
@@ -43,7 +55,9 @@ export interface PlayerProps {
 
 export function ActivityPlayer({
   doc,
+  goalTitle,
   streaming = false,
+  waitLabel = 'Writing your activity',
   sink,
   page: requested,
   onPageChange,
@@ -73,21 +87,26 @@ export function ActivityPlayer({
   )
 
   const isSummary = page?.kind === 'summary'
+  const reduceMotion = useReduceMotion()
+  const celebration = isSummary && reduceMotion === false ? CELEBRATION_BY_TIER[doc.tier] : null
   const atEnd = index >= doc.pages.length - 1
 
   const content = useMemo(() => {
-    if (!page) return null
+    if (!page) return streaming ? <Generating label={waitLabel} /> : null
     if (page.kind === 'review' && page.blocks === null) {
       return <Generating label="One more look at your answers" />
     }
     return (
       <View className="gap-5">
+        {page.kind === 'summary' ? (
+          <SummaryHeader celebrationKey={doc.title} tier={doc.tier} goalTitle={goalTitle} />
+        ) : null}
         {(page.blocks ?? []).map((block, i) => (
           <BlockView key={`${page.id}-${i}`} pageId={page.id} block={block} />
         ))}
       </View>
     )
-  }, [page])
+  }, [doc.tier, doc.title, goalTitle, page, streaming, waitLabel])
 
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right', 'bottom']}>
@@ -105,23 +124,28 @@ export function ActivityPlayer({
             <Ionicons name="close" size={22} color={colors.ink.soft} />
           </Pressable>
           <View className="flex-1">
-            <ProgressBar total={doc.pages.length} current={index} />
+            <ProgressBar
+              total={doc.pages.length}
+              current={index}
+              celebrateMs={celebration === 'bar' ? CELEBRATION_MS.bar : undefined}
+            />
           </View>
         </View>
 
-        {/* The summary is the one page that gets washes, at its edges (docs/07). */}
-        {isSummary ? (
-          <View pointerEvents="none" className="absolute inset-0 overflow-hidden">
-            <Wash color="sun" size={320} className="-right-32 top-16" />
-            <Wash color="peach" size={280} className="-bottom-24 -left-28" />
-          </View>
+        {/* The summary is the one page that gets washes, at its edges (docs/07),
+            and the one that celebrates arriving. */}
+        {/* Held until Reduce Motion is known, so a bloom never starts as a still. */}
+        {isSummary && reduceMotion !== null ? (
+          <SummaryWashes bloom={celebration === 'bloom'} />
         ) : null}
+        {celebration === 'bar' ? <Sunlight /> : null}
+        {celebration === 'dots' ? <RisingDots /> : null}
 
         <ResponsesProvider sink={sink}>
           <ScrollView
             ref={scroller}
             className="flex-1"
-            contentContainerClassName="gap-5 px-5 pb-8 pt-6"
+            contentContainerClassName="grow gap-5 px-5 pb-8 pt-6"
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="interactive"
           >
@@ -157,7 +181,9 @@ export function ActivityPlayer({
             ) : (
               <Button
                 testID="player-continue"
-                label={streaming && atEnd ? 'Writing…' : 'Continue'}
+                label={
+                  page && streaming && atEnd ? `Writing page ${doc.pages.length + 1}…` : 'Continue'
+                }
                 disabled={streaming && atEnd}
                 onPress={() => go(index + 1)}
               />

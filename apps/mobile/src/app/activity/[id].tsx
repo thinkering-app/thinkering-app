@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
-  describeResponse,
   durationBucket,
   insertPageAfter,
   lastInteractivePageIndex,
@@ -20,6 +19,7 @@ import {
   completeActivity,
   countCompletedActivities,
   getActivity,
+  getGoal,
   listResponses,
   rateActivity,
   saveProgress,
@@ -31,7 +31,6 @@ import {
 import { describeAiError } from '@/ai/generation'
 import { AnalyticsAskSheet, shouldAskForAnalytics, track } from '@/analytics'
 import { Button } from '@/components/button'
-import { Generating } from '@/components/generating'
 import { GenerationError } from '@/components/generation-error'
 import { db, repoContext } from '@/db'
 import { AskSheet } from '@/features/activity-player/ask-sheet'
@@ -58,6 +57,10 @@ const REVIEW_PATIENCE_MS = 5_000
 export default function ActivityScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const [activity] = useState(() => (id ? getActivity(db, id) : undefined))
+  // The prerequisite-fallback card has no goal; its topic stands in, as on Today.
+  const [goalTitle] = useState(() =>
+    activity?.goalId ? getGoal(db, activity.goalId)?.title : (activity?.topic ?? undefined),
+  )
   const [doc, setDoc] = useState<ActivityDoc | null>(activity?.doc ?? null)
   const [partial, setPartial] = useState<PartialActivityDoc | null>(null)
   const [genError, setGenError] = useState<string | null>(null)
@@ -76,23 +79,19 @@ export default function ActivityScreen() {
   const completed = useRef(false)
   const feedbackContext = useFeedbackContext()
 
-  // The live answer map is the sink's own: sharing reads the latest answers
-  // without the player re-rendering every time one is recorded.
-  const { sink, answers } = useMemo(() => {
+  const sink = useMemo((): ResponseSink => {
     const answers: Record<string, ResponsePayload> = {}
-    if (!activity) return { sink: { initial: answers, save: () => {} } as ResponseSink, answers }
+    if (!activity) return { initial: answers, save: () => {} }
     for (const row of listResponses(db, activity.id)) {
       const payload = parseResponsePayload(row.payload)
       if (payload) answers[row.blockId] = payload
     }
-    const sink: ResponseSink = {
-      initial: { ...answers },
+    return {
+      initial: answers,
       save: (pageId, blockId, payload) => {
-        answers[blockId] = payload
         saveResponse(db, repoContext, { activityId: activity.id, pageId, blockId, payload })
       },
     }
-    return { sink, answers }
   }, [activity])
 
   // Opening a card starts it (docs/03: started_at once, status in_progress).
@@ -128,8 +127,6 @@ export default function ActivityScreen() {
       write.unsubscribe()
     }
   }, [activity, attempt])
-
-  const shown = doc ?? provisionalDoc(activity, partial)
 
   /** G6, once they move past the last page that asked them anything. */
   const maybeGenerateReview = useCallback(
@@ -212,17 +209,18 @@ export default function ActivityScreen() {
   )
 
   const onShare = useCallback(
-    (includeResponses: boolean) => {
+    (comment: string) => {
       if (!activity || !doc) return
       setShareState('pending')
+      // Their answers never travel with a report — only what they chose to
+      // write here (docs/08 §Activity quality review).
       const report: ActivityReport = {
         title: activity.title,
         libraryItemId: activity.libraryItemId,
         tier: activity.tier,
         rating,
-        comment: ratingText,
+        comment,
         doc,
-        ...(includeResponses ? { responses: describeAnswers(doc, answers) } : {}),
       }
       postActivityReport(report, feedbackContext)
         .then(() => {
@@ -231,7 +229,7 @@ export default function ActivityScreen() {
         })
         .catch(() => setShareState('error'))
     },
-    [activity, answers, doc, feedbackContext, rating, ratingText],
+    [activity, doc, feedbackContext, rating],
   )
 
   if (!activity) return <Missing message="This activity is no longer here." />
@@ -244,24 +242,23 @@ export default function ActivityScreen() {
           message={genError}
           onRetry={() => {
             setGenError(null)
+            setPartial(null)
             setAttempt((n) => n + 1)
           }}
         />
       </Missing>
     )
   }
-  if (!shown) {
-    return (
-      <Missing>
-        <Generating label="Writing your activity" />
-      </Missing>
-    )
-  }
+  const shown = doc ?? provisionalDoc(activity, partial)
 
   return (
     <ActivityPlayer
       doc={shown}
+      goalTitle={goalTitle}
       streaming={doc === null}
+      // Before any text, the model is still working out the activity (docs/04
+      // §Thinking); once it writes, the title and pages follow.
+      waitLabel={partial === null ? 'Planning your activity' : 'Writing your activity'}
       sink={sink}
       page={page}
       onPageChange={changePage}
@@ -299,23 +296,23 @@ export default function ActivityScreen() {
       onAsk={doc ? () => setAskOpen(true) : undefined}
       overlay={
         <>
-        <AskSheet
-          visible={askOpen}
-          onClose={() => {
-            setAskOpen(false)
-            setAskState('idle')
-          }}
-          onAsk={ask}
-          state={askState}
-          error={askError}
-        />
-        <AnalyticsAskSheet
-          visible={askConsent}
-          onAnswered={() => {
-            setAskConsent(false)
-            router.back()
-          }}
-        />
+          <AskSheet
+            visible={askOpen}
+            onClose={() => {
+              setAskOpen(false)
+              setAskState('idle')
+            }}
+            onAsk={ask}
+            state={askState}
+            error={askError}
+          />
+          <AnalyticsAskSheet
+            visible={askConsent}
+            onAnswered={() => {
+              setAskConsent(false)
+              router.back()
+            }}
+          />
         </>
       }
     />
@@ -324,37 +321,20 @@ export default function ActivityScreen() {
 
 /**
  * What the player renders while G5b is still writing: the pages that have
- * closed so far (docs/04 §Latency). Concepts arrive with the finished document
- * — only the summary page needs them, and that's the last page.
+ * closed so far (docs/04 §Latency), and before the first one, none — the
+ * player's frame with the wait inside it. Concepts arrive with the finished
+ * document — only the summary page needs them, and that's the last page.
  */
-function provisionalDoc(
-  activity: Activity | undefined,
-  partial: PartialActivityDoc | null,
-): ActivityDoc | null {
-  if (!activity || !partial || partial.pages.length === 0) return null
+function provisionalDoc(activity: Activity, partial: PartialActivityDoc | null): ActivityDoc {
   return {
     version: 1,
-    title: partial.title ?? activity.title,
-    estMinutes: partial.estMinutes ?? activity.estMinutes,
+    title: partial?.title ?? activity.title,
+    estMinutes: partial?.estMinutes ?? activity.estMinutes,
     tier: activity.tier,
     libraryItemId: activity.libraryItemId,
     concepts: [],
-    pages: partial.pages,
+    pages: partial?.pages ?? [],
   }
-}
-
-/** The user's answers as plain question/answer lines — only ever sent when they ask (D18). */
-function describeAnswers(doc: ActivityDoc, answers: Record<string, ResponsePayload>) {
-  const lines: { prompt: string; answer: string }[] = []
-  for (const page of doc.pages) {
-    for (const block of page.blocks ?? []) {
-      const id = 'id' in block ? block.id : undefined
-      const payload = id ? answers[id] : undefined
-      const described = payload ? describeResponse(block, payload) : undefined
-      if (described) lines.push({ prompt: page.id, answer: described })
-    }
-  }
-  return lines
 }
 
 function Missing({ message, children }: { message?: string; children?: React.ReactNode }) {

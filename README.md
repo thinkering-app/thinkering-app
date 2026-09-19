@@ -18,7 +18,7 @@ Dev builds run in **fixture AI mode** unless told otherwise: every generation is
 
 Workspace layout: `apps/mobile` (Expo app), `apps/web` (Next.js landing + API proxy), `packages/core` (pure-TS domain), `packages/db` (Drizzle schema, migrations, repositories), `packages/config` (shared tokens, tsconfig, eslint). See `docs/02-architecture.md`.
 
-Deploys (Vercel, manual for now): `apps/web` is a standard Next.js project; the Expo web export deploys from `apps/mobile` (`vercel.json` there sets the COOP/COEP headers expo-sqlite's wasm build needs) to `web.thinkering.app`.
+Deploys (Vercel, manual for now): `apps/web` is a standard Next.js project; the Expo web export deploys from `apps/mobile` (`vercel.json` there sets the COOP/COEP headers expo-sqlite's wasm build needs, and clean URLs with an app-shell fallback so a reload on any screen doesn't 404) to `web.thinkering.app`.
 
 ## Principles
 

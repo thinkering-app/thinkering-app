@@ -13,7 +13,7 @@ SQLite via Drizzle (`packages/db`). Conventions: `id` = client-generated UUIDv7 
 | why_text                             | text?   |                                                           |
 | experience_choice                    | text    | `getting_started \| explored \| in_middle \| experienced` |
 | experience_text                      | text?   |                                                           |
-| success_outcomes                     | json?   | `string[]`, what would feel like success (intake step 5)  |
+| success_outcomes                     | json?   | `string[]`, what they're hoping for (intake step 5)       |
 | frequency                            | text    | `daily \| several_weekly \| when_i_can`                   |
 | session_minutes                      | int     | 5 / 10 / 15 / custom value                                |
 | approach_notes                       | text    | from G1, editable in path settings                        |
@@ -81,6 +81,8 @@ Kept separate from `doc` so generation (G6) and future features can query them.
 
 `id, interest_id, feeling_text, changes json (accepted path edits summary), created_at, updated_at, deleted_at`
 
+`changes` is `{added, removed, revised, reordered}` goal titles, plus `outcomes: {before, after}` when the reflection changed what they're hoping for (the interest's `success_outcomes` then holds `after`).
+
 ## library_prefs ⟳ — per-interest activation of library items
 
 `id, interest_id, section, library_item_id, active int(bool), updated_at, deleted_at`
@@ -109,7 +111,7 @@ Pruned to last ~200 calls. Never synced.
 
 ## settings — local key/value
 
-`key pk, value json` — device_id + secret ref, `backup_enabled` (default false), `sync_state` (`{lastPullAt, lastPushAt, lastSyncedAt}` — cursors stayed here rather than becoming their own table: two numbers and a timestamp, none of it synced), `ai_mode`, `posthog_opt_in` (default false) + `posthog_consent_decided` (the two together give the three-valued consent of `08`: undecided buffers, granted sends, denied drops), `installed_at` (first launch, for the `days_since_install` bucket — never sent raw), `posthog_storage.*` (PostHog's own key/value store, kept here so the SDK adds no file of its own), byok flag (key itself in SecureStore), last_seen_version.
+`key pk, value json` — device_id + secret ref, `backup_enabled` (default false), `sync_state` (`{lastPullAt, lastPushAt, lastSyncedAt}` — cursors stayed here rather than becoming their own table: two numbers and a timestamp, none of it synced), `ai_mode`, `posthog_opt_in` (default false) + `posthog_consent_decided` (the two together give the three-valued consent of `08`: undecided buffers, granted sends, denied drops), `installed_at` (first launch, for the `days_since_install` bucket — never sent raw), `posthog_storage.*` (PostHog's own key/value store, kept here so the SDK adds no file of its own), byok flag (key itself in SecureStore), last_seen_version, `intake_draft` (the one unfinished intake, docs/01 §1: answers, current step and each finished G1/G2/G2b/G3 output with the key it was made from; parsed through `intakeDraftSchema` on read and cleared if it no longer fits, and cleared when the interest is saved — never synced or exported).
 
 ## Supabase (server) tables
 

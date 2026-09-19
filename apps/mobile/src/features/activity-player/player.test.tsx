@@ -61,7 +61,17 @@ describe('activity player', () => {
     }
     await renderPlayer({ doc: partial, streaming: true })
     expect(screen.getByText('A new colleague, day one')).toBeTruthy()
-    expect(screen.getByText('Writing…')).toBeTruthy()
+    expect(screen.getByText('Writing page 2…')).toBeTruthy()
+  })
+
+  it('holds the wait inside the player until the first page arrives', async () => {
+    await renderPlayer({
+      doc: { ...FIXTURE_DOC_INTRODUCE, pages: [] },
+      streaming: true,
+      waitLabel: 'Planning your activity',
+    })
+    expect(screen.getByLabelText('Planning your activity')).toBeTruthy()
+    expect(screen.getByLabelText('Close')).toBeTruthy()
   })
 
   it('waits for the review page rather than showing an empty one', async () => {
@@ -81,5 +91,18 @@ describe('activity player', () => {
     expect(screen.getByText('Was this useful?')).toBeTruthy()
     await fireEvent.press(screen.getByText('Done'))
     expect(done).toBe(true)
+  })
+
+  it('sends the note with the report, and only once there is something to send', async () => {
+    const sent: string[] = []
+    await renderPlayer({
+      startPage: FIXTURE_DOC_INTRODUCE.pages.length - 1,
+      onShare: (comment) => sent.push(comment),
+    })
+    await fireEvent.press(screen.getByText('Send'))
+    expect(sent).toEqual([])
+    await fireEvent.changeText(screen.getByLabelText('Rating detail'), 'Page 3 dragged')
+    await fireEvent.press(screen.getByText('Send'))
+    expect(sent).toEqual(['Page 3 dragged'])
   })
 })

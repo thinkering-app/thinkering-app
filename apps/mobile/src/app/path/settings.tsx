@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { router, useLocalSearchParams } from 'expo-router'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
@@ -34,8 +34,8 @@ import { colors } from '@/theme/tokens'
 
 /**
  * Path settings (docs/01 §5): every intake answer, editable, plus the contexts
- * Go further activities can draw on. Text edits commit with Save; the lists
- * (topics, contexts) act as they're tapped.
+ * Go further activities can draw on. Text edits, outcomes included,
+ * commit with Save; the lists (topics, contexts) act as they're tapped.
  */
 
 const WHY_LABEL: Record<WhyChoice, string> = {
@@ -58,6 +58,25 @@ const FREQUENCY_LABEL: Record<Frequency, string> = {
 }
 
 const PRESET_MINUTES = [5, 10, 15]
+
+/** An outcome row being edited; `key` keeps focus steady as rows come and go. */
+interface OutcomeDraft {
+  key: number
+  text: string
+}
+
+/** Trimmed, blanks and case-insensitive repeats dropped, in their order. */
+function cleanOutcomes(drafts: OutcomeDraft[]): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const { text } of drafts) {
+    const outcome = text.trim()
+    if (!outcome || seen.has(outcome.toLowerCase())) continue
+    seen.add(outcome.toLowerCase())
+    out.push(outcome)
+  }
+  return out
+}
 
 export default function PathSettingsScreen() {
   const { interestId } = useLocalSearchParams<{ interestId: string }>()
@@ -85,6 +104,10 @@ export default function PathSettingsScreen() {
     interest?.experienceChoice ?? 'getting_started',
   )
   const [experienceText, setExperienceText] = useState(interest?.experienceText ?? '')
+  const [outcomes, setOutcomes] = useState<OutcomeDraft[]>(() =>
+    (interest?.successOutcomes ?? []).map((text, key) => ({ key, text })),
+  )
+  const nextOutcomeKey = useRef(outcomes.length)
   const [frequency, setFrequency] = useState<Frequency>(interest?.frequency ?? 'several_weekly')
   const [sessionMinutes, setSessionMinutes] = useState(interest?.sessionMinutes ?? 10)
   const [approachNotes, setApproachNotes] = useState(interest?.approachNotes ?? '')
@@ -101,6 +124,7 @@ export default function PathSettingsScreen() {
   }
 
   const save = () => {
+    const successOutcomes = cleanOutcomes(outcomes)
     updateInterest(db, repoContext, interest.id, {
       name: name.trim() || interest.name,
       wantToLearn: wantToLearn.trim() || interest.wantToLearn,
@@ -108,6 +132,7 @@ export default function PathSettingsScreen() {
       whyText: whyText.trim() || null,
       experienceChoice,
       experienceText: experienceText.trim() || null,
+      successOutcomes: successOutcomes.length > 0 ? successOutcomes : null,
       frequency,
       sessionMinutes,
       approachNotes: approachNotes.trim(),
@@ -116,6 +141,11 @@ export default function PathSettingsScreen() {
     if (frequency !== interest.frequency) track('settings_changed', { key: 'frequency' })
     if (sessionMinutes !== interest.sessionMinutes) track('settings_changed', { key: 'session_minutes' })
     router.back()
+  }
+
+  const addOutcome = () => {
+    const key = nextOutcomeKey.current++
+    setOutcomes((rows) => [...rows, { key, text: '' }])
   }
 
   const addTopic = () => {
@@ -194,6 +224,36 @@ export default function PathSettingsScreen() {
             multiline
             accessibilityLabel="Experience, in your words"
           />
+        </Field>
+
+        <Field label="What you're hoping for">
+          {outcomes.map((outcome) => (
+            <View key={outcome.key} className="flex-row items-center gap-2">
+              <View className="flex-1">
+                <TextField
+                  value={outcome.text}
+                  onChangeText={(text) =>
+                    setOutcomes((rows) =>
+                      rows.map((r) => (r.key === outcome.key ? { ...r, text } : r)),
+                    )
+                  }
+                  // Only a just-added row mounts empty; saved outcomes never are.
+                  autoFocus={outcome.text === ''}
+                  placeholder="An outcome"
+                  accessibilityLabel="Outcome"
+                />
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Remove ${outcome.text || 'outcome'}`}
+                onPress={() => setOutcomes((rows) => rows.filter((r) => r.key !== outcome.key))}
+                hitSlop={10}
+              >
+                <Ionicons name="close" size={18} color={colors.ink.soft} />
+              </Pressable>
+            </View>
+          ))}
+          <Button label="Add an outcome" variant="quiet" onPress={addOutcome} />
         </Field>
 
         <Field label="How often">

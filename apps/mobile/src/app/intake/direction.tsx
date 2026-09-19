@@ -37,7 +37,7 @@ export default function DirectionStep() {
     const interestId = save()
     // Today opens on the interest they just added, not the one they left.
     selectOnArrival(interestId)
-    // Today plans the day and prefetches the Next card on arrival. G4 searches
+    // Today plans the day and writes its cards ahead on arrival. G4 searches
     // for resources from here, fully in the background: nobody is waiting on
     // it, so a failure is silent and the resources simply don't appear.
     seedResources(interestId).catch((e: unknown) => {

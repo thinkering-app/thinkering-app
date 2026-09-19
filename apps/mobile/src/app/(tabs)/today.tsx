@@ -18,6 +18,7 @@ import { SECTION_LABELS, SectionHeader } from '@/components/section-header'
 import { Toast } from '@/components/toast'
 import { db } from '@/db'
 import { writeActivityDoc } from '@/features/activity-player/generate'
+import { useAddInterest } from '@/intake/add-interest'
 import { InterestSelector } from '@/interests/selector'
 import { ReflectCard } from '@/path/reflect-card'
 import { useInterestSelection } from '@/interests/selection'
@@ -112,6 +113,7 @@ export default function TodayScreen() {
             <View key={section.section} className="gap-3">
               <SectionRow
                 view={section}
+                interestKey={selected.map((i) => i.id).join(',')}
                 generating={generating}
                 writing={writing}
                 drafts={drafts.filter((d) => d.section === section.section)}
@@ -187,6 +189,7 @@ export default function TodayScreen() {
 
 function SectionRow({
   view,
+  interestKey,
   generating,
   writing,
   drafts,
@@ -195,6 +198,8 @@ function SectionRow({
   onAdd,
 }: {
   view: TodaySectionView
+  /** Another interest selected: the heading's check appears without popping. */
+  interestKey: string
   generating: boolean
   /** Cards whose documents are still being written. */
   writing: ReadonlySet<string>
@@ -213,6 +218,7 @@ function SectionRow({
         <SectionHeader
           section={view.section}
           completedToday={view.completedToday}
+          resetKey={interestKey}
           onConfigure={onConfigure}
         />
       </View>
@@ -285,6 +291,7 @@ function AddCard({ section, onPress }: { section: Section; onPress: () => void }
 }
 
 function Empty({ hasInterest, exploreAll }: { hasInterest: boolean; exploreAll: boolean }) {
+  const { addInterest, resumeSheet } = useAddInterest()
   return (
     <EmptyState
       message={
@@ -296,7 +303,10 @@ function Empty({ hasInterest, exploreAll }: { hasInterest: boolean; exploreAll: 
       }
     >
       {hasInterest ? null : (
-        <Button label="Add an interest" onPress={() => router.push('/intake/welcome')} />
+        <>
+          <Button label="Add an interest" onPress={addInterest} />
+          {resumeSheet}
+        </>
       )}
     </EmptyState>
   )

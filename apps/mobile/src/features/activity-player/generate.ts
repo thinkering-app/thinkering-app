@@ -42,13 +42,18 @@ import { db, repoContext } from '@/db'
  */
 
 /**
- * G5b. Streams; `onPartial` fires as each page closes so page 1 renders early.
+ * G5b. Streams; `onPartial` fires first when the model starts writing and then
+ * as each page closes, so page 1 renders early.
  * Callers go through `writeActivityDoc`, so one card never streams twice.
  */
 async function generateActivityDoc(
   activity: Activity,
   opts: { onPartial?: (partial: PartialActivityDoc) => void } = {},
 ): Promise<ActivityDoc> {
+  // The caller's row may predate a write that has since finished.
+  const written = getActivity(db, activity.id)?.doc
+  if (written) return written
+
   const interest = getInterest(db, activity.interestId)
   if (!interest) throw new Error('interest is gone')
   const goal = activity.goalId ? getGoal(db, activity.goalId) : undefined
@@ -105,10 +110,14 @@ async function generateActivityDoc(
     interestId: activity.interestId,
     activityId: activity.id,
     onText: opts.onPartial
-      ? (text) => {
-          const partial = extractPartialActivityDoc(text)
-          opts.onPartial!({ ...partial, pages: groundPages(partial.pages, saved) })
-        }
+      ? onNewPartial(
+          (text) => {
+            const partial = extractPartialActivityDoc(text)
+            return { ...partial, pages: groundPages(partial.pages, saved) }
+          },
+          opts.onPartial,
+          docShape,
+        )
       : undefined,
   })
   // Embeds only play what the learner has saved (docs/05).
@@ -213,10 +222,38 @@ export async function generateAskPage(
     activityId: activity.id,
     signal: opts.signal,
     onText: opts.onPartial
-      ? (text) => opts.onPartial!(groundBlocks(extractPartialBlocks(text), saved))
+      ? onNewPartial(
+          (text) => groundBlocks(extractPartialBlocks(text), saved),
+          opts.onPartial,
+          (blocks) => `${blocks.length}`,
+        )
       : undefined,
   })
   return groundBlocks(output.blocks, saved)
+}
+
+/**
+ * A stream's text grows by a token at a time, but what it renders changes only
+ * as a page or block closes. Passes a partial on only when its shape moves, so
+ * the screen re-renders per page rather than per token.
+ */
+function onNewPartial<T>(
+  extract: (text: string) => T,
+  emit: (partial: T) => void,
+  shape: (partial: T) => string,
+) {
+  let last: string | undefined
+  return (text: string) => {
+    const partial = extract(text)
+    const next = shape(partial)
+    if (next === last) return
+    last = next
+    emit(partial)
+  }
+}
+
+function docShape(partial: PartialActivityDoc): string {
+  return `${partial.pages.length}|${partial.title ?? ''}|${partial.estMinutes ?? ''}`
 }
 
 function persist(activity: Activity, doc: ActivityDoc): ActivityDoc {
