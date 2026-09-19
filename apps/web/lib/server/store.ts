@@ -71,6 +71,11 @@ export interface MeteringStore {
    * it by a keyed hash of the address and the day, never the address itself.
    */
   countIpAction(ip: string, day: string, action: 'register'): Promise<number>
+  /**
+   * Records that a spend alert level fired for a UTC day. True only for the
+   * first claim, so concurrent calls crossing the same level email once.
+   */
+  claimSpendAlert(day: string, level: number): Promise<boolean>
 }
 
 export class MemoryStore implements MeteringStore {
@@ -79,6 +84,7 @@ export class MemoryStore implements MeteringStore {
   private actions = new Map<string, number>()
   private totals = new Map<string, TokenTotals>()
   private ipActions = new Map<string, number>()
+  private spendAlerts = new Set<string>()
 
   async createDevice(device: DeviceRecord): Promise<void> {
     this.devices.set(device.deviceId, device)
@@ -128,5 +134,12 @@ export class MemoryStore implements MeteringStore {
     const count = (this.ipActions.get(key) ?? 0) + 1
     this.ipActions.set(key, count)
     return count
+  }
+
+  async claimSpendAlert(day: string, level: number): Promise<boolean> {
+    const key = `${day}:${level}`
+    if (this.spendAlerts.has(key)) return false
+    this.spendAlerts.add(key)
+    return true
   }
 }

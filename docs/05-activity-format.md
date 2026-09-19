@@ -39,7 +39,7 @@ Interactive (all record into `responses`):
 
 - `mcq { prompt, options: {id, label}[], correctId?, explain?: md }` — instant feedback when `correctId` present; opinion-style when absent
 - `freeText { prompt, placeholder?, minimal?: boolean }` — reflection / explain-back
-- `fillBlank { md, blanks: {id, answer, alts?: string[]}[] }`
+- `fillBlank { md, blanks: {id, answer, alts?: string[]}[] }` — each answer follows from what the activity already taught, and nothing else on the page gives it away; a wrong answer is shown once the learner leaves the blank
 - `ordering { prompt, items: {id, label}[], correctOrder: id[] }`
 - `matching { prompt, pairs: {leftId, left, rightId, right}[] }`
 - `reveal { prompt, md }` — think-then-tap-to-reveal (retrieval practice)
@@ -50,7 +50,7 @@ Renderer contract: unknown block kinds render as a graceful "update the app" pla
 ## Behavior
 
 - **Responses** save immediately on interaction (`responses` table) — no submit buttons where avoidable.
-- **Review page (G6)**: fires when the user moves past the last page holding an interactive block before the review page. Picks the single highest-value thing to address in their responses: a misconception to correct (kindly, directly), a good answer to build on, or an implicit question to answer. If responses were sparse, it reinforces the trickiest concept instead.
+- **Review page (G6)**: fires when the user moves past the last page holding an interactive block before the review page. Picks the single highest-value thing to address in their responses: a misconception to correct (kindly, directly), a good answer to build on, or an implicit question to answer. If responses were sparse, it reinforces the trickiest concept instead. It stays short — under about 80 words — and addresses that one thing only, not each answer in turn.
 - **Summary page**: the renderer opens it with a short celebration line (picked from a fixed list, stable per activity) and a line naming the goal — "You learned / strengthened / went further on <goal title>." by tier, or the topic for a prerequisite card; the words live in `features/activity-player/summary-copy.ts` — and a small arrival animation per section (`07`), then G5b's concept recap blocks, then the concept chips. At the foot of the page, centered: the standard rating row (👎 / 👍👎 mixed / 👍) which writes to `activities.rating`, an optional note, and a **Send** button that shares the activity, rating and note with the developers — never the learner's answers (D18, see `08`).
 - **Ask (G7)**: inserts an `inserted` page after the current index and jumps to it. Multiple asks allowed; each extends the doc (persisted, so it survives resume).
 - **Completion**: reaching the summary and tapping done → `status = completed`, `completed_at` set, goal status transition applied, section completion state updates on Today.

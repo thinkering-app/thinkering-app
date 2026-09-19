@@ -72,7 +72,7 @@ export const activityGenerateTemplate: PromptTemplate<ActivityGenerateParams, Ac
   // v5: the learner's own request, from the + card.
   // v6: the request's own words win over saved contexts — a card for a host
   // family was being rewritten for a partner's mother.
-  version: 6,
+  version: 7,
   model: 'sonnet',
   // Thinking plus the document: a 10-minute activity ran ~5.6k at high effort,
   // and 15-minute ones need the room.

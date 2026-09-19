@@ -67,6 +67,15 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Fixed
 
+- Fill-in-the-blank sentences wrap instead of running off the screen, and the
+  answer to a blank you got wrong appears once you move on from it, labeled,
+  rather than while you're still typing.
+- The review page after an activity is shorter, focuses on one thing, and
+  sees the full fill-in-the-blank sentence, so it no longer misreads what you
+  were asked.
+- Fill-in-the-blank questions are written so earlier pages teach the answer
+  and nothing nearby gives it away.
+
 - Reloading the web app on any screen but the first no longer shows a 404.
 - Today no longer sometimes shows the same activity twice in a section.
 - Today's next activity is written ahead again, so it's usually ready when you

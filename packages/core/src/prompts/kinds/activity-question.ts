@@ -33,7 +33,7 @@ Rules:
 
 export const activityQuestionTemplate: PromptTemplate<ActivityQuestionParams, QuestionOutput> = {
   kind: 'activity.question',
-  version: 2,
+  version: 3,
   model: 'sonnet',
   maxTokens: 8000,
   effort: 'low',
