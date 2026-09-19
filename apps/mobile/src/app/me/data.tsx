@@ -3,7 +3,16 @@ import { useState } from 'react'
 import { Switch, Text, View } from 'react-native'
 
 import { exportToFile, importFromFile, refusalMessage } from '@/backup/actions'
-import { isAnalyticsOptedIn, setAnalyticsConsent, track } from '@/analytics'
+import {
+  isAnalyticsOptedIn,
+  isReplayAvailable,
+  isReplayOptedIn,
+  REPLAY_EXPLAINER,
+  ReplayMask,
+  setAnalyticsConsent,
+  setReplayConsent,
+  track,
+} from '@/analytics'
 import { Button } from '@/components/button'
 import { confirmDestructive } from '@/components/confirm'
 import { SubScreen } from '@/components/sub-screen'
@@ -15,13 +24,15 @@ import { colors } from '@/theme/tokens'
 /**
  * Me → Settings → Account and data (docs/01 §7): a file you keep, and — off by
  * default — a synced copy in your own account. Turning sync off deletes the
- * server copy. The anonymous-analytics opt-in (D9) is here too: it is about
- * what leaves the device, not about the model.
+ * server copy. The anonymous-analytics opt-in (D9) and the separate session
+ * replay opt-in are here too: they are about what leaves the device, not about
+ * the model.
  */
 
 export default function DataScreen() {
   const backup = useBackup()
   const [optedIn, setOptedIn] = useState(() => isAnalyticsOptedIn())
+  const [replayOptedIn, setReplayOptedIn] = useState(() => isReplayOptedIn())
   const [busy, setBusy] = useState<'export' | 'import' | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [fileError, setFileError] = useState<string | null>(null)
@@ -78,7 +89,11 @@ export default function DataScreen() {
           {backup.account ? (
             <>
               <View className="flex-row items-center gap-4">
-                <Text className="flex-1 font-sans text-body text-ink">{backup.account.email}</Text>
+                <View className="flex-1">
+                  <ReplayMask>
+                    <Text className="font-sans text-body text-ink">{backup.account.email}</Text>
+                  </ReplayMask>
+                </View>
                 <Switch
                   value={backup.enabled}
                   disabled={backup.syncing}
@@ -109,7 +124,10 @@ export default function DataScreen() {
                 Off by default. With an account, your learning is kept on our server too, and a new
                 device picks up where this one left off.
               </Text>
-              <Button label="Sign in or create an account" onPress={() => router.push('/me/account')} />
+              <Button
+                label="Sign in or create an account"
+                onPress={() => router.push('/me/account')}
+              />
             </>
           )}
           {backup.error ? (
@@ -137,7 +155,9 @@ export default function DataScreen() {
           onPress={() => void runImport()}
           disabled={busy !== null}
         />
-        {fileError ? <Text className="font-sans text-secondary text-peach">{fileError}</Text> : null}
+        {fileError ? (
+          <Text className="font-sans text-secondary text-peach">{fileError}</Text>
+        ) : null}
       </View>
 
       <View className="gap-3">
@@ -162,6 +182,28 @@ export default function DataScreen() {
           Counts and ratings only — never what you write, learn, or look at. Not linked to you.
         </Text>
       </View>
+
+      {isReplayAvailable() ? (
+        <View className="gap-3">
+          <Text className="font-heading-bold text-heading text-ink">Session replays</Text>
+          <View className="flex-row items-center gap-4">
+            <Text className="flex-1 font-sans text-body text-ink">
+              Share session replays with developers
+            </Text>
+            <Switch
+              value={replayOptedIn}
+              onValueChange={(next) => {
+                setReplayConsent(next)
+                setReplayOptedIn(next)
+                track('settings_changed', { key: 'session_replay_opt_in' })
+              }}
+              trackColor={{ false: colors.hairline, true: colors.cornflower.DEFAULT }}
+              thumbColor={colors.surface}
+            />
+          </View>
+          <Text className="font-sans text-caption text-ink-soft">{REPLAY_EXPLAINER}</Text>
+        </View>
+      ) : null}
 
       <Toast message={toast} onHide={() => setToast(null)} />
     </SubScreen>

@@ -79,6 +79,7 @@ export type ActivitySource = (typeof ACTIVITY_SOURCES)[number]
 export const SETTINGS_KEYS = [
   'ai_mode',
   'analytics_opt_in',
+  'session_replay_opt_in',
   'interest_status',
   'interest_order',
   'frequency',
