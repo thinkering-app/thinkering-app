@@ -28,8 +28,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
-- Configure learning routine now shows the suggested daily routine, with a
-  link to the feedback board if you'd like to shape your own.
+- Configure learning routine shows your daily routine above the question,
+  with a link to the feedback board if you'd like a different number of
+  activities each day.
 - A section's configure sheet says what the section is for, and shows its
   activity types as small cards, two to a row. Tap one to see what you'll do
   and why it helps, in plain words.
@@ -62,6 +63,7 @@ build; internal refactors and docs don't appear here. The conventions are in
 ### Fixed
 
 - Reloading the web app on any screen but the first no longer shows a 404.
+- Today no longer sometimes shows the same activity twice in a section.
 - Today's next activity is written ahead again, so it's usually ready when you
   open it. Opening it while it's still being written picks up where that left
   off instead of starting over.

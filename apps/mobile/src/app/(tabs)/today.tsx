@@ -165,7 +165,12 @@ export default function TodayScreen() {
             section={configuring ?? 'next'}
             onChanged={onConfigured}
           />
-          <RoutineSheet visible={routineOpen} onClose={() => setRoutineOpen(false)} />
+          <RoutineSheet
+            visible={routineOpen}
+            onClose={() => setRoutineOpen(false)}
+            interestId={configurable.id}
+            onChanged={() => onConfigured()}
+          />
           <RequestSheet
             visible={requestOpen}
             onClose={() => setRequestOpen(false)}

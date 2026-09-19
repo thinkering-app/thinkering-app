@@ -160,6 +160,10 @@ export async function ensureDailyPlan(
     },
     signal,
   )
+  // A superseded run (Today re-checked while this call was out) mustn't write:
+  // the run that replaced it plans the same sections, and both landing doubles
+  // every card. Fixture calls don't reject on abort, so this is the only guard.
+  if (signal?.aborted) throw new DOMException('aborted', 'AbortError')
   return cards.length > 0
     ? createDailyPlan(db, repoContext, { interestId: interest.id, plannedFor: today, cards })
     : []
