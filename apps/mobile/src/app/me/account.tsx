@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import { resetSyncCursors, setBackupEnabled } from '@thinkering/db'
 
+import { ReplayMask } from '@/analytics'
 import { Button } from '@/components/button'
 import { confirmDestructive } from '@/components/confirm'
 import { SubScreen } from '@/components/sub-screen'
@@ -115,17 +116,21 @@ export default function AccountScreen() {
   if (account) {
     return (
       <SubScreen title="Account">
-        <Text className="font-sans text-body text-ink">{account.email}</Text>
+        <ReplayMask>
+          <Text className="font-sans text-body text-ink">{account.email}</Text>
+        </ReplayMask>
         <View className="gap-3">
-          <TextField
-            value={password}
-            onChangeText={setPassword}
-            placeholder="New password"
-            accessibilityLabel="New password"
-            secureTextEntry
-            autoComplete="new-password"
-            autoCapitalize="none"
-          />
+          <ReplayMask>
+            <TextField
+              value={password}
+              onChangeText={setPassword}
+              placeholder="New password"
+              accessibilityLabel="New password"
+              secureTextEntry
+              autoComplete="new-password"
+              autoCapitalize="none"
+            />
+          </ReplayMask>
           <Button
             label={busy ? 'Saving…' : 'Change password'}
             onPress={() => void submit()}
@@ -151,24 +156,28 @@ export default function AccountScreen() {
   return (
     <SubScreen title={mode === 'create' ? 'Create an account' : 'Sign in'}>
       <View className="gap-3">
-        <TextField
-          value={email}
-          onChangeText={setEmail}
-          placeholder="Email"
-          accessibilityLabel="Email"
-          keyboardType="email-address"
-          autoComplete="email"
-          autoCapitalize="none"
-        />
-        <TextField
-          value={password}
-          onChangeText={setPassword}
-          placeholder="Password"
-          accessibilityLabel="Password"
-          secureTextEntry
-          autoComplete={mode === 'create' ? 'new-password' : 'current-password'}
-          autoCapitalize="none"
-        />
+        <ReplayMask>
+          <View className="gap-3">
+            <TextField
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Email"
+              accessibilityLabel="Email"
+              keyboardType="email-address"
+              autoComplete="email"
+              autoCapitalize="none"
+            />
+            <TextField
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Password"
+              accessibilityLabel="Password"
+              secureTextEntry
+              autoComplete={mode === 'create' ? 'new-password' : 'current-password'}
+              autoCapitalize="none"
+            />
+          </View>
+        </ReplayMask>
         <Button
           label={busy ? 'One moment…' : mode === 'create' ? 'Create account' : 'Sign in'}
           onPress={() => void submit()}

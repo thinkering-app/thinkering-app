@@ -60,9 +60,14 @@ variables on the `production` and `preview` environments:
 | `EXPO_PUBLIC_API_URL`                   | Set in `eas.json`; the proxy's origin.           |
 | `EXPO_PUBLIC_SUPABASE_URL`              | Backup. Unset hides synced backup entirely.      |
 | `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`  | `sb_publishable_…`. Public by design.            |
-| `EXPO_PUBLIC_POSTHOG_KEY`               | Unset makes analytics inert (`08`).              |
+| `EXPO_PUBLIC_POSTHOG_KEY`               | The production project's key (`08`).             |
 | `EXPO_PUBLIC_POSTHOG_HOST`              | Defaults to the US cloud, the project's region.  |
 | `EXPO_PUBLIC_FEATUREBASE_PORTAL_URL`    | Unset hides the community feedback option.       |
+
+PostHog has two projects, dev and production (`08` §Environments). The
+production key goes only here, on the `production` and `preview` environments,
+and on Vercel's Production environment for the web app; Vercel Preview gets the
+dev key. `apps/mobile/.env` holds the dev key.
 
 Server secrets (`ANTHROPIC_API_KEY`, `RESEND_API_KEY`, `SUPABASE_SECRET_KEY`)
 belong to `apps/web` on Vercel and never reach a build.
@@ -74,6 +79,10 @@ belong to `apps/web` on Vercel and never reach a build.
 - Set a monthly spend limit in the Anthropic Console (Settings → Limits) for
   the workspace the proxy's key belongs to. The proxy's own caps (`docs/04`
   §Usage metering) stop at a day; this is the backstop past them.
+- In **both** PostHog projects' settings, turn on **Record user sessions**
+  (replay records nothing without it) and **Discard client IP data** (replays
+  don't go through `track()`, so the app's `$ip: null` doesn't reach them).
+  `docs/08`.
 
 - App Privacy answers: `docs/08-analytics-and-privacy.md` §App Store privacy
   disclosures.

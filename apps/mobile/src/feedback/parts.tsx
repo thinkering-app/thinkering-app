@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { Pressable, Switch, Text, View } from 'react-native'
 
+import { ReplayMask } from '@/analytics'
 import { TextField } from '@/components/text-field'
 import { colors } from '@/theme/tokens'
 import { describeFeedbackContext } from './context'
@@ -53,12 +54,14 @@ export function FeedbackEmailFields({ feedback }: { feedback: Feedback }) {
         multiline
         autoFocus
       />
-      <TextField
-        value={feedback.replyEmail}
-        onChangeText={feedback.setReplyEmail}
-        placeholder="Email, if you'd like a reply (optional)"
-        accessibilityLabel="Your email, for a reply"
-      />
+      <ReplayMask>
+        <TextField
+          value={feedback.replyEmail}
+          onChangeText={feedback.setReplyEmail}
+          placeholder="Email, if you'd like a reply (optional)"
+          accessibilityLabel="Your email, for a reply"
+        />
+      </ReplayMask>
       <View className="flex-row items-center gap-4">
         <View className="flex-1 gap-1">
           <Text className="font-sans text-body text-ink">Include app details</Text>
