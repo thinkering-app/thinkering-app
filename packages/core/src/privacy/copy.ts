@@ -49,7 +49,7 @@ export const PRIVACY_SECTIONS: PrivacySection[] = [
   {
     title: 'Sharing an activity with the developers',
     paragraphs: [
-      'After an activity, you can choose to share it with us to help improve quality. Sharing sends that activity’s generated content plus your rating and comment by email to the developers; your own answers are excluded unless you tick a box to include them. Shared reports are not stored on the server. Nothing is ever shared without this explicit action.',
+      'After an activity, you can choose to send it to us to help improve quality. Sending shares that activity’s generated content plus your rating and note by email to the developers; your own answers are never included. Shared reports are not stored on the server. Nothing is shared without this explicit action.',
     ],
   },
   {

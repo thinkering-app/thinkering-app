@@ -19,9 +19,19 @@ build; internal refactors and docs don't appear here. The conventions are in
 - Reflecting now starts with what you're hoping for — keep, drop or add to
   it, with a few new suggestions — then a short recap of your recent learning
   and a look at your path before you say how it's going.
+- Leave intake from any step, and choose to save it for later or discard it.
+  A saved one picks up where you left off, from Me → Interests or the next
+  time you add an interest.
 
 ### Changed
 
+- On Today, what you've done stands out: a finished card takes its section's
+  colour with a yellow "Done today", and the section gets a check by its name
+  that pops in when you come back from the activity.
+- The end of an activity opens with a short celebration and names the goal you
+  worked on, with a little motion that differs by section (off when Reduce
+  Motion is on). The rating sits at the bottom of the page; add a note and send
+  it to us in one step. Your answers are never included.
 - A new app icon, paper texture throughout, and watercolor washes behind the
   quieter screens.
 - Intake asks what you want to be able to do and what you've tried before,
@@ -35,6 +45,7 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Fixed
 
+- Reloading the web app on any screen but the first no longer shows a 404.
 - Today's next activity is written ahead again, so it's usually ready when you
   open it. Opening it while it's still being written picks up where that left
   off instead of starting over.

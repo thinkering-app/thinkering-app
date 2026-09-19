@@ -21,7 +21,7 @@ Never in any property: interest names, goal titles, activity titles, user text, 
 | event                                | properties                                                                                                                                             |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `app_opened`                         | platform, app_version, days_since_install (bucket)                                                                                                     |
-| `intake_started`                     | is_first_interest                                                                                                                                      |
+| `intake_started`                     | is_first_interest, resumed                                                                                                                             |
 | `intake_step_completed`              | step (1–7), duration_bucket                                                                                                                            |
 | `intake_completed`                   | topics_selected_count, frequency, session_minutes                                                                                                      |
 | `intake_abandoned`                   | last_step                                                                                                                                              |
@@ -53,7 +53,7 @@ Counts that are deliberately raw rather than bucketed: `pages`, `questions_asked
 We want to see whether generated activities are actually good without ambient content collection. Two layers:
 
 1. **Aggregate signal** (PostHog, opt-in): `activity_completed` carries rating × library_item_id × tier — enough to spot "faded examples are rating poorly in language interests" without any content.
-2. **Shared activity reports** (explicit, per-activity): the summary page offers "Share this activity with the developers". Sharing sends the generated activity content, the rating + comment, and the library item/kind metadata through signed `POST /api/activity-report`, which forwards it by email and never stores it. The user's own responses are **excluded by default**, with a checkbox to include them — and when included they travel as plain question/answer lines, not raw payloads. Nothing is ever shared without this explicit action.
+2. **Shared activity reports** (explicit, per-activity): the summary page's rating row has a note box and a **Send** button. Sending shares the generated activity content, the rating + note, and the library item/kind metadata through signed `POST /api/activity-report`, which forwards it by email and never stores it. The user's own responses are **never included** — the help text under Send says so. There is no opt-in to include them: one feedback path, one unconditional promise. Nothing is ever shared without this explicit action.
 
 ## What the server sees (and doesn't keep)
 

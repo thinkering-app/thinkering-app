@@ -170,9 +170,10 @@ Running them via **Expo Go** (rather than the `e2e` EAS build) needs the Metro U
 #### Browser tests
 
 The browser tier is `pnpm --filter @thinkering/mobile test:web`: it exports the
-production web app in fixture mode, serves it with the headers from
-`vercel.json`, and drives a fresh install through intake and through a backup
-restore. Re-entering `/` must land on Today, proving that the SQLite worker
+production web app in fixture mode, serves it with the headers and URL rules
+from `vercel.json` (clean URLs, and the app shell for any other path), and
+drives a fresh install through intake — once straight through, once reloaded
+partway to prove the draft picks up — and through a backup restore. Re-entering `/` must land on Today, proving that the SQLite worker
 started, migrations ran, an Interest was written, and browser-local data
 persisted. The tier stays deliberately small — `web-intake.spec.ts` and
 `web-smoke.spec.ts` are the two ways a person's data gets created, and component

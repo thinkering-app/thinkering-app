@@ -99,7 +99,7 @@ export type AnalyticsEvent =
         days_since_install: DaysSinceInstallBucket
       }
     }
-  | { event: 'intake_started'; properties: { is_first_interest: boolean } }
+  | { event: 'intake_started'; properties: { is_first_interest: boolean; resumed: boolean } }
   | { event: 'intake_step_completed'; properties: { step: number; duration_bucket: DurationBucket } }
   | {
       event: 'intake_completed'
@@ -166,7 +166,7 @@ export const ANALYTICS_EVENT_PROPERTIES: {
   [N in AnalyticsEventName]: readonly (keyof AnalyticsProperties<N> & string)[]
 } = {
   app_opened: ['platform', 'app_version', 'days_since_install'],
-  intake_started: ['is_first_interest'],
+  intake_started: ['is_first_interest', 'resumed'],
   intake_step_completed: ['step', 'duration_bucket'],
   intake_completed: ['topics_selected_count', 'frequency', 'session_minutes'],
   intake_abandoned: ['last_step'],

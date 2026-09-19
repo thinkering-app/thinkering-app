@@ -15,3 +15,7 @@ export function setSetting(db: Database, key: string, value: unknown): void {
     .onConflictDoUpdate({ target: settings.key, set: { value } })
     .run()
 }
+
+export function deleteSetting(db: Database, key: string): void {
+  db.delete(settings).where(eq(settings.key, key)).run()
+}

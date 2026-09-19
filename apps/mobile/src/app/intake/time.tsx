@@ -22,8 +22,11 @@ const PRESET_MINUTES = [5, 10, 15]
  */
 export default function TimeStep() {
   const { answers, update } = useIntake()
-  const [custom, setCustom] = useState('')
-  const [customOpen, setCustomOpen] = useState(false)
+  // A picked-up draft may already hold a length that isn't one of the presets.
+  const [customOpen, setCustomOpen] = useState(
+    () => answers.sessionMinutes !== null && !PRESET_MINUTES.includes(answers.sessionMinutes),
+  )
+  const [custom, setCustom] = useState(() => (customOpen ? String(answers.sessionMinutes) : ''))
   const ready = answers.frequency !== null && answers.sessionMinutes !== null
 
   return (

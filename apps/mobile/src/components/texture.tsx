@@ -35,14 +35,21 @@ export function Wash({
   color,
   size,
   className,
+  tone = 'tint',
 }: {
   color: WashColor
   /** Diameter in pixels; the solid core is the middle third. */
   size: number
   className: string
+  /**
+   * `tint` is the wash at rest. `flush` is the palette colour, thinned — only
+   * ever for a moment, as a celebration settles back to the tint.
+   */
+  tone?: 'tint' | 'flush'
 }) {
-  const tint = colors[color].tint
-  const gradient = `radial-gradient(circle closest-side, ${tint} 0%, ${tint} 35%, ${tint}00 100%)`
+  const core = tone === 'flush' ? `${colors[color].DEFAULT}A6` : colors[color].tint
+  const clear = `${colors[color][tone === 'flush' ? 'DEFAULT' : 'tint']}00`
+  const gradient = `radial-gradient(circle closest-side, ${core} 0%, ${core} 35%, ${clear} 100%)`
   return (
     <View
       pointerEvents="none"
@@ -54,7 +61,7 @@ export function Wash({
 
 // Native reads the gradient from the experimental prop; react-native-web
 // passes `backgroundImage` straight through to CSS.
-function gradientStyle(gradient: string): ViewStyle {
+export function gradientStyle(gradient: string): ViewStyle {
   return Platform.OS === 'web'
     ? ({ backgroundImage: gradient } as ViewStyle)
     : { experimental_backgroundImage: gradient }

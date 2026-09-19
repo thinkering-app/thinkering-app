@@ -32,6 +32,8 @@ This screen buys time for G3, which is why it comes after topics and outcomes: G
 Show the generated interest name and the goal list (title + one-line description each), streaming in if G3 is still going. Single reassuring line: _"We'll keep evolving this as you go."_ Primary button starts the first activity or goes to Today.
 → On completion, fire **G4** (background web search for resources) and **G5-prefetch** (today's Next activity).
 
+**Unfinished intake**: until the interest is saved, the answers, the step they're on and every generation that has come back are kept on the device as a draft (local settings, never synced — `03`). Leaving partway, closing the app or reloading the page loses nothing: the draft picks up at the step they left, with no generation made twice. There is one draft at a time. An existing user can leave from any step with the **×** beside the progress dots (back from step 1 does the same); once they've written what they want to learn, a sheet asks **Finish this later?** — **Save for later** or **Discard**, and closing the sheet stays put. A first interest has no ×: there is nothing to leave to. **Add an interest** with a draft waiting asks first, in a sheet showing what they wanted to learn: **Keep going** or **Start something new** (which drops the draft). A first-run user reopening the app goes straight back into it, and Manage Interests lists it under **Unfinished** (§7).
+
 **Mode placement (D15)**: this step also shows, subtly, where the interest landed, together with the reassuring line above the name and goals, and a one-line hint for the current mode — **In focus** if frequency is daily/several-times-a-week or the why is career/personal-goal; **Exploring** for for-fun + when-I-can. One tap toggles it; changeable anytime in Manage Interests.
 
 ## 2. App shell
@@ -61,7 +63,7 @@ Card metadata (title, estimate, library item) comes from the cheap daily-plan ca
 
 ### Completion states
 
-When the user completes an activity in a section, that section's heading area visibly shifts (background wash in the section's accent color) and shows a small count ("2 today"). The intended rhythm: each day, in an interest, do at least one Next and one Strengthen; Go further when it suits. Remaining cards stay available — completion celebrates, it doesn't lock.
+When the user completes an activity in a section, that section's heading gets a sun-yellow check and a small count ("2 today"), and the finished card takes the section's tint with a yellow "Done today" chip. What's done is what shows; there's no separate "done for the day" state. The intended rhythm: each day, in an interest, do at least one Next and one Strengthen; Go further when it suits. Remaining cards stay available — completion celebrates, it doesn't lock.
 
 ### Configure (⚙ per section)
 
@@ -76,7 +78,7 @@ Sheet showing the three section names (read-only) and a single free-text questio
 Multi-page, rendered from an Activity Document (`05-activity-format.md`). Top progress bar segmented by page; forward/back navigation always available. Every page has interactive elements per its library item.
 
 - **Response review page** (reserved near the end, counted in the page total): while the user works, **G6** analyzes their responses and fills this page with the highest-value response — addressing a misconception, deepening a good answer, or answering an implicit question.
-- **Summary page** (last): concept/skill chips for what was introduced/strengthened/put to use, a usefulness rating (👎 / 〜 mixed / 👍), an optional detail box, and a quiet "Share this activity with the developers" action (explicit, per-activity — see `08`, D18).
+- **Summary page** (last): a short celebration line, the concept recap, concept/skill chips for what was introduced/strengthened/put to use, and at the foot of the page a usefulness rating (👎 / 👍👎 mixed / 👍), an optional note, and a Send button that shares the activity, rating and note with the developers — not the learner's answers (explicit, per-activity — see `08`, D18).
 - **Ask button** (always visible): free-text question → **G7** inserts a new page immediately after the current one and jumps to it, answering the question, with an interaction included when asked for or clearly valuable. Inserted pages extend the progress bar.
 - Completing the activity advances the goal's status (introduce → `introduced`, etc.), records history, and updates section completion state.
 - Leaving mid-activity keeps it resumable from Today for the rest of the day; unfinished activities don't advance goal status.
@@ -108,7 +110,7 @@ For the selected focused interest, all-explore, or an individual explore interes
 
 ## 7. Me
 
-- **Manage Interests** (top): reorder interests; set each to **In focus / Exploring / Archived**; unarchive freely. A **+** in the header starts intake for a new one, the same as the selector's.
+- **Manage Interests** (top): reorder interests; set each to **In focus / Exploring / Archived**; unarchive freely. A **+** in the header starts intake for a new one, the same as the selector's. An unfinished intake (§1) sits above them under **Unfinished**: tap to keep going, or discard it after a confirm.
 - **Calendar**: current month, days with completed activities highlighted; tapping a day lists that day's activities chronologically, grouped by interest. Swipe/navigate to load other months.
 - **Settings**: reached from the **⚙** in the Me header — an index of categories, each its own pushed screen. Nothing on the tab itself is a setting, so Me stays the interests and the calendar.
   - **Account and data** — default off. Three things that share one question, _what leaves this device_: a **file you keep** (export to a versioned JSON file through the share sheet; import replaces everything on the device after a confirm); **synced backup** — create/sign in to a Supabase email/password account, change password, sign out, delete the account, toggle sync, back up now (turning the toggle off deletes the server-side copy after confirmation; local data is untouched), with the sync half hiding itself in a build with no Supabase project configured; and the **PostHog toggle** ("Share anonymous usage to improve thinkering" — opt-in, default off, not linked to identity). The one-time analytics ask is a sheet on the summary page of the **first** completed activity: two buttons and one line about what it does and doesn't include, with a link to Privacy. However it is answered, it never appears again, and it doesn't appear at all in a build with no PostHog key. The same restore also sits on the intake welcome screen, quietly: a fresh install is when you need it most and is the one moment Me isn't reachable.
