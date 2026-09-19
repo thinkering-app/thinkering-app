@@ -17,7 +17,7 @@ const LANGUAGE_LABEL: Record<Exclude<Language, 'en'>, string> = {
 const LANGUAGE_NOTES: Record<Exclude<Language, 'en'>, string> = {
   es: 'Address the learner as tú. Use neutral Spanish that reads naturally in both Spain and Latin America. Keep to the length limits: Spanish runs longer than English, so write tightly.',
   'zh-Hans':
-    'Use Simplified characters only and Chinese full-width punctuation (，。？：“”) in prose. Address the learner as 你. "Sentence case" does not apply. Where a limit is given in words, read one word as about two characters.',
+    'Use Simplified characters only and Chinese full-width punctuation (，。？：) in prose. To quote a word or phrase inside a string, use “ ” — never a straight double quote, which ends the JSON string. Address the learner as 你. "Sentence case" does not apply. Where a limit is given in words, read one word as about two characters.',
 }
 
 const ACTIVITY_KINDS: readonly PromptKind[] = [

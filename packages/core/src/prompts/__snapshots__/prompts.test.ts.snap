@@ -29,7 +29,7 @@ exports[`content language (docs/04 §Content language) > zh-Hans block for activ
 
 Use examples, names, currency, units and cultural references natural to a Simplified Chinese reader. The tone rules still hold: plain, warm, adult, no cheerleading.
 
-Use Simplified characters only and Chinese full-width punctuation (，。？：“”) in prose. Address the learner as 你. "Sentence case" does not apply. Where a limit is given in words, read one word as about two characters.
+Use Simplified characters only and Chinese full-width punctuation (，。？：) in prose. To quote a word or phrase inside a string, use “ ” — never a straight double quote, which ends the JSON string. Address the learner as 你. "Sentence case" does not apply. Where a limit is given in words, read one word as about two characters.
 
 If the interest is learning a language, that language is the subject: target words, phrases and examples stay in it, and the explanations are in Simplified Chinese.
 
@@ -41,7 +41,7 @@ exports[`content language (docs/04 §Content language) > zh-Hans block for intak
 
 Use examples, names, currency, units and cultural references natural to a Simplified Chinese reader. The tone rules still hold: plain, warm, adult, no cheerleading.
 
-Use Simplified characters only and Chinese full-width punctuation (，。？：“”) in prose. Address the learner as 你. "Sentence case" does not apply. Where a limit is given in words, read one word as about two characters.
+Use Simplified characters only and Chinese full-width punctuation (，。？：) in prose. To quote a word or phrase inside a string, use “ ” — never a straight double quote, which ends the JSON string. Address the learner as 你. "Sentence case" does not apply. Where a limit is given in words, read one word as about two characters.
 
 If the interest is learning a language, that language is the subject: target words, phrases and examples stay in it, and the explanations are in Simplified Chinese."
 `;
