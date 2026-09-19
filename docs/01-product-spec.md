@@ -67,7 +67,7 @@ When the user completes an activity in a section, that section's heading gets a 
 
 ### Configure (⚙ per section)
 
-Sheet listing that section's library items as small cards with checkboxes (active/inactive for this user + interest + section). Tapping a card opens a short overview dialog of the strategy. At least one item must remain active per section.
+Sheet with one line on what the section is for, then that section's library items as a two-column grid of small cards with checkboxes (active/inactive for this user + interest + section). Tapping a card opens a short overview dialog of the strategy. At least one item must remain active per section.
 
 ### Configure learning routine (bottom button)
 

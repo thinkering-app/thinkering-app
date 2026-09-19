@@ -24,6 +24,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 - Configure learning routine now shows the suggested daily routine, with a
   link to the feedback board if you'd like to shape your own.
+- A section's configure sheet says what the section is for, and shows its
+  activity types as small cards, two to a row. Tap one to see what you'll do
+  and why it helps, in plain words.
 - On Today, what you've done stands out: a finished card takes its section's
   colour with a yellow "Done today", and the section gets a check by its name
   that pops in when you come back from the activity.

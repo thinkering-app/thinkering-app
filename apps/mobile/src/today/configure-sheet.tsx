@@ -11,10 +11,17 @@ import { db, repoContext } from '@/db'
 import { SECTION_LABELS } from '@/components/section-header'
 import { colors } from '@/theme/tokens'
 
+/** One line under the sheet title saying what the section is for. */
+const SECTION_HELP: Record<Section, string> = {
+  next: 'Learn something new from the next goal on your path.',
+  strengthen: "Improve your memory or understanding of something you've met before.",
+  go_further: 'Apply what you learn in the real world, or connect it to other ideas.',
+}
+
 /**
  * The per-section ⚙ sheet (docs/01 §3): which strategies this interest draws
- * from. Tapping a card explains the strategy; the checkbox turns it on or off.
- * At least one item stays active per section.
+ * from, as a grid of small cards. Tapping a card explains the strategy; the
+ * checkbox turns it on or off. At least one item stays active per section.
  */
 export function ConfigureSheet({
   visible,
@@ -64,33 +71,33 @@ export function ConfigureSheet({
 
   return (
     <Sheet visible={visible} onClose={close} title={SECTION_LABELS[section]}>
-      {rows.map(({ item, active }) => (
-        <Pressable
-          key={item.id}
-          accessibilityRole="button"
-          accessibilityLabel={`About ${item.name}`}
-          onPress={() => setInfo(item)}
-          className="flex-row items-center gap-3 rounded-card bg-surface p-4 shadow-card active:bg-cornflower-tint"
-        >
-          <View className="flex-1 gap-1">
+      <Text className="font-sans text-secondary text-ink-soft">{SECTION_HELP[section]}</Text>
+      <View className="flex-row flex-wrap justify-between gap-y-3">
+        {rows.map(({ item, active }) => (
+          <Pressable
+            key={item.id}
+            accessibilityRole="button"
+            accessibilityLabel={`About ${item.name}`}
+            onPress={() => setInfo(item)}
+            className="min-h-24 w-[48%] justify-between gap-3 rounded-card bg-surface p-3 shadow-card active:bg-cornflower-tint"
+          >
+            <View className="items-end">
+              <Checkbox
+                label={item.name}
+                checked={active}
+                disabled={active && activeCount <= 1}
+                onPress={() => toggle(item, !active)}
+              />
+            </View>
             <Text className="font-heading text-body text-ink">{item.name}</Text>
-            <Text className="font-sans text-caption text-ink-soft" numberOfLines={1}>
-              {item.overview}
-            </Text>
-          </View>
-          <Checkbox
-            label={item.name}
-            checked={active}
-            disabled={active && activeCount <= 1}
-            onPress={() => toggle(item, !active)}
-          />
-        </Pressable>
-      ))}
+          </Pressable>
+        ))}
+      </View>
       <InfoDialog
         visible={info !== null}
         onClose={() => setInfo(null)}
         title={info?.name ?? ''}
-        body={info ? `${info.overview}\n\n${info.pedagogy}` : ''}
+        body={info ? [info.overview, info.whyItHelps, info.activation].filter(Boolean).join('\n\n') : ''}
       />
     </Sheet>
   )
