@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { View, type ViewProps } from 'react-native'
 import type { PostHog } from 'posthog-js/dist/module.full.no-external'
 import { analyticsClient, POSTHOG_HOST, POSTHOG_KEY } from './client'
+import { releaseChannel } from './release-channel'
 
 /**
  * The replay recorder on web. `posthog-react-native` can't record a browser,
@@ -68,6 +69,8 @@ async function load(): Promise<PostHog | null> {
     // ever carries recordings.
     before_send: (event) => (event?.event === '$snapshot' ? event : null),
   })
+  // Kept in memory like the rest, so it's set on every load.
+  posthog.register({ release_channel: releaseChannel() })
   return posthog
 }
 

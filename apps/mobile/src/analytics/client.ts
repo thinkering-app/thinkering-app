@@ -3,6 +3,7 @@ import { Platform } from 'react-native'
 import { PostHog } from 'posthog-react-native'
 import { getSetting, setSetting } from '@thinkering/db'
 import { db } from '@/db'
+import { releaseChannel } from './release-channel'
 
 /**
  * The PostHog client (docs/08). Constructed lazily and only after consent —
@@ -37,7 +38,12 @@ let client: PostHog | null = null
 
 export function analyticsClient(): PostHog | null {
   if (!isAnalyticsConfigured()) return null
-  client ??= new PostHog(POSTHOG_KEY, {
+  client ??= createClient()
+  return client
+}
+
+function createClient(): PostHog {
+  const posthog = new PostHog(POSTHOG_KEY, {
     host: POSTHOG_HOST,
     customStorage,
     // Everything ambient is off; the event schema in docs/08 is the whole
@@ -64,7 +70,10 @@ export function analyticsClient(): PostHog | null {
       $os_name: Platform.OS,
     },
   })
-  return client
+  // The one super property (docs/08 §Release channel). The SDK queues it ahead
+  // of any capture, so the first event already carries it.
+  void posthog.register({ release_channel: releaseChannel() })
+  return posthog
 }
 
 export function appVersion(): string {
