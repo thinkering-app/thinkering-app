@@ -28,23 +28,34 @@ const INSTRUCTIONS = `Task: name the interest and lay out its initial path.
 Return JSON: {
   "name": string,        // short display name for the interest, 2–4 words, sentence case ("Conversational German", "Understanding LLMs") — emit this field FIRST so it streams early
   "goals": [{
-    "title": string,                 // one well-scoped unit, outcome-flavored ("Read a simple menu", "Explain what a token is")
-    "description": string,           // one–two plain lines on what this covers
-    "concepts": [{ "label": string, "kind": "concept"|"skill" }]   // 2–4 key concepts/skills beneath the goal, 2–5 words each — they render as chips; "skill" = something you do, "concept" = something you understand
+    "title": string,                 // what they'll be able to do or explain after one session, 8 words at most ("Order and react to food at dinner", "Explain what a token is")
+    "description": string,           // what this session covers, one or two plain sentences, 30 words at most, written about the material — not instructions to the learner
+    "concepts": [{ "label": string, "kind": "concept"|"skill" }]   // 2–4 chips, 2–5 words each; "skill" = something you do, "concept" = something you understand
   }]
 }
 
-5–8 goals, pedagogically sequenced by the progression principles: prerequisites before dependents, concrete before abstract, early wins first. Each goal must be introducible in one short session (5–15 minutes). Selected topics get priority coverage; weave in unselected foundational ground where skipping it would hurt. Goals are not topics: scope each to what one session can genuinely teach. When they've said what would feel like success, the path should lead there: the later goals are the ones that get them to it.`
+5–8 goals, each introducible in one 5–15 minute session. The progression principles and pitfalls you're given are this domain's specifics; apply them inside these decisions, made in this order:
+1. Where they start. Their experience sets the first goal: getting_started assumes nothing; explored means they know scattered basics, so the first goal consolidates them and moves on; in_middle and experienced skip foundations they likely have and start at the edge of what they can do. Their own words about their experience outrank the label.
+2. Where they're going. When they've said what would feel like success, the last one or two goals get them there, and every outcome they picked is reached by some goal.
+3. What carries the weight in between. If several goals depend on one structure (German word order, Python functions, a chord shape), that structure is its own goal, placed before the goals that use it — don't spread it thinly across situational goals. Selected topics get priority; a topic shown but not selected is either something they know or something they don't care about, so include it only when a later goal can't be learned without it.
+4. Order. Each goal uses what earlier goals taught or what their experience implies. The first goal is a real win in one session. Concrete before abstract.
+
+A goal is one session's worth, not a topic. "Food vocabulary" is a topic; "Order and react to food at dinner" is a goal. "Personal budgeting" is a topic; "Build a one-month spending snapshot" is a goal. If a title would take three sessions to teach properly, narrow it until one session can.
+
+Concept chips name the specific thing taught ("Verb-second rule", not "Word order basics"; "Index funds vs stock picking", not "Investing concepts"). Use as many as the goal really has, from 2 to 4 — don't pad to a fixed count or repeat the same pattern on every goal.`
 
 export const intakePathTemplate: PromptTemplate<
   IntakePathParams,
   z.infer<typeof pathOutputSchema>
 > = {
   kind: 'intake.path',
-  version: 4,
+  // v5: medium effort — high spent ~23s thinking before the first goal
+  // streamed (docs/04 §Thinking). v6: the sequencing high effort did in its
+  // thinking is spelled out, so medium follows it.
+  version: 6,
   model: 'sonnet',
   maxTokens: 16000,
-  effort: 'high',
+  effort: 'medium',
   paramsSchema: intakePathParamsSchema,
   outputSchema: pathOutputSchema,
   render: (params) => ({
@@ -58,7 +69,7 @@ export const intakePathTemplate: PromptTemplate<
         content: [
           `They want to learn: ${params.wantToLearn}`,
           `Why: ${params.whyChoice}${params.whyText ? ` — ${params.whyText}` : ''}`,
-          `Experience: ${params.experienceChoice}${params.experienceText ? ` — ${params.experienceText}` : ''}`,
+          `Experience: ${params.experienceChoice}${params.experienceText ? ` — in their words: ${params.experienceText}` : ''}`,
           `Domain: ${params.approach.domain}`,
           `Approach notes: ${params.approach.approachNotes}`,
           `Progression principles: ${params.approach.progressionPrinciples.join(' · ')}`,

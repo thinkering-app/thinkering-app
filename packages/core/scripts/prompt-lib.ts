@@ -9,9 +9,27 @@ import type { AnyPromptTemplate } from '../src/prompts/types'
 
 export const pkgRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 
+export interface ScriptArgs {
+  kind: string | undefined
+  /** `--only <fixture>`: run one input fixture instead of all of them. */
+  only: string | undefined
+  record: boolean
+}
+
+export function parseScriptArgs(argv: string[]): ScriptArgs {
+  const onlyIndex = argv.indexOf('--only')
+  const only = onlyIndex >= 0 ? argv[onlyIndex + 1] : undefined
+  if (onlyIndex >= 0 && (!only || only.startsWith('--'))) {
+    console.error('--only needs a fixture name, e.g. --only default')
+    process.exit(1)
+  }
+  const positional = argv.filter((a, i) => !a.startsWith('--') && (onlyIndex < 0 || i !== onlyIndex + 1))
+  return { kind: positional[0], only, record: argv.includes('--record') }
+}
+
 export function requireTemplate(kind: string | undefined): AnyPromptTemplate {
   if (!kind) {
-    console.error('usage: pnpm prompt:run <kind> [--record]  |  pnpm prompt:check <kind>')
+    console.error('usage: pnpm prompt:run <kind> [--only <fixture>] [--record]  |  pnpm prompt:check <kind> [--only <fixture>]')
     process.exit(1)
   }
   const template = getPromptTemplate(kind)
@@ -25,18 +43,28 @@ export function requireTemplate(kind: string | undefined): AnyPromptTemplate {
 /**
  * All input fixtures for a kind: `<kind>.json` (named `default`) plus
  * `<kind>.<variant>.json` (named `<variant>`) — the names recordings are filed
- * under in `fixtures/recorded/<kind>/`.
+ * under in `fixtures/recorded/<kind>/`. `only` narrows it to one, so iterating
+ * on a prompt costs one call instead of one per fixture.
  */
-export function loadFixtures(kind: string): { name: string; params: unknown }[] {
+export function loadFixtures(kind: string, only?: string): { name: string; params: unknown }[] {
   const dir = join(pkgRoot, 'fixtures/prompt-inputs')
   const files = readdirSync(dir).filter((f) => f === `${kind}.json` || (f.startsWith(`${kind}.`) && f.endsWith('.json')))
   if (files.length === 0) {
     console.error(`no input fixture for ${kind} in fixtures/prompt-inputs/`)
     process.exit(1)
   }
-  return files.sort().map((f) => ({
+  const fixtures = files.sort().map((f) => ({
     name: f === `${kind}.json` ? 'default' : f.slice(kind.length + 1).replace(/\.json$/, ''),
-    params: JSON.parse(readFileSync(join(dir, f), 'utf8')) as unknown,
+    file: f,
+  }))
+  const chosen = only ? fixtures.filter((f) => f.name === only) : fixtures
+  if (chosen.length === 0) {
+    console.error(`no fixture "${only}" for ${kind}; have: ${fixtures.map((f) => f.name).join(', ')}`)
+    process.exit(1)
+  }
+  return chosen.map(({ name, file }) => ({
+    name,
+    params: JSON.parse(readFileSync(join(dir, file), 'utf8')) as unknown,
   }))
 }
 

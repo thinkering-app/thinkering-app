@@ -20,6 +20,7 @@ import {
 } from './celebration'
 import { ResponsesProvider, type ResponseSink } from './responses'
 import { SummaryFooter, SummaryHeader } from './summary'
+import { WaitCover } from './wait-cover'
 
 /**
  * The activity player (docs/05): a page at a time, progress bar across the top,
@@ -35,6 +36,8 @@ export interface PlayerProps {
   streaming?: boolean
   /** What the wait says while a streaming document has no pages yet. */
   waitLabel?: string
+  /** The library item behind the activity, shown with the wait before page 1. */
+  libraryItem?: { name: string; overview: string }
   sink: ResponseSink
   /** Controlled: the route owns the page so Ask can jump to the page it inserted. */
   page: number
@@ -58,6 +61,7 @@ export function ActivityPlayer({
   goalTitle,
   streaming = false,
   waitLabel = 'Writing your activity',
+  libraryItem,
   sink,
   page: requested,
   onPageChange,
@@ -92,7 +96,17 @@ export function ActivityPlayer({
   const atEnd = index >= doc.pages.length - 1
 
   const content = useMemo(() => {
-    if (!page) return streaming ? <Generating label={waitLabel} /> : null
+    if (!page) {
+      return streaming ? (
+        <WaitCover
+          title={doc.title}
+          goalTitle={goalTitle}
+          estMinutes={doc.estMinutes}
+          item={libraryItem}
+          label={waitLabel}
+        />
+      ) : null
+    }
     if (page.kind === 'review' && page.blocks === null) {
       return <Generating label="One more look at your answers" />
     }
@@ -106,7 +120,7 @@ export function ActivityPlayer({
         ))}
       </View>
     )
-  }, [doc.tier, doc.title, goalTitle, page, streaming, waitLabel])
+  }, [doc.estMinutes, doc.tier, doc.title, goalTitle, libraryItem, page, streaming, waitLabel])
 
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right', 'bottom']}>

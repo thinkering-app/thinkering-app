@@ -64,6 +64,13 @@ build; internal refactors and docs don't appear here. The conventions are in
   time, rotating day to day. Tap Write on one to have it written.
 - Opening an activity shows what's happening while it's written — planning,
   then writing, then which page is next — and you can close it while you wait.
+- While an activity is being written, it shows what it will be: its title,
+  goal, kind of activity and length.
+- Your new path starts appearing within a few seconds instead of half a minute.
+- Today writes two activities at a time, so the second section's card is
+  ready sooner.
+- An activity that was still being written when you left the app is written
+  again when you come back, instead of waiting for you to tap Write.
 
 ### Fixed
 
@@ -83,7 +90,7 @@ build; internal refactors and docs don't appear here. The conventions are in
   off instead of starting over.
 - Reflecting on your progress suggests changes to your path again, instead of
   failing partway.
-- The loading dots keep moving while an activity is being written, instead of
+- The loading dots keep moving for as long as the wait lasts, instead of
   stopping on the first one.
 - Video activities play one of your saved videos in the activity, instead of
   pointing you to a YouTube channel.
