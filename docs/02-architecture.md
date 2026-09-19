@@ -80,7 +80,8 @@ The mode is a setting (Me → Developer, with dev tools), starting from the buil
 
 - First launch: `POST /api/device/register` → `{device_id, secret}` stored in SecureStore. Requests carry `device_id` + HMAC signature (timestamped, replay-window). Server keeps a `devices` + `device_usage` table in Supabase (reached with the secret key, i.e. the `service_role` Postgres role — operational data, not user learning data).
 - Budgets are **token-based per day per device**, with per-kind weights (see `04-ai-pipeline.md`). 429 + reset time when exhausted; the app shows the meter in Me → AI usage and degrades gracefully (existing content still works).
-- Hardening later: iOS App Attest to sign registration, simple velocity limits, key rotation.
+- Every device is a fresh budget, so registration is where abuse would start: it's capped at 20 per IP address per UTC day (`ip_actions`, keyed by an HMAC of the day and the address, never the address). And because no per-device limit bounds many devices, a **proxy-wide daily cap** (`usage_totals`, `AI_DAILY_LIMIT_WEIGHTED`) sits behind them all; the Anthropic Console spend limit is the backstop beyond that (`RELEASING.md`).
+- Hardening later: iOS App Attest to sign registration, key rotation.
 
 ## Feedback
 

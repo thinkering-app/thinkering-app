@@ -61,7 +61,8 @@ We want to see whether generated activities are actually good without ambient co
 - **Featurebase portal**: receives community posts and the provider's normal technical request data. thinkering supplies only coarse screen, platform, and app version metadata — no app identity, email, SSO data, learning content, or analytics copy of the post.
 - **Private feedback and activity-report routes**: forward content via Resend; neither content nor the optional reply email is stored or logged. Persistent per-device/day rate-limit counters contain no submitted content.
 - **Supabase backup**: user-owned rows under RLS; deleted when backup is turned off or account deleted.
-- **Metering tables**: device_id (random), daily token counts. No content, no identity linkage.
+- **Metering tables**: device_id (random), daily token counts, the day's proxy-wide totals. No content, no identity linkage.
+- **Registration counter**: device registrations per IP address per UTC day, keyed by an HMAC of the day and the address under the server's secret key — never the address itself, and not linkable across days or to a device.
 
 ## App Store privacy disclosures
 
