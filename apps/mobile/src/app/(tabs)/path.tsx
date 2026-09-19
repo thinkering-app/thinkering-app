@@ -12,6 +12,7 @@ import { FeedbackButton } from '@/components/feedback-button'
 import { GenerationError } from '@/components/generation-error'
 import { Generating } from '@/components/generating'
 import { repoContext, db } from '@/db'
+import { useAddInterest } from '@/intake/add-interest'
 import { InterestSelector } from '@/interests/selector'
 import { GoalCard } from '@/path/goal-card'
 import { GoalSheet } from '@/path/goal-sheet'
@@ -169,9 +170,11 @@ function SuggestionCard({ suggestion, onAdd }: { suggestion: GeneratedGoal; onAd
 }
 
 function Empty() {
+  const { addInterest, resumeSheet } = useAddInterest()
   return (
     <EmptyState message="Add something you want to learn to get started.">
-      <Button label="Add an interest" onPress={() => router.push('/intake/welcome')} />
+      <Button label="Add an interest" onPress={addInterest} />
+      {resumeSheet}
     </EmptyState>
   )
 }

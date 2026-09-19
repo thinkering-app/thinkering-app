@@ -19,3 +19,8 @@ export const INTAKE_STEP_COUNT = INTAKE_STEPS.length
 export function nextStep(current: number): Href {
   return INTAKE_STEPS[current] ?? '/today'
 }
+
+/** The screen for a 1-based step. */
+export function stepHref(step: number): Href {
+  return INTAKE_STEPS[step - 1] ?? INTAKE_STEPS[0]
+}

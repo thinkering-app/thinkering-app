@@ -1,9 +1,15 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { EMPTY_INTAKE_ANSWERS } from '@thinkering/core'
 import {
+  clearIntakeDraft,
+  getIntakeDraft,
+  getSetting,
   listGoals,
   listTopics,
   nextInterestSortOrder,
   saveIntake,
+  saveIntakeDraft,
+  setSetting,
   softDeleteInterest,
   softDeleteTopic,
   type SaveIntakeInput,
@@ -87,5 +93,26 @@ describe('saveIntake', () => {
     const { interest } = saveIntake(db, ctx, INPUT)
     softDeleteTopic(db, ctx, listTopics(db, interest.id)[0]!.id)
     expect(listTopics(db, interest.id).map((t) => t.label)).toEqual(['Noun gender'])
+  })
+})
+
+describe('intake draft', () => {
+  it('keeps one draft until it is cleared', () => {
+    const draft = {
+      answers: { ...EMPTY_INTAKE_ANSWERS, wantToLearn: 'Chess' },
+      step: 2,
+      updatedAt: 1,
+    }
+    saveIntakeDraft(db, draft)
+    saveIntakeDraft(db, { ...draft, step: 3 })
+    expect(getIntakeDraft(db)).toEqual({ ...draft, step: 3 })
+    clearIntakeDraft(db)
+    expect(getIntakeDraft(db)).toBeUndefined()
+  })
+
+  it('clears a draft an older build wrote in a shape it no longer reads', () => {
+    setSetting(db, 'intake_draft', { answers: { learn: 'Chess' }, step: 2 })
+    expect(getIntakeDraft(db)).toBeUndefined()
+    expect(getSetting(db, 'intake_draft')).toBeUndefined()
   })
 })

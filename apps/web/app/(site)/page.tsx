@@ -1,5 +1,6 @@
 import Link from 'next/link'
 
+import { AppPreview } from '../../components/app-preview'
 import { EmailLink } from '../../components/email-link'
 import { InterestTyper } from '../../components/interest-typer'
 import { links } from '../../components/links'
@@ -23,30 +24,38 @@ function Hero() {
       <div className="blob -left-24 top-8 h-72 w-72 bg-cornflower-tint" />
       <div className="blob -right-16 top-40 h-64 w-64 bg-peach-tint" />
       <div className="blob bottom-0 left-1/3 h-56 w-56 bg-sun-tint" />
-      <div className="relative mx-auto max-w-5xl px-6 pb-20 pt-20 sm:pt-28">
-        <h1 className="max-w-3xl font-heading-bold text-display-lg font-bold text-ink">
-          Learn the things you&rsquo;ve been meaning to.
-        </h1>
-        <p className="mt-5 max-w-xl text-title text-ink-soft">
-          Make consistent progress with short, effective daily activities grounded in how we learn.
-        </p>
-        <div className="mt-8 flex flex-wrap items-center gap-3">
-          <a
-            href={links.betaForm}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-pill bg-cornflower px-6 py-3 font-medium text-white transition-colors hover:bg-cornflower-deep"
-          >
-            Join the beta
-          </a>
-          <a
-            href="#how-it-works"
-            className="rounded-pill border border-hairline bg-surface px-6 py-3 font-medium text-ink transition-colors hover:border-cornflower"
-          >
-            See how it works
-          </a>
+      {/* One column below lg, with the preview between the pitch and the card;
+          from lg the preview takes a right-hand column beside both. */}
+      <div className="relative mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)] gap-y-14 px-6 pb-20 pt-20 sm:pt-28 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-x-12 lg:pt-20">
+        <div className="lg:col-start-1 lg:row-start-1">
+          <h1 className="max-w-3xl font-heading-bold text-display-lg font-bold text-ink">
+            Learn the things you&rsquo;ve been meaning to.
+          </h1>
+          <p className="mt-5 max-w-xl text-title text-ink-soft">
+            Make consistent progress with short, effective daily activities grounded in how we
+            learn.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <a
+              href={links.betaForm}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-pill bg-cornflower px-6 py-3 font-medium text-white transition-colors hover:bg-cornflower-deep"
+            >
+              Join the beta
+            </a>
+            <a
+              href="#how-it-works"
+              className="rounded-pill border border-hairline bg-surface px-6 py-3 font-medium text-ink transition-colors hover:border-cornflower"
+            >
+              See how it works
+            </a>
+          </div>
         </div>
-        <div className="mt-14 max-w-xl rounded-card border border-hairline bg-surface p-6 shadow-card">
+        <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-center">
+          <AppPreview />
+        </div>
+        <div className="max-w-xl self-start rounded-card border border-hairline bg-surface p-6 shadow-card">
           <span className="block h-2 w-10 rounded-pill bg-sun" />
           <p className="mt-4 font-heading text-heading text-ink">
             And grow as a learner as you do.

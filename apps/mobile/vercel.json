@@ -3,6 +3,8 @@
   "framework": null,
   "buildCommand": "pnpm export:web",
   "outputDirectory": "dist",
+  "cleanUrls": true,
+  "rewrites": [{ "source": "/:path*", "destination": "/" }],
   "headers": [
     {
       "source": "/(.*)",

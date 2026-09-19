@@ -1,8 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
-import { router } from 'expo-router'
 import { Pressable, ScrollView, View } from 'react-native'
 
 import { Pill } from '@/components/pill'
+import { useAddInterest } from '@/intake/add-interest'
 import { colors } from '@/theme/tokens'
 import { useInterestSelection } from './selection'
 
@@ -81,22 +81,27 @@ export function InterestSelector({ allowAll = true }: InterestSelectorProps = {}
 
 /**
  * Pinned beside the scrolling pills so it survives a long row. Existing users
- * skip the welcome screen and go straight to the first question (docs/01 §1).
+ * skip the welcome screen and go straight to the first question (docs/01 §1),
+ * or back to an unfinished one.
  */
 function AddInterest() {
+  const { addInterest, resumeSheet } = useAddInterest()
   return (
-    <Pressable
-      testID="add-interest"
-      accessibilityRole="button"
-      accessibilityLabel="Add an interest"
-      onPress={() => router.push('/intake/learn')}
-      hitSlop={8}
-      className="rounded-pill border border-hairline bg-surface px-3 py-2 active:bg-cornflower-tint"
-    >
-      <View className="h-5 w-5 items-center justify-center">
-        <Ionicons name="add" size={18} color={colors.ink.soft} />
-      </View>
-    </Pressable>
+    <>
+      <Pressable
+        testID="add-interest"
+        accessibilityRole="button"
+        accessibilityLabel="Add an interest"
+        onPress={addInterest}
+        hitSlop={8}
+        className="rounded-pill border border-hairline bg-surface px-3 py-2 active:bg-cornflower-tint"
+      >
+        <View className="h-5 w-5 items-center justify-center">
+          <Ionicons name="add" size={18} color={colors.ink.soft} />
+        </View>
+      </Pressable>
+      {resumeSheet}
+    </>
   )
 }
 

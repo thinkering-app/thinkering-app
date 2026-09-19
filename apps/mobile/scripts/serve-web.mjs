@@ -29,11 +29,17 @@ function fileFor(pathname) {
   )
 }
 
+// vercel.json's catch-all: a path with no file of its own (a dynamic route
+// like /activity/<id>, or one that doesn't exist) gets the root page, and the
+// router takes it from there. Only extensionless paths, so a missing asset
+// still fails loudly here.
+const appShell = resolve(outputRoot, 'index.html')
+
 const server = createServer((request, response) => {
   for (const { key, value } of deploymentHeaders) response.setHeader(key, value)
 
   const pathname = new URL(request.url ?? '/', 'http://localhost').pathname
-  const file = fileFor(pathname)
+  const file = fileFor(pathname) ?? (extname(pathname) === '' ? appShell : null)
   if (!file) {
     response.statusCode = 404
     response.end('Not found')

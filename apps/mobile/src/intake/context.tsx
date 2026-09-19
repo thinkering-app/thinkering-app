@@ -9,19 +9,26 @@ import {
 } from 'react'
 import {
   durationBucket,
+  EMPTY_INTAKE_ANSWERS,
   extractPartialPath,
+  isDraftWorthKeeping,
   placeInterest,
   type ApproachOutput,
   type ExperienceChoice,
-  type Frequency,
+  type IntakeAnswers,
   type InterestStatus,
   type PartialPath,
   type PathOutput,
   type SuccessOutput,
   type TopicsOutput,
-  type WhyChoice,
 } from '@thinkering/core'
-import { listInterests, saveIntake } from '@thinkering/db'
+import {
+  clearIntakeDraft,
+  getIntakeDraft,
+  listInterests,
+  saveIntake,
+  saveIntakeDraft,
+} from '@thinkering/db'
 
 import { callAi } from '@/ai'
 import { track } from '@/analytics'
@@ -39,44 +46,16 @@ import { currentPicks } from './chip-picker'
  * go out together when they leave step 3, for steps 4 and 5. G3 goes out when
  * they leave step 5 — step 6 is the time question, which covers most of its
  * wait — and streams onto step 7.
+ *
+ * Until it's saved, the run is also kept as a draft in local settings: the
+ * answers, the step they're on and each finished generation. A run that starts
+ * while a draft exists picks it up, so a reload, a closed app or a detour
+ * through Me loses nothing and costs no second call.
  */
 
 export type Mode = Extract<InterestStatus, 'focus' | 'exploring'>
 
-export interface IntakeAnswers {
-  wantToLearn: string
-  whyChoice: WhyChoice | null
-  whyText: string
-  experienceChoice: ExperienceChoice | null
-  experienceText: string
-  /** Topics they wrote on step 4. */
-  customTopics: string[]
-  /** Topic labels selected on step 4, generated or their own; selecting none is allowed. */
-  selectedTopics: string[]
-  /** What they wrote on step 5. */
-  customOutcomes: string[]
-  /** What would feel like success, selected on step 5; selecting none is allowed. */
-  selectedOutcomes: string[]
-  frequency: Frequency | null
-  sessionMinutes: number | null
-  /** Set only when the user overrides the D15 placement on step 7. */
-  statusOverride: Mode | null
-}
-
-const EMPTY: IntakeAnswers = {
-  wantToLearn: '',
-  whyChoice: null,
-  whyText: '',
-  experienceChoice: null,
-  experienceText: '',
-  customTopics: [],
-  selectedTopics: [],
-  customOutcomes: [],
-  selectedOutcomes: [],
-  frequency: null,
-  sessionMinutes: null,
-  statusOverride: null,
-}
+export type { IntakeAnswers }
 
 interface IntakeValue {
   answers: IntakeAnswers
@@ -101,6 +80,13 @@ interface IntakeValue {
   save: () => string
   /** Records a finished step (docs/08). Steps 1–6 — step 7 is `intake_completed`. */
   completeStep: (step: number) => void
+  /** The step on screen, which is where a draft picks back up. */
+  step: number
+  visitStep: (step: number) => void
+  /** Whether they already have an interest to go back to — a first one has nowhere to leave to. */
+  hasInterest: boolean
+  /** Drops the draft for good, as they leave without finishing. */
+  discard: () => void
 }
 
 const IntakeContext = createContext<IntakeValue | null>(null)
@@ -112,12 +98,16 @@ export function useIntake(): IntakeValue {
 }
 
 export function IntakeProvider({ children }: { children: ReactNode }) {
-  const [answers, setAnswers] = useState<IntakeAnswers>(EMPTY)
+  // Read once, on entry: the draft this run picks up, if there is one.
+  const [draft] = useState(() => getIntakeDraft(db))
+  const [answers, setAnswers] = useState<IntakeAnswers>(draft?.answers ?? EMPTY_INTAKE_ANSWERS)
+  const [step, setStep] = useState(draft?.step ?? 1)
+  const [hasInterest] = useState(() => listInterests(db).length > 0)
   const [partialPath, setPartialPath] = useState<PartialPath>({ goals: [] })
-  const approach = useGeneration<ApproachOutput>()
-  const topics = useGeneration<TopicsOutput>()
-  const success = useGeneration<SuccessOutput>()
-  const path = useGeneration<PathOutput>()
+  const approach = useGeneration<ApproachOutput>(draft?.approach)
+  const topics = useGeneration<TopicsOutput>(draft?.topics)
+  const success = useGeneration<SuccessOutput>(draft?.success)
+  const path = useGeneration<PathOutput>(draft?.path)
 
   const update = useCallback((patch: Partial<IntakeAnswers>) => {
     setAnswers((prev) => ({ ...prev, ...patch }))
@@ -125,16 +115,41 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
 
   // Intake telemetry (docs/08): counts and durations only — none of the answers.
   const stepStartedAt = useRef(0)
-  const lastStep = useRef(1)
+  const lastStep = useRef(draft?.step ?? 1)
   const finished = useRef(false)
+  const discarded = useRef(false)
+  const resumed = draft !== undefined
 
   useEffect(() => {
     stepStartedAt.current = Date.now()
-    track('intake_started', { is_first_interest: listInterests(db).length === 0 })
+    track('intake_started', { is_first_interest: !hasInterest, resumed })
     return () => {
       if (!finished.current) track('intake_abandoned', { last_step: lastStep.current })
     }
-  }, [])
+  }, [hasInterest, resumed])
+
+  // Keep the draft current. Only finished generations go in: one still in
+  // flight is started again by its step when the draft is picked back up.
+  const settledApproach = approach.settled
+  const settledTopics = topics.settled
+  const settledSuccess = success.settled
+  const settledPath = path.settled
+  useEffect(() => {
+    if (finished.current || discarded.current) return
+    if (!isDraftWorthKeeping(answers)) {
+      clearIntakeDraft(db)
+      return
+    }
+    saveIntakeDraft(db, {
+      answers,
+      step,
+      approach: settledApproach(),
+      topics: settledTopics(),
+      success: settledSuccess(),
+      path: settledPath(),
+      updatedAt: Date.now(),
+    })
+  }, [answers, step, settledApproach, settledTopics, settledSuccess, settledPath])
 
   const completeStep = useCallback((step: number) => {
     track('intake_step_completed', {
@@ -263,6 +278,7 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
       goals: path.state.value.goals,
     })
     finished.current = true
+    clearIntakeDraft(db)
     track('intake_completed', {
       topics_selected_count: selectedTopics.length,
       frequency,
@@ -270,6 +286,11 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
     })
     return interest.id
   }, [answers, approach.state, path.state, placement, topics.state, success.state])
+
+  const discard = useCallback(() => {
+    discarded.current = true
+    clearIntakeDraft(db)
+  }, [])
 
   const value: IntakeValue = {
     answers,
@@ -289,6 +310,10 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
     placement,
     save,
     completeStep,
+    step,
+    visitStep: setStep,
+    hasInterest,
+    discard,
   }
 
   return <IntakeContext.Provider value={value}>{children}</IntakeContext.Provider>

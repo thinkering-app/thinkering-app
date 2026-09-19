@@ -11,6 +11,7 @@ import { FeedbackButton } from '@/components/feedback-button'
 import { GenerationError } from '@/components/generation-error'
 import { Generating } from '@/components/generating'
 import { SectionHeader } from '@/components/section-header'
+import { useAddInterest } from '@/intake/add-interest'
 import { InterestSelector } from '@/interests/selector'
 import { ReflectCard } from '@/path/reflect-card'
 import { useInterestSelection } from '@/interests/selection'
@@ -164,6 +165,7 @@ function SectionRow({
 }
 
 function Empty({ hasInterest }: { hasInterest: boolean }) {
+  const { addInterest, resumeSheet } = useAddInterest()
   return (
     <EmptyState
       message={
@@ -173,7 +175,10 @@ function Empty({ hasInterest }: { hasInterest: boolean }) {
       }
     >
       {hasInterest ? null : (
-        <Button label="Add an interest" onPress={() => router.push('/intake/welcome')} />
+        <>
+          <Button label="Add an interest" onPress={addInterest} />
+          {resumeSheet}
+        </>
       )}
     </EmptyState>
   )
