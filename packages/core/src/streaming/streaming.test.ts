@@ -174,6 +174,23 @@ describe('extractJsonText', () => {
       tab: 'a\tb',
     })
   })
+
+  it('escapes a quotation mark inside a string, as Haiku writes in Chinese', () => {
+    // Recorded from activity.review in Simplified Chinese (docs/04 §Content language).
+    const raw =
+      '{"blocks":[{"kind":"paragraph","md":"你说得对，"Ich will einen Kaffee" 听起来像命令。"我会想要"而不是"我要"。"}]}'
+    expect(JSON.parse(extractJsonText(raw))).toEqual({
+      blocks: [
+        {
+          kind: 'paragraph',
+          md: '你说得对，"Ich will einen Kaffee" 听起来像命令。"我会想要"而不是"我要"。',
+        },
+      ],
+    })
+    // Valid JSON, escaped quotes and all, passes through unchanged.
+    const valid = '{ "a": "say \\"hi\\"", "b": ["x", "y"] , "c": {"d": ""} }'
+    expect(extractJsonText(valid)).toBe(valid)
+  })
 })
 
 describe('extractPartialTopics', () => {
