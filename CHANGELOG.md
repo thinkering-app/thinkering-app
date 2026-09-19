@@ -10,6 +10,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 - Anonymous, opt-in usage analytics — off until you say yes, asked once on the
   welcome screen, and never carrying anything you write.
+- Share session replays with the developers, if you choose — asked after
+  the usage question on the welcome screen, and a separate setting in Account
+  and data. Off unless you turn it on.
 - Delete your backup account from inside the app.
 - A privacy page in the app that matches the one on the website.
 - A new intake step, "What are you hoping for?", with suggestions to pick
@@ -68,6 +71,15 @@ build; internal refactors and docs don't appear here. The conventions are in
   again when you come back, instead of waiting for you to tap Write.
 
 ### Fixed
+
+- Fill-in-the-blank sentences wrap instead of running off the screen, and the
+  answer to a blank you got wrong appears once you move on from it, labeled,
+  rather than while you're still typing.
+- The review page after an activity is shorter, focuses on one thing, and
+  sees the full fill-in-the-blank sentence, so it no longer misreads what you
+  were asked.
+- Fill-in-the-blank questions are written so earlier pages teach the answer
+  and nothing nearby gives it away.
 
 - Reloading the web app on any screen but the first no longer shows a 404.
 - Today no longer sometimes shows the same activity twice in a section.

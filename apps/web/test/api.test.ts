@@ -21,6 +21,9 @@ import { APPROACH_BODY, NOW, registerDevice, setupDeps, signedRequest } from './
 
 beforeEach(() => resetReplayCacheForTests())
 
+const sentSubjects = (calls: { init?: RequestInit }[]) =>
+  calls.map((c) => (JSON.parse(String(c.init?.body)) as { subject: string }).subject)
+
 describe('POST /api/device/register', () => {
   it('issues credentials and stores the device', async () => {
     const { store } = setupDeps()
@@ -236,8 +239,8 @@ describe('POST /api/ai — validation and behavior', () => {
     }
   })
 
-  it('stops every device once the proxy-wide daily limit is spent', async () => {
-    const { store } = setupDeps()
+  it('stops every device once the proxy-wide daily limit is spent, and emails once', async () => {
+    const { store, fetchCalls } = setupDeps()
     const creds = await registerDevice(store)
     await store.addUsage('someone-else', '2026-09-15', {
       counters: ['activity.generate'],
@@ -245,9 +248,31 @@ describe('POST /api/ai — validation and behavior', () => {
       inputTokens: GLOBAL_DAILY_BUDGET_WEIGHTED,
       outputTokens: 0,
     })
+    process.env.RESEND_API_KEY = 'test-key'
     const res = await aiPost(signedRequest('http://x/api/ai', creds, { body: APPROACH_BODY }))
+    await aiPost(signedRequest('http://x/api/ai', creds, { body: APPROACH_BODY, timestamp: NOW + 1 }))
+    delete process.env.RESEND_API_KEY
     expect(res.status).toBe(429)
     expect(((await res.json()) as { error: string }).error).toBe('service_limit_reached')
+    expect(sentSubjects(fetchCalls)).toEqual(["AI spend at 100% of today's cap"])
+  })
+
+  it('emails once as the day crosses each spend alert level', async () => {
+    const { store, fetchCalls } = setupDeps()
+    const creds = await registerDevice(store)
+    await store.addUsage('someone-else', '2026-09-15', {
+      counters: [],
+      calls: 1,
+      inputTokens: GLOBAL_DAILY_BUDGET_WEIGHTED / 2,
+      outputTokens: 0,
+    })
+    process.env.RESEND_API_KEY = 'test-key'
+    for (let i = 0; i < 3; i++) {
+      const req = signedRequest('http://x/api/ai', creds, { body: APPROACH_BODY, timestamp: NOW + i })
+      expect((await aiPost(req)).status).toBe(200)
+    }
+    delete process.env.RESEND_API_KEY
+    expect(sentSubjects(fetchCalls)).toEqual(["AI spend at 50% of today's cap"])
   })
 
   it('caps repairs per day and refuses repair text longer than the kind can produce', async () => {

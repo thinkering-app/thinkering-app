@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-import { links, overviewSections, sitePages } from './links'
+import { BetaButton } from './beta-button'
+import { overviewSections, sitePages } from './links'
 
 export function SiteHeader() {
   const pathname = usePathname()
@@ -54,14 +55,7 @@ export function SiteHeader() {
             </div>
           </div>
           {sitePages.map((p) => navLink(p.href, p.label))}
-          <a
-            href={links.betaForm}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ml-2 rounded-pill bg-cornflower px-4 py-1.5 text-secondary font-medium text-white transition-colors hover:bg-cornflower-deep"
-          >
-            Join the beta
-          </a>
+          <BetaButton className="ml-2 rounded-pill bg-cornflower px-4 py-1.5 text-secondary font-medium text-white transition-colors hover:bg-cornflower-deep" />
         </nav>
 
         <button
@@ -91,14 +85,7 @@ export function SiteHeader() {
                 {p.label}
               </Link>
             ))}
-            <a
-              href={links.betaForm}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-2 self-start rounded-pill bg-cornflower px-4 py-2 font-medium text-white"
-            >
-              Join the beta
-            </a>
+            <BetaButton className="mt-2 self-start rounded-pill bg-cornflower px-4 py-2 font-medium text-white" />
           </div>
         </nav>
       ) : null}

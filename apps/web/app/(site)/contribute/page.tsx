@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 
+import { BetaButton } from '../../../components/beta-button'
 import { EmailLink } from '../../../components/email-link'
 import { links } from '../../../components/links'
 
@@ -8,6 +9,8 @@ export const metadata: Metadata = {
 }
 
 const linkStyle = 'text-cornflower-deep hover:underline'
+const actionStyle =
+  'rounded-pill bg-surface px-4 py-2 text-secondary font-medium text-ink shadow-card transition-colors hover:text-cornflower-deep'
 
 const WAYS = [
   {
@@ -20,10 +23,8 @@ const WAYS = [
     title: 'Try it, and shape it',
     wash: 'bg-cornflower-tint',
     body: 'Try this active, adaptive learning experience for your own interests, and share what works and what doesn’t.',
-    actions: [
-      { label: 'Join the beta', href: links.betaForm },
-      { label: 'Feedback & roadmap', href: links.featurebase },
-    ],
+    beta: true,
+    actions: [{ label: 'Feedback & roadmap', href: links.featurebase }],
   },
   {
     title: 'Build it',
@@ -48,13 +49,14 @@ export default function Contribute() {
             <h2 className="font-heading-bold text-title font-bold text-ink">{way.title}</h2>
             <p className="mt-2 max-w-xl text-body text-ink-soft">{way.body}</p>
             <div className="mt-4 flex flex-wrap gap-3">
+              {'beta' in way ? <BetaButton className={actionStyle} /> : null}
               {way.actions.map((a) => (
                 <a
                   key={a.href}
                   href={a.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-pill bg-surface px-4 py-2 text-secondary font-medium text-ink shadow-card transition-colors hover:text-cornflower-deep"
+                  className={actionStyle}
                 >
                   {a.label}
                 </a>

@@ -59,11 +59,37 @@ create table if not exists ip_actions (
   primary key (ip_hash, day, action)
 );
 
+-- Spend alert levels (percent of the proxy-wide cap) already emailed for a
+-- day, so each fires once however many calls cross it.
+create table if not exists spend_alerts (
+  day date not null,
+  level integer not null,
+  sent_at timestamptz not null default now(),
+  primary key (day, level)
+);
+
 alter table devices enable row level security;
 alter table device_usage enable row level security;
 alter table device_actions enable row level security;
 alter table usage_totals enable row level security;
 alter table ip_actions enable row level security;
+alter table spend_alerts enable row level security;
+
+-- The daily spend at a glance, for the dashboard's SQL editor or a report:
+-- `select * from spend_by_day order by day desc`. Weighted as the cap counts
+-- it (docs/04 §Usage metering); the dollars use Sonnet 5 list prices, so they
+-- run slightly high. security_invoker keeps usage_totals' RLS in force, so it
+-- is as closed to anon and authenticated as the table itself.
+create or replace view spend_by_day with (security_invoker = true) as
+select
+  day,
+  input_tokens,
+  output_tokens,
+  input_tokens + 4 * output_tokens as weighted,
+  round((input_tokens * 2 + output_tokens * 10) / 1e6, 2) as approx_usd
+from usage_totals;
+
+revoke all on spend_by_day from public, anon, authenticated;
 
 -- Metering in one atomic step (docs/04 §Usage metering). The proxy reserves a
 -- call's maximum output before calling the model and settles the real count

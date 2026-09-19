@@ -43,7 +43,14 @@ export const PRIVACY_SECTIONS: PrivacySection[] = [
     paragraphs: [
       'Usage analytics are off by default. We ask once, after your first completed activity, and you can change the answer any time in the app under AI usage. Until you say yes, events are held on your device and nothing is transmitted; if you say no, they are deleted.',
       'If you opt in, we collect a fixed list of content-free events — things like “an activity was completed” with its type, a duration bucket, and your rating. Never interest names, goal titles, activity content, your text, URLs, or your email. Durations are rounded into buckets rather than sent as exact timings.',
-      'Analytics are processed by PostHog on their US servers. The analytics identity is a random ID generated on your device that is never linked to your backup account or your email. We tell PostHog not to record your IP address and not to look up your location, and thinkering has no session recording, screen capture, or automatic click tracking — the only events that exist are the ones on that fixed list.',
+      'Analytics are processed by PostHog on their US servers. The analytics identity is a random ID generated on your device that is never linked to your backup account or your email. We tell PostHog not to record your IP address and not to look up your location, and there is no automatic click tracking — the only events that exist are the ones on that fixed list.',
+    ],
+  },
+  {
+    title: 'Session replays are a separate choice',
+    paragraphs: [
+      'Session replays are off by default and separate from usage analytics. If you turn them on in the app under Account and data, the app records your screen while you use it and sends the recordings to PostHog, so we can find problems and see how learning in thinkering feels.',
+      'Because a recording shows the screen, we can see your activities and what you type. Your email address, passwords, and API key are hidden from recordings, and recordings carry the same random ID as analytics — not your account or your email. Turning replays off stops recording straight away.',
     ],
   },
   {

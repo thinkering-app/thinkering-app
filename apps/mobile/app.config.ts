@@ -39,6 +39,10 @@ const config: ExpoConfig = {
   plugins: [
     'expo-router',
     'expo-sharing',
+    // Apps built with the iOS 27 SDK (Xcode 27) must use the UIKit scene
+    // lifecycle or they fail to launch. SDK 57 needs this opt-in; SDK 58 adopts
+    // scenes in its template and the flag becomes a no-op — drop it then.
+    ['expo-build-properties', { ios: { enableSceneSupport: true } }],
     [
       'expo-splash-screen',
       {

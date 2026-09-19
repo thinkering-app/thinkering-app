@@ -1,6 +1,7 @@
 import Link from 'next/link'
 
 import { AppPreview } from '../../components/app-preview'
+import { BetaButton } from '../../components/beta-button'
 import { EmailLink } from '../../components/email-link'
 import { InterestTyper } from '../../components/interest-typer'
 import { links } from '../../components/links'
@@ -36,14 +37,7 @@ function Hero() {
             learn.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <a
-              href={links.betaForm}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-pill bg-cornflower px-6 py-3 font-medium text-white transition-colors hover:bg-cornflower-deep"
-            >
-              Join the beta
-            </a>
+            <BetaButton className="rounded-pill bg-cornflower px-6 py-3 font-medium text-white transition-colors hover:bg-cornflower-deep" />
             <a
               href="#how-it-works"
               className="rounded-pill border border-hairline bg-surface px-6 py-3 font-medium text-ink transition-colors hover:border-cornflower"

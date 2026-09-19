@@ -47,3 +47,35 @@ export function Markdown({ md, className }: { md: string; className?: string }) 
     </Text>
   )
 }
+
+/**
+ * The same markdown as one Text per word, for a wrapping row that mixes text
+ * with inline inputs: a single Text can't wrap around a sibling view.
+ */
+export function MarkdownWords({ md }: { md: string }) {
+  const words: Span[][] = []
+  let word: Span[] = []
+  for (const span of parseInline(md)) {
+    for (const part of span.text.split(/(\s+)/)) {
+      if (part.trim() === '') {
+        if (part !== '' && word.length > 0) {
+          words.push(word)
+          word = []
+        }
+      } else {
+        word.push({ text: part, style: span.style })
+      }
+    }
+  }
+  if (word.length > 0) words.push(word)
+
+  return words.map((pieces, i) => (
+    <Text key={i} className="font-sans text-body text-ink">
+      {pieces.map((piece, j) => (
+        <Text key={j} className={piece.style ? STYLE[piece.style] : undefined}>
+          {piece.text}
+        </Text>
+      ))}{' '}
+    </Text>
+  ))
+}

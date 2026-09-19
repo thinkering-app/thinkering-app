@@ -23,6 +23,16 @@ export const PROTECTED_KINDS = new Set(['activity.review', 'activity.question'])
 export const GLOBAL_DAILY_BUDGET_WEIGHTED =
   Number(process.env.AI_DAILY_LIMIT_WEIGHTED) || 20_000_000
 
+/** Percentages of the proxy-wide cap that email an alert, each at most once a UTC day. */
+export const SPEND_ALERT_LEVELS = [50, 90, 100] as const
+export type SpendAlertLevel = (typeof SPEND_ALERT_LEVELS)[number]
+
+/**
+ * Sonnet 5 list prices, USD per million tokens. Only for the rough dollar
+ * figure in alerts: most calls are Sonnet, so it runs slightly high.
+ */
+export const APPROX_USD_PER_MTOK = { input: 2, output: 10 } as const
+
 /** Counts repair round-trips across kinds; its burst limit is in BURST_LIMITS. */
 export const REPAIR_COUNTER = 'repair'
 
@@ -50,6 +60,20 @@ export const BURST_LIMITS: Record<string, number> = {
 
 export function weightedUsed(usage: TokenTotals): number {
   return usage.inputTokens + OUTPUT_WEIGHT * usage.outputTokens
+}
+
+/** The highest alert level the day's proxy-wide total has reached, if any. */
+export function spendAlertLevel(total: TokenTotals): SpendAlertLevel | undefined {
+  const percent = (100 * weightedUsed(total)) / GLOBAL_DAILY_BUDGET_WEIGHTED
+  return SPEND_ALERT_LEVELS.findLast((level) => percent >= level)
+}
+
+export function approxUsd(total: TokenTotals): number {
+  return (
+    (total.inputTokens * APPROX_USD_PER_MTOK.input +
+      total.outputTokens * APPROX_USD_PER_MTOK.output) /
+    1_000_000
+  )
 }
 
 export function utcDayOf(nowMs: number): string {
