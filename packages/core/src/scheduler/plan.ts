@@ -4,6 +4,10 @@ import type { GoalStatus, Section, Tier } from '../domain'
  * Today card selection (docs/01 §3, D7). Pure and deterministic: DB state in,
  * per-section goal picks out. The LLM (G5a) later chooses a library item and
  * writes a human title for each pick — it never chooses the goals.
+ *
+ * Each section offers one card at a time. Finishing it asks for the section's
+ * next card, and `exclude` keeps that from landing on a goal the section has
+ * already had today.
  */
 
 export interface SchedulerGoal {
@@ -30,8 +34,13 @@ export interface TodayPlan {
   showReflectCard: boolean
 }
 
-const STRENGTHEN_CARDS = 2
-const GO_FURTHER_CARDS = 2
+export interface PlanOptions {
+  /** Goal ids a section has already had a card for today — skipped when picking for it. */
+  exclude?: Partial<Record<Section, readonly string[]>>
+}
+
+const STRENGTHEN_CARDS = 1
+const GO_FURTHER_CARDS = 1
 const REFLECT_THRESHOLD = 3
 
 function byPathOrder(a: SchedulerGoal, b: SchedulerGoal): number {
@@ -46,9 +55,14 @@ function byOldest(at: (g: SchedulerGoal) => number | null) {
   }
 }
 
-function takeDistinct(tier: Tier, count: number, ...classes: SchedulerGoal[][]): CardPick[] {
+function takeDistinct(
+  tier: Tier,
+  count: number,
+  exclude: readonly string[] | undefined,
+  ...classes: SchedulerGoal[][]
+): CardPick[] {
   const picks: CardPick[] = []
-  const used = new Set<string>()
+  const used = new Set<string>(exclude)
   for (const cls of classes) {
     for (const goal of cls) {
       if (picks.length >= count) return picks
@@ -64,33 +78,39 @@ function takeDistinct(tier: Tier, count: number, ...classes: SchedulerGoal[][]):
  * Plan Today's cards for one interest. `goals` are the interest's live
  * (non-deleted) goals in any order.
  */
-export function planToday(goals: readonly SchedulerGoal[]): TodayPlan {
+export function planToday(goals: readonly SchedulerGoal[], opts: PlanOptions = {}): TodayPlan {
   const path = [...goals].sort(byPathOrder)
   const notStarted = path.filter((g) => g.status === 'not_started')
 
   // Next (1 card): an introduce activity for the first not_started goal in the path.
-  const next: CardPick[] =
-    notStarted.length > 0 ? [{ kind: 'goal', goalId: notStarted[0]!.id, tier: 'introduce' }] : []
+  const next = takeDistinct('introduce', 1, opts.exclude?.next, notStarted)
 
-  // Strengthen (2 cards): (1) introduced but not yet strengthened; (2) already
+  // Strengthen (1 card): (1) introduced but not yet strengthened; (2) already
   // strengthened, least-recently-strengthened first (spaced review); (3) a
   // prerequisite topic (early-days fallback).
   const introducedOnly = path.filter((g) => g.status === 'introduced')
   const strengthenedPlus = path
     .filter((g) => g.status === 'strengthened' || g.status === 'applied')
     .sort(byOldest((g) => g.strengthenedAt))
-  const strengthen = takeDistinct('strengthen', STRENGTHEN_CARDS, introducedOnly, strengthenedPlus)
+  const strengthen = takeDistinct(
+    'strengthen',
+    STRENGTHEN_CARDS,
+    opts.exclude?.strengthen,
+    introducedOnly,
+    strengthenedPlus,
+  )
   while (strengthen.length < STRENGTHEN_CARDS) {
     strengthen.push({ kind: 'prerequisite', tier: 'strengthen' })
   }
 
-  // Go further (2 cards): (1) strengthened but not yet applied; (2) already applied,
+  // Go further (1 card): (1) strengthened but not yet applied; (2) already applied,
   // least-recently first; (3) merely introduced — or the first goal for brand-new users.
   const strengthenedOnly = path.filter((g) => g.status === 'strengthened')
   const applied = path.filter((g) => g.status === 'applied').sort(byOldest((g) => g.appliedAt))
   const goFurther = takeDistinct(
     'apply',
     GO_FURTHER_CARDS,
+    opts.exclude?.go_further,
     strengthenedOnly,
     applied,
     introducedOnly,

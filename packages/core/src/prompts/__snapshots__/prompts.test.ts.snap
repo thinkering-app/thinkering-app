@@ -103,6 +103,7 @@ Additional rules for this task:
 - Without a provided resource, don't embed a video or send the learner off to find one — no channels, no "search YouTube for". Teach it on the page instead.
 - estMinutes and page count must match the requested session length.
 - Use the provided card title as the document title unless it's clearly wrong for the content you wrote.
+- If the learner made a request for this activity, honour it: it says what to focus on or how they want to learn it. Stay within the tier and the library item's shape. Take the request's own words over the learner's saved contexts: if they name a situation or person, use that one, and draw on contexts only for what the request leaves open.
 
 Activity library:
 - plain-explainer (Plain-English Explainer; Next (introduce))
@@ -1357,7 +1358,8 @@ Card = { "goalId": string|null, "topic"?: string, "libraryItemId": string, "titl
 Rules:
 - One card per pick, same order. Never invent, drop, or reorder goals.
 - Choose items by fit: the item's "good for" hint vs the domain and the goal; variety (avoid yesterday's item for the same goal); prefer items built around a saved resource only when a well-matched resource is listed for that goal.
-- A pick with goalId null is the strengthen prerequisite fallback: choose a genuinely prerequisite topic for their path (set "topic" to its short name) and pick a fitting strengthen item.
+- A pick with goalId null and no learner request is the strengthen prerequisite fallback: choose a genuinely prerequisite topic for their path (set "topic" to its short name) and pick a fitting strengthen item.
+- A pick with a learner request comes from the learner asking for this card. Choose the item and title to serve the request: what to focus on, or how they want to learn it. When the request names a way of learning and an active item matches it, choose that item even if the topic suits another one better or it was used recently — the learner's "how" outranks fit and variety. "Quiz me" or "test me" means retrieval-quiz; "walk me through an example" means a worked or faded example. If it has no goal, set "topic" to a short name for what they asked about.
 - Titles: concrete and specific to the goal + item (like "Spot the error: der/die/das" or "Tokens, not words"), max ~50 chars, sentence case, no colons unless natural.
 - estMinutes: the learner's session length for Next; same or slightly less for Strengthen; may be slightly more for Go further.
 

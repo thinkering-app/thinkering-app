@@ -1,18 +1,17 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
-  abandonStalePlans,
   completeActivity,
   createActivity,
   createGoal,
   createInterest,
   createRoutineNote,
-  getActivity,
   getCached,
   listLibraryPrefs,
-  listPlannedForDate,
+  listOpenActivities,
   listRoutineNotes,
   putCached,
   setLibraryPref,
+  softDeleteActivity,
   startActivity,
 } from '../src'
 import type { Database } from '../src/database'
@@ -118,22 +117,22 @@ describe('gen cache', () => {
   })
 })
 
-describe('stale plans', () => {
-  it('abandons unfinished cards from earlier days only, leaving completed ones alone', () => {
+describe('open cards', () => {
+  it('carries unfinished cards across days, leaving out finished and dropped ones', () => {
     const { interest, goal } = interestWithGoal()
     const yesterdayUntouched = card(interest.id, goal.id, '2026-09-14')
     const yesterdayStarted = card(interest.id, goal.id, '2026-09-14')
     const yesterdayDone = card(interest.id, goal.id, '2026-09-14')
     const today = card(interest.id, goal.id, '2026-09-15')
+    const dropped = card(interest.id, goal.id, '2026-09-15')
     startActivity(db, ctx, yesterdayStarted.id)
     completeActivity(db, ctx, yesterdayDone.id)
+    softDeleteActivity(db, ctx, dropped.id)
 
-    abandonStalePlans(db, ctx, { interestId: interest.id, before: '2026-09-15' })
-
-    expect(getActivity(db, yesterdayUntouched.id)?.status).toBe('abandoned')
-    expect(getActivity(db, yesterdayStarted.id)?.status).toBe('abandoned')
-    expect(getActivity(db, yesterdayDone.id)?.status).toBe('completed')
-    expect(getActivity(db, today.id)?.status).toBe('planned')
-    expect(listPlannedForDate(db, interest.id, '2026-09-15')).toHaveLength(1)
+    expect(listOpenActivities(db, interest.id).map((a) => a.id)).toEqual([
+      yesterdayUntouched.id,
+      yesterdayStarted.id,
+      today.id,
+    ])
   })
 })

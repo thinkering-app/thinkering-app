@@ -45,8 +45,9 @@ Concept **coverage** (which concepts/skills have been targeted — shown when a 
 
 | column                               | type  | notes                                                       |
 | ------------------------------------ | ----- | ----------------------------------------------------------- |
-| id / interest_id / goal_id           |       | `goal_id` null only on the strengthen prerequisite card     |
-| topic                                | text? | the prerequisite card's topic, when it has no goal yet      |
+| id / interest_id / goal_id           |       | `goal_id` null only on the strengthen prerequisite card, or a + card asked for without a goal |
+| topic                                | text? | a goal-less card's topic: the prerequisite's, or a short name for the learner's request |
+| focus                                | text? | what the learner asked a + card to focus on, or how to learn it; passed to G5b (docs/01 §3) |
 | section                              | text  | `next \| strengthen \| go_further`                          |
 | tier                                 | text  | `introduce \| strengthen \| apply`                          |
 | library_item_id                      | text  | e.g. `worked-example`                                       |
@@ -120,5 +121,5 @@ Pruned to last ~200 calls. Never synced.
 ## Invariants
 
 - Goal status only moves forward; timestamps set once per transition (completing a strengthen activity on an `applied` goal updates `strengthened_at` but not status).
-- One `planned` daily-plan set per interest per local date; regenerated only via explicit refresh or config change. A configure change drops that section's _untouched_ cards and re-plans only that section — anything started or completed stays.
+- A section has at most one scheduler-planned open card (`planned | ready | in_progress`) per interest, whatever its `planned_for` date — unfinished cards carry over and are never abandoned by the day turning. A section with none gets its next card when Today opens, skipping goals it already had that day. + cards add to this. A configure change drops that section's _untouched_ cards and re-plans only that section — anything started or completed stays.
 - Deleting an interest soft-deletes its children (cascade in application code).

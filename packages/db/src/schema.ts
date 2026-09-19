@@ -109,8 +109,13 @@ export const activities = sqliteTable(
       .notNull()
       .references(() => interests.id),
     goalId: text('goal_id').references(() => goals.id),
-    /** Set only on the strengthen prerequisite-fallback card, which has no goal yet (docs/01 §3). */
+    /**
+     * Set on a goal-less card: the strengthen prerequisite fallback's topic, or
+     * the short name for a learner's request that named no goal (docs/01 §3).
+     */
     topic: text('topic'),
+    /** What the learner asked this card to focus on, when they added it with + (docs/01 §3). */
+    focus: text('focus'),
     section: text('section').$type<Section>().notNull(),
     tier: text('tier').$type<Tier>().notNull(),
     libraryItemId: text('library_item_id').notNull(),

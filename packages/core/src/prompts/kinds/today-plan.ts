@@ -11,9 +11,14 @@ import type { PromptTemplate } from '../types'
  */
 
 const pickSchema = z.object({
-  /** Null for the strengthen prerequisite fallback — invent a prerequisite topic. */
+  /**
+   * Null for the strengthen prerequisite fallback — invent a prerequisite
+   * topic — or for a learner's request that names no goal.
+   */
   goalId: z.string().nullable(),
   goalTitle: z.string().nullable(),
+  /** What the learner asked this card to focus on, or how they want to learn it (the + card). */
+  focus: z.string().optional(),
 })
 
 export const todayPlanParamsSchema = z.object({
@@ -47,7 +52,8 @@ Card = { "goalId": string|null, "topic"?: string, "libraryItemId": string, "titl
 Rules:
 - One card per pick, same order. Never invent, drop, or reorder goals.
 - Choose items by fit: the item's "good for" hint vs the domain and the goal; variety (avoid yesterday's item for the same goal); prefer items built around a saved resource only when a well-matched resource is listed for that goal.
-- A pick with goalId null is the strengthen prerequisite fallback: choose a genuinely prerequisite topic for their path (set "topic" to its short name) and pick a fitting strengthen item.
+- A pick with goalId null and no learner request is the strengthen prerequisite fallback: choose a genuinely prerequisite topic for their path (set "topic" to its short name) and pick a fitting strengthen item.
+- A pick with a learner request comes from the learner asking for this card. Choose the item and title to serve the request: what to focus on, or how they want to learn it. When the request names a way of learning and an active item matches it, choose that item even if the topic suits another one better or it was used recently — the learner's "how" outranks fit and variety. "Quiz me" or "test me" means retrieval-quiz; "walk me through an example" means a worked or faded example. If it has no goal, set "topic" to a short name for what they asked about.
 - Titles: concrete and specific to the goal + item (like "Spot the error: der/die/das" or "Tokens, not words"), max ~50 chars, sentence case, no colons unless natural.
 - estMinutes: the learner's session length for Next; same or slightly less for Strengthen; may be slightly more for Go further.
 
@@ -55,15 +61,20 @@ ${libraryReference()}`
 
 export const todayPlanTemplate: PromptTemplate<TodayPlanParams, z.infer<typeof dailyPlanOutputSchema>> = {
   kind: 'today.plan',
-  version: 1,
+  // v2: a pick can carry the learner's own request, from the + card; one that
+  // names a way of learning gets the matching item.
+  version: 2,
   model: 'haiku',
   maxTokens: 1500,
   temperature: 0.7,
   paramsSchema: todayPlanParamsSchema,
   outputSchema: dailyPlanOutputSchema,
   render: (params) => {
-    const pickLine = (p: z.infer<typeof pickSchema>) =>
-      p.goalId ? `goal ${p.goalId} — "${p.goalTitle ?? ''}"` : 'PREREQUISITE FALLBACK (goalId null)'
+    const pickLine = (p: z.infer<typeof pickSchema>) => {
+      const request = p.focus ? ` — learner request: "${p.focus}"` : ''
+      if (p.goalId) return `goal ${p.goalId} — "${p.goalTitle ?? ''}"${request}`
+      return p.focus ? `NO GOAL (goalId null)${request}` : 'PREREQUISITE FALLBACK (goalId null)'
+    }
     return {
       system: [
         { text: SHARED_PREAMBLE, cache: true },

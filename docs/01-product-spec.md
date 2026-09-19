@@ -51,15 +51,21 @@ Keep `hello@thinkering.app` visible for questions or privacy concerns.
 
 ## 3. Today
 
-Per selected interest (or aggregated across interests for Explore→All), three sections, each with a heading, a small configure (⚙) button, and swipeable cards. Cards show: activity title, the goal it targets, and a time estimate. At the bottom, a subtle centered **"Configure learning routine"** button.
+Per selected interest (or aggregated across interests for Explore→All), three sections, each with a heading, a small configure (⚙) button, and swipeable cards. Cards show: activity title, the goal it targets, and a time estimate — or **Writing** while the activity is still being generated (it can be opened anyway; it streams in). At the bottom, a subtle centered **"Configure learning routine"** button.
+
+Each section offers **one open card at a time**. When the learner finishes it, that section gets its next card straight away, picked by the same rules and skipping goals the section has already had today — so finishing Next moves on to the next unstarted goal. A new day clears the finished cards; unfinished ones stay, and on opening Today only the sections left with nothing open get a new card — so nothing is generated until it's needed. **Explore → All** suggests rather than prepares: it shows cards from at most **2** of the exploring interests — never-practiced first, then least recently practiced (judged on days before today, so the pair holds for the day and rotates across days). Their cards get titles (G5a) but no content: each says **Write**, and tapping it writes that one in place (then **Writing**, then its time; a tap then opens it). Selecting a single interest is what fills its missing sections and writes its cards ahead. A card whose background write failed also shows **Write**.
 
 ### Card selection rules (deterministic — `packages/core/scheduler`)
 
 - **Next** (1 card): an _introduce_-tier activity for the first `not_started` goal in the path. If ≤ 3 `not_started` goals remain, additionally show a card that opens the **Reflection** experience.
-- **Strengthen** (2 cards): _strengthen_-tier activities. Goal choice priority: (1) `introduced` but not yet `strengthened`; (2) already `strengthened` (spaced review — prefer least-recently-strengthened); (3) a prerequisite topic to their goals (early-days fallback). The two cards may target different goals.
-- **Go further** (2 cards): _apply_-tier activities (both flavors: apply and extend — see `06`). Priority: (1) `strengthened` but not yet `applied`; (2) already `applied`; (3) merely `introduced` (or the first goal for brand-new users).
+- **Strengthen** (1 card): _strengthen_-tier activities. Goal choice priority: (1) `introduced` but not yet `strengthened`; (2) already `strengthened` (spaced review — prefer least-recently-strengthened); (3) a prerequisite topic to their goals (early-days fallback).
+- **Go further** (1 card): _apply_-tier activities (both flavors: apply and extend — see `06`). Priority: (1) `strengthened` but not yet `applied`; (2) already `applied`; (3) merely `introduced` (or the first goal for brand-new users). Once every goal is excluded for the day the section rests until tomorrow.
 
-Card metadata (title, estimate, library item) comes from the cheap daily-plan call **G5a** on app open; full activity content (**G5b**) is generated on tap (streamed) — the Next card is prefetched.
+Card metadata (title, estimate, library item) comes from the cheap daily-plan call **G5a** when a section needs a card; full activity content (**G5b**) is written ahead in the background, one card at a time with Next first, so a new interest has all three ready shortly after intake. Opening a card that's still being written joins that stream.
+
+### Adding an activity (+)
+
+Each section's row ends in a **+** card (single interest in view). It opens a sheet, **"Create a new [section] activity"**, with the interest's goals as optional chips (for Next, only goals not yet started) and one optional field — _"Anything to focus on, or how you'd like to learn it"_. Create plans one card in that section through G5a (the request shapes the item and title) and writes it straight away through G5b (the request is passed along). With a goal chosen, the card targets that goal and completes at the section's tier as usual. With only a focus, the card has no goal — its topic is a short name for the request and it moves no goal status. With neither, it lands on the section's own next pick. While G5a runs, a placeholder card shows **Writing** in that section.
 
 ### Completion states
 
