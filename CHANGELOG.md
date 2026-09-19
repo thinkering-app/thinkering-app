@@ -14,6 +14,8 @@ build; internal refactors and docs don't appear here. The conventions are in
   the usage question on the welcome screen, and a separate setting in Account
   and data. Off unless you turn it on.
 - Delete your backup account from inside the app.
+- Sign in to your account from the welcome screen, and your learning comes
+  back with it. Restoring from a backup file is right beside it.
 - A privacy page in the app that matches the one on the website.
 - A new intake step, "What are you hoping for?", with suggestions to pick
   from. Your path is shaped around what you choose.
