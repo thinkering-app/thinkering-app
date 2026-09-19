@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+    # ready_for_review starts the run a draft skipped. converted_to_draft starts
+    # a skip-only run whose only effect is cancelling one still in progress.
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
 
 # A newer push makes an older PR result obsolete, so PRs share a per-ref group
 # and cancel. Push runs get a per-run group instead: a shared group would queue
@@ -14,9 +17,55 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Which slower checks a PR needs. Pushes to main always run everything. The
+  # jobs below are skipped rather than removed from the workflow, so a required
+  # check still reports (a skipped job counts as passing) where a workflow-level
+  # `paths:` filter would leave it pending forever.
+  changes:
+    # Draft PRs get no checks. The two jobs that need this one are skipped with it.
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+      mobile: ${{ steps.filter.outputs.mobile }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          # Both sets include the workspace-wide files that change what an
+          # install or a build does. Keep them in step with each app's
+          # dependencies in package.json.
+          filters: |
+            web:
+              - 'apps/web/**'
+              - 'packages/core/**'
+              - 'packages/config/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'turbo.json'
+              - '.npmrc'
+              - 'patches/**'
+              - '.github/workflows/ci.yml'
+            mobile:
+              - 'apps/mobile/**'
+              - 'packages/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'turbo.json'
+              - '.npmrc'
+              - 'patches/**'
+              - '.github/workflows/ci.yml'
+
   # The gate (docs/10): typecheck + lint + vitest, offline, coverage thresholds
   # on. Runs alongside the two slower checks rather than ahead of them.
   verify:
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,6 +89,8 @@ jobs:
   # mode, serve it with vercel.json's headers, drive it through intake and a
   # backup restore on both engines it ships to.
   web-smoke:
+    needs: changes
+    if: github.event_name == 'push' || needs.changes.outputs.mobile == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -49,9 +100,24 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # Chrome is already on the runner; WebKit is not.
+      # Chrome is already on the runner; WebKit is not. The browser download is
+      # cached by Playwright version; the system libraries are apt packages on
+      # a fresh runner every time, so they are installed either way.
+      - name: Resolve the Playwright version
+        id: playwright
+        run: echo "version=$(pnpm --filter @thinkering/mobile exec playwright --version | awk '{print $NF}')" >> "$GITHUB_OUTPUT"
+      - name: Cache WebKit
+        id: webkit-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-webkit-${{ runner.os }}-${{ steps.playwright.outputs.version }}
       - name: Install WebKit for the browser tests
+        if: steps.webkit-cache.outputs.cache-hit != 'true'
         run: pnpm --filter @thinkering/mobile exec playwright install webkit --with-deps
+      - name: Install WebKit's system libraries
+        if: steps.webkit-cache.outputs.cache-hit == 'true'
+        run: pnpm --filter @thinkering/mobile exec playwright install-deps webkit
       - name: Browser tests
         id: browser-tests
         run: pnpm --filter @thinkering/mobile test:web
@@ -67,6 +133,8 @@ jobs:
           retention-days: 7
 
   landing-build:
+    needs: changes
+    if: github.event_name == 'push' || needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
