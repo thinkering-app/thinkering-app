@@ -71,16 +71,20 @@ export function todaysCards(interestId: string, today: LocalDate): Activity[] {
 /**
  * Explore → All suggests from a couple of the exploring interests, not every
  * one (`suggestInterests`); the rest wait until they're opened on their own.
+ * An interest with no goals can't give a card, and as never practiced it would
+ * otherwise always take a slot.
  */
 export function suggestedInterests(interests: Interest[], today: LocalDate): Interest[] {
   const timeZone = deviceTimeZone()
   const ids = suggestInterests(
-    interests.map((interest) => {
-      const last = listHistory(db, { interestId: interest.id, limit: HISTORY_LOOKBACK })
-        .map((a) => localDateOf(a.completedAt!, timeZone))
-        .find((day) => day < today)
-      return { id: interest.id, lastPracticed: last ?? null, sortOrder: interest.sortOrder }
-    }),
+    interests
+      .filter((interest) => listGoals(db, interest.id).length > 0)
+      .map((interest) => {
+        const last = listHistory(db, { interestId: interest.id, limit: HISTORY_LOOKBACK })
+          .map((a) => localDateOf(a.completedAt!, timeZone))
+          .find((day) => day < today)
+        return { id: interest.id, lastPracticed: last ?? null, sortOrder: interest.sortOrder }
+      }),
   )
   return ids.map((id) => interests.find((i) => i.id === id)!)
 }

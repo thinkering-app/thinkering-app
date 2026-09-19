@@ -43,9 +43,10 @@ interface Draft {
  */
 export default function TodayScreen() {
   const { selected, selection } = useInterestSelection()
+  const exploreAll = selection?.kind === 'explore' && selection.interestId === null
   const { today, sections, reflect, empty, generating, writing, error, retry, refresh } = useToday(
     selected,
-    { suggestOnly: selection?.kind === 'explore' && selection.interestId === null },
+    { suggestOnly: exploreAll },
   )
   const [configuring, setConfiguring] = useState<Section | null>(null)
   const [routineOpen, setRoutineOpen] = useState(false)
@@ -64,6 +65,9 @@ export default function TodayScreen() {
     refresh()
   }
 
+  // A write the learner asked for says why it failed; the card goes back to Write.
+  const onWriteFailed = (e: unknown) => setToast(describeAiError(e))
+
   const onRequest = async (request: ActivityRequest) => {
     if (!configurable) return
     const interest = configurable
@@ -80,7 +84,7 @@ export default function TodayScreen() {
       const activity = await requestActivity(interest, today, request)
       // Asked for, so likely to be opened next: written straight away rather
       // than queued behind the day's other cards.
-      writeActivityDoc(activity).promise.catch(() => {})
+      writeActivityDoc(activity).promise.catch(onWriteFailed)
     } catch (e) {
       setToast(describeAiError(e))
     } finally {
@@ -102,7 +106,7 @@ export default function TodayScreen() {
         {/* A failed top-up after a finished card leaves the rest of Today in place. */}
         {error ? <GenerationError message={error} onRetry={retry} /> : null}
         {error && !hasCards ? null : empty && !generating ? (
-          <Empty hasInterest={selection !== null} />
+          <Empty hasInterest={selection !== null} exploreAll={exploreAll} />
         ) : (
           sections.map((section) => (
             <View key={section.section} className="gap-3">
@@ -111,6 +115,7 @@ export default function TodayScreen() {
                 generating={generating}
                 writing={writing}
                 drafts={drafts.filter((d) => d.section === section.section)}
+                onWriteFailed={onWriteFailed}
                 onConfigure={configurable ? () => setConfiguring(section.section) : undefined}
                 onAdd={
                   configurable
@@ -185,6 +190,7 @@ function SectionRow({
   generating,
   writing,
   drafts,
+  onWriteFailed,
   onConfigure,
   onAdd,
 }: {
@@ -193,6 +199,7 @@ function SectionRow({
   /** Cards whose documents are still being written. */
   writing: ReadonlySet<string>
   drafts: Draft[]
+  onWriteFailed: (e: unknown) => void
   onConfigure?: () => void
   onAdd?: () => void
 }) {
@@ -239,7 +246,7 @@ function SectionRow({
                 // A suggestion is written on request and stays put; once
                 // written, a tap opens it.
                 unwritten(card)
-                  ? writeActivityDoc(card.activity).promise.catch(() => {})
+                  ? writeActivityDoc(card.activity).promise.catch(onWriteFailed)
                   : router.push(`/activity/${card.activity.id}`)
               }
             />
@@ -277,13 +284,15 @@ function AddCard({ section, onPress }: { section: Section; onPress: () => void }
   )
 }
 
-function Empty({ hasInterest }: { hasInterest: boolean }) {
+function Empty({ hasInterest, exploreAll }: { hasInterest: boolean; exploreAll: boolean }) {
   return (
     <EmptyState
       message={
-        hasInterest
-          ? 'This interest has no goals yet.'
-          : 'Add something you want to learn to get started.'
+        !hasInterest
+          ? 'Add something you want to learn to get started.'
+          : exploreAll
+            ? 'None of these interests have goals yet.'
+            : 'This interest has no goals yet.'
       }
     >
       {hasInterest ? null : (
