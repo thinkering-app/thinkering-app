@@ -6,7 +6,11 @@ import { webUrlSchema } from './url'
 /**
  * Output contracts for the generation kinds (docs/04 §Contracts). Every LLM
  * response crosses one of these before it is stored or rendered. G5b's output
- * is the ActivityDoc (schemas/activity-doc.ts).
+ * is the ActivityDoc (schemas/activity-doc.ts). String limits leave room for
+ * Spanish, which runs about a quarter longer than English (docs/04 §Content
+ * language); the prompts' own word counts are what keep text short. The
+ * interest name is the exception, and the retired kinds' schemas keep their
+ * limits: the builds that send those kinds send no language.
  */
 
 /** G1 `intake.approach` — stored on the interest, reused as context by G2/G3/G5/G8. */
@@ -57,14 +61,14 @@ export const choicesOutputSchema = z.object({
   topics: z
     .array(
       z.object({
-        label: z.string().min(1).max(60),
+        label: z.string().min(1).max(80),
         origin: z.enum(['motivation', 'foundational', 'adjacent']),
         blurb: z.string().min(1),
       }),
     )
     .min(6)
     .max(14),
-  outcomes: z.array(z.string().min(1).max(80)).min(3).max(6),
+  outcomes: z.array(z.string().min(1).max(100)).min(3).max(6),
 })
 export type ChoicesOutput = z.infer<typeof choicesOutputSchema>
 
@@ -76,7 +80,7 @@ export type ChoicesOutput = z.infer<typeof choicesOutputSchema>
 export const reflectOpenOutputSchema = z.object({
   /** What and how they've been learning lately — 1–2 plain sentences. */
   recap: z.string().min(1).max(400),
-  outcomes: z.array(z.string().min(1).max(80)).max(4),
+  outcomes: z.array(z.string().min(1).max(100)).max(4),
 })
 export type ReflectOpenOutput = z.infer<typeof reflectOpenOutputSchema>
 
@@ -85,10 +89,10 @@ export type ReflectOpenOutput = z.infer<typeof reflectOpenOutputSchema>
  * save (docs/04), so the model only supplies labels and kinds.
  */
 export const generatedGoalSchema = z.object({
-  title: z.string().min(1).max(80),
-  description: z.string().min(1).max(240),
+  title: z.string().min(1).max(100),
+  description: z.string().min(1).max(320),
   concepts: z
-    .array(z.object({ label: z.string().min(1).max(60), kind: z.enum(['concept', 'skill']) }))
+    .array(z.object({ label: z.string().min(1).max(80), kind: z.enum(['concept', 'skill']) }))
     .min(1)
     .max(6),
 })
@@ -96,6 +100,7 @@ export type GeneratedGoal = z.infer<typeof generatedGoalSchema>
 
 /** G3 `intake.path` — interest name + 5–8 sequenced goals with concepts (D16). */
 export const pathOutputSchema = z.object({
+  /** Tight in every language: it labels chips and tags across the app (intake.path v7). */
   name: z.string().min(1).max(40),
   goals: z.array(generatedGoalSchema).min(4).max(9),
 })
@@ -150,21 +155,21 @@ export const reflectionChangeSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('revise'),
     ref: z.string().min(1),
-    title: z.string().min(1).max(80),
-    description: z.string().min(1).max(240),
-    reason: z.string().min(1).max(200),
+    title: z.string().min(1).max(100),
+    description: z.string().min(1).max(320),
+    reason: z.string().min(1).max(260),
   }),
   z.object({
     type: z.literal('remove'),
     ref: z.string().min(1),
-    reason: z.string().min(1).max(200),
+    reason: z.string().min(1).max(260),
   }),
   z.object({
     type: z.literal('reorder'),
     ref: z.string().min(1),
     /** The goal it should follow; null puts it first. */
     afterRef: z.string().min(1).nullable(),
-    reason: z.string().min(1).max(200),
+    reason: z.string().min(1).max(260),
   }),
 ])
 export type ReflectionChange = z.infer<typeof reflectionChangeSchema>
@@ -177,7 +182,7 @@ export const reflectUpdateOutputSchema = z.object({
     .array(
       generatedGoalSchema.extend({
         afterRef: z.string().min(1).nullable(),
-        reason: z.string().min(1).max(200),
+        reason: z.string().min(1).max(260),
       }),
     )
     .max(4),
@@ -193,7 +198,7 @@ export const dailyPlanCardSchema = z.object({
   goalId: z.string().nullable(),
   topic: z.string().optional(),
   libraryItemId: z.string().min(1),
-  title: z.string().min(1).max(80),
+  title: z.string().min(1).max(100),
   estMinutes: z.number().int().min(2).max(30),
 })
 export const dailyPlanOutputSchema = z.object({

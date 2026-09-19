@@ -12,6 +12,8 @@ import resourcesMore from '../../fixtures/prompt-inputs/resources.more.json'
 import resourcesSearch from '../../fixtures/prompt-inputs/resources.search.json'
 import routineCustomize from '../../fixtures/prompt-inputs/routine.customize.json'
 import todayPlan from '../../fixtures/prompt-inputs/today.plan.json'
+import type { Language } from '../language'
+import { renderPrompt } from './language'
 import { PROMPTS, type ImplementedKind } from './registry'
 import type { RenderedPrompt } from './types'
 
@@ -39,8 +41,11 @@ export const PROMPT_INPUTS: Record<ImplementedKind, unknown> = {
 }
 
 /** Renders a kind against its default fixture — what the model would be sent. */
-export function renderPromptFixture(kind: ImplementedKind): RenderedPrompt {
+export function renderPromptFixture(
+  kind: ImplementedKind,
+  language: Language = 'en',
+): RenderedPrompt {
   const template = PROMPTS[kind]
   const params = template.paramsSchema.parse(PROMPT_INPUTS[kind])
-  return template.render(params as never)
+  return renderPrompt(template as never, params, language)
 }

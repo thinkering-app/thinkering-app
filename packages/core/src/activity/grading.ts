@@ -24,7 +24,8 @@ export function gradeMcq(block: McqBlock, selectedId: string): boolean | null {
 
 /**
  * Blanks are forgiving: they ignore case, spacing, hyphens, punctuation at
- * either end — except a minus sign, so -1 isn't 1 — and thousands commas
+ * either end — except a minus sign, so -1 isn't 1 — full-width forms (NFKC —
+ * how a Chinese keyboard types letters and digits) and thousands commas
  * ("10,000" for "10000"), and an article the other side doesn't have ("the
  * mitochondria" for "mitochondria"); `alts` count as right. In an answer of
  * eight letters or more, one typo — a letter missing, extra, wrong or swapped with its
@@ -48,8 +49,9 @@ function letterCount(text: string): number {
 }
 
 function normalizeBlank(text: string): string {
-  const sign = /^[\s\p{P}]*?[-‐–—−](?=\d)/u.test(text) ? '-' : ''
-  const rest = text
+  const normalized = text.normalize('NFKC')
+  const sign = /^[\s\p{P}]*?[-‐–—−](?=\d)/u.test(normalized) ? '-' : ''
+  const rest = normalized
     .toLowerCase()
     .replace(/(?<=\d),(?=\d{3}(?!\d))/g, '')
     .replace(/[\s\-‐–—−]+/g, ' ')
