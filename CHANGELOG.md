@@ -18,6 +18,13 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- On Today, what you've done stands out: a finished card takes its section's
+  colour with a yellow "Done today", and the section gets a check by its name
+  that pops in when you come back from the activity.
+- The end of an activity opens with a short celebration and names the goal you
+  worked on, with a little motion that differs by section (off when Reduce
+  Motion is on). The rating sits at the bottom of the page; add a note and send
+  it to us in one step. Your answers are never included.
 - A new app icon, paper texture throughout, and watercolor washes behind the
   quieter screens.
 - Intake asks what you want to be able to do and what you've tried before,

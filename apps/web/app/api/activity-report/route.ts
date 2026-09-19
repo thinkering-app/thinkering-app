@@ -14,9 +14,8 @@ import { utcDayOf } from '@/lib/server/metering'
 
 /**
  * An activity the user chose to share with us (D18, docs/08). It carries the
- * generated activity, their rating and comment, and — only when they ticked the
- * box — their answers as plain question/answer lines. Forwarded by email and
- * never stored; nothing arrives here without that explicit action.
+ * generated activity and their rating and note — never their answers. Forwarded
+ * by email and never stored; nothing arrives here without that explicit action.
  */
 
 /** Generous enough for a long activity document, small enough to bound an email. */
@@ -30,10 +29,6 @@ const bodySchema = z.object({
   rating: z.enum(RATINGS).nullish(),
   comment: z.string().max(4000).nullish(),
   doc: activityDocSchema,
-  responses: z
-    .array(z.object({ prompt: z.string().max(2000), answer: z.string().max(4000) }))
-    .max(50)
-    .optional(),
   context: z
     .object({
       screen: z.enum(FEEDBACK_SCREENS),
@@ -83,9 +78,6 @@ export async function POST(req: Request): Promise<Response> {
       '',
       '--- activity ---',
       JSON.stringify(report.doc, null, 2),
-      ...(report.responses
-        ? ['', '--- their answers (shared deliberately) ---', ...report.responses.map((r) => `Q: ${r.prompt}\nA: ${r.answer}`)]
-        : []),
     ].join('\n'),
   })
   if (!sent.ok) return Response.json({ error: sent.error }, { status: sent.status })

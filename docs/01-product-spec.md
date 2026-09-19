@@ -61,7 +61,7 @@ Card metadata (title, estimate, library item) comes from the cheap daily-plan ca
 
 ### Completion states
 
-When the user completes an activity in a section, that section's heading area visibly shifts (background wash in the section's accent color) and shows a small count ("2 today"). The intended rhythm: each day, in an interest, do at least one Next and one Strengthen; Go further when it suits. Remaining cards stay available — completion celebrates, it doesn't lock.
+When the user completes an activity in a section, that section's heading gets a sun-yellow check and a small count ("2 today"), and the finished card takes the section's tint with a yellow "Done today" chip. What's done is what shows; there's no separate "done for the day" state. The intended rhythm: each day, in an interest, do at least one Next and one Strengthen; Go further when it suits. Remaining cards stay available — completion celebrates, it doesn't lock.
 
 ### Configure (⚙ per section)
 
@@ -76,7 +76,7 @@ Sheet showing the three section names (read-only) and a single free-text questio
 Multi-page, rendered from an Activity Document (`05-activity-format.md`). Top progress bar segmented by page; forward/back navigation always available. Every page has interactive elements per its library item.
 
 - **Response review page** (reserved near the end, counted in the page total): while the user works, **G6** analyzes their responses and fills this page with the highest-value response — addressing a misconception, deepening a good answer, or answering an implicit question.
-- **Summary page** (last): concept/skill chips for what was introduced/strengthened/put to use, a usefulness rating (👎 / 〜 mixed / 👍), an optional detail box, and a quiet "Share this activity with the developers" action (explicit, per-activity — see `08`, D18).
+- **Summary page** (last): a short celebration line, the concept recap, concept/skill chips for what was introduced/strengthened/put to use, and at the foot of the page a usefulness rating (👎 / 👍👎 mixed / 👍), an optional note, and a Send button that shares the activity, rating and note with the developers — not the learner's answers (explicit, per-activity — see `08`, D18).
 - **Ask button** (always visible): free-text question → **G7** inserts a new page immediately after the current one and jumps to it, answering the question, with an interaction included when asked for or clearly valuable. Inserted pages extend the progress bar.
 - Completing the activity advances the goal's status (introduce → `introduced`, etc.), records history, and updates section completion state.
 - Leaving mid-activity keeps it resumable from Today for the rest of the day; unfinished activities don't advance goal status.

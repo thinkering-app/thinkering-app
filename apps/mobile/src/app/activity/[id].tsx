@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
-  describeResponse,
   durationBucket,
   insertPageAfter,
   lastInteractivePageIndex,
@@ -20,6 +19,7 @@ import {
   completeActivity,
   countCompletedActivities,
   getActivity,
+  getGoal,
   listResponses,
   rateActivity,
   saveProgress,
@@ -57,6 +57,10 @@ const REVIEW_PATIENCE_MS = 5_000
 export default function ActivityScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const [activity] = useState(() => (id ? getActivity(db, id) : undefined))
+  // The prerequisite-fallback card has no goal; its topic stands in, as on Today.
+  const [goalTitle] = useState(() =>
+    activity?.goalId ? getGoal(db, activity.goalId)?.title : (activity?.topic ?? undefined),
+  )
   const [doc, setDoc] = useState<ActivityDoc | null>(activity?.doc ?? null)
   const [partial, setPartial] = useState<PartialActivityDoc | null>(null)
   const [genError, setGenError] = useState<string | null>(null)
@@ -75,23 +79,19 @@ export default function ActivityScreen() {
   const completed = useRef(false)
   const feedbackContext = useFeedbackContext()
 
-  // The live answer map is the sink's own: sharing reads the latest answers
-  // without the player re-rendering every time one is recorded.
-  const { sink, answers } = useMemo(() => {
+  const sink = useMemo((): ResponseSink => {
     const answers: Record<string, ResponsePayload> = {}
-    if (!activity) return { sink: { initial: answers, save: () => {} } as ResponseSink, answers }
+    if (!activity) return { initial: answers, save: () => {} }
     for (const row of listResponses(db, activity.id)) {
       const payload = parseResponsePayload(row.payload)
       if (payload) answers[row.blockId] = payload
     }
-    const sink: ResponseSink = {
-      initial: { ...answers },
+    return {
+      initial: answers,
       save: (pageId, blockId, payload) => {
-        answers[blockId] = payload
         saveResponse(db, repoContext, { activityId: activity.id, pageId, blockId, payload })
       },
     }
-    return { sink, answers }
   }, [activity])
 
   // Opening a card starts it (docs/03: started_at once, status in_progress).
@@ -209,17 +209,18 @@ export default function ActivityScreen() {
   )
 
   const onShare = useCallback(
-    (includeResponses: boolean) => {
+    (comment: string) => {
       if (!activity || !doc) return
       setShareState('pending')
+      // Their answers never travel with a report — only what they chose to
+      // write here (docs/08 §Activity quality review).
       const report: ActivityReport = {
         title: activity.title,
         libraryItemId: activity.libraryItemId,
         tier: activity.tier,
         rating,
-        comment: ratingText,
+        comment,
         doc,
-        ...(includeResponses ? { responses: describeAnswers(doc, answers) } : {}),
       }
       postActivityReport(report, feedbackContext)
         .then(() => {
@@ -228,7 +229,7 @@ export default function ActivityScreen() {
         })
         .catch(() => setShareState('error'))
     },
-    [activity, answers, doc, feedbackContext, rating, ratingText],
+    [activity, doc, feedbackContext, rating],
   )
 
   if (!activity) return <Missing message="This activity is no longer here." />
@@ -246,6 +247,7 @@ export default function ActivityScreen() {
   return (
     <ActivityPlayer
       doc={shown}
+      goalTitle={goalTitle}
       streaming={doc === null}
       // Before any text, the model is still working out the activity (docs/04
       // §Thinking); once it writes, the title and pages follow.
@@ -326,20 +328,6 @@ function provisionalDoc(activity: Activity, partial: PartialActivityDoc | null):
     concepts: [],
     pages: partial?.pages ?? [],
   }
-}
-
-/** The user's answers as plain question/answer lines — only ever sent when they ask (D18). */
-function describeAnswers(doc: ActivityDoc, answers: Record<string, ResponsePayload>) {
-  const lines: { prompt: string; answer: string }[] = []
-  for (const page of doc.pages) {
-    for (const block of page.blocks ?? []) {
-      const id = 'id' in block ? block.id : undefined
-      const payload = id ? answers[id] : undefined
-      const described = payload ? describeResponse(block, payload) : undefined
-      if (described) lines.push({ prompt: page.id, answer: described })
-    }
-  }
-  return lines
 }
 
 function Missing({ message, children }: { message?: string; children?: React.ReactNode }) {

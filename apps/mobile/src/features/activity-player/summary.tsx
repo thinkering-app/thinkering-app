@@ -1,26 +1,52 @@
-import Ionicons from '@expo/vector-icons/Ionicons'
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import { useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
-import type { ActivityDoc, Rating } from '@thinkering/core'
+import type { ActivityDoc, Rating, Tier } from '@thinkering/core'
 
 import { Button } from '@/components/button'
 import { TextField } from '@/components/text-field'
 import { colors } from '@/theme/tokens'
+import { celebrationFor, GOAL_VERB } from './summary-copy'
 
 /**
- * The summary page's appended half (docs/05): the rating row, an optional
- * detail, and the quiet per-activity share action (D18). G5b wrote the concept
- * recap above it.
+ * What the renderer adds to the summary page (docs/05): a heading to mark the
+ * finish and a line naming the goal above G5b's concept recap (the words are in
+ * `summary-copy.ts`), and below it the concept chips, the rating
+ * row, and an optional note that can be sent to the developers (D18).
  */
+
+export function SummaryHeader({
+  celebrationKey,
+  tier,
+  goalTitle,
+}: {
+  celebrationKey: string
+  tier: Tier
+  /** The goal the activity served; absent, the line under the heading is left out. */
+  goalTitle?: string
+}) {
+  return (
+    <View className="gap-2">
+      <Text className="font-heading-bold text-display text-ink">
+        {celebrationFor(celebrationKey)}
+      </Text>
+      {goalTitle ? (
+        <Text className="font-sans text-body text-ink-soft">
+          {GOAL_VERB[tier]} <Text className="font-sans-medium text-ink">{goalTitle}</Text>.
+        </Text>
+      ) : null}
+    </View>
+  )
+}
 
 const RATINGS: {
   value: Rating
-  icon: 'thumbs-down-outline' | 'remove-outline' | 'thumbs-up-outline'
+  icon: 'thumb-down-outline' | 'thumbs-up-down-outline' | 'thumb-up-outline'
   label: string
 }[] = [
-  { value: 'down', icon: 'thumbs-down-outline', label: 'Not useful' },
-  { value: 'mixed', icon: 'remove-outline', label: 'Mixed' },
-  { value: 'up', icon: 'thumbs-up-outline', label: 'Useful' },
+  { value: 'down', icon: 'thumb-down-outline', label: 'Not useful' },
+  { value: 'mixed', icon: 'thumbs-up-down-outline', label: 'Mixed' },
+  { value: 'up', icon: 'thumb-up-outline', label: 'Useful' },
 ]
 
 export function SummaryFooter({
@@ -35,15 +61,14 @@ export function SummaryFooter({
   rating: Rating | null
   ratingText: string
   onRate: (rating: Rating, text: string) => void
-  onShare: (includeResponses: boolean) => void
+  onShare: (comment: string) => void
   shareState: 'idle' | 'pending' | 'done' | 'error'
 }) {
   const [text, setText] = useState(ratingText)
-  const [sharing, setSharing] = useState(false)
-  const [includeResponses, setIncludeResponses] = useState(false)
+  const canSend = (rating !== null || text.trim() !== '') && shareState !== 'pending'
 
   return (
-    <View className="gap-6">
+    <View className="flex-1 gap-8">
       <View className="flex-row flex-wrap gap-2">
         {doc.concepts.map((concept) => (
           <View key={concept.label} className="rounded-pill bg-cornflower-tint px-3 py-1.5">
@@ -54,9 +79,10 @@ export function SummaryFooter({
         ))}
       </View>
 
-      <View className="gap-3">
-        <Text className="font-sans-medium text-body text-ink">Was this useful?</Text>
-        <View className="flex-row gap-3">
+      {/* Pushed to the bottom of the page when the recap is short. */}
+      <View className="mt-auto gap-3">
+        <Text className="text-center font-sans-medium text-body text-ink">Was this useful?</Text>
+        <View className="flex-row justify-center gap-4">
           {RATINGS.map((option) => {
             const chosen = rating === option.value
             return (
@@ -72,7 +98,7 @@ export function SummaryFooter({
                     : 'border-hairline bg-surface'
                 }`}
               >
-                <Ionicons
+                <MaterialCommunityIcons
                   name={option.icon}
                   size={20}
                   color={chosen ? colors.cornflower.deep : colors.ink.soft}
@@ -81,71 +107,36 @@ export function SummaryFooter({
             )
           })}
         </View>
-        {rating ? (
-          <TextField
-            value={text}
-            onChangeText={(next) => {
-              setText(next)
-              onRate(rating, next)
-            }}
-            placeholder="Anything more? (optional)"
-            accessibilityLabel="Rating detail"
-            multiline
-          />
-        ) : null}
-      </View>
 
-      <View className="gap-3">
-        {sharing ? (
-          <View className="gap-3 rounded-card border border-hairline bg-surface p-4">
-            <Text className="font-sans text-secondary text-ink-soft">
-              Sends this activity and your rating to the developers.
-            </Text>
-            <Pressable
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: includeResponses }}
-              accessibilityLabel="Include my answers"
-              onPress={() => setIncludeResponses((v) => !v)}
-              className="flex-row items-center gap-2"
-            >
-              <View
-                className={`h-5 w-5 items-center justify-center rounded border ${
-                  includeResponses
-                    ? 'border-cornflower-deep bg-cornflower'
-                    : 'border-hairline bg-surface'
-                }`}
-              >
-                {includeResponses ? (
-                  <Ionicons name="checkmark" size={13} color={colors.surface} />
-                ) : null}
-              </View>
-              <Text className="font-sans text-secondary text-ink">Include my answers</Text>
-            </Pressable>
+        {shareState === 'done' ? (
+          <Text className="text-center font-sans text-secondary text-ink-soft">
+            Sent — thank you.
+          </Text>
+        ) : (
+          <>
+            <TextField
+              value={text}
+              onChangeText={(next) => {
+                setText(next)
+                if (rating) onRate(rating, next)
+              }}
+              placeholder="Anything more? (optional)"
+              accessibilityLabel="Rating detail"
+              multiline
+            />
             <Button
               label={shareState === 'pending' ? 'Sending…' : 'Send'}
               variant="quiet"
-              disabled={shareState === 'pending'}
-              onPress={() => onShare(includeResponses)}
+              disabled={!canSend}
+              onPress={() => onShare(text)}
             />
-          </View>
-        ) : shareState === 'done' ? (
-          <Text className="font-sans text-caption text-ink-soft">Shared — thank you.</Text>
-        ) : (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => setSharing(true)}
-            className="self-start py-2"
-          >
-            <Text className="font-sans text-caption text-ink-soft underline">
-              Share this activity with the developers
+            <Text className="text-center font-sans text-caption text-ink-soft">
+              {shareState === 'error'
+                ? "That didn't send. Try again later."
+                : 'Sends this activity, your rating and your note to the developers. Your answers stay on your device.'}
             </Text>
-          </Pressable>
+          </>
         )}
-        {shareState === 'error' ? (
-          <Text className="font-sans text-caption text-ink-soft">
-            That didn&apos;t send. Try again later.
-          </Text>
-        ) : null}
       </View>
     </View>
   )

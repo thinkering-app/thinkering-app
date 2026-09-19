@@ -18,8 +18,6 @@ export interface ActivityReport {
   rating?: Rating | null
   comment?: string | null
   doc: ActivityDoc
-  /** Opt-in within the opt-in (D18): absent unless the user ticked the box. */
-  responses?: { prompt: string; answer: string }[]
 }
 
 async function post(path: string, payload: unknown): Promise<void> {
