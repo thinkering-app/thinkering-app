@@ -23,6 +23,13 @@ test('intake finishes into today', async ({ page }) => {
 
   await expect(page).toHaveURL(/\/today$/)
 
+  // A card from the new path opens: its document is generated on the spot,
+  // unlike the seeded interest's, which arrive already written.
+  await page.getByTestId('activity-card-next-0').click()
+  await expect(page.getByTestId('player-continue')).toBeEnabled({ timeout: 30000 })
+  await page.getByLabel('Close').click()
+  await expect(page).toHaveURL(/\/today$/)
+
   // Reload proves the write landed and the router sends a returning user to Today.
   await page.goto('/')
   await expect(page).toHaveURL(/\/today$/)

@@ -105,19 +105,23 @@ const inFlight = new Map<string, Generation>()
 
 function startGeneration(activity: Activity): Generation {
   const controller = new AbortController()
-  const publish = (partial: PartialActivityDoc) => {
-    run.latest = partial
-    for (const listener of run.listeners) listener(partial)
-  }
-  const run: Generation = {
-    promise: writeActivityDoc(activity, controller.signal, publish).finally(() => {
-      if (inFlight.get(activity.id) === run) inFlight.delete(activity.id)
-    }),
+  // Built before the generation starts: fixture mode streams its first partial
+  // synchronously, so `publish` can run before `writeActivityDoc` returns.
+  const shared: Omit<Generation, 'promise'> = {
     controller,
     latest: null,
     listeners: new Set(),
     holders: 0,
   }
+  const publish = (partial: PartialActivityDoc) => {
+    shared.latest = partial
+    for (const listener of shared.listeners) listener(partial)
+  }
+  const run: Generation = Object.assign(shared, {
+    promise: writeActivityDoc(activity, controller.signal, publish).finally(() => {
+      if (inFlight.get(activity.id) === run) inFlight.delete(activity.id)
+    }),
+  })
   inFlight.set(activity.id, run)
   return run
 }

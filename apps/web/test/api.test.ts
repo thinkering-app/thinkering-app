@@ -292,7 +292,7 @@ describe('POST /api/activity-report (D18)', () => {
       ...extra,
     })
 
-  it('forwards the activity, and leaves answers out unless they were included', async () => {
+  it('forwards the activity, and never the answers even if a client sends them', async () => {
     const { store, fetchCalls } = setupDeps()
     const creds = await registerDevice(store)
     process.env.RESEND_API_KEY = 'test-key'
@@ -314,7 +314,7 @@ describe('POST /api/activity-report (D18)', () => {
     expect(first.text).not.toContain('their answers')
 
     const second = JSON.parse(String(fetchCalls[1]!.init?.body)) as { text: string }
-    expect(second.text).toContain('A chunk of text')
+    expect(second.text).not.toContain('A chunk of text')
   })
 
   it('refuses an oversized report and a malformed document', async () => {

@@ -55,6 +55,7 @@ export default function TodayScreen() {
             <View key={section.section} className="gap-3">
               <SectionRow
                 view={section}
+                interestKey={selected.map((i) => i.id).join(',')}
                 generating={generating}
                 onConfigure={configurable ? () => setConfiguring(section.section) : undefined}
               />
@@ -110,10 +111,13 @@ export default function TodayScreen() {
 
 function SectionRow({
   view,
+  interestKey,
   generating,
   onConfigure,
 }: {
   view: TodaySectionView
+  /** Another interest selected: the heading's check appears without popping. */
+  interestKey: string
   generating: boolean
   onConfigure?: () => void
 }) {
@@ -123,6 +127,7 @@ function SectionRow({
         <SectionHeader
           section={view.section}
           completedToday={view.completedToday}
+          resetKey={interestKey}
           onConfigure={onConfigure}
         />
       </View>
