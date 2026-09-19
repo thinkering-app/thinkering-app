@@ -12,6 +12,12 @@ name: intake
     visible:
       id: 'intake-start'
     timeout: 120000
+# In a build with a PostHog key, the welcome screen carries the analytics ask
+# (docs/08). Declining is what a test should do: it sends nothing and deletes
+# the buffer. Optional, because a build without a key never asks.
+- tapOn:
+    text: 'No thanks'
+    optional: true
 - tapOn:
     id: 'intake-start'
 

@@ -8,8 +8,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Added
 
-- Anonymous, opt-in usage analytics — off until you say yes, asked once after
-  your first completed activity, and never carrying anything you write.
+- Anonymous, opt-in usage analytics — off until you say yes, asked once on the
+  welcome screen, and never carrying anything you write.
 - Delete your backup account from inside the app.
 - A privacy page in the app that matches the one on the website.
 - A new intake step, "What are you hoping for?", with suggestions to pick
@@ -27,6 +27,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- The web app no longer takes your own Anthropic key, since a browser can't
+  store it securely. A key saved there before is deleted; the phone app still
+  offers it.
 - On Today, what you've done stands out: a finished card takes its section's
   colour with a yellow "Done today", and the section gets a check by its name
   that pops in when you come back from the activity.

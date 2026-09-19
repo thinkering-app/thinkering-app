@@ -89,7 +89,8 @@ describe('POST /api/fetch-url', () => {
     const day = utcDayOf(NOW)
     for (let i = 0; i < BURST_LIMITS['fetch.url']!; i++) {
       await store.addUsage(creds.deviceId, day, {
-        kind: 'fetch.url',
+        counters: ['fetch.url'],
+        calls: 1,
         inputTokens: 0,
         outputTokens: 0,
       })

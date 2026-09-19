@@ -1,14 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { FIXTURE_DOC_INTRODUCE } from '@thinkering/core'
+import Anthropic from '@anthropic-ai/sdk'
+import { FIXTURE_DOC_INTRODUCE, getPromptTemplate } from '@thinkering/core'
 import { POST as aiPost } from '@/app/api/ai/route'
-import { POST as registerPost } from '@/app/api/device/register/route'
+import { POST as registerPost, REGISTRATIONS_PER_IP_PER_DAY } from '@/app/api/device/register/route'
 import { POST as contactPost, resetContactLimitForTests } from '@/app/api/contact/route'
 import { POST as feedbackPost } from '@/app/api/feedback/route'
 import { POST as reportPost } from '@/app/api/activity-report/route'
 import { POST as deleteAccountPost } from '@/app/api/account/delete/route'
 import { GET as usageGet } from '@/app/api/usage/route'
 import { resetReplayCacheForTests } from '@/lib/server/auth'
-import { checkBudget, DAILY_BUDGET_WEIGHTED, RESERVED_WEIGHTED } from '@/lib/server/metering'
+import {
+  BURST_LIMITS,
+  checkBudget,
+  DAILY_BUDGET_WEIGHTED,
+  GLOBAL_DAILY_BUDGET_WEIGHTED,
+  REPAIR_COUNTER,
+  RESERVED_WEIGHTED,
+} from '@/lib/server/metering'
 import { APPROACH_BODY, NOW, registerDevice, setupDeps, signedRequest } from './helpers'
 
 beforeEach(() => resetReplayCacheForTests())
@@ -33,6 +41,22 @@ describe('POST /api/device/register', () => {
     expect(res.status).toBe(400)
     const noBody = await registerPost(new Request('http://x/api/device/register', { method: 'POST', body: 'not json' }))
     expect(noBody.status).toBe(400)
+  })
+
+  it('limits registrations per address per day, since each device is a budget', async () => {
+    setupDeps()
+    const register = (ip: string) =>
+      registerPost(
+        new Request('http://x/api/device/register', {
+          method: 'POST',
+          body: '{"platform":"ios"}',
+          headers: { 'x-forwarded-for': `${ip}, 10.0.0.1` },
+        }),
+      )
+    for (let i = 0; i < REGISTRATIONS_PER_IP_PER_DAY; i++)
+      expect((await register('203.0.113.7')).status).toBe(200)
+    expect((await register('203.0.113.7')).status).toBe(429)
+    expect((await register('198.51.100.2')).status).toBe(200)
   })
 })
 
@@ -112,7 +136,8 @@ describe('POST /api/ai — validation and behavior', () => {
     const { store } = setupDeps()
     const creds = await registerDevice(store)
     await store.addUsage(creds.deviceId, '2026-09-15', {
-      kind: 'activity.generate',
+      counters: ['activity.generate'],
+      calls: 1,
       inputTokens: DAILY_BUDGET_WEIGHTED,
       outputTokens: 0,
     })
@@ -128,11 +153,130 @@ describe('POST /api/ai — validation and behavior', () => {
     const { store } = setupDeps()
     const creds = await registerDevice(store)
     for (let i = 0; i < 10; i++) {
-      await store.addUsage(creds.deviceId, '2026-09-15', { kind: 'intake.approach', inputTokens: 10, outputTokens: 1 })
+      await store.addUsage(creds.deviceId, '2026-09-15', {
+        counters: ['intake.approach'],
+        calls: 1,
+        inputTokens: 10,
+        outputTokens: 1,
+      })
     }
     const res = await aiPost(signedRequest('http://x/api/ai', creds, { body: APPROACH_BODY }))
     expect(res.status).toBe(429)
     expect(((await res.json()) as { error: string }).error).toBe('kind_limit_reached')
+  })
+
+  it('holds parallel requests to the burst limit', async () => {
+    const { store } = setupDeps()
+    const creds = await registerDevice(store)
+    const results = await Promise.all(
+      Array.from({ length: 15 }, (_, i) =>
+        aiPost(
+          signedRequest('http://x/api/ai', creds, { body: APPROACH_BODY, timestamp: NOW + i }),
+        ),
+      ),
+    )
+    expect(results.filter((r) => r.status === 200)).toHaveLength(BURST_LIMITS['intake.approach']!)
+    const usage = await store.getUsage(creds.deviceId, '2026-09-15')
+    // Refused calls give their reservation back; the admitted ones settle to what they used.
+    expect(usage).toMatchObject({ calls: 10, inputTokens: 10 * 1000, outputTokens: 10 * 200 })
+  })
+
+  it('stops the model when the client disconnects, and charges the held output', async () => {
+    const upstream = new AbortController()
+    async function* events() {
+      yield { type: 'message_start', message: { usage: { input_tokens: 700 } } }
+      yield { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: '{"do' } }
+      await new Promise((_, reject) => {
+        const stop = () => reject(new Error('aborted'))
+        if (upstream.signal.aborted) stop()
+        upstream.signal.addEventListener('abort', stop)
+      })
+    }
+    const anthropic = {
+      messages: { create: async () => Object.assign(events(), { controller: upstream }) },
+    }
+    const { store } = setupDeps({ anthropic: () => anthropic as unknown as Anthropic })
+    const creds = await registerDevice(store)
+    const body = JSON.stringify({ ...JSON.parse(APPROACH_BODY), stream: true })
+    const res = await aiPost(signedRequest('http://x/api/ai', creds, { body }))
+    const reader = res.body!.getReader()
+    await reader.read()
+    await reader.cancel()
+
+    expect(upstream.signal.aborted).toBe(true)
+    const maxTokens = getPromptTemplate('intake.approach')!.maxTokens
+    await vi.waitFor(async () =>
+      expect(await store.getUsage(creds.deviceId, '2026-09-15')).toMatchObject({
+        calls: 1,
+        inputTokens: 700,
+        outputTokens: maxTokens,
+      }),
+    )
+  })
+
+  it('returns the held output when Anthropic refuses the call, and keeps it when the connection fails', async () => {
+    const failing = (error: Error) => ({
+      messages: {
+        create: async () => {
+          throw error
+        },
+      },
+    })
+    const maxTokens = getPromptTemplate('intake.approach')!.maxTokens
+    const cases = [
+      { error: new Anthropic.InternalServerError(529, undefined, 'overloaded', new Headers()), charged: 0 },
+      { error: new Anthropic.APIConnectionTimeoutError(), charged: maxTokens },
+    ]
+    for (const [i, { error, charged }] of cases.entries()) {
+      const { store } = setupDeps({ anthropic: () => failing(error) as unknown as Anthropic })
+      const creds = await registerDevice(store)
+      const req = signedRequest('http://x/api/ai', creds, { body: APPROACH_BODY, timestamp: NOW + i })
+      expect((await aiPost(req)).status).toBe(502)
+      expect(await store.getUsage(creds.deviceId, '2026-09-15')).toMatchObject({ calls: 1, outputTokens: charged })
+    }
+  })
+
+  it('stops every device once the proxy-wide daily limit is spent', async () => {
+    const { store } = setupDeps()
+    const creds = await registerDevice(store)
+    await store.addUsage('someone-else', '2026-09-15', {
+      counters: ['activity.generate'],
+      calls: 1,
+      inputTokens: GLOBAL_DAILY_BUDGET_WEIGHTED,
+      outputTokens: 0,
+    })
+    const res = await aiPost(signedRequest('http://x/api/ai', creds, { body: APPROACH_BODY }))
+    expect(res.status).toBe(429)
+    expect(((await res.json()) as { error: string }).error).toBe('service_limit_reached')
+  })
+
+  it('caps repairs per day and refuses repair text longer than the kind can produce', async () => {
+    const { store } = setupDeps()
+    const creds = await registerDevice(store)
+    const repairBody = (previousText: string) =>
+      JSON.stringify({
+        ...JSON.parse(APPROACH_BODY),
+        repair: { previousText, issues: ['domain: expected string'] },
+      })
+    const tooLong = 'x'.repeat(getPromptTemplate('intake.approach')!.maxTokens * 6 + 1)
+    expect(
+      (await aiPost(signedRequest('http://x/api/ai', creds, { body: repairBody(tooLong) }))).status,
+    ).toBe(400)
+
+    await store.addUsage(creds.deviceId, '2026-09-15', {
+      counters: [REPAIR_COUNTER],
+      calls: BURST_LIMITS[REPAIR_COUNTER]!,
+      inputTokens: 0,
+      outputTokens: 0,
+    })
+    const res = await aiPost(
+      signedRequest('http://x/api/ai', creds, { body: repairBody('{"domain": 42}') }),
+    )
+    expect(res.status).toBe(429)
+    // A plain call of the same kind is still fine.
+    expect(
+      (await aiPost(signedRequest('http://x/api/ai', creds, { body: APPROACH_BODY }))).status,
+    ).toBe(200)
   })
 
   it('accepts a repair round-trip and rejects an empty one', async () => {
@@ -183,7 +327,7 @@ describe('GET /api/usage', () => {
   it('returns the meter for the signed device', async () => {
     const { store } = setupDeps()
     const creds = await registerDevice(store)
-    await store.addUsage(creds.deviceId, '2026-09-15', { kind: 'today.plan', inputTokens: 1000, outputTokens: 500 })
+    await store.addUsage(creds.deviceId, '2026-09-15', { counters: ['today.plan'], calls: 1, inputTokens: 1000, outputTokens: 500 })
     const res = await usageGet(signedRequest('http://x/api/usage', creds))
     expect(res.status).toBe(200)
     const body = (await res.json()) as { used: number; remaining: number; resetAt: string }

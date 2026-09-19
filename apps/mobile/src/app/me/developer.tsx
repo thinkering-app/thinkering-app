@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Text, View } from 'react-native'
 import { seedFixtureData } from '@thinkering/db'
 
-import { DEV_TOOLS, getAiMode, setAiMode, type AiMode } from '@/ai/settings'
+import { AI_MODES, DEV_TOOLS, getAiMode, setAiMode, type AiMode } from '@/ai/settings'
 import { Button } from '@/components/button'
 import { confirmDestructive } from '@/components/confirm'
 import { NavRow } from '@/components/nav-row'
@@ -20,8 +20,6 @@ import { useLocalToday } from '@/time'
  * `DEV_TOOLS`, so a production user who finds the hidden toggle gets the
  * read-only half and nothing that rewrites their data.
  */
-
-const MODES: AiMode[] = ['proxy', 'byok', 'fixture']
 
 export default function DeveloperScreen() {
   const today = useLocalToday()
@@ -51,7 +49,7 @@ export default function DeveloperScreen() {
               Applies to the next generation. Existing activities are left as they are.
             </Text>
             <View className="flex-row gap-2">
-              {MODES.map((m) => (
+              {AI_MODES.map((m) => (
                 <Pill
                   key={m}
                   label={m}

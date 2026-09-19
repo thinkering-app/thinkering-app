@@ -1,9 +1,18 @@
-import type Anthropic from '@anthropic-ai/sdk'
+import Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
 import { getPromptTemplate, modelRequestFields, type RenderedPrompt } from '@thinkering/core'
 import { verifyDeviceAuth } from '@/lib/server/auth'
 import { getDeps } from '@/lib/server/deps'
-import { budgetHeaders, checkBudget, nextUtcMidnight, utcDayOf } from '@/lib/server/metering'
+import {
+  budgetHeaders,
+  checkBudget,
+  nextUtcMidnight,
+  REPAIR_COUNTER,
+  reverseDelta,
+  utcDayOf,
+  withoutDelta,
+} from '@/lib/server/metering'
+import type { UsageDelta } from '@/lib/server/store'
 
 /**
  * The AI proxy (docs/02 §AI access, docs/04). The client sends {kind, params},
@@ -12,6 +21,9 @@ import { budgetHeaders, checkBudget, nextUtcMidnight, utcDayOf } from '@/lib/ser
  */
 
 export const maxDuration = 300
+
+/** Generous: English runs near 4 characters a token, and JSON escaping adds a little. */
+const MAX_CHARS_PER_TOKEN = 6
 
 const bodySchema = z.object({
   kind: z.string().min(1),
@@ -65,20 +77,18 @@ export async function POST(req: Request): Promise<Response> {
   const template = getPromptTemplate(body.data.kind)
   if (!template) return Response.json({ error: 'unknown_kind' }, { status: 400 })
 
+  // The text being repaired is the model's own earlier output, so it can't be
+  // longer than a response of this kind; anything past that isn't a repair.
+  if (
+    body.data.repair &&
+    body.data.repair.previousText.length > template.maxTokens * MAX_CHARS_PER_TOKEN
+  ) {
+    return Response.json({ error: 'invalid_request' }, { status: 400 })
+  }
+
   const params = template.paramsSchema.safeParse(body.data.params)
   if (!params.success) {
     return Response.json({ error: 'invalid_params', issues: params.error.issues }, { status: 400 })
-  }
-
-  const day = utcDayOf(now())
-  const usage = await store.getUsage(auth.deviceId, day)
-  const headers = budgetHeaders(usage, now())
-  const decision = checkBudget(template.kind, usage)
-  if (!decision.allowed) {
-    return Response.json(
-      { error: decision.reason, resetAt: nextUtcMidnight(now()) },
-      { status: 429, headers },
-    )
   }
 
   const rendered = template.render(params.data as never)
@@ -93,20 +103,72 @@ export async function POST(req: Request): Promise<Response> {
     ]
   }
   const request = toAnthropicRequest(template, rendered)
-  const started = now()
   const model = request.model
 
-  const recordUsage = async (inputTokens: number, outputTokens: number, status: 'ok' | 'error') => {
+  // Reserve before calling: the call is counted and its most expensive outcome
+  // held against the budget up front, so parallel requests see each other.
+  // Settling afterwards swaps the held output for the real count.
+  const day = utcDayOf(now())
+  const reservedOutput = request.max_tokens
+  const reservation: UsageDelta = {
+    counters: body.data.repair ? [template.kind, REPAIR_COUNTER] : [template.kind],
+    calls: 1,
+    inputTokens: 0,
+    outputTokens: reservedOutput,
+  }
+  const before = withoutDelta(await store.addUsage(auth.deviceId, day, reservation), reservation)
+  const headers = budgetHeaders(before.device, now())
+  const decision = checkBudget(template.kind, before.device, {
+    repair: body.data.repair !== undefined,
+    total: before.total,
+  })
+  if (!decision.allowed) {
+    await store.addUsage(auth.deviceId, day, reverseDelta(reservation))
+    return Response.json(
+      { error: decision.reason, resetAt: nextUtcMidnight(now()) },
+      { status: 429, headers },
+    )
+  }
+
+  const started = now()
+  let settled = false
+  /**
+   * Records the call once, whichever way it ends. `outputTokens` undefined
+   * means the model may have generated tokens we never got a count for (a
+   * stream cut short), so the reservation stands as the charge.
+   */
+  const settle = async (
+    inputTokens: number,
+    outputTokens: number | undefined,
+    status: 'ok' | 'error',
+    e?: unknown,
+  ) => {
+    if (settled) return
+    settled = true
     logAiCall({
       kind: template.kind,
       model,
       status,
       inputTokens,
-      outputTokens,
+      outputTokens: outputTokens ?? reservedOutput,
       latencyMs: now() - started,
+      ...(e ? { errorType: (e as Error).name } : {}),
     })
-    if (status === 'ok') {
-      await store.addUsage(auth.deviceId, day, { kind: template.kind, inputTokens, outputTokens })
+    try {
+      await store.addUsage(auth.deviceId, day, {
+        counters: [],
+        calls: 0,
+        inputTokens,
+        outputTokens: (outputTokens ?? reservedOutput) - reservedOutput,
+      })
+    } catch (err) {
+      // The reservation stays: overcharging one call beats failing the response.
+      logAiCall({
+        kind: template.kind,
+        model,
+        status: 'error',
+        errorType: `settle:${(err as Error).name}`,
+      })
     }
   }
 
@@ -117,7 +179,7 @@ export async function POST(req: Request): Promise<Response> {
         .filter((b): b is Anthropic.TextBlock => b.type === 'text')
         .map((b) => b.text)
         .join('')
-      await recordUsage(message.usage.input_tokens, message.usage.output_tokens, 'ok')
+      await settle(message.usage.input_tokens, message.usage.output_tokens, 'ok')
       return Response.json(
         {
           text,
@@ -132,10 +194,19 @@ export async function POST(req: Request): Promise<Response> {
     // SSE passthrough: forward Anthropic's stream events as our own SSE lines.
     const stream = await anthropic().messages.create({ ...request, stream: true })
     const encoder = new TextEncoder()
+    let inputTokens = 0
+    let outputTokens: number | undefined
     const readable = new ReadableStream<Uint8Array>({
       async start(controller) {
-        let inputTokens = 0
-        let outputTokens = 0
+        // After the client disconnects the controller refuses writes; the
+        // settle below still has to run.
+        const send = (event: string, data: unknown) => {
+          try {
+            controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`))
+          } catch {
+            // Closed by the client.
+          }
+        }
         try {
           for await (const event of stream) {
             if (event.type === 'message_start') {
@@ -143,19 +214,24 @@ export async function POST(req: Request): Promise<Response> {
             } else if (event.type === 'message_delta') {
               outputTokens = event.usage.output_tokens
             }
-            controller.enqueue(encoder.encode(`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`))
+            send(event.type, event)
           }
-          controller.enqueue(encoder.encode('event: done\ndata: {}\n\n'))
-          await recordUsage(inputTokens, outputTokens, 'ok')
-          controller.close()
+          send('done', {})
+          await settle(inputTokens, outputTokens, 'ok')
         } catch (e) {
-          await recordUsage(inputTokens, outputTokens, 'error')
-          controller.enqueue(
-            encoder.encode(`event: proxy_error\ndata: ${JSON.stringify({ message: 'upstream_error' })}\n\n`),
-          )
-          controller.close()
-          logAiCall({ kind: template.kind, model, status: 'error', errorType: (e as Error).name })
+          await settle(inputTokens, outputTokens, 'error', e)
+          send('proxy_error', { message: 'upstream_error' })
         }
+        try {
+          controller.close()
+        } catch {
+          // Already closed by the client.
+        }
+      },
+      // The client went away: stop the generation it will never read. The loop
+      // above then ends and settles, holding the reservation as the charge.
+      cancel() {
+        stream.controller.abort()
       },
     })
     return new Response(readable, {
@@ -167,7 +243,12 @@ export async function POST(req: Request): Promise<Response> {
       },
     })
   } catch (e) {
-    logAiCall({ kind: template.kind, model, status: 'error', errorType: (e as Error).name })
+    // Anthropic answered with an error status (rejected, rate limited,
+    // overloaded): nothing ran, so the held output is returned; the call still
+    // counts. A connection error or timeout may have lost a response Anthropic
+    // did bill for, so there the hold stands.
+    const rejected = e instanceof Anthropic.APIError && e.status !== undefined
+    await settle(0, rejected ? 0 : undefined, 'error', e)
     return Response.json({ error: 'upstream_error' }, { status: 502, headers })
   }
 }

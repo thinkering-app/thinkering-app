@@ -1,4 +1,5 @@
 import { getSetting, setSetting } from '@thinkering/db'
+import { Platform } from 'react-native'
 import { db } from '@/db'
 
 /**
@@ -11,7 +12,16 @@ export type AiMode = 'proxy' | 'byok' | 'fixture'
 const AI_MODE_KEY = 'ai_mode'
 const INSPECTOR_KEY = 'ai_inspector_enabled'
 
-const AI_MODES: AiMode[] = ['proxy', 'byok', 'fixture']
+/**
+ * A BYO key is native-only. A browser has no keychain, so the key would sit in
+ * localStorage where any script on the page can read it, and a direct call
+ * sends it from the page itself. Web builds use the proxy instead.
+ */
+export const BYOK_AVAILABLE: boolean = Platform.OS !== 'web'
+
+export const AI_MODES: AiMode[] = BYOK_AVAILABLE
+  ? ['proxy', 'byok', 'fixture']
+  : ['proxy', 'fixture']
 
 /**
  * The mode baked into the bundle, and the mode before the user has chosen one.
@@ -37,8 +47,10 @@ export const BUILD_AI_MODE: AiMode =
 export const DEV_TOOLS: boolean =
   __DEV__ || BUILD_AI_MODE === 'fixture' || process.env.EXPO_PUBLIC_DEV_TOOLS === 'true'
 
+/** A `byok` left over from before web lost it (or baked into a web bundle) reads as proxy. */
 export function getAiMode(): AiMode {
-  return getSetting<AiMode>(db, AI_MODE_KEY) ?? BUILD_AI_MODE
+  const mode = getSetting<AiMode>(db, AI_MODE_KEY) ?? BUILD_AI_MODE
+  return mode === 'byok' && !BYOK_AVAILABLE ? 'proxy' : mode
 }
 
 export function setAiMode(mode: AiMode): void {
