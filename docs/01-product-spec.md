@@ -40,7 +40,7 @@ Show the generated interest name and the goal list (title + one-line description
 
 Four tabs: **Today, Path, History, Me**.
 
-**Interest selector** (top toolbar on Today, Path, History): one pill per in-focus interest, plus an **Explore** pill when any exploring interests exist. Selecting Explore reveals a second pill row: **All** (default) + one pill per exploring interest. Path is the exception: it has no "All" — it defaults to the first interest. The row shows even with a single interest, because it also carries a **+** button — pinned to the right of the scrolling pills — that starts intake for the next one (skipping the welcome screen, which is only for a brand-new user). On finishing, Today opens on the interest just added.
+**Interest selector** (top toolbar on Today, Path, History): one pill per in-focus interest, plus an **Explore** pill when any exploring interests exist. Selecting Explore reveals a second pill row: **All** (default) + one pill per exploring interest. Path is the exception: it has no "All" — it defaults to the first interest. The row shows even with a single interest, because it also carries a **+** button — placed right after the last pill, or pinned to the right once the pills overflow — that starts intake for the next one (skipping the welcome screen, which is only for a brand-new user). On finishing, Today opens on the interest just added.
 
 **Feedback button**: small, unobtrusive (e.g. a corner icon on every screen). Opens a compact chooser:
 
