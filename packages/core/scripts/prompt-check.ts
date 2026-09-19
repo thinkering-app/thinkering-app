@@ -1,21 +1,21 @@
 /**
- * `pnpm prompt:check <kind>` — live structural + tone assertions on a kind's
- * fixture inputs (docs/10 Tier 5): schema-valid, kind-specific structure
- * (page counts, review placement, concept resolution), tone lints. Never
- * string equality; quality judgment stays human (AI Inspector).
+ * `pnpm prompt:check <kind> [--only <fixture>]` — live structural + tone
+ * assertions on a kind's fixture inputs (docs/10 Tier 5): schema-valid,
+ * kind-specific structure (page counts, review placement, concept resolution),
+ * tone lints. Never string equality; quality judgment stays human (AI Inspector).
  */
 import { parseActivityDoc } from '../src/schemas/activity-doc'
 import { checkActivityDoc, toneLintOutput, type CheckIssue } from '../src/prompts/checks'
 import type { ActivityGenerateParams } from '../src/prompts/kinds/activity-generate'
-import { loadFixtures, requireTemplate, runLive } from './prompt-lib'
+import { loadFixtures, parseScriptArgs, requireTemplate, runLive } from './prompt-lib'
 import { extractJsonText } from '../src/streaming/json'
 
-const kind = process.argv.slice(2).find((a) => !a.startsWith('--'))
+const { kind, only } = parseScriptArgs(process.argv.slice(2))
 const template = requireTemplate(kind)
 
 let failures = 0
 
-for (const fixture of loadFixtures(template.kind)) {
+for (const fixture of loadFixtures(template.kind, only)) {
   console.error(`\n── check ${template.kind} · ${fixture.name} ──`)
   const result = await runLive(template, fixture.params)
   const issues: CheckIssue[] = []

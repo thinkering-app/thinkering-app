@@ -1,21 +1,19 @@
 /**
- * `pnpm prompt:run <kind> [--record]` — run a kind live against its input
- * fixture(s) for manual iteration (docs/04, docs/10 Tier 5). Streams to stderr,
+ * `pnpm prompt:run <kind> [--only <fixture>] [--record]` — run a kind live
+ * against its input fixture(s), or just one, for manual iteration (docs/04, docs/10 Tier 5). Streams to stderr,
  * validates against the kind's output schema, prints a summary. `--record`
  * saves the response into fixtures/recorded/<kind>/ for fixture AI mode and
  * tests — re-record deliberately; the diff is the review.
  */
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { loadFixtures, pkgRoot, requireTemplate, runLive } from './prompt-lib'
+import { loadFixtures, parseScriptArgs, pkgRoot, requireTemplate, runLive } from './prompt-lib'
 import { extractJsonText } from '../src/streaming/json'
 
-const args = process.argv.slice(2)
-const record = args.includes('--record')
-const kind = args.find((a) => !a.startsWith('--'))
+const { kind, only, record } = parseScriptArgs(process.argv.slice(2))
 const template = requireTemplate(kind)
 
-for (const fixture of loadFixtures(template.kind)) {
+for (const fixture of loadFixtures(template.kind, only)) {
   console.error(`\n── ${template.kind} · ${fixture.name} · model=${template.model} v${template.version} ──`)
   const result = await runLive(template, fixture.params)
 
