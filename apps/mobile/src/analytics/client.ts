@@ -17,9 +17,9 @@ import { db } from '@/db'
  * unlinked from a backup account (D9).
  */
 
-const API_KEY = process.env.EXPO_PUBLIC_POSTHOG_KEY ?? ''
+export const POSTHOG_KEY = process.env.EXPO_PUBLIC_POSTHOG_KEY ?? ''
 /** US cloud — the project's region, and what the privacy copy names. */
-const HOST = process.env.EXPO_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com'
+export const POSTHOG_HOST = process.env.EXPO_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com'
 
 const STORAGE_KEY = 'posthog_storage'
 
@@ -30,15 +30,15 @@ const customStorage = {
 }
 
 export function isAnalyticsConfigured(): boolean {
-  return API_KEY.length > 0
+  return POSTHOG_KEY.length > 0
 }
 
 let client: PostHog | null = null
 
 export function analyticsClient(): PostHog | null {
   if (!isAnalyticsConfigured()) return null
-  client ??= new PostHog(API_KEY, {
-    host: HOST,
+  client ??= new PostHog(POSTHOG_KEY, {
+    host: POSTHOG_HOST,
     customStorage,
     // Everything ambient is off; the event schema in docs/08 is the whole
     // surface. Autocapture would need <PostHogProvider>, which we never render.

@@ -1,23 +1,25 @@
-import { useEffect, type ReactNode } from 'react'
-import { Platform } from 'react-native'
-import { PostHogMaskView } from 'posthog-react-native'
+import { useEffect } from 'react'
 import { getSetting, setSetting } from '@thinkering/db'
 import { db } from '@/db'
-import { analyticsClient, isAnalyticsConfigured } from './client'
+import { isAnalyticsConfigured } from './client'
+import { startRecorder, stopRecorder } from './recorder'
+
+export { ReplayMask } from './recorder'
 
 /**
  * Session replay (docs/08): a separate opt-in from anonymous usage, default
  * off. The client is built with `enableSessionReplay: false`, so nothing is
  * recorded unless this setting is on — the recorder is started by hand, on
  * launch and when the learner turns it on, and stopped when they turn it off.
- * Recording needs the native plugin, so it's iOS and Android only.
+ * The recorder itself is per platform: the native plugin on iOS and Android,
+ * posthog-js on web (`./recorder`, `./recorder.web`).
  */
 
 const REPLAY_KEY = 'posthog_replay_opt_in'
 
-/** Whether this build can record at all: a PostHog key, and not the web export. */
+/** Whether this build can record at all — the same PostHog key as analytics. */
 export function isReplayAvailable(): boolean {
-  return isAnalyticsConfigured() && Platform.OS !== 'web'
+  return isAnalyticsConfigured()
 }
 
 export function isReplayOptedIn(): boolean {
@@ -37,20 +39,10 @@ export function useSessionReplay(ready: boolean): void {
   }, [ready])
 }
 
-/**
- * Hides its children from session replay. For what would tie a recording to a
- * person — an email address — or is a secret, like an API key.
- */
-export function ReplayMask({ children }: { children: ReactNode }) {
-  return <PostHogMaskView>{children}</PostHogMaskView>
-}
-
 function startRecording(): void {
   if (!isReplayAvailable()) return
   try {
-    void analyticsClient()
-      ?.startSessionRecording()
-      .catch(() => {})
+    startRecorder().catch(() => {})
   } catch {
     // Replay is never worth an exception on a user's screen.
   }
@@ -59,9 +51,7 @@ function startRecording(): void {
 function stopRecording(): void {
   if (!isReplayAvailable()) return
   try {
-    void analyticsClient()
-      ?.stopSessionRecording()
-      .catch(() => {})
+    stopRecorder().catch(() => {})
   } catch {
     // As above.
   }

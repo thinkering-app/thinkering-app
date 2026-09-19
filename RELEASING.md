@@ -75,8 +75,8 @@ belong to `apps/web` on Vercel and never reach a build.
   the workspace the proxy's key belongs to. The proxy's own caps (`docs/04`
   §Usage metering) stop at a day; this is the backstop past them.
 - In the PostHog project settings, turn on **Record user sessions** (replay
-  records nothing without it) and **Discard client IP data** (replays come from
-  the native SDK, which the app's `$ip: null` doesn't reach). `docs/08`.
+  records nothing without it) and **Discard client IP data** (replays don't go
+  through `track()`, so the app's `$ip: null` doesn't reach them). `docs/08`.
 
 - App Privacy answers: `docs/08-analytics-and-privacy.md` §App Store privacy
   disclosures.
