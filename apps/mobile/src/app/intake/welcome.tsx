@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { AnalyticsAskCard } from '@/analytics'
 import { importFromFile, refusalMessage } from '@/backup/actions'
 import { Wash } from '@/components/texture'
 import { PrimaryAction } from '@/intake/step-screen'
@@ -27,6 +28,10 @@ export default function WelcomeScreen() {
         <Wash color="cornflower" size={360} className="-left-32 -top-24" />
         <Wash color="peach" size={320} className="-right-32 top-1/4" />
         <Wash color="sun" size={320} className="-bottom-28 -left-20" />
+      </View>
+      {/* The one-time analytics ask (docs/08) sits up top, clear of Get started. */}
+      <View className="px-5 pt-3">
+        <AnalyticsAskCard />
       </View>
       <View className="flex-1 justify-end px-5 pb-2">
         <Text className="font-sans-medium text-body text-ink-soft">Welcome to</Text>

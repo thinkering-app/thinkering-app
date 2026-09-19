@@ -1,6 +1,6 @@
 # THROWAWAY (gitignored .context): verifies the opt-in path end to end against
-# the real PostHog project — the ask appears on the first completion, "Share"
-# is accepted, and the pre-consent buffer flushes. The committed flow declines.
+# the real PostHog project — the ask appears on the welcome screen, "Share"
+# is accepted, and later events go straight out. The committed flow declines.
 appId: ${APP_ID}
 name: optin
 ---
@@ -12,6 +12,11 @@ name: optin
     visible:
       id: 'intake-start'
     timeout: 120000
+# Accept, rather than the committed flow's decline.
+- assertVisible: 'Share anonymous usage data?'
+- assertVisible: 'thinkering is new and still changing.*'
+- tapOn: 'Share'
+- assertNotVisible: 'Share anonymous usage data?'
 - tapOn:
     id: 'intake-start'
 
@@ -107,14 +112,6 @@ name: optin
 - tapOn: 'Useful'
 - tapOn:
     id: 'player-done'
-
-# Accept, rather than the committed flow's decline: this is the path that
-# flushes the buffered intake events to PostHog.
-- extendedWaitUntil:
-    visible: 'Share anonymous usage?'
-    timeout: 20000
-- assertVisible: 'Counts, ratings and how long things take.*'
-- tapOn: 'Share'
 - extendedWaitUntil:
     visible: '1 today'
     timeout: 20000
