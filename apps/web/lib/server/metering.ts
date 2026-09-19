@@ -24,6 +24,7 @@ export const BURST_LIMITS: Record<string, number> = {
   'resources.search': 10,
   'activity.generate': 80,
   'today.plan': 60,
+  'reflect.open': 15,
   'reflect.update': 15,
   'resource.describe': 40,
   /** Not a model call — the page fetch behind add-by-link, limited for the same reason. */

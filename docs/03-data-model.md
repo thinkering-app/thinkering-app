@@ -13,7 +13,7 @@ SQLite via Drizzle (`packages/db`). Conventions: `id` = client-generated UUIDv7 
 | why_text                             | text?   |                                                           |
 | experience_choice                    | text    | `getting_started \| explored \| in_middle \| experienced` |
 | experience_text                      | text?   |                                                           |
-| success_outcomes                     | json?   | `string[]`, what would feel like success (intake step 5)  |
+| success_outcomes                     | json?   | `string[]`, what they're hoping for (intake step 5)       |
 | frequency                            | text    | `daily \| several_weekly \| when_i_can`                   |
 | session_minutes                      | int     | 5 / 10 / 15 / custom value                                |
 | approach_notes                       | text    | from G1, editable in path settings                        |
@@ -79,6 +79,8 @@ Kept separate from `doc` so generation (G6) and future features can query them.
 ## reflections ⟳
 
 `id, interest_id, feeling_text, changes json (accepted path edits summary), created_at, updated_at, deleted_at`
+
+`changes` is `{added, removed, revised, reordered}` goal titles, plus `outcomes: {before, after}` when the reflection changed what they're hoping for (the interest's `success_outcomes` then holds `after`).
 
 ## library_prefs ⟳ — per-interest activation of library items
 

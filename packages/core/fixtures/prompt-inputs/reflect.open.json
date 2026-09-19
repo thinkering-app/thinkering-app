@@ -137,43 +137,11 @@
       {
         "title": "Easy German: At the Restaurant (video)",
         "description": "Street interviews ordering food",
-        "goalTitles": [
-          "Order food and drinks"
-        ]
+        "goalTitles": ["Order food and drinks"]
       }
     ],
-    "routineNotes": [
-      "Prefers speaking practice over grammar drills"
-    ]
+    "routineNotes": ["Prefers speaking practice over grammar drills"]
   },
-  "sessionMinutes": 10,
-  "feelingText": "Ordering food is finally sticking, but the moment someone asks me something back I freeze. I'd rather spend the next few weeks on actually holding a short conversation than on more vocabulary.",
-  "goals": [
-    {
-      "ref": "G1",
-      "title": "Greet and introduce yourself",
-      "description": "Greetings for formal and informal situations, and saying who you are.",
-      "status": "strengthened"
-    },
-    {
-      "ref": "G2",
-      "title": "Order food and drinks",
-      "description": "Ordering in a cafe or restaurant, politely, without switching to English.",
-      "status": "introduced"
-    },
-    {
-      "ref": "G3",
-      "title": "Talk about your family",
-      "description": "Talking about who is in your family and how you are related.",
-      "status": "not_started"
-    },
-    {
-      "ref": "G4",
-      "title": "Handle small talk about your weekend",
-      "description": "Saying what you did at the weekend using the Perfekt.",
-      "status": "not_started"
-    }
-  ],
   "topics": [
     "Small talk and everyday phrases",
     "Food and restaurants",

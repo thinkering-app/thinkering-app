@@ -44,7 +44,7 @@ name: intake
 - tapOn:
     id: 'intake-continue'
 
-# 5 — what would feel like success (G2b). Same: none selected, wait for it.
+# 5 — what they're hoping for (G2b). Same: none selected, wait for it.
 - extendedWaitUntil:
     visible:
       id: 'intake-continue'

@@ -21,7 +21,8 @@ type ChipPickerProps = ChipPick & {
 
 /**
  * Multi-select chips with a small "add your own" field above them (intake
- * steps 4 and 5). What they add is selected straight away and sits first.
+ * steps 4 and 5, and what they're hoping for in the reflection flow). What
+ * they add is selected straight away and sits first.
  */
 export function ChipPicker({
   generated,
