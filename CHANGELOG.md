@@ -10,8 +10,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 - Anonymous, opt-in usage analytics — off until you say yes, asked once on the
   welcome screen, and never carrying anything you write.
-- Share session replays with the developers, if you choose — a separate
-  setting in Account and data, off unless you turn it on.
+- Share session replays with the developers, if you choose — asked after
+  the usage question on the welcome screen, and a separate setting in Account
+  and data. Off unless you turn it on.
 - Delete your backup account from inside the app.
 - A privacy page in the app that matches the one on the website.
 - A new intake step, "What are you hoping for?", with suggestions to pick
