@@ -15,6 +15,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 - A new intake step, "What would feel like success?", with suggestions to pick
   from. Your path is shaped around what you choose.
 - Add your own topics and outcomes during intake.
+- A + at the end of each Today section adds another activity. Pick a goal or
+  say what you'd like to focus on, or leave both and get the next one.
 
 ### Changed
 
@@ -26,6 +28,11 @@ build; internal refactors and docs don't appear here. The conventions are in
   ready by the time you reach it.
 - The last intake step leads with In focus or Exploring, and says what each
   one is for.
+- Today shows one card per section. Finish one and the next is ready in its
+  place, and all three are written ahead so they open straight away. A card
+  still being written says so. Unfinished cards stay until you get to them.
+- Explore → All suggests activities from two of your exploring interests at a
+  time, rotating day to day. Tap Write on one to have it written.
 
 ### Fixed
 

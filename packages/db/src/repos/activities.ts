@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNotNull, isNull, lt } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, isNotNull, isNull, lt } from 'drizzle-orm'
 import type { ActivityDoc, LocalDate, Rating, Section, Tier } from '@thinkering/core'
 import type { Database, RepoContext } from '../database'
 import { activities } from '../schema'
@@ -9,8 +9,10 @@ export type Activity = typeof activities.$inferSelect
 export interface NewActivity {
   interestId: string
   goalId?: string | null
-  /** The prerequisite-fallback card's topic, when it has no goal. */
+  /** A goal-less card's topic: the prerequisite fallback's, or a learner request's. */
   topic?: string | null
+  /** The learner's own request, for a card added with + (docs/01 §3). */
+  focus?: string | null
   section: Section
   tier: Tier
   libraryItemId: string
@@ -27,6 +29,7 @@ export function createActivity(db: Database, ctx: RepoContext, input: NewActivit
     interestId: input.interestId,
     goalId: input.goalId ?? null,
     topic: input.topic ?? null,
+    focus: input.focus ?? null,
     section: input.section,
     tier: input.tier,
     libraryItemId: input.libraryItemId,
@@ -112,26 +115,23 @@ export function rateActivity(
 }
 
 /**
- * An unfinished activity is resumable from Today for the rest of its planned
- * day; after that it's abandoned, silently (docs/05 §Resume). Called when Today
- * loads on a new local date.
+ * Cards still waiting to be done, whatever day they were planned for: an
+ * unfinished card stays on Today until it's finished (docs/05 §Resume), and a
+ * section only gets a new one once it has none of these left.
  */
-export function abandonStalePlans(
-  db: Database,
-  ctx: RepoContext,
-  opts: { interestId: string; before: LocalDate },
-): void {
-  db.update(activities)
-    .set({ status: 'abandoned', updatedAt: ctx.now() })
+export function listOpenActivities(db: Database, interestId: string): Activity[] {
+  return db
+    .select()
+    .from(activities)
     .where(
       and(
-        eq(activities.interestId, opts.interestId),
-        lt(activities.plannedFor, opts.before),
+        eq(activities.interestId, interestId),
         inArray(activities.status, ['planned', 'ready', 'in_progress']),
         isNull(activities.deletedAt),
       ),
     )
-    .run()
+    .orderBy(asc(activities.createdAt))
+    .all()
 }
 
 /** Dropping a card the user's configuration change invalidated (docs/03: soft delete, always). */

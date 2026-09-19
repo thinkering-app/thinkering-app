@@ -12,6 +12,11 @@ export {
 } from './library/prefs'
 export { localDateOf, isSameLocalDay, type LocalDate } from './scheduler/local-date'
 export {
+  suggestInterests,
+  SUGGESTED_INTERESTS,
+  type SuggestionCandidate,
+} from './scheduler/interests'
+export {
   completedTodayBySection,
   type CompletionInput,
   type SectionCounts,
@@ -22,6 +27,7 @@ export {
   type SchedulerGoal,
   type CardPick,
   type TodayPlan,
+  type PlanOptions,
 } from './scheduler/plan'
 export {
   FIXTURE_ACTIVITY_DOCS,

@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react'
 import {
   describeResponse,
   extractPartialBlocks,
@@ -21,6 +22,7 @@ import {
 } from '@thinkering/core'
 import {
   attachDoc,
+  getActivity,
   getGoal,
   getInterest,
   listResources,
@@ -39,10 +41,13 @@ import { db, repoContext } from '@/db'
  * an Ask page survives leaving and coming back.
  */
 
-/** G5b. Streams; `onPartial` fires as each page closes so page 1 renders early. */
-export async function generateActivityDoc(
+/**
+ * G5b. Streams; `onPartial` fires as each page closes so page 1 renders early.
+ * Callers go through `writeActivityDoc`, so one card never streams twice.
+ */
+async function generateActivityDoc(
   activity: Activity,
-  opts: { signal?: AbortSignal; onPartial?: (partial: PartialActivityDoc) => void } = {},
+  opts: { onPartial?: (partial: PartialActivityDoc) => void } = {},
 ): Promise<ActivityDoc> {
   const interest = getInterest(db, activity.interestId)
   if (!interest) throw new Error('interest is gone')
@@ -60,18 +65,29 @@ export async function generateActivityDoc(
           status: goal.status,
           concepts: goal.concepts,
         }
-      : // The prerequisite-fallback card has no goal yet — the topic stands in for one.
-        {
-          id: 'prerequisite',
-          title: activity.topic ?? 'Foundations',
-          description: 'A prerequisite for the goals ahead — not itself a goal on their path.',
-          status: 'not_started',
-          concepts: [],
-        },
+      : activity.focus
+        ? // A request with no goal: what they asked about stands in for one.
+          {
+            id: 'request',
+            title: activity.topic ?? activity.title,
+            description:
+              'Something the learner asked to work on — not itself a goal on their path.',
+            status: 'not_started',
+            concepts: [],
+          }
+        : // The prerequisite-fallback card has no goal yet — the topic stands in for one.
+          {
+            id: 'prerequisite',
+            title: activity.topic ?? 'Foundations',
+            description: 'A prerequisite for the goals ahead — not itself a goal on their path.',
+            status: 'not_started',
+            concepts: [],
+          },
     tier: activity.tier,
     libraryItemId: activity.libraryItemId,
     title: activity.title,
     estMinutes: activity.estMinutes,
+    ...(activity.focus ? { focus: activity.focus } : {}),
     ...(resource
       ? {
           resource: {
@@ -88,7 +104,6 @@ export async function generateActivityDoc(
   const { output } = await callAi<ActivityDoc>('activity.generate', params, {
     interestId: activity.interestId,
     activityId: activity.id,
-    signal: opts.signal,
     onText: opts.onPartial
       ? (text) => {
           const partial = extractPartialActivityDoc(text)
@@ -209,15 +224,120 @@ function persist(activity: Activity, doc: ActivityDoc): ActivityDoc {
   return doc
 }
 
+// ── Writing ahead (docs/04 §Latency & cost) ──────────────────────────────────
+
 /**
- * The Next card's document is written ahead of the tap (docs/04 §Prefetch):
- * it's the card most likely to be used, and the only one worth spending on
- * before the user asks. Failures are silent — tapping generates it for real.
+ * Today's cards have their documents written before the tap, one at a time in
+ * section order so Next lands first. Each write is shared: opening a card whose
+ * document is already being written joins that stream instead of starting a
+ * second one, and leaving the screen doesn't cancel it — the document is kept
+ * for when they come back.
  */
-export function prefetchNextActivity(activities: readonly Activity[], signal?: AbortSignal): void {
-  const card = activities.find(
-    (a) => a.section === 'next' && a.doc === null && a.status === 'planned',
+
+const SECTION_ORDER: Record<Activity['section'], number> = { next: 0, strengthen: 1, go_further: 2 }
+
+interface Write {
+  promise: Promise<ActivityDoc>
+  latest: PartialActivityDoc | null
+  listeners: Set<(partial: PartialActivityDoc) => void>
+}
+
+const inFlight = new Map<string, Write>()
+/** Written ahead and failed this session — left for the learner to retry with Write. */
+const failed = new Set<string>()
+let queue: Activity[] = []
+let draining = false
+let writingIds: ReadonlySet<string> = new Set()
+const watchers = new Set<() => void>()
+
+function publish() {
+  writingIds = new Set([...inFlight.keys(), ...queue.map((a) => a.id)])
+  for (const watcher of watchers) watcher()
+}
+
+/**
+ * Writes an activity's document, or joins the write already under way. The
+ * partials seen so far are replayed to a late joiner, so page 1 shows at once.
+ */
+export function writeActivityDoc(
+  activity: Activity,
+  onPartial?: (partial: PartialActivityDoc) => void,
+): { promise: Promise<ActivityDoc>; unsubscribe: () => void } {
+  let write = inFlight.get(activity.id)
+  if (!write) {
+    const created: Write = { promise: undefined as never, latest: null, listeners: new Set() }
+    failed.delete(activity.id)
+    created.promise = generateActivityDoc(activity, {
+      onPartial: (partial) => {
+        created.latest = partial
+        for (const listener of created.listeners) listener(partial)
+      },
+    })
+      .catch((error: unknown) => {
+        failed.add(activity.id)
+        throw error
+      })
+      .finally(() => {
+        inFlight.delete(activity.id)
+        publish()
+      })
+    write = created
+    inFlight.set(activity.id, write)
+    queue = queue.filter((a) => a.id !== activity.id)
+    publish()
+  }
+  const current = write
+  if (onPartial) {
+    current.listeners.add(onPartial)
+    if (current.latest) onPartial(current.latest)
+  }
+  return {
+    promise: current.promise,
+    unsubscribe: () => onPartial && current.listeners.delete(onPartial),
+  }
+}
+
+/**
+ * Queues documents for cards that don't have one yet. Failures are silent and
+ * not retried here — the card offers Write instead.
+ */
+export function writeAhead(activities: readonly Activity[]): void {
+  const waiting = new Set([...inFlight.keys(), ...queue.map((a) => a.id)])
+  const added = activities.filter(
+    (a) => a.doc === null && a.status === 'planned' && !waiting.has(a.id) && !failed.has(a.id),
   )
-  if (!card) return
-  generateActivityDoc(card, { signal }).catch(() => {})
+  if (added.length === 0) return
+  queue = [...queue, ...added].sort((a, b) => SECTION_ORDER[a.section] - SECTION_ORDER[b.section])
+  publish()
+  void drain()
+}
+
+async function drain() {
+  if (draining) return
+  draining = true
+  try {
+    for (let next = queue.shift(); next; next = queue.shift()) {
+      // It may have been written, opened or dropped since it was queued.
+      const fresh = getActivity(db, next.id)
+      if (!fresh || fresh.doc !== null) {
+        publish()
+        continue
+      }
+      await writeActivityDoc(fresh).promise.catch(() => {})
+    }
+  } finally {
+    draining = false
+  }
+}
+
+/** The ids of cards whose documents are queued or being written — "Writing" on Today. */
+export function useWritingDocs(): ReadonlySet<string> {
+  return useSyncExternalStore(subscribeWriting, () => writingIds)
+}
+
+function subscribeWriting(watcher: () => void) {
+  watchers.add(watcher)
+  return () => {
+    watchers.delete(watcher)
+  }
 }

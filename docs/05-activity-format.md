@@ -54,7 +54,7 @@ Renderer contract: unknown block kinds render as a graceful "update the app" pla
 - **Summary page**: G5b provides the concept recap blocks; the renderer appends the standard rating row (👎 / mixed / 👍 + optional text) which writes to `activities.rating`, plus the quiet per-activity "share with the developers" action (D18, see `08`).
 - **Ask (G7)**: inserts an `inserted` page after the current index and jumps to it. Multiple asks allowed; each extends the doc (persisted, so it survives resume).
 - **Completion**: reaching the summary and tapping done → `status = completed`, `completed_at` set, goal status transition applied, section completion state updates on Today.
-- **Resume**: `current_page` persists; an in-progress activity resumes from Today for the rest of its `planned_for` day, after which it's `abandoned` (silently — no guilt UI).
+- **Resume**: `current_page` persists; an unfinished activity (started or not) stays on Today across days until it's finished — no expiry, no guilt UI. A new day clears only the finished ones.
 
 ## Authoring guidance baked into G5b prompts
 

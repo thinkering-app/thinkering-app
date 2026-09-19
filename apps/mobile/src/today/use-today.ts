@@ -8,21 +8,14 @@ import {
   type LocalDate,
   type Section,
 } from '@thinkering/core'
-import {
-  listHistory,
-  listPlannedForDate,
-  schedulerGoals,
-  type Activity,
-  type Goal,
-  type Interest,
-} from '@thinkering/db'
+import { schedulerGoals, type Activity, type Goal, type Interest } from '@thinkering/db'
 import { listGoals } from '@thinkering/db'
 
 import { describeAiError } from '@/ai'
 import { db } from '@/db'
 import { deviceTimeZone } from '@/time'
-import { prefetchNextActivity } from '@/features/activity-player/generate'
-import { ensureDailyPlan, hasPlanFor } from './plan'
+import { useWritingDocs, writeAhead } from '@/features/activity-player/generate'
+import { ensureDailyPlan, needsCards, suggestedInterests, todaysCards } from './plan'
 
 /**
  * Today's read model and the G5a kick-off behind it. Reads are synchronous
@@ -58,22 +51,37 @@ export interface TodayView {
   /** No goals yet in any selected interest — nothing to plan. */
   empty: boolean
   generating: boolean
+  /** Cards whose documents are queued or being written. */
+  writing: ReadonlySet<string>
   error: string | null
   retry: () => void
   refresh: () => void
 }
 
-const HISTORY_LOOKBACK = 30
-
-export function useToday(interests: Interest[]): TodayView {
+export function useToday(
+  interests: Interest[],
+  opts: {
+    /** Explore → All: suggest from a couple of interests, without writing ahead. */
+    suggestOnly: boolean
+  },
+): TodayView {
   const timeZone = deviceTimeZone()
   const [version, bump] = useReducer((n: number) => n + 1, 0)
   const [today, setToday] = useState<LocalDate>(() => localDateOf(Date.now(), timeZone))
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const key = interests.map((i) => i.id).join(',')
+  const writing = useWritingDocs()
+  const selectedKey = interests.map((i) => i.id).join(',')
+  // Explore → All suggests from a couple of interests, fixed for the day.
+  const shown = useMemo(
+    () => (opts.suggestOnly ? suggestedInterests(interests, today) : interests),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedKey, opts.suggestOnly, today],
+  )
+  const key = shown.map((i) => i.id).join(',')
 
-  // Coming back to Today can mean a completed activity, or a new day.
+  // Coming back to Today can mean a completed activity — whose section then
+  // wants its next card — or a new day.
   useFocusEffect(
     useCallback(() => {
       setToday(localDateOf(Date.now(), timeZone))
@@ -82,10 +90,18 @@ export function useToday(interests: Interest[]): TodayView {
   )
 
   useEffect(() => {
-    const missing = interests.filter(
-      (i) => !hasPlanFor(i.id, today) && listGoals(db, i.id).length > 0,
-    )
-    if (missing.length === 0) return
+    // One interest in view has its cards written ahead, Next first (docs/04
+    // §Latency & cost); Explore → All only suggests, and its cards wait for
+    // Write. The writes outlive this effect on purpose.
+    const writeAheadFor = (list: Interest[]) => {
+      if (opts.suggestOnly) return
+      for (const interest of list) writeAhead(todaysCards(interest.id, today))
+    }
+    const waiting = shown.filter((i) => needsCards(i.id, today))
+    if (waiting.length === 0) {
+      writeAheadFor(shown)
+      return
+    }
 
     let cancelled = false
     const controller = new AbortController()
@@ -95,13 +111,11 @@ export function useToday(interests: Interest[]): TodayView {
       try {
         // Sequential: the plan for each interest is a separate cheap call, and
         // firing them together only makes the meter spike.
-        for (const interest of missing) await ensureDailyPlan(interest, today, controller.signal)
+        for (const interest of waiting) await ensureDailyPlan(interest, today, controller.signal)
+        writeAheadFor(shown)
         if (cancelled) return
         setGenerating(false)
         bump()
-        for (const interest of missing) {
-          prefetchNextActivity(listPlannedForDate(db, interest.id, today), controller.signal)
-        }
       } catch (e) {
         if (cancelled || controller.signal.aborted) return
         setGenerating(false)
@@ -115,22 +129,24 @@ export function useToday(interests: Interest[]): TodayView {
     }
     // `key` stands in for the interest list; `version` re-checks after a plan lands.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, today, version])
+  }, [key, today, version, opts.suggestOnly])
 
+  // A finished write changes what a card offers (Write → its time), so a
+  // change in `writing` re-reads too.
   const sections = useMemo(
-    () => readSections(interests, today, timeZone),
+    () => readSections(shown, today, timeZone),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [key, today, timeZone, version],
+    [key, today, timeZone, version, writing],
   )
 
   const reflect = useMemo(
     () =>
-      interests.flatMap((interest) =>
+      shown.flatMap((interest) =>
         planToday(schedulerGoals(db, interest.id)).showReflectCard
           ? [
               {
                 interestId: interest.id,
-                interestName: interests.length > 1 ? interest.name : undefined,
+                interestName: shown.length > 1 ? interest.name : undefined,
               },
             ]
           : [],
@@ -139,9 +155,19 @@ export function useToday(interests: Interest[]): TodayView {
     [key, version],
   )
 
-  const empty = interests.length === 0 || interests.every((i) => listGoals(db, i.id).length === 0)
+  const empty = shown.length === 0 || shown.every((i) => listGoals(db, i.id).length === 0)
 
-  return { today, sections, reflect, empty, generating, error, retry: bump, refresh: bump }
+  return {
+    today,
+    sections,
+    reflect,
+    empty,
+    generating,
+    writing,
+    error,
+    retry: bump,
+    refresh: bump,
+  }
 }
 
 function readSections(
@@ -151,28 +177,22 @@ function readSections(
 ): TodaySectionView[] {
   const showInterestName = interests.length > 1
   const cards: TodayCardView[] = []
-  // Keyed by activity id: today's cards and recent history overlap, and each
-  // completed activity must count once.
-  const completed = new Map<string, { section: Section; completedAt: number | null }>()
 
   for (const interest of interests) {
     const goals = new Map(listGoals(db, interest.id).map((g: Goal) => [g.id, g]))
-    for (const activity of listPlannedForDate(db, interest.id, today)) {
-      if (activity.status === 'abandoned') continue
+    for (const activity of todaysCards(interest.id, today)) {
       cards.push({
         activity,
         goalLine: goalLineFor(activity, goals),
         interestName: showInterestName ? interest.name : undefined,
       })
-      completed.set(activity.id, { section: activity.section, completedAt: activity.completedAt })
-    }
-    // Something planned earlier but finished today still counts for today.
-    for (const done of listHistory(db, { interestId: interest.id, limit: HISTORY_LOOKBACK })) {
-      completed.set(done.id, { section: done.section, completedAt: done.completedAt })
     }
   }
 
-  const counts = completedTodayBySection([...completed.values()], { today, timeZone })
+  const counts = completedTodayBySection(
+    cards.map((c) => c.activity),
+    { today, timeZone },
+  )
   return SECTIONS.map((section) => ({
     section,
     cards: cards.filter((c) => c.activity.section === section),

@@ -22,6 +22,13 @@
       "when": 1789759292459,
       "tag": "0002_add_interest_success_outcomes",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1789770189169,
+      "tag": "0003_add_activity_focus",
+      "breakpoints": true
     }
   ]
 }

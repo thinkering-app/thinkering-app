@@ -37,9 +37,9 @@ import { db, repoContext } from '@/db'
 import { AskSheet } from '@/features/activity-player/ask-sheet'
 import {
   fallbackReviewPage,
-  generateActivityDoc,
   generateAskPage,
   generateReviewPage,
+  writeActivityDoc,
 } from '@/features/activity-player/generate'
 import { ActivityPlayer } from '@/features/activity-player/player'
 import type { ResponseSink } from '@/features/activity-player/responses'
@@ -109,22 +109,24 @@ export default function ActivityScreen() {
   }, [activity])
 
   // G5b on first open of a card that has no document yet (docs/04: streamed,
-  // page 1 renders as soon as it parses).
+  // page 1 renders as soon as it parses). A card Today is already writing joins
+  // that write; leaving doesn't cancel it, the document is kept for later.
   useEffect(() => {
     if (!activity || activity.doc) return
-    const controller = new AbortController()
-    const run = async () => {
-      setGenError(null)
-      try {
-        setDoc(
-          await generateActivityDoc(activity, { signal: controller.signal, onPartial: setPartial }),
-        )
-      } catch (e) {
-        if (!controller.signal.aborted) setGenError(describeAiError(e))
-      }
+    let left = false
+    const write = writeActivityDoc(activity, setPartial)
+    write.promise.then(
+      (written) => {
+        if (!left) setDoc(written)
+      },
+      (e: unknown) => {
+        if (!left) setGenError(describeAiError(e))
+      },
+    )
+    return () => {
+      left = true
+      write.unsubscribe()
     }
-    void run()
-    return () => controller.abort()
   }, [activity, attempt])
 
   const shown = doc ?? provisionalDoc(activity, partial)
@@ -238,7 +240,13 @@ export default function ActivityScreen() {
   if (genError && !doc) {
     return (
       <Missing>
-        <GenerationError message={genError} onRetry={() => setAttempt((n) => n + 1)} />
+        <GenerationError
+          message={genError}
+          onRetry={() => {
+            setGenError(null)
+            setAttempt((n) => n + 1)
+          }}
+        />
       </Missing>
     )
   }
