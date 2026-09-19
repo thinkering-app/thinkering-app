@@ -4,6 +4,7 @@ import { Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   durationBucket,
+  getLibraryItem,
   insertPageAfter,
   lastInteractivePageIndex,
   parseResponsePayload,
@@ -60,6 +61,10 @@ export default function ActivityScreen() {
   const [goalTitle] = useState(() =>
     activity?.goalId ? getGoal(db, activity.goalId)?.title : (activity?.topic ?? undefined),
   )
+  const [libraryItem] = useState(() => {
+    const item = activity ? getLibraryItem(activity.libraryItemId) : undefined
+    return item ? { name: item.name, overview: item.overview } : undefined
+  })
   const [doc, setDoc] = useState<ActivityDoc | null>(activity?.doc ?? null)
   const [partial, setPartial] = useState<PartialActivityDoc | null>(null)
   const [genError, setGenError] = useState<string | null>(null)
@@ -257,6 +262,7 @@ export default function ActivityScreen() {
       // Before any text, the model is still working out the activity (docs/04
       // §Thinking); once it writes, the title and pages follow.
       waitLabel={partial === null ? 'Planning your activity' : 'Writing your activity'}
+      libraryItem={libraryItem}
       sink={sink}
       page={page}
       onPageChange={changePage}
