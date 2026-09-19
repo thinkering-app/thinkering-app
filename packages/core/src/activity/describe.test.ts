@@ -36,7 +36,7 @@ describe('describeResponse', () => {
       [
         { kind: 'fillBlank', id: 'b', md: '___ Kaffee', blanks: [{ id: 'b1', answer: 'einen' }] },
         { kind: 'fillBlank', answers: { b1: 'ein' }, correct: false },
-        'Fill in the blanks (some wrong): einen → "ein"',
+        'Fill in the blanks: ___ Kaffee\nA (some wrong): "ein" (expected "einen")',
       ],
       [
         {

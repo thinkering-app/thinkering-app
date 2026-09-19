@@ -87,7 +87,7 @@ Content blocks: { "kind": "heading", "text": string } · { "kind": "paragraph", 
 
 Interactive blocks (each also needs its own unique "id"): { "kind": "mcq", "id", "prompt", "options": [{ "id", "label" }], "correctId"?, "explain"? } · { "kind": "freeText", "id", "prompt", "placeholder"? } · { "kind": "fillBlank", "id", "md", "blanks": [{ "id", "answer", "alts"? }] } · { "kind": "ordering", "id", "prompt", "items": [{ "id", "label" }], "correctOrder": [id] } · { "kind": "matching", "id", "prompt", "pairs": [{ "leftId", "left", "rightId", "right" }] } · { "kind": "reveal", "id", "prompt", "md" } · { "kind": "selfRate", "id", "prompt", "scale": [{ "id", "label" }] }
 
-"md" fields allow only inline bold/italic/code. In a fillBlank, write each blank as ___ in the "md".
+"md" fields allow only inline bold/italic/code. In a fillBlank, write each blank as ___ in the "md". A blank's answer must follow from what earlier pages or blocks taught, and nothing else on that page may give it away.
 
 Rules: 3–7 pages for a 5-minute session, scaling with estMinutes. Pages carry their own "kind" too: the teaching pages are "content", the second-to-last page is the reserved "review" page with "blocks": null, and the final page is the "summary" page — emit those two with those kinds, not as content pages. Every content page includes at least one interactive block; the summary page is a recap and has none. Page ids unique. Follow the library item's page skeleton. Interaction before explanation where the strategy calls for it; explanation before practice for worked examples. One idea per page. resourceEmbed: short segments only (use startSec/endSec), always paired with an interactive block, with "focus" telling the learner what to watch or read for.
 
@@ -324,7 +324,7 @@ Content blocks: { "kind": "heading", "text": string } · { "kind": "paragraph", 
 
 Interactive blocks (each also needs its own unique "id"): { "kind": "mcq", "id", "prompt", "options": [{ "id", "label" }], "correctId"?, "explain"? } · { "kind": "freeText", "id", "prompt", "placeholder"? } · { "kind": "fillBlank", "id", "md", "blanks": [{ "id", "answer", "alts"? }] } · { "kind": "ordering", "id", "prompt", "items": [{ "id", "label" }], "correctOrder": [id] } · { "kind": "matching", "id", "prompt", "pairs": [{ "leftId", "left", "rightId", "right" }] } · { "kind": "reveal", "id", "prompt", "md" } · { "kind": "selfRate", "id", "prompt", "scale": [{ "id", "label" }] }
 
-"md" fields allow only inline bold/italic/code. In a fillBlank, write each blank as ___ in the "md".
+"md" fields allow only inline bold/italic/code. In a fillBlank, write each blank as ___ in the "md". A blank's answer must follow from what earlier pages or blocks taught, and nothing else on that page may give it away.
 
 Rules: 3–7 pages for a 5-minute session, scaling with estMinutes. Pages carry their own "kind" too: the teaching pages are "content", the second-to-last page is the reserved "review" page with "blocks": null, and the final page is the "summary" page — emit those two with those kinds, not as content pages. Every content page includes at least one interactive block; the summary page is a recap and has none. Page ids unique. Follow the library item's page skeleton. Interaction before explanation where the strategy calls for it; explanation before practice for worked examples. One idea per page. resourceEmbed: short segments only (use startSec/endSec), always paired with an interactive block, with "focus" telling the learner what to watch or read for.
 
@@ -410,7 +410,7 @@ Output contract: respond with a single JSON object exactly matching the schema i
       "cache": true,
       "text": "Task: write the review page of an activity the learner has just worked through. You see their actual answers.
 
-Return JSON: { "blocks": Block[] }  — 2–4 blocks, using the same Block types as an Activity Document.
+Return JSON: { "blocks": Block[] }  — 1–3 blocks, using the same Block types as an Activity Document.
 
 Activity Document JSON format (version 1):
 {
@@ -433,7 +433,7 @@ Content blocks: { "kind": "heading", "text": string } · { "kind": "paragraph", 
 
 Interactive blocks (each also needs its own unique "id"): { "kind": "mcq", "id", "prompt", "options": [{ "id", "label" }], "correctId"?, "explain"? } · { "kind": "freeText", "id", "prompt", "placeholder"? } · { "kind": "fillBlank", "id", "md", "blanks": [{ "id", "answer", "alts"? }] } · { "kind": "ordering", "id", "prompt", "items": [{ "id", "label" }], "correctOrder": [id] } · { "kind": "matching", "id", "prompt", "pairs": [{ "leftId", "left", "rightId", "right" }] } · { "kind": "reveal", "id", "prompt", "md" } · { "kind": "selfRate", "id", "prompt", "scale": [{ "id", "label" }] }
 
-"md" fields allow only inline bold/italic/code. In a fillBlank, write each blank as ___ in the "md".
+"md" fields allow only inline bold/italic/code. In a fillBlank, write each blank as ___ in the "md". A blank's answer must follow from what earlier pages or blocks taught, and nothing else on that page may give it away.
 
 Rules: 3–7 pages for a 5-minute session, scaling with estMinutes. Pages carry their own "kind" too: the teaching pages are "content", the second-to-last page is the reserved "review" page with "blocks": null, and the final page is the "summary" page — emit those two with those kinds, not as content pages. Every content page includes at least one interactive block; the summary page is a recap and has none. Page ids unique. Follow the library item's page skeleton. Interaction before explanation where the strategy calls for it; explanation before practice for worked examples. One idea per page. resourceEmbed: short segments only (use startSec/endSec), always paired with an interactive block, with "focus" telling the learner what to watch or read for.
 
@@ -444,7 +444,9 @@ Choose exactly one thing to do, whichever is most valuable for this learner righ
 If their answers were sparse or mostly blank, reinforce the trickiest concept in the activity instead, without remarking on how little they wrote.
 
 Rules:
-- Two to four blocks: a short heading is optional, then the substance. An interactive block is allowed but not required — never add one just to have one.
+- Short: a heading is optional, then one or two short paragraphs — under 80 words in all. It's read on a phone.
+- One thing only. Don't walk through their answers one by one; leave the rest unsaid.
+- An interactive block is allowed but not required — never add one just to have one.
 - Speak to what they wrote. Quote or paraphrase their words when you correct or extend them.
 - Praise only when it's earned and specific about why. No "Great job!", no filler.
 - Never imply their knowledge is limited to this app.",

@@ -22,9 +22,9 @@ export function describeResponse(block: Block, payload: ResponsePayload): string
     case 'fillBlank': {
       if (block.kind !== 'fillBlank') return undefined
       const filled = block.blanks
-        .map((b) => `${b.answer} → "${payload.answers[b.id] ?? ''}"`)
+        .map((b) => `"${payload.answers[b.id] ?? ''}" (expected "${b.answer}")`)
         .join('; ')
-      return `Fill in the blanks (${payload.correct ? 'all correct' : 'some wrong'}): ${filled}`
+      return `Fill in the blanks: ${block.md}\nA (${payload.correct ? 'all correct' : 'some wrong'}): ${filled}`
     }
     case 'ordering': {
       if (block.kind !== 'ordering') return undefined
