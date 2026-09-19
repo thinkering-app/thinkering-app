@@ -6,7 +6,6 @@ import { View } from 'react-native'
 import { isInspectorEnabled } from '@/ai/settings'
 import { NavRow } from '@/components/nav-row'
 import { SubScreen } from '@/components/sub-screen'
-import { AVAILABLE_LANGUAGES } from '@/i18n'
 
 /**
  * Me → Settings (docs/01 §7): one row per category, each its own screen.
@@ -32,14 +31,11 @@ export default function SettingsScreen() {
           label={t('me.settings.ai')}
           onPress={() => router.push('/me/ai')}
         />
-        {/* Nothing to choose until a second language ships. */}
-        {AVAILABLE_LANGUAGES.length > 1 ? (
-          <NavRow
-            testID="settings-language"
-            label={t('me.settings.language')}
-            onPress={() => router.push('/me/language')}
-          />
-        ) : null}
+        <NavRow
+          testID="settings-language"
+          label={t('me.settings.language')}
+          onPress={() => router.push('/me/language')}
+        />
         <NavRow label={t('me.settings.privacy')} onPress={() => router.push('/me/privacy')} />
         <NavRow label={t('me.settings.feedback')} onPress={() => router.push('/me/feedback')} />
         <NavRow

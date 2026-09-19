@@ -8,7 +8,7 @@ import { getLocales } from 'expo-localization'
  */
 
 /** The languages with copy in the bundle, so the ones the picker offers. */
-export const AVAILABLE_LANGUAGES: readonly Language[] = LANGUAGES.filter((l) => l === 'en')
+export const AVAILABLE_LANGUAGES: readonly Language[] = LANGUAGES
 
 /** The first of the device's preferred languages we have, else English. */
 export function deviceLanguage(): Language {
