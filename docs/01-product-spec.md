@@ -40,7 +40,7 @@ Show the generated interest name and the goal list (title + one-line description
 
 Four tabs: **Today, Path, History, Me**.
 
-**Interest selector** (top toolbar on Today, Path, History): one pill per in-focus interest, plus an **Explore** pill when any exploring interests exist. Selecting Explore reveals a second pill row: **All** (default) + one pill per exploring interest. Path is the exception: it has no "All" — it defaults to the first interest. The row shows even with a single interest, because it also carries a **+** button — pinned to the right of the scrolling pills — that starts intake for the next one (skipping the welcome screen, which is only for a brand-new user). On finishing, Today opens on the interest just added.
+**Interest selector** (top toolbar on Today, Path, History): one pill per in-focus interest, plus an **Explore** pill when any exploring interests exist. Selecting Explore reveals a second pill row: **All** (default) + one pill per exploring interest. Path is the exception: it has no "All" — it defaults to the first interest. The row shows even with a single interest, because it also carries a **+** button — placed right after the last pill, or pinned to the right once the pills overflow — that starts intake for the next one (skipping the welcome screen, which is only for a brand-new user). On finishing, Today opens on the interest just added.
 
 **Feedback button**: small, unobtrusive (e.g. a corner icon on every screen). Opens a compact chooser:
 
@@ -73,11 +73,11 @@ When the user completes an activity in a section, that section's heading gets a 
 
 ### Configure (⚙ per section)
 
-Sheet listing that section's library items as small cards with checkboxes (active/inactive for this user + interest + section). Tapping a card opens a short overview dialog of the strategy. At least one item must remain active per section.
+Sheet with one line on what the section is for, then that section's library items as a two-column grid of small cards with checkboxes (active/inactive for this user + interest + section). Tapping a card opens a short overview dialog of the strategy. At least one item must remain active per section.
 
 ### Configure learning routine (bottom button)
 
-Sheet showing the three section names (read-only) and a single free-text question: **"How would you want to customize your learning routine?"** → **G11** interprets it into library activations/preference notes and confirms the change in one line.
+Sheet opening with a line that the daily counts aren't configurable yet, linking to the "customize learning routine" post on the feedback board. Below it, the routine — **Next** (1 a day), **Strengthen** (1 a day), **Go further** (optional), each with a one-line description — then a single free-text question: **"What would you like more or less of?"** → **G11** interprets it into library activations/preference notes and confirms the change in one line.
 
 ## 4. Activities
 
@@ -93,7 +93,7 @@ Multi-page, rendered from an Activity Document (`05-activity-format.md`). Top pr
 
 For the selected single interest:
 
-- **Goal list**, in path order. Status shown by color treatment, not pills: `not_started` = plain white card, `introduced` = light cornflower wash, `strengthened` = solid cornflower (light text), `applied` ("Put to use") = a distinct warm celebratory treatment (peach edge/glow — a delighter, since going further is optional). Long-press a goal to turn on reorder mode — each card grows up/down controls and the header a Done button (a drag gesture was not worth a reanimated gesture handler for a 5–8 item list). Tap a goal to expand it; the pencil opens its title/description for editing, or removes it.
+- **Goal list**, in path order. Status shown by color treatment, not pills: `not_started` = plain white card, `introduced` = light cornflower wash, `strengthened` = solid cornflower (light text), `applied` ("Put to use") = a distinct warm celebratory treatment (peach edge/glow — a delighter, since going further is optional). Long-press a goal to turn on reorder mode — each card grows up/down controls and the header a Done button (a drag gesture was not worth a reanimated gesture handler for a 5–8 item list). Tap a goal to expand it; the pencil opens its title/description for editing, or removes it. **Add a goal** under the list opens the same sheet empty: a title and optional description, added at the end of the path. It has no concepts until one is generated for it (a later option), so it shows no coverage when expanded.
 - **Expandable goals (D16)**: tapping a goal expands it to show the concepts and skills beneath it, with subtle coverage indicators for those already targeted by completed activities. Activities highlight these same concept/skill labels (summary chips, in-page emphasis) so the user can see what they're building.
 - **Reflection card** ("Reflect on progress and update path"): opens the Reflection flow, three steps with progress dots. **G8a** goes out as it opens and gates nothing — its parts appear when ready, and are simply absent if it fails. (1) **"Is this still what you're hoping for?"** — their saved outcomes as selected chips, the same add-your-own field as intake, and 2–3 more outcomes from G8a, unselected. Deselecting one means it no longer applies. (2) G8a's 1–2 sentence recap of what and how they've been learning lately, a collapsed **Your path** (the Path goal cards, read-only) and the question on how their learning feels and what they want to focus on next (free text). (3) Their current goal list with the ability to remove/reorder, a field to add their own goal, and **G8**-generated suggestions based on the reflection, the outcomes from step 1, their interests and adjacent topics. Nothing is written until **Update path**, which saves the path and the outcomes together (dropped outcomes leave the interest; the reflection records before and after).
 - **3 suggested goals** always at the bottom (from **G9**, cached, regenerated when the path changes) — one tap to add.

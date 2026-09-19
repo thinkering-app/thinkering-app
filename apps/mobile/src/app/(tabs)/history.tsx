@@ -45,14 +45,14 @@ export default function HistoryScreen() {
 
       <SectionList
         className="flex-1"
-        contentContainerClassName="gap-2 px-5 py-6"
+        contentContainerClassName="py-6"
         sections={sections}
         keyExtractor={(row) => row.id}
         stickySectionHeadersEnabled={false}
         onEndReached={hasMore ? loadMore : undefined}
         onEndReachedThreshold={0.5}
         renderSectionHeader={({ section }) => (
-          <Text className="pb-1 pt-4 font-heading-bold text-heading text-ink">{section.title}</Text>
+          <Text className="px-5 pb-3 pt-4 font-heading-bold text-heading text-ink">{section.title}</Text>
         )}
         renderItem={({ item }) => (
           <HistoryEntry row={item} interestName={interestNames?.get(item.interestId)} />
@@ -66,21 +66,27 @@ export default function HistoryScreen() {
 
 function HistoryEntry({ row, interestName }: { row: HistoryRow; interestName?: string }) {
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${row.title}. ${outcomeLine(row)}`}
-      onPress={() => router.push(`/activity/${row.id}`)}
-      className="gap-1 rounded-card border border-hairline bg-surface p-4 active:bg-cornflower-tint"
-    >
-      {interestName ? (
-        <Text className="font-sans text-caption text-ink-soft">{interestName}</Text>
-      ) : null}
-      <Text className="font-heading text-body text-ink">{row.title}</Text>
-      <Text className="font-sans text-secondary text-ink-soft">{outcomeLine(row)}</Text>
-    </Pressable>
+    <View className="px-5 pb-2">
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${row.title}. ${outcomeLine(row)}`}
+        onPress={() => router.push(`/activity/${row.id}`)}
+        className="gap-1 rounded-card border border-hairline bg-surface p-4 active:bg-cornflower-tint"
+      >
+        {interestName ? (
+          <Text className="font-sans text-caption text-ink-soft">{interestName}</Text>
+        ) : null}
+        <Text className="font-heading text-body text-ink">{row.title}</Text>
+        <Text className="font-sans text-secondary text-ink-soft">{outcomeLine(row)}</Text>
+      </Pressable>
+    </View>
   )
 }
 
 function Empty() {
-  return <EmptyState message="Activities you finish show up here." color="leaf" />
+  return (
+    <View className="px-5">
+      <EmptyState message="Activities you finish show up here." color="leaf" />
+    </View>
+  )
 }

@@ -10,9 +10,13 @@ export interface LibraryItem {
   /** Shown in configure sheets. */
   name: string
   sections: Section[]
-  /** 1–2 sentences, shown in the info dialog. */
+  /** What you'll do, in 12 words or fewer. Shown in the info dialog. */
   overview: string
-  /** Why it works — for contributors and prompt context. */
+  /** One plain sentence on why the strategy helps, for learners. Shown in the info dialog. */
+  whyItHelps: string
+  /** When the item switches itself on or off, for the two situational items. Shown in the info dialog. */
+  activation?: string
+  /** Why it works — for contributors and prompt context, never shown to learners. */
   pedagogy: string
   /** Ordered page intents G5b follows. */
   pageSkeleton: string[]
