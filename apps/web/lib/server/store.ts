@@ -28,9 +28,24 @@ export interface UsageRecord {
 export const EMPTY_USAGE: UsageRecord = { inputTokens: 0, outputTokens: 0, calls: 0, kindCalls: {} }
 
 export interface UsageDelta {
-  kind: string
+  /** Burst-limit counters this delta moves, each by `calls`: the call's kind, plus `repair` for a repair round-trip. */
+  counters: string[]
+  /** +1 to count a call, −1 to release one that was refused, 0 to settle tokens. */
+  calls: number
+  inputTokens: number
+  /** Negative when settling returns an unused reservation. */
+  outputTokens: number
+}
+
+/** Token totals across every device for one day: the proxy-wide cap. */
+export interface TokenTotals {
   inputTokens: number
   outputTokens: number
+}
+
+export interface UsageAfter {
+  device: UsageRecord
+  total: TokenTotals
 }
 
 export interface MeteringStore {
@@ -38,19 +53,32 @@ export interface MeteringStore {
   getDevice(deviceId: string): Promise<DeviceRecord | null>
   /** Usage for a UTC day key (YYYY-MM-DD). */
   getUsage(deviceId: string, day: string): Promise<UsageRecord>
-  addUsage(deviceId: string, day: string, delta: UsageDelta): Promise<void>
+  /**
+   * Applies a delta to the device's day and to the day's proxy-wide totals in
+   * one atomic step and returns both afterwards, so concurrent calls each see
+   * the others' reservations (docs/04 §Usage metering).
+   */
+  addUsage(deviceId: string, day: string, delta: UsageDelta): Promise<UsageAfter>
   /**
    * Persistent per-device/day counters for the routes that don't spend tokens
    * (docs/02 §Feedback). A count, never any submitted content.
    */
   getActionCount(deviceId: string, day: string, action: string): Promise<number>
   addAction(deviceId: string, day: string, action: string): Promise<void>
+  /**
+   * Counts an unsigned action from an IP address for a UTC day and returns the
+   * count including this one (docs/02 §Device identity). Persistent stores key
+   * it by a keyed hash of the address and the day, never the address itself.
+   */
+  countIpAction(ip: string, day: string, action: 'register'): Promise<number>
 }
 
 export class MemoryStore implements MeteringStore {
   private devices = new Map<string, DeviceRecord>()
   private usage = new Map<string, UsageRecord>()
   private actions = new Map<string, number>()
+  private totals = new Map<string, TokenTotals>()
+  private ipActions = new Map<string, number>()
 
   async createDevice(device: DeviceRecord): Promise<void> {
     this.devices.set(device.deviceId, device)
@@ -64,15 +92,26 @@ export class MemoryStore implements MeteringStore {
     return this.usage.get(`${deviceId}:${day}`) ?? { ...EMPTY_USAGE, kindCalls: {} }
   }
 
-  async addUsage(deviceId: string, day: string, delta: UsageDelta): Promise<void> {
-    const key = `${deviceId}:${day}`
-    const current = await this.getUsage(deviceId, day)
-    this.usage.set(key, {
+  async addUsage(deviceId: string, day: string, delta: UsageDelta): Promise<UsageAfter> {
+    // Read and write with no await between them: that is this store's atomicity.
+    const current = this.usage.get(`${deviceId}:${day}`) ?? EMPTY_USAGE
+    const kindCalls = { ...current.kindCalls }
+    for (const counter of delta.counters)
+      kindCalls[counter] = (kindCalls[counter] ?? 0) + delta.calls
+    const device = {
       inputTokens: current.inputTokens + delta.inputTokens,
       outputTokens: current.outputTokens + delta.outputTokens,
-      calls: current.calls + 1,
-      kindCalls: { ...current.kindCalls, [delta.kind]: (current.kindCalls[delta.kind] ?? 0) + 1 },
-    })
+      calls: current.calls + delta.calls,
+      kindCalls,
+    }
+    const totals = this.totals.get(day) ?? { inputTokens: 0, outputTokens: 0 }
+    const total = {
+      inputTokens: totals.inputTokens + delta.inputTokens,
+      outputTokens: totals.outputTokens + delta.outputTokens,
+    }
+    this.usage.set(`${deviceId}:${day}`, device)
+    this.totals.set(day, total)
+    return { device, total }
   }
 
   async getActionCount(deviceId: string, day: string, action: string): Promise<number> {
@@ -82,5 +121,12 @@ export class MemoryStore implements MeteringStore {
   async addAction(deviceId: string, day: string, action: string): Promise<void> {
     const key = `${deviceId}:${day}:${action}`
     this.actions.set(key, (this.actions.get(key) ?? 0) + 1)
+  }
+
+  async countIpAction(ip: string, day: string, action: 'register'): Promise<number> {
+    const key = `${ip}:${day}:${action}`
+    const count = (this.ipActions.get(key) ?? 0) + 1
+    this.ipActions.set(key, count)
+    return count
   }
 }

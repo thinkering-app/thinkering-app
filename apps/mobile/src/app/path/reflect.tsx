@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { router, useLocalSearchParams } from 'expo-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
@@ -17,6 +17,7 @@ import {
   type DraftGoal,
   type ReflectionGoal,
   type ReflectionPlan,
+  type ReflectOpenOutput,
   type ReflectUpdateOutput,
   type ReflectUpdateParams,
   type SuggestedAddition,
@@ -30,21 +31,47 @@ import {
   type ReflectionEntry,
 } from '@thinkering/db'
 
-import { callAi, describeAiError } from '@/ai'
+import { callAi, describeAiError, useGeneration } from '@/ai'
 import { interestContext } from '@/ai/context'
 import { Button } from '@/components/button'
 import { GenerationError } from '@/components/generation-error'
 import { Generating } from '@/components/generating'
+import { ProgressDots } from '@/components/progress-dots'
 import { TextField } from '@/components/text-field'
 import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
+import { ChipPicker, currentPicks, type ChipPick } from '@/intake/chip-picker'
+import { GoalCard } from '@/path/goal-card'
+import { usePath } from '@/path/use-path'
 import { colors } from '@/theme/tokens'
 
 /**
- * The reflection flow (docs/01 §5): one question about how their learning
- * feels, then G8's proposed path edits, which they accept, dismiss or override
- * before the path is written.
+ * The reflection flow (docs/01 §5), in three steps: whether what they're
+ * hoping for still holds, how their learning feels, then G8's proposed path
+ * edits, which they accept, dismiss or override. G8a goes out as the flow
+ * opens and gates nothing: its outcomes join step 1 and its recap step 2 when
+ * they arrive. Nothing is written until they update the path.
  */
+
+type Step = 'hoping' | 'writing' | 'generating' | 'reviewing' | 'error'
+
+const STEP_NUMBER: Record<Step, number> = {
+  hoping: 1,
+  writing: 2,
+  generating: 3,
+  reviewing: 3,
+  error: 3,
+}
+
+/** Where the header's back goes; null leaves the flow. */
+const PREVIOUS_STEP: Record<Step, Step | null> = {
+  hoping: null,
+  writing: 'hoping',
+  generating: null,
+  reviewing: 'writing',
+  error: 'writing',
+}
+
 export default function ReflectScreen() {
   const { interestId } = useLocalSearchParams<{ interestId: string }>()
   const interest = interestId ? getInterest(db, interestId) : undefined
@@ -56,12 +83,44 @@ export default function ReflectScreen() {
     title: g.title,
     description: g.description,
   }))
+  const { goals: pathViews } = usePath(interest ?? null)
+  const [topics] = useState(() =>
+    interestId
+      ? listTopics(db, interestId)
+          .filter((t) => t.selected)
+          .map((t) => t.label)
+      : [],
+  )
 
+  // What they hoped for when the flow opened sits first, already selected.
+  const [held] = useState(() => interest?.successOutcomes ?? [])
+  const [outcomes, setOutcomes] = useState<ChipPick>({ custom: held, selected: held })
+  const opening = useGeneration<ReflectOpenOutput>()
+  const suggested = opening.state.status === 'ready' ? opening.state.value.outcomes : []
+  const hopedFor = currentPicks(outcomes, suggested)
+
+  const [step, setStep] = useState<Step>('hoping')
+  const [pathOpen, setPathOpen] = useState(false)
+  const [expandedGoalId, setExpandedGoalId] = useState<string | null>(null)
   const [feelingText, setFeelingText] = useState('')
-  const [status, setStatus] = useState<'writing' | 'generating' | 'reviewing' | 'error'>('writing')
   const [error, setError] = useState('')
   const [plan, setPlan] = useState<ReflectionPlan | null>(null)
   const [ownGoal, setOwnGoal] = useState('')
+
+  useEffect(() => {
+    if (!interest) return
+    opening
+      .start(interest.id, (signal) =>
+        callAi<ReflectOpenOutput>(
+          'reflect.open',
+          { context: interestContext(interest), topics },
+          { signal, interestId: interest.id },
+        ).then((r) => r.output),
+      )
+      .catch(() => {})
+    // Once per flow: the key is the interest, and the flow is one interest.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [interest?.id])
 
   if (!interest) {
     return (
@@ -71,11 +130,15 @@ export default function ReflectScreen() {
     )
   }
 
+  const outcomesChanged = hopedFor.join('\n') !== held.join('\n')
+
   const generate = async () => {
-    setStatus('generating')
+    setStep('generating')
     try {
+      const context = interestContext(interest)
       const params: ReflectUpdateParams = {
-        context: interestContext(interest),
+        // G8 plans toward what they just confirmed, not what was saved before.
+        context: { ...context, interest: { ...context.interest, successOutcomes: hopedFor } },
         sessionMinutes: interest.sessionMinutes,
         feelingText: feelingText.trim(),
         goals: goalRefs(goals).map(({ ref, goal }, index) => ({
@@ -84,18 +147,16 @@ export default function ReflectScreen() {
           description: goal.description,
           status: pathGoals[index]!.status,
         })),
-        topics: listTopics(db, interest.id)
-          .filter((t) => t.selected)
-          .map((t) => t.label),
+        topics,
       }
       const { output } = await callAi<ReflectUpdateOutput>('reflect.update', params, {
         interestId: interest.id,
       })
       setPlan(planReflection(goals, output))
-      setStatus('reviewing')
+      setStep('reviewing')
     } catch (e) {
       setError(describeAiError(e))
-      setStatus('error')
+      setStep('error')
     }
   }
 
@@ -114,38 +175,43 @@ export default function ReflectScreen() {
               source: g.source === 'user' ? 'user' : 'reflection',
             },
       )
-    const changes = draftChanges(plan, goals)
+    const goalChanges = draftChanges(plan, goals)
     applyReflection(db, repoContext, {
       interestId: interest.id,
       feelingText: feelingText.trim(),
       entries,
-      changes,
+      changes: outcomesChanged
+        ? { ...goalChanges, outcomes: { before: held, after: hopedFor } }
+        : goalChanges,
+      successOutcomes: outcomesChanged ? hopedFor : undefined,
     })
     for (const entry of entries) {
       if (entry.kind === 'new') track('goal_added', { source: entry.source })
     }
     track('reflection_completed', {
       changes_count:
-        changes.added.length +
-        changes.removed.length +
-        changes.revised.length +
-        (changes.reordered ? 1 : 0),
+        goalChanges.added.length +
+        goalChanges.removed.length +
+        goalChanges.revised.length +
+        (goalChanges.reordered ? 1 : 0),
     })
     router.back()
+  }
+
+  const back = () => {
+    const previous = PREVIOUS_STEP[step]
+    if (previous) setStep(previous)
+    else router.back()
   }
 
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right']}>
       <View className="flex-row items-center gap-3 px-5 pt-4">
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-          onPress={() => router.back()}
-          hitSlop={10}
-        >
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={back} hitSlop={10}>
           <Ionicons name="chevron-back" size={24} color={colors.ink.DEFAULT} />
         </Pressable>
-        <Text className="font-heading-bold text-title text-ink">Reflect</Text>
+        <Text className="flex-1 font-heading-bold text-title text-ink">Reflect</Text>
+        <ProgressDots current={STEP_NUMBER[step]} total={3} />
       </View>
 
       <ScrollView
@@ -153,16 +219,62 @@ export default function ReflectScreen() {
         contentContainerClassName="gap-4 px-5 py-6"
         keyboardShouldPersistTaps="handled"
       >
-        {status === 'writing' ? (
+        {step === 'hoping' ? (
           <>
             <Text className="font-heading text-heading text-ink">
+              {"Is this still what you're hoping for?"}
+            </Text>
+            <ChipPicker
+              addLabel="Add your own"
+              generated={suggested}
+              custom={outcomes.custom}
+              selected={outcomes.selected}
+              onChange={setOutcomes}
+            />
+            {opening.state.status === 'pending' ? <Generating label="Thinking it through" /> : null}
+            <Button label="Continue" onPress={() => setStep('writing')} />
+          </>
+        ) : step === 'writing' ? (
+          <>
+            {opening.state.status === 'ready' ? (
+              <Text className="font-sans text-body text-ink">{opening.state.value.recap}</Text>
+            ) : null}
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ expanded: pathOpen }}
+              onPress={() => setPathOpen((open) => !open)}
+              className="flex-row items-center gap-2"
+            >
+              <Text className="font-sans-medium text-secondary text-ink-soft">Your path</Text>
+              <Ionicons
+                name={pathOpen ? 'chevron-up' : 'chevron-down'}
+                size={16}
+                color={colors.ink.soft}
+              />
+            </Pressable>
+            {pathOpen ? (
+              <View className="gap-3">
+                {pathViews.map((view) => (
+                  <GoalCard
+                    key={view.goal.id}
+                    view={view}
+                    expanded={expandedGoalId === view.goal.id}
+                    onToggle={() =>
+                      setExpandedGoalId((id) => (id === view.goal.id ? null : view.goal.id))
+                    }
+                  />
+                ))}
+              </View>
+            ) : null}
+
+            <Text className="pt-2 font-heading text-heading text-ink">
               How is your learning going, and what do you want to focus on next?
             </Text>
             <TextField
               value={feelingText}
               onChangeText={setFeelingText}
               multiline
-              autoFocus
               accessibilityLabel="How your learning is going"
             />
             <Button
@@ -171,9 +283,9 @@ export default function ReflectScreen() {
               disabled={feelingText.trim().length === 0}
             />
           </>
-        ) : status === 'generating' ? (
+        ) : step === 'generating' ? (
           <Generating label="Looking at your path" />
-        ) : status === 'error' ? (
+        ) : step === 'error' ? (
           <GenerationError message={error} onRetry={() => void generate()} />
         ) : plan ? (
           <>

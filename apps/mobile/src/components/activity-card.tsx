@@ -15,6 +15,10 @@ type ActivityCardProps = {
   completed?: boolean
   /** Left mid-activity today — resumable for the rest of the day (docs/05). */
   inProgress?: boolean
+  /** Its document is still being written; opening it joins the stream. */
+  writing?: boolean
+  /** Suggested but not written yet: tapping writes it (Explore → All, or a write that failed). */
+  unwritten?: boolean
   /** For Explore → All, where cards from several interests share a section. */
   interestName?: string
   onPress?: () => void
@@ -39,6 +43,8 @@ export function ActivityCard({
   section,
   completed = false,
   inProgress = false,
+  writing = false,
+  unwritten = false,
   interestName,
   onPress,
   testID,
@@ -48,7 +54,15 @@ export function ActivityCard({
       testID={testID}
       accessibilityRole="button"
       accessibilityLabel={`${title}. ${goalLine}. ${
-        completed ? 'Done today' : inProgress ? 'Continue' : `${estMinutes} minutes`
+        completed
+          ? 'Done today'
+          : inProgress
+            ? 'Continue'
+            : writing
+              ? 'Writing'
+              : unwritten
+                ? 'Write'
+                : `${estMinutes} minutes`
       }`}
       onPress={onPress}
       wrapperClassName="w-72"
@@ -78,12 +92,26 @@ export function ActivityCard({
           ) : (
             <>
               <Ionicons
-                name={inProgress ? 'play-circle-outline' : 'time-outline'}
+                name={
+                  inProgress
+                    ? 'play-circle-outline'
+                    : writing
+                      ? 'hourglass-outline'
+                      : unwritten
+                        ? 'create-outline'
+                        : 'time-outline'
+                }
                 size={13}
                 color={colors.ink.soft}
               />
               <Text className="font-sans text-caption text-ink">
-                {inProgress ? 'Continue' : `${estMinutes} min`}
+                {inProgress
+                  ? 'Continue'
+                  : writing
+                    ? 'Writing'
+                    : unwritten
+                      ? 'Write'
+                      : `${estMinutes} min`}
               </Text>
             </>
           )}

@@ -51,13 +51,14 @@ Rules:
 - Refer to existing goals only by the refs listed below. Never invent a ref.
 - Propose only what the reflection actually supports. An empty "suggestedChanges" is the right answer when their path already fits what they said; say so in the observations.
 - Prefer reordering or revising over removing for a goal they have already started — their progress on it is real.
+- They have just confirmed what they're hoping for ("What would feel like success" above). Favor changes that move them toward it; an outcome no goal on the path serves is a good reason to suggest one. In a reason, call it what they're hoping for, never "success".
 - Every "reason" is one line the learner reads, in their terms, about their learning — not about your reasoning.
 - New goals follow the same rules as the rest of the path: one session each, outcome-flavored titles, sequenced so prerequisites come first.
 - Speak to what they wrote. Never imply their knowledge is limited to what they have done in this app.`
 
 export const reflectUpdateTemplate: PromptTemplate<ReflectUpdateParams, ReflectUpdateOutput> = {
   kind: 'reflect.update',
-  version: 2,
+  version: 3,
   model: 'sonnet',
   maxTokens: 8000,
   effort: 'low',

@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, isNotNull, isNull, lt, lte, sql } from 'drizzle-orm'
+import { and, desc, eq, gte, inArray, isNotNull, isNull, lt, lte } from 'drizzle-orm'
 import type { Section, Tier } from '@thinkering/core'
 import type { Database } from '../database'
 import { activities, goals } from '../schema'
@@ -96,13 +96,4 @@ export function listCompletedBetween(
       )
       .orderBy(desc(activities.completedAt)),
   )
-}
-
-/** How many activities have ever been completed — the analytics ask fires on the first (docs/08). */
-export function countCompletedActivities(db: Database): number {
-  return db
-    .select({ count: sql<number>`count(*)` })
-    .from(activities)
-    .where(and(...COMPLETED))
-    .get()?.count ?? 0
 }

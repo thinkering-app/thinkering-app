@@ -69,7 +69,8 @@ type GoalCardProps = {
   view: PathGoalView
   expanded: boolean
   onToggle: () => void
-  onEdit: () => void
+  /** Absent where the path is shown read-only (the reflection flow). */
+  onEdit?: () => void
   onLongPress?: () => void
   /** Present in reorder mode; absent at an end of the path. */
   onMoveUp?: () => void
@@ -122,14 +123,14 @@ export function GoalCard({
               onPress={onMoveDown}
             />
           </View>
-        ) : (
+        ) : onEdit ? (
           <IconButton
             name="create-outline"
             label={`Edit ${goal.title}`}
             color={tone.icon}
             onPress={onEdit}
           />
-        )}
+        ) : null}
       </View>
 
       {expanded && !reordering ? (

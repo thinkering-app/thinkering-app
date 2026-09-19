@@ -8,14 +8,20 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Added
 
-- Anonymous, opt-in usage analytics — off until you say yes, asked once after
-  your first completed activity, and never carrying anything you write.
+- Anonymous, opt-in usage analytics — off until you say yes, asked once on the
+  welcome screen, and never carrying anything you write.
 - Delete your backup account from inside the app.
 - A privacy page in the app that matches the one on the website.
-- A new intake step, "What would feel like success?", with suggestions to pick
+- A new intake step, "What are you hoping for?", with suggestions to pick
   from. Your path is shaped around what you choose.
 - Add your own topics and outcomes during intake.
 - Add a goal of your own straight from Path.
+- A + at the end of each Today section adds another activity. Pick a goal or
+  say what you'd like to focus on, or leave both and get the next one.
+- Edit, add or remove what you're hoping for in Path settings.
+- Reflecting now starts with what you're hoping for — keep, drop or add to
+  it, with a few new suggestions — then a short recap of your recent learning
+  and a look at your path before you say how it's going.
 - Leave intake from any step, and choose to save it for later or discard it.
   A saved one picks up where you left off, from Me → Interests or the next
   time you add an interest.
@@ -27,6 +33,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 - A section's configure sheet says what the section is for, and shows its
   activity types as small cards, two to a row. Tap one to see what you'll do
   and why it helps, in plain words.
+- The web app no longer takes your own Anthropic key, since a browser can't
+  store it securely. A key saved there before is deleted; the phone app still
+  offers it.
 - On Today, what you've done stands out: a finished card takes its section's
   colour with a yellow "Done today", and the section gets a check by its name
   that pops in when you come back from the activity.
@@ -42,6 +51,11 @@ build; internal refactors and docs don't appear here. The conventions are in
   ready by the time you reach it.
 - The last intake step leads with In focus or Exploring, and says what each
   one is for.
+- Today shows one card per section. Finish one and the next is ready in its
+  place, and all three are written ahead so they open straight away. A card
+  still being written says so. Unfinished cards stay until you get to them.
+- Explore → All suggests activities from two of your exploring interests at a
+  time, rotating day to day. Tap Write on one to have it written.
 - Opening an activity shows what's happening while it's written — planning,
   then writing, then which page is next — and you can close it while you wait.
 

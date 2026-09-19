@@ -16,6 +16,7 @@ export const GENERATION_KINDS = [
   'activity.generate', // G5b
   'activity.review', // G6
   'activity.question', // G7
+  'reflect.open', // G8a
   'reflect.update', // G8
   'path.suggestGoals', // G9
   'resource.describe', // G10

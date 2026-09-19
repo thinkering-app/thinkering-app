@@ -8,7 +8,7 @@ import { ChipPicker } from '@/intake/chip-picker'
 import { StepScreen } from '@/intake/step-screen'
 
 /**
- * Step 5 (docs/01 §1) — what would feel like success: the G2b outcomes, plus
+ * Step 5 (docs/01 §1) — what they're hoping for: the G2b outcomes, plus
  * any they add themselves. Selecting none is allowed, and so is moving on when
  * G2b failed. On advance, G3 goes out; step 6 covers its wait.
  */
@@ -22,7 +22,7 @@ export default function SuccessStep() {
   return (
     <StepScreen
       step={5}
-      question="What would feel like success?"
+      question="What are you hoping for?"
       continueDisabled={success.status === 'idle' || success.status === 'pending'}
       onContinue={() => {
         startPath()

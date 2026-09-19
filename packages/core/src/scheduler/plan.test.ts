@@ -23,12 +23,14 @@ const goalIds = (picks: CardPick[]) => picks.map((p) => (p.kind === 'goal' ? p.g
 
 describe('planToday', () => {
   it('brand-new path: Next introduces the first goal, strengthen falls back to prerequisites, go further targets the first goal', () => {
-    const plan = planToday([goal('g1', 'not_started'), goal('g2', 'not_started'), goal('g3', 'not_started'), goal('g4', 'not_started')])
-    expect(plan.next).toEqual([{ kind: 'goal', goalId: 'g1', tier: 'introduce' }])
-    expect(plan.strengthen).toEqual([
-      { kind: 'prerequisite', tier: 'strengthen' },
-      { kind: 'prerequisite', tier: 'strengthen' },
+    const plan = planToday([
+      goal('g1', 'not_started'),
+      goal('g2', 'not_started'),
+      goal('g3', 'not_started'),
+      goal('g4', 'not_started'),
     ])
+    expect(plan.next).toEqual([{ kind: 'goal', goalId: 'g1', tier: 'introduce' }])
+    expect(plan.strengthen).toEqual([{ kind: 'prerequisite', tier: 'strengthen' }])
     expect(goalIds(plan.goFurther)).toEqual(['g1'])
     expect(plan.showReflectCard).toBe(false)
   })
@@ -46,39 +48,55 @@ describe('planToday', () => {
       goal('g3', 'introduced'),
       goal('g4', 'not_started'),
     ])
-    expect(goalIds(plan.strengthen)).toEqual(['g2', 'g3'])
+    expect(goalIds(plan.strengthen)).toEqual(['g2'])
   })
 
   it('strengthen falls back to spaced review, least-recently-strengthened first', () => {
-    const plan = planToday([
+    const goals = [
       goal('g1', 'strengthened', { strengthenedAt: 5000 }),
       goal('g2', 'introduced'),
       goal('g3', 'applied', { strengthenedAt: 1000 }),
       goal('g4', 'strengthened', { strengthenedAt: 3000 }),
+    ]
+    // The introduced goal first; once the section has had it, the stalest
+    // strengthened goal (g3, via applied status), then the next stalest.
+    expect(goalIds(planToday(goals).strengthen)).toEqual(['g2'])
+    expect(goalIds(planToday(goals, { exclude: { strengthen: ['g2'] } }).strengthen)).toEqual([
+      'g3',
     ])
-    // One introduced goal, then the stalest strengthened goal (g3, via applied status).
-    expect(goalIds(plan.strengthen)).toEqual(['g2', 'g3'])
+    expect(goalIds(planToday(goals, { exclude: { strengthen: ['g2', 'g3'] } }).strengthen)).toEqual(
+      ['g4'],
+    )
   })
 
-  it('strengthen pads with a prerequisite card when only one goal is eligible', () => {
-    const plan = planToday([goal('g1', 'introduced'), goal('g2', 'not_started')])
-    expect(plan.strengthen).toEqual([
-      { kind: 'goal', goalId: 'g1', tier: 'strengthen' },
+  it('strengthen falls back to a prerequisite card once every eligible goal is excluded', () => {
+    const goals = [goal('g1', 'introduced'), goal('g2', 'not_started')]
+    expect(goalIds(planToday(goals).strengthen)).toEqual(['g1'])
+    expect(planToday(goals, { exclude: { strengthen: ['g1'] } }).strengthen).toEqual([
       { kind: 'prerequisite', tier: 'strengthen' },
     ])
   })
 
   it('go further prefers strengthened-not-applied, then least-recently-applied, then introduced', () => {
-    const plan = planToday([
+    const goals = [
       goal('g1', 'applied', { appliedAt: 4000 }),
       goal('g2', 'strengthened'),
       goal('g3', 'applied', { appliedAt: 1000 }),
       goal('g4', 'introduced'),
-    ])
-    expect(goalIds(plan.goFurther)).toEqual(['g2', 'g3'])
+    ]
+    const pick = (exclude: string[]) =>
+      goalIds(planToday(goals, { exclude: { go_further: exclude } }).goFurther)
+    expect(pick([])).toEqual(['g2'])
+    expect(pick(['g2'])).toEqual(['g3'])
+    expect(pick(['g2', 'g3'])).toEqual(['g1'])
+    expect(pick(['g1', 'g2', 'g3'])).toEqual(['g4'])
+    expect(pick(['g1', 'g2', 'g3', 'g4'])).toEqual([])
+  })
 
-    const noneStrengthened = planToday([goal('a', 'applied', { appliedAt: 9 }), goal('b', 'introduced')])
-    expect(goalIds(noneStrengthened.goFurther)).toEqual(['a', 'b'])
+  it('exclusions are per section', () => {
+    const goals = [goal('g1', 'not_started'), goal('g2', 'not_started')]
+    expect(goalIds(planToday(goals, { exclude: { next: ['g1'] } }).next)).toEqual(['g2'])
+    expect(goalIds(planToday(goals, { exclude: { next: ['g1'] } }).goFurther)).toEqual(['g1'])
   })
 
   it('all goals completed: no Next card, spaced review still fills strengthen and go further', () => {
@@ -87,8 +105,8 @@ describe('planToday', () => {
       goal('g2', 'applied', { strengthenedAt: 2, appliedAt: 20 }),
     ])
     expect(plan.next).toEqual([])
-    expect(goalIds(plan.strengthen)).toEqual(['g1', 'g2'])
-    expect(goalIds(plan.goFurther)).toEqual(['g1', 'g2'])
+    expect(goalIds(plan.strengthen)).toEqual(['g1'])
+    expect(goalIds(plan.goFurther)).toEqual(['g1'])
     expect(plan.showReflectCard).toBe(true)
   })
 

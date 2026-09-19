@@ -1,4 +1,4 @@
-import type { UsageRecord } from './store'
+import type { TokenTotals, UsageAfter, UsageDelta, UsageRecord } from './store'
 
 /**
  * Budget math (D14, docs/04 §Usage metering). Weighted tokens: output ×4
@@ -15,6 +15,17 @@ export const OUTPUT_WEIGHT = 4
 /** In-activity kinds that draw from the protected slice. */
 export const PROTECTED_KINDS = new Set(['activity.review', 'activity.question'])
 
+/**
+ * Weighted tokens the whole proxy may spend in a UTC day, across every device:
+ * the backstop for many devices, which per-device budgets can't bound.
+ * `AI_DAILY_LIMIT_WEIGHTED` overrides it per deployment.
+ */
+export const GLOBAL_DAILY_BUDGET_WEIGHTED =
+  Number(process.env.AI_DAILY_LIMIT_WEIGHTED) || 20_000_000
+
+/** Counts repair round-trips across kinds; its burst limit is in BURST_LIMITS. */
+export const REPAIR_COUNTER = 'repair'
+
 /** Per-kind daily burst limits to prevent abuse of the expensive kinds. */
 export const BURST_LIMITS: Record<string, number> = {
   'intake.approach': 10,
@@ -24,13 +35,20 @@ export const BURST_LIMITS: Record<string, number> = {
   'resources.search': 10,
   'activity.generate': 80,
   'today.plan': 60,
+  'reflect.open': 15,
   'reflect.update': 15,
   'resource.describe': 40,
   /** Not a model call — the page fetch behind add-by-link, limited for the same reason. */
   'fetch.url': 60,
+  /**
+   * Repairs across all kinds. A client repairs at most once per call, and rarely;
+   * the cap keeps the repair turn, whose text the client supplies, from becoming
+   * a free-form channel to the model.
+   */
+  [REPAIR_COUNTER]: 30,
 }
 
-export function weightedUsed(usage: UsageRecord): number {
+export function weightedUsed(usage: TokenTotals): number {
   return usage.inputTokens + OUTPUT_WEIGHT * usage.outputTokens
 }
 
@@ -44,18 +62,59 @@ export function nextUtcMidnight(nowMs: number): string {
 }
 
 export type BudgetDecision =
-  { allowed: true } | { allowed: false; reason: 'budget_exhausted' | 'kind_limit_reached' }
+  | { allowed: true }
+  | { allowed: false; reason: 'budget_exhausted' | 'kind_limit_reached' | 'service_limit_reached' }
+
+/**
+ * The state before a delta, from the state after it — what the call that
+ * applied the delta decides on, since it reserves before it checks.
+ */
+export function withoutDelta(after: UsageAfter, delta: UsageDelta): UsageAfter {
+  const kindCalls = { ...after.device.kindCalls }
+  for (const counter of delta.counters) kindCalls[counter] = (kindCalls[counter] ?? 0) - delta.calls
+  return {
+    device: {
+      inputTokens: after.device.inputTokens - delta.inputTokens,
+      outputTokens: after.device.outputTokens - delta.outputTokens,
+      calls: after.device.calls - delta.calls,
+      kindCalls,
+    },
+    total: {
+      inputTokens: after.total.inputTokens - delta.inputTokens,
+      outputTokens: after.total.outputTokens - delta.outputTokens,
+    },
+  }
+}
+
+/** The delta that undoes one, for a reservation that was refused. */
+export function reverseDelta(delta: UsageDelta): UsageDelta {
+  return {
+    counters: delta.counters,
+    calls: -delta.calls,
+    inputTokens: -delta.inputTokens,
+    outputTokens: -delta.outputTokens,
+  }
+}
 
 /**
  * Reserved headroom: generation-heavy kinds stop at budget − reserve; the
  * protected in-activity kinds may spend up to the full budget, so an activity
  * in progress can always finish its responsive pieces.
  */
-export function checkBudget(kind: string, usage: UsageRecord): BudgetDecision {
-  const kindCalls = usage.kindCalls[kind] ?? 0
-  const limit = BURST_LIMITS[kind]
-  if (limit !== undefined && kindCalls >= limit) {
-    return { allowed: false, reason: 'kind_limit_reached' }
+export function checkBudget(
+  kind: string,
+  usage: UsageRecord,
+  opts: { repair?: boolean; total?: TokenTotals } = {},
+): BudgetDecision {
+  const counters = opts.repair ? [kind, REPAIR_COUNTER] : [kind]
+  for (const counter of counters) {
+    const limit = BURST_LIMITS[counter]
+    if (limit !== undefined && (usage.kindCalls[counter] ?? 0) >= limit) {
+      return { allowed: false, reason: 'kind_limit_reached' }
+    }
+  }
+  if (opts.total && weightedUsed(opts.total) >= GLOBAL_DAILY_BUDGET_WEIGHTED) {
+    return { allowed: false, reason: 'service_limit_reached' }
   }
   const used = weightedUsed(usage)
   const ceiling = PROTECTED_KINDS.has(kind)

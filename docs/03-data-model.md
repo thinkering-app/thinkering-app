@@ -13,7 +13,7 @@ SQLite via Drizzle (`packages/db`). Conventions: `id` = client-generated UUIDv7 
 | why_text                             | text?   |                                                           |
 | experience_choice                    | text    | `getting_started \| explored \| in_middle \| experienced` |
 | experience_text                      | text?   |                                                           |
-| success_outcomes                     | json?   | `string[]`, what would feel like success (intake step 5)  |
+| success_outcomes                     | json?   | `string[]`, what they're hoping for (intake step 5)       |
 | frequency                            | text    | `daily \| several_weekly \| when_i_can`                   |
 | session_minutes                      | int     | 5 / 10 / 15 / custom value                                |
 | approach_notes                       | text    | from G1, editable in path settings                        |
@@ -45,8 +45,9 @@ Concept **coverage** (which concepts/skills have been targeted — shown when a 
 
 | column                               | type  | notes                                                       |
 | ------------------------------------ | ----- | ----------------------------------------------------------- |
-| id / interest_id / goal_id           |       | `goal_id` null only on the strengthen prerequisite card     |
-| topic                                | text? | the prerequisite card's topic, when it has no goal yet      |
+| id / interest_id / goal_id           |       | `goal_id` null only on the strengthen prerequisite card, or a + card asked for without a goal |
+| topic                                | text? | a goal-less card's topic: the prerequisite's, or a short name for the learner's request |
+| focus                                | text? | what the learner asked a + card to focus on, or how to learn it; passed to G5b (docs/01 §3) |
 | section                              | text  | `next \| strengthen \| go_further`                          |
 | tier                                 | text  | `introduce \| strengthen \| apply`                          |
 | library_item_id                      | text  | e.g. `worked-example`                                       |
@@ -79,6 +80,8 @@ Kept separate from `doc` so generation (G6) and future features can query them.
 ## reflections ⟳
 
 `id, interest_id, feeling_text, changes json (accepted path edits summary), created_at, updated_at, deleted_at`
+
+`changes` is `{added, removed, revised, reordered}` goal titles, plus `outcomes: {before, after}` when the reflection changed what they're hoping for (the interest's `success_outcomes` then holds `after`).
 
 ## library_prefs ⟳ — per-interest activation of library items
 
@@ -113,10 +116,10 @@ Pruned to last ~200 calls. Never synced.
 ## Supabase (server) tables
 
 - `sync_rows(user_id uuid, table_name, id, updated_at, deleted_at, schema_version, data jsonb)` — one row per synced local row, its columns carried as JSON, primary key `(user_id, table_name, id)`, RLS `user_id = auth.uid()` (and a `schema_version` floor on write, docs/02 D17). One generic table rather than a mirror per ⟳ table: nothing server-side reads inside `data`, and a local migration is then never a server migration.
-- `devices(device_id, secret, platform, created_at, attested bool)` and `device_usage(device_id, day, input_tokens, output_tokens, calls, kind_calls json)` — operational, reached only with the secret key (the `service_role` Postgres role). The device secret is stored raw, not hashed: the server must verify HMAC request signatures (docs/02), which a one-way hash cannot do; nothing but the secret key can read the table, and App Attest hardens issuance later. `kind_calls` carries per-kind counts for the burst limits in `04`.
+- `devices(device_id, secret, platform, created_at, attested bool)` and `device_usage(device_id, day, input_tokens, output_tokens, calls, kind_calls json)` — operational, reached only with the secret key (the `service_role` Postgres role). The device secret is stored raw, not hashed: the server must verify HMAC request signatures (docs/02), which a one-way hash cannot do; nothing but the secret key can read the table, and App Attest hardens issuance later. `kind_calls` carries per-kind counts for the burst limits in `04`. `usage_totals(day, input_tokens, output_tokens)` is the proxy-wide daily sum, written in the same atomic step (`add_device_usage`); `ip_actions(ip_hash, day, action, count)` counts device registrations per hashed address (`02`).
 
 ## Invariants
 
 - Goal status only moves forward; timestamps set once per transition (completing a strengthen activity on an `applied` goal updates `strengthened_at` but not status).
-- One `planned` daily-plan set per interest per local date; regenerated only via explicit refresh or config change. A configure change drops that section's _untouched_ cards and re-plans only that section — anything started or completed stays.
+- A section has at most one scheduler-planned open card (`planned | ready | in_progress`) per interest, whatever its `planned_for` date — unfinished cards carry over and are never abandoned by the day turning. A section with none gets its next card when Today opens, skipping goals it already had that day. + cards add to this. A configure change drops that section's _untouched_ cards and re-plans only that section — anything started or completed stays.
 - Deleting an interest soft-deletes its children (cascade in application code).

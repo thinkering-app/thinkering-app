@@ -47,13 +47,6 @@ name: activity
 - tapOn:
     id: 'player-done'
 
-# In a build with a PostHog key, the first completion is where the analytics
-# ask appears (docs/08). Declining is what a test should do: it sends nothing
-# and deletes the buffer. Optional, because a build without a key never asks.
-- tapOn:
-    text: 'No thanks'
-    optional: true
-
 # The completion shows on Today — the card reads "Done today" and the section
 # heading carries the count — and the activity is in History.
 - extendedWaitUntil:

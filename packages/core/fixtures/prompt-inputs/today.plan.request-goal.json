@@ -7,11 +7,6 @@
       "whyText": "Partner’s family is in Munich; I want to hold my own at dinner.",
       "experienceChoice": "explored",
       "experienceText": "Two Duolingo streaks that died; I can order food.",
-      "successOutcomes": [
-        "I can follow most of a dinner conversation",
-        "I've had a whole call with family in German",
-        "I feel relaxed speaking, even with mistakes"
-      ],
       "frequency": "several_weekly",
       "sessionMinutes": 10,
       "approachNotes": "You learn a language by understanding messages and being pushed to produce them. We’ll pair short comprehensible input — reading and listening slightly above your level — with small speaking and writing reps every session, so recognition turns into production."
@@ -147,37 +142,44 @@
     ]
   },
   "sessionMinutes": 10,
-  "feelingText": "Ordering food is finally sticking, but the moment someone asks me something back I freeze. I'd rather spend the next few weeks on actually holding a short conversation than on more vocabulary.",
-  "goals": [
+  "picks": {
+    "next": [],
+    "strengthen": [
+      {
+        "goalId": "g2",
+        "goalTitle": "Order food and drinks",
+        "focus": "Quiz me, I keep mixing up einen and ein after hätte gern"
+      }
+    ],
+    "goFurther": []
+  },
+  "activeItems": {
+    "next": [
+      "plain-explainer",
+      "guided-discovery",
+      "watch-along"
+    ],
+    "strengthen": [
+      "retrieval-quiz",
+      "focused-drill",
+      "faded-example"
+    ],
+    "goFurther": [
+      "make-something",
+      "put-to-work",
+      "connect-ideas"
+    ]
+  },
+  "yesterdayItems": [
     {
-      "ref": "G1",
-      "title": "Greet and introduce yourself",
-      "description": "Greetings for formal and informal situations, and saying who you are.",
-      "status": "strengthened"
-    },
-    {
-      "ref": "G2",
-      "title": "Order food and drinks",
-      "description": "Ordering in a cafe or restaurant, politely, without switching to English.",
-      "status": "introduced"
-    },
-    {
-      "ref": "G3",
-      "title": "Talk about your family",
-      "description": "Talking about who is in your family and how you are related.",
-      "status": "not_started"
-    },
-    {
-      "ref": "G4",
-      "title": "Handle small talk about your weekend",
-      "description": "Saying what you did at the weekend using the Perfekt.",
-      "status": "not_started"
+      "goalId": "g2",
+      "libraryItemId": "plain-explainer"
     }
   ],
-  "topics": [
-    "Small talk and everyday phrases",
-    "Food and restaurants",
-    "German word order",
-    "Bavarian culture"
+  "matchedResources": [
+    {
+      "goalId": "g2",
+      "resourceTitle": "Easy German: At the Restaurant (video)"
+    }
   ]
 }

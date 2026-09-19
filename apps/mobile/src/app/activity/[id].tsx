@@ -17,7 +17,6 @@ import {
 import {
   attachDoc,
   completeActivity,
-  countCompletedActivities,
   getActivity,
   getGoal,
   listResponses,
@@ -29,16 +28,16 @@ import {
 } from '@thinkering/db'
 
 import { describeAiError } from '@/ai/generation'
-import { AnalyticsAskSheet, shouldAskForAnalytics, track } from '@/analytics'
+import { track } from '@/analytics'
 import { Button } from '@/components/button'
 import { GenerationError } from '@/components/generation-error'
 import { db, repoContext } from '@/db'
 import { AskSheet } from '@/features/activity-player/ask-sheet'
 import {
   fallbackReviewPage,
-  generateActivityDoc,
   generateAskPage,
   generateReviewPage,
+  writeActivityDoc,
 } from '@/features/activity-player/generate'
 import { ActivityPlayer } from '@/features/activity-player/player'
 import type { ResponseSink } from '@/features/activity-player/responses'
@@ -72,7 +71,6 @@ export default function ActivityScreen() {
   const [askOpen, setAskOpen] = useState(false)
   const [askState, setAskState] = useState<'idle' | 'pending' | 'error'>('idle')
   const [askError, setAskError] = useState<string>()
-  const [askConsent, setAskConsent] = useState(false)
   const reviewRequested = useRef(false)
   const openedAt = useRef(0)
   const questionsAsked = useRef(0)
@@ -108,24 +106,24 @@ export default function ActivityScreen() {
   }, [activity])
 
   // G5b on first open of a card that has no document yet (docs/04: streamed,
-  // page 1 renders as soon as it parses). If the Next-card prefetch is still
-  // writing it, this joins that generation rather than starting another.
+  // page 1 renders as soon as it parses). A card Today is already writing joins
+  // that write; leaving doesn't cancel it, the document is kept for later.
   useEffect(() => {
     if (!activity || activity.doc) return
-    const controller = new AbortController()
-    const run = async () => {
-      setGenError(null)
-      setPartial(null)
-      try {
-        setDoc(
-          await generateActivityDoc(activity, { signal: controller.signal, onPartial: setPartial }),
-        )
-      } catch (e) {
-        if (!controller.signal.aborted) setGenError(describeAiError(e))
-      }
+    let left = false
+    const write = writeActivityDoc(activity, setPartial)
+    write.promise.then(
+      (written) => {
+        if (!left) setDoc(written)
+      },
+      (e: unknown) => {
+        if (!left) setGenError(describeAiError(e))
+      },
+    )
+    return () => {
+      left = true
+      write.unsubscribe()
     }
-    void run()
-    return () => controller.abort()
   }, [activity, attempt])
 
   /** G6, once they move past the last page that asked them anything. */
@@ -238,7 +236,14 @@ export default function ActivityScreen() {
   if (genError && !doc) {
     return (
       <Missing>
-        <GenerationError message={genError} onRetry={() => setAttempt((n) => n + 1)} />
+        <GenerationError
+          message={genError}
+          onRetry={() => {
+            setGenError(null)
+            setPartial(null)
+            setAttempt((n) => n + 1)
+          }}
+        />
       </Missing>
     )
   }
@@ -274,9 +279,7 @@ export default function ActivityScreen() {
           questions_asked_count: questionsAsked.current,
           rating: rating ?? 'none',
         })
-        // The one-time analytics ask rides on the first completion (docs/08).
-        if (shouldAskForAnalytics(countCompletedActivities(db))) setAskConsent(true)
-        else router.back()
+        router.back()
       }}
       onClose={() => {
         if (!completed.current) {
@@ -288,25 +291,16 @@ export default function ActivityScreen() {
       shareState={shareState}
       onAsk={doc ? () => setAskOpen(true) : undefined}
       overlay={
-        <>
-          <AskSheet
-            visible={askOpen}
-            onClose={() => {
-              setAskOpen(false)
-              setAskState('idle')
-            }}
-            onAsk={ask}
-            state={askState}
-            error={askError}
-          />
-          <AnalyticsAskSheet
-            visible={askConsent}
-            onAnswered={() => {
-              setAskConsent(false)
-              router.back()
-            }}
-          />
-        </>
+        <AskSheet
+          visible={askOpen}
+          onClose={() => {
+            setAskOpen(false)
+            setAskState('idle')
+          }}
+          onAsk={ask}
+          state={askState}
+          error={askError}
+        />
       }
     />
   )

@@ -69,6 +69,12 @@ belong to `apps/web` on Vercel and never reach a build.
 
 ## Before the first submission
 
+- Apply `apps/web/supabase/schema.sql` to the production Supabase project. It
+  is re-runnable; re-apply it whenever it changes.
+- Set a monthly spend limit in the Anthropic Console (Settings → Limits) for
+  the workspace the proxy's key belongs to. The proxy's own caps (`docs/04`
+  §Usage metering) stop at a day; this is the backstop past them.
+
 - App Privacy answers: `docs/08-analytics-and-privacy.md` §App Store privacy
   disclosures.
 - The Featurebase moderation checklist: `docs/10-testing.md` §Tier 6. Guideline

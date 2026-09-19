@@ -3,8 +3,8 @@ import { Platform } from 'react-native'
 
 /**
  * Keychain-backed storage for the device token and BYO key (D10). SecureStore
- * has no web implementation; web falls back to localStorage — the BYOK screen
- * warns about that (docs/02).
+ * has no web implementation; web falls back to localStorage, which is why web
+ * never holds a BYO key (`BYOK_AVAILABLE`, docs/02).
  */
 
 export async function secureGet(key: string): Promise<string | null> {
@@ -35,3 +35,13 @@ export const KEYS = {
   deviceSecret: 'thinkering.device_secret',
   byokKey: 'thinkering.byok_anthropic_key',
 } as const
+
+/**
+ * Web builds once let a BYO key into localStorage. Drop any that is still
+ * there; a no-op on native, where the key is allowed.
+ */
+export function forgetWebByokKey(): void {
+  if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
+    localStorage.removeItem(`secure.${KEYS.byokKey}`)
+  }
+}
