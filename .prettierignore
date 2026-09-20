@@ -8,6 +8,7 @@ pnpm-lock.yaml
 # Generated output: the generator owns the bytes, not prettier. Reformatting it
 # only churns the next time the generator runs.
 apps/web/next-env.d.ts
+apps/mobile/expo-env.d.ts
 packages/db/migrations
 packages/db/fixtures
 packages/core/fixtures/recorded
@@ -20,3 +21,7 @@ packages/core/fixtures/malformed
 .context
 .claude
 .conductor/settings.local.*
+
+# Written by running the app and its browser tests. Ignored by git through
+# apps/mobile/.gitignore, which prettier doesn't read — it only reads the root.
+apps/mobile/test-results

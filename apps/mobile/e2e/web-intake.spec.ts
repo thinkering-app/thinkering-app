@@ -72,3 +72,21 @@ test('an intake page with nothing answered goes back to the first question', asy
   await page.goto('/intake/direction')
   await expect(page).toHaveURL(/\/intake\/learn$/)
 })
+
+test('back from the first question is never a dead end', async ({ page }) => {
+  await page.goto('/')
+  await page.getByTestId('intake-start').click()
+  await expect(page).toHaveURL(/\/intake\/learn$/)
+  await page.getByLabel('Back').last().click()
+  await expect(page).toHaveURL(/\/intake\/welcome$/)
+
+  // Again, this time as a run picked up from a draft: nothing is behind it in
+  // the stack, and the first question is the one screen with nowhere else to go.
+  await page.getByTestId('intake-start').click()
+  await page.getByTestId('intake-learn').last().fill('Conversational German')
+  await expect(page.getByTestId('intake-learn').last()).toHaveValue('Conversational German')
+  await page.goto('/')
+  await expect(page).toHaveURL(/\/intake\/learn$/)
+  await page.getByLabel('Back').last().click()
+  await expect(page).toHaveURL(/\/intake\/welcome$/)
+})

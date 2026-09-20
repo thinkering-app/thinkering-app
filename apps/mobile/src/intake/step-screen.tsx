@@ -54,16 +54,18 @@ export function StepScreen({
   )
 
   // Back walks the questions in order even when this run started partway
-  // through (picking up a draft), and only leaves intake from the first one —
-  // asking first, as the close button does.
+  // through (picking up a draft), and from the first one leaves intake: to the
+  // welcome for a first interest, otherwise back where they started it from,
+  // asking first as the close button does. Never a dead end — a run resumed
+  // from a draft has no history behind it and still has to go somewhere.
   const hasPreviousInIntake = (navigation.getState()?.index ?? 0) > 0
   const back = hasPreviousInIntake
     ? () => router.back()
     : step > 1
       ? () => router.replace(stepHref(step - 1))
-      : router.canGoBack()
+      : hasInterest
         ? requestLeave
-        : undefined
+        : () => router.replace('/intake/welcome')
 
   const advance = onContinue
     ? () => {
@@ -82,18 +84,14 @@ export function StepScreen({
         keyboardVerticalOffset={0}
       >
         <View className="flex-row items-center gap-3 px-5 pt-2">
-          {back ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Back"
-              onPress={back}
-              hitSlop={12}
-            >
-              <Ionicons name="chevron-back" size={22} color={colors.ink.soft} />
-            </Pressable>
-          ) : (
-            <View className="w-[22px]" />
-          )}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+            onPress={back}
+            hitSlop={12}
+          >
+            <Ionicons name="chevron-back" size={22} color={colors.ink.soft} />
+          </Pressable>
           <ProgressDots current={step} total={INTAKE_STEP_COUNT} />
           {/* A first interest has nothing to leave to: Today is empty without it. */}
           {hasInterest ? (
