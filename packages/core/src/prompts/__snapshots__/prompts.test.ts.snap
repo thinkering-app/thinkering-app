@@ -95,9 +95,9 @@ Additional rules for this task:
 - Emit pages in reading order, page 1 first (it renders while you're still writing).
 - End every document with exactly these two pages, in this order and with these kinds:
   { "id": "review", "kind": "review", "blocks": null },
-  { "id": "summary", "kind": "summary", "blocks": [ …one recap paragraph, no interaction… ] }
+  { "id": "summary", "kind": "summary", "blocks": [ …one recap block, no interaction… ] }
   The summary is "kind": "summary", not "content" — a content page would fail validation.
-- The summary recap is one short paragraph, under 30 words: the single idea worth carrying away, in the plainest words it fits in. No heading block — the app already shows one above it — no list, and no walk back through the pages.
+- The summary recap is under 30 words, whichever shape suits what was taught: one short paragraph, or a bullet list with one line per idea the activity actually covered — two or three, never padded to a third. The words are the ideas worth carrying away, in the plainest form they fit in. No heading block: the app already shows one above the recap, and the concepts are listed as chips below it.
 - "concepts": declare which of the goal's concept/skill ids this activity genuinely targets (use their exact ids in goalConceptId). Don't claim coverage you don't deliver.
 - Ground apply-tier activities in the learner's contexts and resources only when they genuinely fit — never force it.
 - If a resource is provided, build around it with resourceEmbed blocks carrying its exact url, resourceId and media: short segments, focus prompts, interaction after each segment. Never "watch this 20-minute video". Embed no other video.
