@@ -121,6 +121,10 @@ export async function POST(req: Request): Promise<Response> {
   const auth = await verifyDeviceAuth(req, bodyText, store, now())
   if (!auth.ok) return Response.json({ error: auth.message }, { status: auth.status })
 
+  // Client-supplied and unsigned, so it's a diagnostic rather than a claim:
+  // nothing branches on it. Builds older than the header report 'unknown'.
+  const appVersion = (req.headers.get('x-app-version') ?? 'unknown').slice(0, 32)
+
   let json: unknown
   try {
     json = JSON.parse(bodyText)
@@ -145,6 +149,7 @@ export async function POST(req: Request): Promise<Response> {
       model: 'none',
       status: 'error',
       errorType: 'unknown_kind',
+      appVersion,
     })
     return Response.json({ error: 'unknown_kind' }, { status: 400 })
   }
@@ -236,6 +241,7 @@ export async function POST(req: Request): Promise<Response> {
       inputTokens,
       outputTokens: charged,
       latencyMs: now() - started,
+      appVersion,
       ...(opts.error ? { errorType: (opts.error as Error).name } : {}),
     })
     try {
@@ -253,6 +259,7 @@ export async function POST(req: Request): Promise<Response> {
         model,
         status: 'error',
         errorType: `settle:${(err as Error).name}`,
+        appVersion,
       })
     }
   }

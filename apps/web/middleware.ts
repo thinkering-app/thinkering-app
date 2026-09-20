@@ -29,8 +29,13 @@ const ALLOWED_ORIGINS = new Set(['https://web.thinkering.app', ...CONFIGURED_ORI
 /** `expo start --web` and a local `expo export -p web` preview. */
 const LOCALHOST = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/
 
-/** The headers `signedHeaders()` in apps/mobile/src/ai/device.ts sends. */
-const REQUEST_HEADERS = 'content-type, x-device-id, x-timestamp, x-signature'
+/**
+ * The headers `signedHeaders()` in apps/mobile/src/ai/device.ts sends. Every
+ * one has to be listed: a header the browser asks for and doesn't find here
+ * fails the preflight, which takes the whole web app offline — so this has to
+ * be updated in the same change that adds one (cors.test.ts pins them).
+ */
+const REQUEST_HEADERS = 'content-type, x-device-id, x-timestamp, x-signature, x-app-version'
 
 function isAllowed(origin: string): boolean {
   if (ALLOWED_ORIGINS.has(origin)) return true

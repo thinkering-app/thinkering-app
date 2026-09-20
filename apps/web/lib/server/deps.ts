@@ -26,6 +26,12 @@ export interface ServerDeps {
     outputTokens?: number
     latencyMs?: number
     errorType?: string
+    /**
+     * Which build made the call (`x-app-version`), 'unknown' from one too old
+     * to send it. The lowest version still appearing is what says whether a
+     * retired kind can be deleted (docs/04 §Retired kinds).
+     */
+    appVersion?: string
   }) => void
 }
 

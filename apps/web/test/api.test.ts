@@ -429,7 +429,10 @@ describe('POST /api/ai — validation and behavior', () => {
     await aiPost(signedRequest('http://x/api/ai', creds, { body: APPROACH_BODY }))
     expect(logged).toHaveLength(1)
     const keys = Object.keys(logged[0]!)
+    // An allowlist, not a sample: adding a key here is the moment to check it
+    // can't carry anything the learner wrote. `appVersion` is a build number.
     expect(keys.sort()).toEqual([
+      'appVersion',
       'inputTokens',
       'kind',
       'latencyMs',
