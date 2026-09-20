@@ -57,7 +57,9 @@ export const intakeApproachTemplate: PromptTemplate<
           `They want to learn: ${params.wantToLearn}`,
           `Why: ${params.whyChoice}${params.whyText ? ` — ${params.whyText}` : ''}`,
           ...(params.experienceChoice
-            ? [`Experience: ${params.experienceChoice}${params.experienceText ? ` — ${params.experienceText}` : ''}`]
+            ? [
+                `Experience: ${params.experienceChoice}${params.experienceText ? ` — ${params.experienceText}` : ''}`,
+              ]
             : ['Experience: not stated yet']),
         ].join('\n'),
       },

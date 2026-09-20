@@ -59,7 +59,10 @@ Rules:
 
 ${libraryReference()}`
 
-export const todayPlanTemplate: PromptTemplate<TodayPlanParams, z.infer<typeof dailyPlanOutputSchema>> = {
+export const todayPlanTemplate: PromptTemplate<
+  TodayPlanParams,
+  z.infer<typeof dailyPlanOutputSchema>
+> = {
   kind: 'today.plan',
   // v2: a pick can carry the learner's own request, from the + card; one that
   // names a way of learning gets the matching item.
@@ -94,10 +97,14 @@ export const todayPlanTemplate: PromptTemplate<TodayPlanParams, z.infer<typeof d
             `Active items — strengthen: ${params.activeItems.strengthen.join(', ')}`,
             `Active items — go further: ${params.activeItems.goFurther.join(', ')}`,
             ...(params.yesterdayItems && params.yesterdayItems.length > 0
-              ? [`Yesterday's items: ${params.yesterdayItems.map((y) => `${y.goalId}→${y.libraryItemId}`).join(', ')}`]
+              ? [
+                  `Yesterday's items: ${params.yesterdayItems.map((y) => `${y.goalId}→${y.libraryItemId}`).join(', ')}`,
+                ]
               : []),
             ...(params.matchedResources && params.matchedResources.length > 0
-              ? [`Well-matched resources: ${params.matchedResources.map((m) => `${m.goalId}: ${m.resourceTitle}`).join(' | ')}`]
+              ? [
+                  `Well-matched resources: ${params.matchedResources.map((m) => `${m.goalId}: ${m.resourceTitle}`).join(' | ')}`,
+                ]
               : []),
           ].join('\n'),
         },

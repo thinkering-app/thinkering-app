@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import {
   activityDocSchema,
+  docForReport,
   FEEDBACK_PLATFORMS,
   FEEDBACK_SCREENS,
   RATINGS,
@@ -14,8 +15,10 @@ import { utcDayOf } from '@/lib/server/metering'
 
 /**
  * An activity the user chose to share with us (D18, docs/08). It carries the
- * generated activity and their rating and note — never their answers. Forwarded
- * by email and never stored; nothing arrives here without that explicit action.
+ * generated activity and their rating and note — never their answers, and never
+ * the questions they asked, which the client strips and this route strips again.
+ * Forwarded by email and never stored; nothing arrives here without that
+ * explicit action.
  */
 
 /** Generous enough for a long activity document, small enough to bound an email. */
@@ -60,10 +63,9 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   const day = utcDayOf(now())
-  if ((await store.getActionCount(auth.deviceId, day, 'activity_report')) >= RATE_LIMIT_PER_DAY) {
+  if ((await store.countDeviceAction(auth.deviceId, day, 'activity_report')) > RATE_LIMIT_PER_DAY) {
     return Response.json({ error: 'rate_limited' }, { status: 429 })
   }
-  await store.addAction(auth.deviceId, day, 'activity_report')
 
   const report = body.data
   const context = report.context ? sanitizeFeedbackContext(report.context) : undefined
@@ -77,7 +79,7 @@ export async function POST(req: Request): Promise<Response> {
       `Context: ${contextLine(context)}`,
       '',
       '--- activity ---',
-      JSON.stringify(report.doc, null, 2),
+      JSON.stringify(docForReport(report.doc), null, 2),
     ].join('\n'),
   })
   if (!sent.ok) return Response.json({ error: sent.error }, { status: sent.status })

@@ -9,7 +9,12 @@ import { genCache } from '../schema'
  * planned `activities` rows are the durable artifact.)
  */
 
-export function getCached<T>(db: Database, kind: string, scopeKey: string, nowMs: number): T | undefined {
+export function getCached<T>(
+  db: Database,
+  kind: string,
+  scopeKey: string,
+  nowMs: number,
+): T | undefined {
   const row = db
     .select()
     .from(genCache)
@@ -29,7 +34,11 @@ export function getCached<T>(db: Database, kind: string, scopeKey: string, nowMs
  * Kinds keyed by a content signature (G9's path signature) never set one — the
  * key going stale is what expires them.
  */
-export function getCachedUnexpiring<T>(db: Database, kind: string, scopeKey: string): T | undefined {
+export function getCachedUnexpiring<T>(
+  db: Database,
+  kind: string,
+  scopeKey: string,
+): T | undefined {
   const row = db
     .select()
     .from(genCache)
@@ -57,5 +66,7 @@ export function putCached(
 }
 
 export function invalidateCached(db: Database, kind: string, scopeKey: string): void {
-  db.delete(genCache).where(and(eq(genCache.kind, kind), eq(genCache.scopeKey, scopeKey))).run()
+  db.delete(genCache)
+    .where(and(eq(genCache.kind, kind), eq(genCache.scopeKey, scopeKey)))
+    .run()
 }

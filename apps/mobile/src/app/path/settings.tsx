@@ -139,7 +139,8 @@ export default function PathSettingsScreen() {
     })
     track('settings_changed', { key: 'path_settings' })
     if (frequency !== interest.frequency) track('settings_changed', { key: 'frequency' })
-    if (sessionMinutes !== interest.sessionMinutes) track('settings_changed', { key: 'session_minutes' })
+    if (sessionMinutes !== interest.sessionMinutes)
+      track('settings_changed', { key: 'session_minutes' })
     router.back()
   }
 

@@ -43,7 +43,11 @@ function validDoc(): LooseDoc {
         ],
       },
       { id: 'p2', kind: 'review', blocks: null },
-      { id: 'p3', kind: 'summary', blocks: [{ kind: 'paragraph', md: 'Tokens are the unit of cost.' }] },
+      {
+        id: 'p3',
+        kind: 'summary',
+        blocks: [{ kind: 'paragraph', md: 'Tokens are the unit of cost.' }],
+      },
     ],
   }
 }
@@ -51,16 +55,22 @@ function validDoc(): LooseDoc {
 describe('parseActivityDoc', () => {
   it('accepts a valid document (object or JSON string)', () => {
     expect(parseActivityDoc(validDoc(), { goalConceptIds: GOAL_CONCEPT_IDS }).ok).toBe(true)
-    expect(parseActivityDoc(JSON.stringify(validDoc()), { goalConceptIds: GOAL_CONCEPT_IDS }).ok).toBe(true)
+    expect(
+      parseActivityDoc(JSON.stringify(validDoc()), { goalConceptIds: GOAL_CONCEPT_IDS }).ok,
+    ).toBe(true)
   })
 
   it('accepts a filled review page and inserted (Ask) pages between review and summary', () => {
     const doc = validDoc()
-    doc.pages[1]!.blocks = [{ kind: 'paragraph', md: 'Your answer on token length was right — here is the edge case.' }]
+    doc.pages[1]!.blocks = [
+      { kind: 'paragraph', md: 'Your answer on token length was right — here is the edge case.' },
+    ]
     doc.pages.splice(2, 0, {
       id: 'ask1',
       kind: 'inserted',
-      blocks: [{ kind: 'paragraph', md: 'Good question — byte-pair encoding merges frequent pairs.' }],
+      blocks: [
+        { kind: 'paragraph', md: 'Good question — byte-pair encoding merges frequent pairs.' },
+      ],
     })
     expect(parseActivityDoc(doc).ok).toBe(true)
   })

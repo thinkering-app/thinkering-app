@@ -26,9 +26,10 @@ export default function WelcomeScreen() {
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right', 'bottom']}>
       {/* Washes bleed off the edges like the landing hero (docs/07) — a field, not a shape. */}
       <View pointerEvents="none" className="absolute inset-0 overflow-hidden">
-        <Wash color="cornflower" size={360} className="-left-32 -top-24" />
-        <Wash color="peach" size={320} className="-right-32 top-1/4" />
-        <Wash color="sun" size={320} className="-bottom-28 -left-20" />
+        {/* Clear of the analytics card, which covers the top third until it's answered. */}
+        <Wash color="cornflower" size={380} className="-left-28 top-1/4" />
+        <Wash color="peach" size={340} className="-right-24 top-[8%]" />
+        <Wash color="sun" size={340} className="-bottom-24 -left-16" />
       </View>
       {/* The one-time analytics ask (docs/08) sits up top, clear of Get started. */}
       <View className="px-5 pt-3">

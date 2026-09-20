@@ -90,12 +90,16 @@ export function useToday(
   )
 
   useEffect(() => {
-    // One interest in view has its cards written ahead, Next first (docs/04
-    // §Latency & cost); Explore → All only suggests, and its cards wait for
-    // Write. The writes outlive this effect on purpose.
+    // Only Next is written ahead (docs/04 §Latency & cost): it is the card a
+    // day usually starts with, and writing all three spent an activity
+    // document — the app's most expensive call — on two cards most days never
+    // open. The rest offer Write. Explore → All writes nothing ahead at all.
+    // The writes outlive this effect on purpose.
     const writeAheadFor = (list: Interest[]) => {
       if (opts.suggestOnly) return
-      for (const interest of list) writeAhead(todaysCards(interest.id, today))
+      for (const interest of list) {
+        writeAhead(todaysCards(interest.id, today).filter((a) => a.section === 'next'))
+      }
     }
     const waiting = shown.filter((i) => needsCards(i.id, today))
     if (waiting.length === 0) {

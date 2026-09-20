@@ -27,10 +27,13 @@ describe('completedTodayBySection', () => {
   })
 
   it('excludes a completion that fell on the previous local day', () => {
-    const counts = completedTodayBySection([{ section: 'next', completedAt: justBeforeLocalMidnight }], {
-      today: '2026-03-10',
-      timeZone: BERLIN,
-    })
+    const counts = completedTodayBySection(
+      [{ section: 'next', completedAt: justBeforeLocalMidnight }],
+      {
+        today: '2026-03-10',
+        timeZone: BERLIN,
+      },
+    )
     expect(counts.next).toBe(0)
   })
 })

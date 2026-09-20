@@ -12,17 +12,27 @@ export interface TestSetup {
 }
 
 /** A minimal fake of the Anthropic client covering what the route uses. */
-export function fakeAnthropic(opts: { text?: string; inputTokens?: number; outputTokens?: number } = {}) {
+export function fakeAnthropic(
+  opts: {
+    text?: string
+    inputTokens?: number
+    outputTokens?: number
+    /** Blocks before the text, e.g. a server tool result the route inspects. */
+    blocks?: unknown[]
+  } = {},
+) {
   const text = opts.text ?? '{"ok":true}'
+  const blocks = opts.blocks ?? []
   const message = {
     model: 'claude-test',
     stop_reason: 'end_turn',
-    content: [{ type: 'text', text }],
+    content: [...blocks, { type: 'text', text }],
     usage: { input_tokens: opts.inputTokens ?? 1000, output_tokens: opts.outputTokens ?? 200 },
   }
   const events = [
     { type: 'message_start', message: { usage: { input_tokens: opts.inputTokens ?? 1000 } } },
-    { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text } },
+    ...blocks.map((block, index) => ({ type: 'content_block_start', index, content_block: block })),
+    { type: 'content_block_delta', index: blocks.length, delta: { type: 'text_delta', text } },
     { type: 'message_delta', usage: { output_tokens: opts.outputTokens ?? 200 } },
     { type: 'message_stop' },
   ]
@@ -58,7 +68,9 @@ export function setupDeps(overrides: Partial<ServerDeps> = {}): TestSetup {
   return { store, logged, fetchCalls }
 }
 
-export async function registerDevice(store: MeteringStore): Promise<{ deviceId: string; secret: string }> {
+export async function registerDevice(
+  store: MeteringStore,
+): Promise<{ deviceId: string; secret: string }> {
   const creds = { deviceId: 'device-1', secret: 'a'.repeat(64) }
   await store.createDevice({ ...creds, platform: 'ios', createdAt: NOW, attested: false })
   return creds

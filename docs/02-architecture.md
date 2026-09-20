@@ -102,12 +102,28 @@ The client's PostHog key/value store is backed by our own `settings` table (`cus
 
 `POST /api/account/delete` is device-signed like the other routes and additionally carries the user's Supabase access token as a bearer. The server resolves that token to a user with the secret key and deletes exactly that account; `sync_rows` follows by `on delete cascade`. Apple requires this whenever an app offers account creation (Review Guideline 5.1.1(v)) — the backup off-switch deletes the data, this deletes the account.
 
+## Internal pages
+
+`apps/web/app/internal` holds reference views of things that live in code, for the maintainers rather than for learners: `/internal/prompts` lists every generation kind at its current version — model, effort, token limit, and the prompt rendered against its default fixture from `packages/core/fixtures/prompt-inputs` — and `/internal/library` lists the activity library by section with each item's pedagogy. Both read from `packages/core` at request time, so they cannot drift from what ships. They are reference, not review: the snapshot diff in a PR is still how a prompt change is reviewed, and the in-app AI Inspector is still where live calls are read.
+
+Nothing links to them, they are `noindex` and `Disallow`ed in `robots.txt`, and they sit outside the `(site)` route group so they get none of the landing page's chrome.
+
+Each page is its own **area** with its own password — `INTERNAL_PASSWORD_PROMPTS`, `INTERNAL_PASSWORD_LIBRARY` — so access to one can be handed out without the other. `INTERNAL_PASSWORD` is the fallback for an area that sets no password of its own, so setting only that opens both with one password. An area with neither set is closed, not open.
+
+- A correct password mints `<expiresAt>.<hmac>` per area it opens, signed with a key derived from that area's password **and the area's name**, set as an HttpOnly, SameSite=Lax cookie scoped to `/internal` and good for 12 hours. The area in the key derivation is what stops one page's cookie opening the other when the two passwords happen to be the same. Rotating one password signs everyone out of that area and only that area.
+- The login form is a single password field: it grants every area the submitted password opens, which is one area when the passwords differ and both when they are shared.
+- `middleware.ts` maps the path to its area and verifies that area's cookie before a page renders; each page calls `requireArea()` as well — a matcher that stops matching should not be the one thing between a password and the content. The `/internal` index is a signpost rather than content, so any one unlocked area is enough to see it; it lists only the areas this visitor has unlocked, so it never advertises what else is there.
+- Sign-in attempts are capped per IP in memory, best-effort for the same reason the contact form's cap is.
+
+Nothing here reads user data: both pages are rendered from code that is already public in the repo. The password keeps the prompt library from being trivially scrapeable, not secrets — there are none on these pages.
+
 ## Security summary
 
 - Secrets server-side: Anthropic key, Resend key, Supabase **secret key** (`SUPABASE_SECRET_KEY`). Client env: Supabase URL + **publishable key** (`EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`), PostHog key (public by design), API base URL, and the public Featurebase portal URL.
 - **API key format**: the new `sb_publishable_…` / `sb_secret_…` keys, not the legacy `anon` / `service_role` JWTs. The publishable key is no less exposed than `anon` was — both ship in the client and both rely on RLS — but a secret key is opaque, individually revocable, and rotatable (create new → deploy → revoke old) without invalidating the access tokens the project has already issued, which rotating the JWT secret would. supabase-js sends new-format keys only in the `apikey` header, never as a Bearer token. Nothing in our code inspects a key, so the format is a configuration concern, not a code one.
 - BYO Anthropic key: SecureStore on native; not offered on web.
 - All API routes validate input with Zod, sign-check device tokens, and rate-limit.
+- The internal pages at `/internal` are gated per page by `INTERNAL_PASSWORD_PROMPTS` / `INTERNAL_PASSWORD_LIBRARY` (falling back to `INTERNAL_PASSWORD`), checked in middleware and again in each page; unset means closed.
 - Supabase RLS on all user-data tables; the secret key (`service_role`, which bypasses RLS) is confined to metering and operational rate-limit counters and never touches `sync_rows`.
 
 ## Dev experience

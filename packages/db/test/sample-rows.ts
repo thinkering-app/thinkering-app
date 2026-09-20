@@ -26,7 +26,15 @@ export function seedSampleRows(db: Database): void {
     })
     .run()
   db.insert(schema.topics)
-    .values({ id: 't-sample', interestId: 'i-sample', label: 'Tokenization', origin: 'foundational', selected: true, sortOrder: 1, ...stamps })
+    .values({
+      id: 't-sample',
+      interestId: 'i-sample',
+      label: 'Tokenization',
+      origin: 'foundational',
+      selected: true,
+      sortOrder: 1,
+      ...stamps,
+    })
     .run()
   db.insert(schema.goals)
     .values({
@@ -61,7 +69,14 @@ export function seedSampleRows(db: Database): void {
     })
     .run()
   db.insert(schema.responses)
-    .values({ id: 'r-sample', activityId: 'a-sample', pageId: 'p1', blockId: 'q1', payload: { selectedId: 'b' }, ...stamps })
+    .values({
+      id: 'r-sample',
+      activityId: 'a-sample',
+      pageId: 'p1',
+      blockId: 'q1',
+      payload: { selectedId: 'b' },
+      ...stamps,
+    })
     .run()
   db.insert(schema.resources)
     .values({
@@ -76,19 +91,50 @@ export function seedSampleRows(db: Database): void {
     })
     .run()
   db.insert(schema.contexts)
-    .values({ id: 'ctx-sample', interestId: 'i-sample', kind: 'project', label: 'Support-bot prototype', ...stamps })
+    .values({
+      id: 'ctx-sample',
+      interestId: 'i-sample',
+      kind: 'project',
+      label: 'Support-bot prototype',
+      ...stamps,
+    })
     .run()
   db.insert(schema.reflections)
-    .values({ id: 'ref-sample', interestId: 'i-sample', feelingText: 'Going well; want more hands-on work.', changes: { added: ['Explain what a token is'], removed: [], revised: [], reordered: true }, ...stamps })
+    .values({
+      id: 'ref-sample',
+      interestId: 'i-sample',
+      feelingText: 'Going well; want more hands-on work.',
+      changes: { added: ['Explain what a token is'], removed: [], revised: [], reordered: true },
+      ...stamps,
+    })
     .run()
   db.insert(schema.libraryPrefs)
-    .values({ id: 'lp-sample', interestId: 'i-sample', section: 'next', libraryItemId: 'mini-case', active: false, updatedAt: t })
+    .values({
+      id: 'lp-sample',
+      interestId: 'i-sample',
+      section: 'next',
+      libraryItemId: 'mini-case',
+      active: false,
+      updatedAt: t,
+    })
     .run()
   db.insert(schema.routineNotes)
-    .values({ id: 'rn-sample', interestId: null, note: 'Prefer shorter reading passages.', ...stamps })
+    .values({
+      id: 'rn-sample',
+      interestId: null,
+      note: 'Prefer shorter reading passages.',
+      ...stamps,
+    })
     .run()
   db.insert(schema.genCache)
-    .values({ id: 'gc-sample', kind: 'daily_plan', scopeKey: 'i-sample:2026-09-14', payload: { cards: [] }, createdAt: t, expiresAt: t + 86_400_000 })
+    .values({
+      id: 'gc-sample',
+      kind: 'daily_plan',
+      scopeKey: 'i-sample:2026-09-14',
+      payload: { cards: [] },
+      createdAt: t,
+      expiresAt: t + 86_400_000,
+    })
     .run()
   db.insert(schema.llmCalls)
     .values({
@@ -106,7 +152,12 @@ export function seedSampleRows(db: Database): void {
     })
     .run()
   db.insert(schema.analyticsBuffer)
-    .values({ id: 'ab-sample', event: 'activity_completed', properties: { section: 'next' }, createdAt: t })
+    .values({
+      id: 'ab-sample',
+      event: 'activity_completed',
+      properties: { section: 'next' },
+      createdAt: t,
+    })
     .run()
   db.insert(schema.settings).values({ key: 'posthog_opt_in', value: false }).run()
 }

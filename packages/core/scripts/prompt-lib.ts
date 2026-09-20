@@ -23,13 +23,17 @@ export function parseScriptArgs(argv: string[]): ScriptArgs {
     console.error('--only needs a fixture name, e.g. --only default')
     process.exit(1)
   }
-  const positional = argv.filter((a, i) => !a.startsWith('--') && (onlyIndex < 0 || i !== onlyIndex + 1))
+  const positional = argv.filter(
+    (a, i) => !a.startsWith('--') && (onlyIndex < 0 || i !== onlyIndex + 1),
+  )
   return { kind: positional[0], only, record: argv.includes('--record') }
 }
 
 export function requireTemplate(kind: string | undefined): AnyPromptTemplate {
   if (!kind) {
-    console.error('usage: pnpm prompt:run <kind> [--only <fixture>] [--record]  |  pnpm prompt:check <kind> [--only <fixture>]')
+    console.error(
+      'usage: pnpm prompt:run <kind> [--only <fixture>] [--record]  |  pnpm prompt:check <kind> [--only <fixture>]',
+    )
     process.exit(1)
   }
   const template = getPromptTemplate(kind)
@@ -48,7 +52,9 @@ export function requireTemplate(kind: string | undefined): AnyPromptTemplate {
  */
 export function loadFixtures(kind: string, only?: string): { name: string; params: unknown }[] {
   const dir = join(pkgRoot, 'fixtures/prompt-inputs')
-  const files = readdirSync(dir).filter((f) => f === `${kind}.json` || (f.startsWith(`${kind}.`) && f.endsWith('.json')))
+  const files = readdirSync(dir).filter(
+    (f) => f === `${kind}.json` || (f.startsWith(`${kind}.`) && f.endsWith('.json')),
+  )
   if (files.length === 0) {
     console.error(`no input fixture for ${kind} in fixtures/prompt-inputs/`)
     process.exit(1)
@@ -59,7 +65,9 @@ export function loadFixtures(kind: string, only?: string): { name: string; param
   }))
   const chosen = only ? fixtures.filter((f) => f.name === only) : fixtures
   if (chosen.length === 0) {
-    console.error(`no fixture "${only}" for ${kind}; have: ${fixtures.map((f) => f.name).join(', ')}`)
+    console.error(
+      `no fixture "${only}" for ${kind}; have: ${fixtures.map((f) => f.name).join(', ')}`,
+    )
     process.exit(1)
   }
   return chosen.map(({ name, file }) => ({
@@ -70,7 +78,12 @@ export function loadFixtures(kind: string, only?: string): { name: string; param
 
 export interface LiveResult {
   text: string
-  usage: { inputTokens: number; outputTokens: number; cacheReadTokens: number; cacheWriteTokens: number }
+  usage: {
+    inputTokens: number
+    outputTokens: number
+    cacheReadTokens: number
+    cacheWriteTokens: number
+  }
   latencyMs: number
   model: string
 }

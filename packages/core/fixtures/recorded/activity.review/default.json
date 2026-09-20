@@ -1,14 +1,14 @@
 {
   "kind": "activity.review",
-  "promptVersion": 1,
+  "promptVersion": 3,
   "model": "claude-haiku-4-5-20251001",
   "fixture": "default",
-  "text": "```json\n{\n  \"blocks\": [\n    {\n      \"kind\": \"heading\",\n      \"text\": \"You nailed the form — and spotted something real about the tone\"\n    },\n    {\n      \"kind\": \"paragraph\",\n      \"md\": \"Your answer about *will* nails it: it does sound demanding, almost childish. You're right that *hätte gern* creates distance and politeness — but not because it's past tense. Here's the real move: *hätte gern* is the **conditional** form (\\\"I would like\\\"), not past tense. That conditional softens the request — it's hypothetical, tentative, less direct than the present *will* (\\\"I want\\\"). Same reason English speakers say \\\"I would like\\\" instead of \\\"I want\\\" to a stranger. The *gern* part just means \\\"gladly,\\\" so the whole thing is \\\"I would gladly like…\\\" — extra soft.\"\n    },\n    {\n      \"kind\": \"paragraph\",\n      \"md\": \"On the blanks: *einen* vs. *ein* — you wrote *ein*, but *einen* is right here because *Kaffee* is masculine accusative (the object of the verb). *Gern* vs. *gerne* — both work, but *gern* is more common in speech, especially in this phrase. You're close on both; these are the details that settle with repetition.\"\n    },\n    {\n      \"kind\": \"callout\",\n      \"tone\": \"tip\",\n      \"md\": \"When you're at a Munich dinner table and want something, *Ich hätte gern…* is your go-to. It's polite without being stiff. You've got the skeleton solid.\"\n    }\n  ]\n}\n```",
+  "text": "```json\n{\n  \"blocks\": [\n    {\n      \"kind\": \"paragraph\",\n      \"md\": \"You nailed why *Ich will* sounds demanding — that's exactly right. But *hätte gern* isn't past tense; it's the subjunctive mood, which makes requests sound hypothetical and polite: \\\"I would like…\\\" rather than \\\"I want.\\\" That's why it works so well with strangers.\"\n    }\n  ]\n}\n```",
   "usage": {
-    "inputTokens": 2187,
-    "outputTokens": 410,
+    "inputTokens": 1660,
+    "outputTokens": 112,
     "cacheReadTokens": 0,
     "cacheWriteTokens": 0
   },
-  "latencyMs": 6335
+  "latencyMs": 2003
 }

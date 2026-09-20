@@ -57,6 +57,7 @@ export {
   insertPageAfter,
   lastInteractivePageIndex,
   interactiveBlocksBeforeReview,
+  docForReport,
 } from './activity/doc-ops'
 export {
   youtubeVideoId,
@@ -84,7 +85,13 @@ export {
   type ContextAssemblyOptions,
 } from './prompts/context-assembly'
 export {
+  blockWordCount,
   checkActivityDoc,
+  checkReviewBlocks,
+  REVIEW_MAX_WORDS,
+  REVIEW_WORDS_ASKED,
+  SUMMARY_MAX_WORDS,
+  SUMMARY_WORDS_ASKED,
   toneLintOutput,
   toneLintIssues,
   pageCountRange,
@@ -100,6 +107,11 @@ export {
 export { extractPartialActivityDoc, type PartialActivityDoc } from './streaming/partial-doc'
 export { extractPartialPath, type PartialPath, type PathGoal } from './streaming/partial-path'
 export { extractPartialBlocks } from './streaming/partial-blocks'
+export {
+  extractPartialTopics,
+  type ChoiceTopic,
+  type PartialTopics,
+} from './streaming/partial-topics'
 export { extractJsonText } from './streaming/json'
 export { placeInterest } from './intake/placement'
 export {
@@ -115,8 +127,7 @@ export {
 } from './intake/draft'
 export { RECORDED_RESPONSES, type RecordedResponse } from './fixtures/recorded'
 export { intakeApproachTemplate, type IntakeApproachParams } from './prompts/kinds/intake-approach'
-export { intakeTopicsTemplate, type IntakeTopicsParams } from './prompts/kinds/intake-topics'
-export { intakeSuccessTemplate, type IntakeSuccessParams } from './prompts/kinds/intake-success'
+export { intakeChoicesTemplate, type IntakeChoicesParams } from './prompts/kinds/intake-choices'
 export { intakePathTemplate, type IntakePathParams } from './prompts/kinds/intake-path'
 export { todayPlanTemplate, type TodayPlanParams } from './prompts/kinds/today-plan'
 export {
@@ -142,6 +153,7 @@ export {
   resourcesSearchTemplate,
   type ResourcesSearchParams,
 } from './prompts/kinds/resources-search'
+export { resourcesMoreTemplate, type ResourcesMoreParams } from './prompts/kinds/resources-more'
 export {
   resourceDescribeTemplate,
   type ResourceDescribeParams,

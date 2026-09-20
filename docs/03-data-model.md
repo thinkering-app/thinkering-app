@@ -43,23 +43,23 @@ Concept **coverage** (which concepts/skills have been targeted — shown when a 
 
 ## activities ⟳
 
-| column                               | type  | notes                                                       |
-| ------------------------------------ | ----- | ----------------------------------------------------------- |
+| column                               | type  | notes                                                                                         |
+| ------------------------------------ | ----- | --------------------------------------------------------------------------------------------- |
 | id / interest_id / goal_id           |       | `goal_id` null only on the strengthen prerequisite card, or a + card asked for without a goal |
-| topic                                | text? | a goal-less card's topic: the prerequisite's, or a short name for the learner's request |
-| focus                                | text? | what the learner asked a + card to focus on, or how to learn it; passed to G5b (docs/01 §3) |
-| section                              | text  | `next \| strengthen \| go_further`                          |
-| tier                                 | text  | `introduce \| strengthen \| apply`                          |
-| library_item_id                      | text  | e.g. `worked-example`                                       |
-| title / est_minutes                  |       | shown on card                                               |
-| doc                                  | json? | Activity Document (null until G5b generates content)        |
-| status                               | text  | `planned \| ready \| in_progress \| completed \| abandoned` |
-| current_page                         | int   | resume point                                                |
-| planned_for                          | text  | local date `YYYY-MM-DD` the scheduler planned it for        |
-| started_at / completed_at            | int?  |                                                             |
-| rating                               | text? | `down \| mixed \| up`                                       |
-| rating_text                          | text? |                                                             |
-| created_at / updated_at / deleted_at | int   |                                                             |
+| topic                                | text? | a goal-less card's topic: the prerequisite's, or a short name for the learner's request       |
+| focus                                | text? | what the learner asked a + card to focus on, or how to learn it; passed to G5b (docs/01 §3)   |
+| section                              | text  | `next \| strengthen \| go_further`                                                            |
+| tier                                 | text  | `introduce \| strengthen \| apply`                                                            |
+| library_item_id                      | text  | e.g. `worked-example`                                                                         |
+| title / est_minutes                  |       | shown on card                                                                                 |
+| doc                                  | json? | Activity Document (null until G5b generates content)                                          |
+| status                               | text  | `planned \| ready \| in_progress \| completed \| abandoned`                                   |
+| current_page                         | int   | resume point                                                                                  |
+| planned_for                          | text  | local date `YYYY-MM-DD` the scheduler planned it for                                          |
+| started_at / completed_at            | int?  |                                                                                               |
+| rating                               | text? | `down \| mixed \| up`                                                                         |
+| rating_text                          | text? |                                                                                               |
+| created_at / updated_at / deleted_at | int   |                                                                                               |
 
 History = completed activities (indexed on `interest_id, completed_at`). Calendar = distinct local dates of `completed_at`.
 
@@ -111,7 +111,7 @@ Pruned to last ~200 calls. Never synced.
 
 ## settings — local key/value
 
-`key pk, value json` — device_id + secret ref, `backup_enabled` (default false), `sync_state` (`{lastPullAt, lastPushAt, lastSyncedAt}` — cursors stayed here rather than becoming their own table: two numbers and a timestamp, none of it synced), `ai_mode`, `posthog_opt_in` (default false) + `posthog_consent_decided` (the two together give the three-valued consent of `08`: undecided buffers, granted sends, denied drops), `installed_at` (first launch, for the `days_since_install` bucket — never sent raw), `posthog_storage.*` (PostHog's own key/value store, kept here so the SDK adds no file of its own), byok flag (key itself in SecureStore), last_seen_version, `intake_draft` (the one unfinished intake, docs/01 §1: answers, current step and each finished G1/G2/G2b/G3 output with the key it was made from; parsed through `intakeDraftSchema` on read and cleared if it no longer fits, and cleared when the interest is saved — never synced or exported).
+`key pk, value json` — device_id + secret ref, `backup_enabled` (default false), `sync_state` (`{lastPullAt, lastPushAt, lastSyncedAt}` — cursors stayed here rather than becoming their own table: two numbers and a timestamp, none of it synced), `ai_mode`, `posthog_opt_in` (default false) + `posthog_consent_decided` (the two together give the three-valued consent of `08`: undecided buffers, granted sends, denied drops), `installed_at` (first launch, for the `days_since_install` bucket — never sent raw), `posthog_storage.*` (PostHog's own key/value store, kept here so the SDK adds no file of its own), byok flag (key itself in SecureStore), last_seen_version, `intake_draft` (the one unfinished intake, docs/01 §1: answers, current step and each finished G1/G2/G3 output with the key it was made from; parsed through `intakeDraftSchema` on read and cleared if it no longer fits, and cleared when the interest is saved — never synced or exported).
 
 ## Supabase (server) tables
 

@@ -1,4 +1,5 @@
 import { createHmac } from 'node:crypto'
+import { hashBudgetCode } from './budget-code'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import {
   EMPTY_USAGE,
@@ -15,10 +16,10 @@ import {
  * is why it stays away from the user-data mirror entirely. Schema:
  * supabase/schema.sql.
  *
- * addUsage and countIpAction are single-statement RPCs and claimSpendAlert a
- * single insert, so concurrent requests can't lose each other's writes;
- * addAction is still read-modify-write, which only costs a feedback message or
- * two past its limit.
+ * Every counter here is a single statement — addUsage, countIpAction and
+ * countDeviceAction are RPCs, claimSpendAlert an insert — so concurrent
+ * requests can't lose each other's writes and no limit can be walked past by
+ * making its requests in parallel.
  */
 export class SupabaseStore implements MeteringStore {
   private client: SupabaseClient
@@ -92,6 +93,7 @@ export class SupabaseStore implements MeteringStore {
       kind_calls: Record<string, number>
       total_input_tokens: number
       total_output_tokens: number
+      bonus_weighted: number
     }
     return {
       device: {
@@ -104,27 +106,46 @@ export class SupabaseStore implements MeteringStore {
         inputTokens: Number(row.total_input_tokens),
         outputTokens: Number(row.total_output_tokens),
       },
+      bonusWeighted: Number(row.bonus_weighted ?? 0),
     }
   }
 
-  async getActionCount(deviceId: string, day: string, action: string): Promise<number> {
-    const { data, error } = await this.client
-      .from('device_actions')
-      .select('count')
-      .eq('device_id', deviceId)
-      .eq('day', day)
-      .eq('action', action)
-      .maybeSingle()
-    if (error) throw new Error(`device_actions select failed: ${error.message}`)
-    return data?.count ?? 0
+  async getBonus(deviceId: string): Promise<number> {
+    const { data, error } = await this.client.rpc('device_bonus_weighted', {
+      p_device_id: deviceId,
+    })
+    if (error) throw new Error(`device_bonus_weighted failed: ${error.message}`)
+    return Number(data ?? 0)
   }
 
-  async addAction(deviceId: string, day: string, action: string): Promise<void> {
-    const current = await this.getActionCount(deviceId, day, action)
-    const { error } = await this.client
-      .from('device_actions')
-      .upsert({ device_id: deviceId, day, action, count: current + 1 }, { onConflict: 'device_id,day,action' })
-    if (error) throw new Error(`device_actions upsert failed: ${error.message}`)
+  async redeemCode(codeHash: string, deviceId: string): Promise<number | null> {
+    // The `redeemed_by is null` predicate lives inside the update, so two
+    // devices racing one code cannot both win it.
+    const { data, error } = await this.client.rpc('redeem_budget_code', {
+      p_code_hash: codeHash,
+      p_device_id: deviceId,
+    })
+    if (error) throw new Error(`redeem_budget_code failed: ${error.message}`)
+    return data === null || data === undefined ? null : Number(data)
+  }
+
+  /**
+   * A code is a bearer secret and the table only ever needs to recognise one,
+   * never read it back, so what is stored is an HMAC under the server key —
+   * the same treatment IP addresses get in `countIpAction`.
+   */
+  hashCode(code: string): string {
+    return hashBudgetCode(this.secretKey, code)
+  }
+
+  async countDeviceAction(deviceId: string, day: string, action: string): Promise<number> {
+    const { data, error } = await this.client.rpc('count_device_action', {
+      p_device_id: deviceId,
+      p_day: day,
+      p_action: action,
+    })
+    if (error) throw new Error(`count_device_action failed: ${error.message}`)
+    return Number(data ?? 0)
   }
 
   async countIpAction(ip: string, day: string, action: 'register'): Promise<number> {

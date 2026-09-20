@@ -13,14 +13,15 @@ import {
   extractPartialPath,
   isDraftWorthKeeping,
   placeInterest,
+  extractPartialTopics,
   type ApproachOutput,
+  type ChoicesOutput,
   type ExperienceChoice,
   type IntakeAnswers,
   type InterestStatus,
   type PartialPath,
+  type PartialTopics,
   type PathOutput,
-  type SuccessOutput,
-  type TopicsOutput,
 } from '@thinkering/core'
 import {
   clearIntakeDraft,
@@ -42,10 +43,11 @@ import { currentPicks } from './chip-picker'
  * it survives back navigation between steps and is discarded on exit.
  *
  * Generation timing (docs/04): G1 goes out when they leave step 2 and has
- * step 3 to finish. G2 (topics, waits on G1) and G2b (what success looks like)
- * go out together when they leave step 3, for steps 4 and 5. G3 goes out when
- * they leave step 5 — step 6 is the time question, which covers most of its
- * wait — and streams onto step 7.
+ * step 3 to finish. G2 (topics and outcomes in one call, waits on G1) goes out
+ * when they leave step 3; it streams, and topics come first on the wire, so
+ * step 4 fills in while step 5's outcomes are still being written. G3 goes out
+ * when they leave step 5 — step 6 is the time question, which covers most of
+ * its wait — and streams onto step 7.
  *
  * Until it's saved, the run is also kept as a draft in local settings: the
  * answers, the step they're on and each finished generation. A run that starts
@@ -61,18 +63,19 @@ interface IntakeValue {
   answers: IntakeAnswers
   update: (patch: Partial<IntakeAnswers>) => void
   approach: GenerationState<ApproachOutput>
-  topics: GenerationState<TopicsOutput>
-  success: GenerationState<SuccessOutput>
+  /** Step 4's chips, ready as soon as the topics array closes (docs/04). */
+  topics: GenerationState<PartialTopics>
+  /** Step 5's chips, which need the whole call. */
+  success: GenerationState<ChoicesOutput>
   path: GenerationState<PathOutput>
   /** G3's output as it streams — the name lands well before the goals do. */
   partialPath: PartialPath
   /** Kick-offs, called as the user leaves the step that unlocks them. */
   startApproach: () => void
-  startTopics: () => void
-  startSuccess: () => void
+  /** G2. Steps 4 and 5 both call it; the second is a no-op on the same answers. */
+  startChoices: () => void
   startPath: () => void
-  retryTopics: () => void
-  retrySuccess: () => void
+  retryChoices: () => void
   retryPath: () => void
   /** The D15 placement for the current answers, before any override. */
   placement: Mode
@@ -105,9 +108,13 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
   const [hasInterest] = useState(() => listInterests(db).length > 0)
   const [partialPath, setPartialPath] = useState<PartialPath>({ goals: [] })
   const approach = useGeneration<ApproachOutput>(draft?.approach)
-  const topics = useGeneration<TopicsOutput>(draft?.topics)
-  const success = useGeneration<SuccessOutput>(draft?.success)
+  const choices = useGeneration<ChoicesOutput>(draft?.choices)
   const path = useGeneration<PathOutput>(draft?.path)
+  // Topics as they stream, so step 4 doesn't wait on step 5's outcomes.
+  const [partialTopics, setPartialTopics] = useState<PartialTopics>({
+    topics: [],
+    complete: false,
+  })
 
   const update = useCallback((patch: Partial<IntakeAnswers>) => {
     setAnswers((prev) => ({ ...prev, ...patch }))
@@ -131,8 +138,7 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
   // Keep the draft current. Only finished generations go in: one still in
   // flight is started again by its step when the draft is picked back up.
   const settledApproach = approach.settled
-  const settledTopics = topics.settled
-  const settledSuccess = success.settled
+  const settledChoices = choices.settled
   const settledPath = path.settled
   useEffect(() => {
     if (finished.current || discarded.current) return
@@ -144,12 +150,11 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
       answers,
       step,
       approach: settledApproach(),
-      topics: settledTopics(),
-      success: settledSuccess(),
+      choices: settledChoices(),
       path: settledPath(),
       updatedAt: Date.now(),
     })
-  }, [answers, step, settledApproach, settledTopics, settledSuccess, settledPath])
+  }, [answers, step, settledApproach, settledChoices, settledPath])
 
   const completeStep = useCallback((step: number) => {
     track('intake_step_completed', {
@@ -180,37 +185,28 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
     ensureApproach(answers).catch(() => {})
   }, [answers, ensureApproach])
 
-  const startTopics = useCallback(() => {
+  const startChoices = useCallback(() => {
     if (!answers.experienceChoice) return
-    const params = topicsParams(answers, answers.experienceChoice)
-    topics
+    const params = choicesParams(answers, answers.experienceChoice)
+    choices
       .start(JSON.stringify(params), async (signal) => {
+        setPartialTopics({ topics: [], complete: false })
         const resolved = await ensureApproach(answers)
-        const result = await callAi<TopicsOutput>(
-          'intake.topics',
+        const result = await callAi<ChoicesOutput>(
+          'intake.choices',
           { ...params, approach: resolved },
-          { signal },
+          { signal, onText: (text) => setPartialTopics(extractPartialTopics(text)) },
         )
         return result.output
       })
       .catch(() => {})
-  }, [answers, ensureApproach, topics])
-
-  const startSuccess = useCallback(() => {
-    if (!answers.experienceChoice) return
-    const params = topicsParams(answers, answers.experienceChoice)
-    success
-      .start(JSON.stringify(params), (signal) =>
-        callAi<SuccessOutput>('intake.success', params, { signal }).then((r) => r.output),
-      )
-      .catch(() => {})
-  }, [answers, success])
+  }, [answers, choices, ensureApproach])
 
   const startPath = useCallback(() => {
     if (!answers.experienceChoice) return
-    const offeredTopics =
-      topics.state.status === 'ready' ? topics.state.value.topics.map((t) => t.label) : []
-    const offeredOutcomes = success.state.status === 'ready' ? success.state.value.outcomes : []
+    const offered = choices.state.status === 'ready' ? choices.state.value : undefined
+    const offeredTopics = offered?.topics.map((t) => t.label) ?? []
+    const offeredOutcomes = offered?.outcomes ?? []
     const params = pathParams(answers, answers.experienceChoice, offeredTopics, offeredOutcomes)
     path
       .start(JSON.stringify(params), async (signal) => {
@@ -224,7 +220,7 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
         return result.output
       })
       .catch(() => {})
-  }, [answers, ensureApproach, path, topics.state, success.state])
+  }, [answers, choices.state, ensureApproach, path])
 
   const placement: Mode =
     answers.frequency && answers.whyChoice
@@ -239,9 +235,10 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
     if (!whyChoice || !experienceChoice || !frequency || !sessionMinutes) {
       throw new Error('intake is not ready to save: an answer is missing')
     }
-    const offered = topics.state.status === 'ready' ? topics.state.value.topics : []
+    const ready = choices.state.status === 'ready' ? choices.state.value : undefined
+    const offered = ready?.topics ?? []
     const offeredLabels = offered.map((t) => t.label)
-    const offeredOutcomes = success.state.status === 'ready' ? success.state.value.outcomes : []
+    const offeredOutcomes = ready?.outcomes ?? []
     const selectedTopics = currentPicks(
       { custom: answers.customTopics, selected: answers.selectedTopics },
       offeredLabels,
@@ -285,7 +282,7 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
       session_minutes: sessionMinutes,
     })
     return interest.id
-  }, [answers, approach.state, path.state, placement, topics.state, success.state])
+  }, [answers, approach.state, choices.state, path.state, placement])
 
   const discard = useCallback(() => {
     discarded.current = true
@@ -296,16 +293,14 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
     answers,
     update,
     approach: approach.state,
-    topics: topics.state,
-    success: success.state,
+    topics: topicsState(choices.state, partialTopics),
+    success: choices.state,
     path: path.state,
     partialPath,
     startApproach,
-    startTopics,
-    startSuccess,
+    startChoices,
     startPath,
-    retryTopics: topics.retry,
-    retrySuccess: success.retry,
+    retryChoices: choices.retry,
     retryPath: path.retry,
     placement,
     save,
@@ -317,6 +312,22 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
   }
 
   return <IntakeContext.Provider value={value}>{children}</IntakeContext.Provider>
+}
+
+/**
+ * Step 4's view of the one call. The topics array closes well before the
+ * outcomes after it do, so a stream that has got that far is already
+ * everything step 4 needs — it says ready rather than making them wait for
+ * step 5's half.
+ */
+function topicsState(
+  state: GenerationState<ChoicesOutput>,
+  partial: PartialTopics,
+): GenerationState<PartialTopics> {
+  if (state.status === 'ready')
+    return { status: 'ready', value: { topics: state.value.topics, complete: true } }
+  if (state.status === 'pending' && partial.complete) return { status: 'ready', value: partial }
+  return state
 }
 
 // ── params, built from the answers known at each trigger point ───────────────
@@ -335,7 +346,8 @@ function approachParams(a: IntakeAnswers) {
   }
 }
 
-function topicsParams(a: IntakeAnswers, experienceChoice: ExperienceChoice) {
+/** G2 params. Steps 4 and 5 are one call, so one set of params covers both. */
+function choicesParams(a: IntakeAnswers, experienceChoice: ExperienceChoice) {
   return { ...approachParams(a), experienceChoice, experienceText: optional(a.experienceText) }
 }
 
@@ -351,7 +363,7 @@ function pathParams(
     offeredTopics,
   )
   return {
-    ...topicsParams(a, experienceChoice),
+    ...choicesParams(a, experienceChoice),
     selectedTopics,
     unselectedTopics: offeredTopics.filter((label) => !selectedTopics.includes(label)),
     successOutcomes: currentPicks(

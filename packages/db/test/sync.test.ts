@@ -45,8 +45,12 @@ describe('collectPush', () => {
     const db = seeded()
     const { cursor } = collectPush(db, 0)
 
-    db.update(interests).set({ name: 'Renamed', updatedAt: cursor + 10 }).run()
-    db.update(goals).set({ deletedAt: cursor + 20, updatedAt: cursor + 20 }).run()
+    db.update(interests)
+      .set({ name: 'Renamed', updatedAt: cursor + 10 })
+      .run()
+    db.update(goals)
+      .set({ deletedAt: cursor + 20, updatedAt: cursor + 20 })
+      .run()
 
     const next = collectPush(db, cursor)
     expect(next.push.map((p) => p.table).sort()).toEqual(['goals', 'interests'])
@@ -76,11 +80,19 @@ describe('applyPull', () => {
     const db = seeded()
     const local = db.select().from(interests).get()!
 
-    const older = applyPull(db, [payload('interests', { ...local, name: 'Stale', updatedAt: local.updatedAt - 1 })], 0)
+    const older = applyPull(
+      db,
+      [payload('interests', { ...local, name: 'Stale', updatedAt: local.updatedAt - 1 })],
+      0,
+    )
     expect(older).toMatchObject({ ok: true, applied: 0 })
     expect(db.select().from(interests).get()?.name).toBe('Understanding LLMs')
 
-    const newer = applyPull(db, [payload('interests', { ...local, name: 'Fresher', updatedAt: local.updatedAt + 1 })], 0)
+    const newer = applyPull(
+      db,
+      [payload('interests', { ...local, name: 'Fresher', updatedAt: local.updatedAt + 1 })],
+      0,
+    )
     expect(newer).toMatchObject({ ok: true, applied: 1 })
     expect(db.select().from(interests).get()?.name).toBe('Fresher')
   })
@@ -99,7 +111,12 @@ describe('applyPull', () => {
     const local = db.select().from(interests).get()!
     const result = applyPull(
       db,
-      [{ ...payload('interests', { ...local, name: 'From the future' }), schemaVersion: SCHEMA_VERSION + 1 }],
+      [
+        {
+          ...payload('interests', { ...local, name: 'From the future' }),
+          schemaVersion: SCHEMA_VERSION + 1,
+        },
+      ],
       0,
     )
     expect(result).toEqual({ ok: false, reason: 'newer_schema' })
@@ -126,7 +143,11 @@ describe('applyPull', () => {
   it('advances the cursor past rows that lost, so they are not re-pulled forever', () => {
     const db = seeded()
     const local = db.select().from(interests).get()!
-    const result = applyPull(db, [payload('interests', { ...local, updatedAt: local.updatedAt - 100 })], 0)
+    const result = applyPull(
+      db,
+      [payload('interests', { ...local, updatedAt: local.updatedAt - 100 })],
+      0,
+    )
     expect(result).toMatchObject({ ok: true, applied: 0, cursor: local.updatedAt - 100 })
   })
 })

@@ -132,14 +132,10 @@
       {
         "title": "Easy German: At the Restaurant (video)",
         "description": "Street interviews ordering food",
-        "goalTitles": [
-          "Order food and drinks"
-        ]
+        "goalTitles": ["Order food and drinks"]
       }
     ],
-    "routineNotes": [
-      "Prefers speaking practice over grammar drills"
-    ]
+    "routineNotes": ["Prefers speaking practice over grammar drills"]
   },
   "goal": {
     "id": "request",

@@ -1,10 +1,8 @@
 import { useSyncExternalStore } from 'react'
-import { AppState } from 'react-native'
 import {
   describeResponse,
   extractPartialBlocks,
   extractPartialActivityDoc,
-  fillReviewPage,
   getLibraryItem,
   groundBlocks,
   groundPages,
@@ -38,8 +36,10 @@ import { db, repoContext } from '@/db'
 /**
  * The three generation calls an activity makes (docs/04): G5b writes the
  * document (streamed, page by page), G6 fills the reserved review page from
- * the learner's answers, and G7 answers an Ask. Each persists what it gets —
- * an Ask page survives leaving and coming back.
+ * the learner's answers, and G7 answers an Ask. G5b owns its document and
+ * stores it; G6 and G7 return blocks for the route to merge into the document
+ * as it stands and persist from there — a call that started before an Ask must
+ * not overwrite the page the Ask inserted.
  */
 
 /**
@@ -130,12 +130,16 @@ async function generateActivityDoc(
 /**
  * G6. Fires when the learner finishes the last interactive page before the
  * review slot, so it lands while they read that page (docs/05).
+ *
+ * Returns the blocks, not a document: `doc` is the snapshot the call was made
+ * from, and by the time it resolves an Ask may have inserted a page into the
+ * real one. The caller merges into current state (docs/05 §Ask).
  */
-export async function generateReviewPage(
+export async function generateReviewBlocks(
   activity: Activity,
   doc: ActivityDoc,
   opts: { signal?: AbortSignal } = {},
-): Promise<ActivityDoc> {
+): Promise<Block[]> {
   const interest = getInterest(db, activity.interestId)
   if (!interest) throw new Error('interest is gone')
   const goal = activity.goalId ? getGoal(db, activity.goalId) : undefined
@@ -172,16 +176,16 @@ export async function generateReviewPage(
     activityId: activity.id,
     signal: opts.signal,
   })
-  return persist(activity, fillReviewPage(doc, output.blocks))
+  return output.blocks
 }
 
 /**
- * The review page when G6 couldn't deliver (docs/04): a plain recap rather than
- * a page that sits empty. Never pretends to have read their answers.
+ * The review page's blocks when G6 couldn't deliver (docs/04): a plain recap
+ * rather than a page that sits empty. Never pretends to have read their answers.
  */
-export function fallbackReviewPage(activity: Activity, doc: ActivityDoc): ActivityDoc {
+export function fallbackReviewBlocks(doc: ActivityDoc): Block[] {
   const labels = doc.concepts.map((c) => c.label)
-  const blocks: Block[] = [
+  return [
     {
       kind: 'paragraph',
       md:
@@ -190,7 +194,6 @@ export function fallbackReviewPage(activity: Activity, doc: ActivityDoc): Activi
           : 'Worth holding on to: the idea this activity was built around.',
     },
   ]
-  return persist(activity, fillReviewPage(doc, blocks))
 }
 
 /** G7 (Ask). Streams the answer into a page inserted after the current one. */
@@ -257,20 +260,17 @@ function docShape(partial: PartialActivityDoc): string {
   return `${partial.pages.length}|${partial.title ?? ''}|${partial.estMinutes ?? ''}`
 }
 
-function persist(activity: Activity, doc: ActivityDoc): ActivityDoc {
-  attachDoc(db, repoContext, activity.id, doc)
-  return doc
-}
-
 // ── Writing ahead (docs/04 §Latency & cost) ──────────────────────────────────
 
 /**
- * Today's cards have their documents written before the tap, two at a time in
- * section order so Next lands first and the next section isn't far behind. Each
- * write is shared: opening a card whose document is already being written joins
- * that stream instead of starting a second one, and leaving the screen doesn't
- * cancel it — the document is kept for when they come back. A write the app
- * was put away during is queued again when it comes back.
+ * Next's card has its document written before the tap; Strengthen and Go
+ * further offer Write and are written when asked for (docs/04 §Latency &
+ * cost). Writing all three ahead spent three documents on a day most people
+ * take one card from, and an activity document is the most expensive call the
+ * app makes. Each write is shared: opening a card whose document is already
+ * being written joins that stream instead of starting a second one, and
+ * leaving the screen doesn't cancel it — the document is kept for when they
+ * come back.
  */
 
 const SECTION_ORDER: Record<Activity['section'], number> = { next: 0, strengthen: 1, go_further: 2 }
@@ -282,19 +282,16 @@ interface Write {
 }
 
 const inFlight = new Map<string, Write>()
-/** Written ahead and failed this session — left for the learner to retry with Write. */
-const failed = new Set<string>()
 /**
- * Failed while the app was away. The OS suspends a backgrounded app within
- * seconds and its stream dies with it; that says nothing about the card, so
- * these go back in the queue when the app is active again rather than to Write.
+ * Written ahead and failed this session — left for the learner to retry with
+ * Write. A write the app was backgrounded during lands here too: the stream
+ * died with the suspended app, and the model had already produced most of a
+ * document by then, so starting a second one spends that again on a card
+ * nobody has asked for.
  */
-const interrupted = new Set<string>()
-/** Counts the times the app has left the foreground, so a write can tell it was away. */
-let departures = 0
-let watchingAppState = false
+const failed = new Set<string>()
 let queue: Activity[] = []
-/** Streams written ahead at once: two keeps a second section close behind Next without flooding the meter. */
+/** Streams written ahead at once: enough for a couple of interests in view, without flooding the meter. */
 const WRITERS = 2
 let writers = 0
 let writingIds: ReadonlySet<string> = new Set()
@@ -317,8 +314,6 @@ export function writeActivityDoc(
   if (!write) {
     const created: Write = { promise: undefined as never, latest: null, listeners: new Set() }
     failed.delete(activity.id)
-    interrupted.delete(activity.id)
-    const departuresAtStart = departures
     created.promise = generateActivityDoc(activity, {
       onPartial: (partial) => {
         created.latest = partial
@@ -326,11 +321,7 @@ export function writeActivityDoc(
       },
     })
       .catch((error: unknown) => {
-        if (departures !== departuresAtStart || AppState.currentState !== 'active') {
-          interrupted.add(activity.id)
-        } else {
-          failed.add(activity.id)
-        }
+        failed.add(activity.id)
         throw error
       })
       .finally(() => {
@@ -358,7 +349,6 @@ export function writeActivityDoc(
  * not retried here — the card offers Write instead.
  */
 export function writeAhead(activities: readonly Activity[]): void {
-  watchAppState()
   const waiting = new Set([...inFlight.keys(), ...queue.map((a) => a.id)])
   const added = activities.filter(
     (a) => a.doc === null && a.status === 'planned' && !waiting.has(a.id) && !failed.has(a.id),
@@ -367,21 +357,6 @@ export function writeAhead(activities: readonly Activity[]): void {
   queue = [...queue, ...added].sort((a, b) => SECTION_ORDER[a.section] - SECTION_ORDER[b.section])
   publish()
   while (writers < WRITERS && queue.length > 0) void drain()
-}
-
-function watchAppState() {
-  if (watchingAppState) return
-  watchingAppState = true
-  AppState.addEventListener('change', (state) => {
-    if (state !== 'active') {
-      departures += 1
-      return
-    }
-    // Re-read each card: it may have been opened, written or dropped since.
-    const again = [...interrupted].flatMap((id) => getActivity(db, id) ?? [])
-    interrupted.clear()
-    writeAhead(again)
-  })
 }
 
 async function drain() {

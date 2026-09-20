@@ -3,12 +3,12 @@ import { activityQuestionTemplate } from './kinds/activity-question'
 import { activityReviewTemplate } from './kinds/activity-review'
 import { intakeApproachTemplate } from './kinds/intake-approach'
 import { intakePathTemplate } from './kinds/intake-path'
-import { intakeSuccessTemplate } from './kinds/intake-success'
-import { intakeTopicsTemplate } from './kinds/intake-topics'
+import { intakeChoicesTemplate } from './kinds/intake-choices'
 import { pathSuggestGoalsTemplate } from './kinds/path-suggest-goals'
 import { reflectOpenTemplate } from './kinds/reflect-open'
 import { reflectUpdateTemplate } from './kinds/reflect-update'
 import { resourceDescribeTemplate } from './kinds/resource-describe'
+import { resourcesMoreTemplate } from './kinds/resources-more'
 import { resourcesSearchTemplate } from './kinds/resources-search'
 import { routineCustomizeTemplate } from './kinds/routine-customize'
 import { todayPlanTemplate } from './kinds/today-plan'
@@ -20,8 +20,7 @@ import type { AnyPromptTemplate, GenerationKind } from './types'
  */
 export const PROMPTS = {
   'intake.approach': intakeApproachTemplate,
-  'intake.topics': intakeTopicsTemplate,
-  'intake.success': intakeSuccessTemplate,
+  'intake.choices': intakeChoicesTemplate,
   'intake.path': intakePathTemplate,
   'today.plan': todayPlanTemplate,
   'activity.generate': activityGenerateTemplate,
@@ -32,6 +31,7 @@ export const PROMPTS = {
   'reflect.open': reflectOpenTemplate,
   'reflect.update': reflectUpdateTemplate,
   'resources.search': resourcesSearchTemplate,
+  'resources.more': resourcesMoreTemplate,
   'resource.describe': resourceDescribeTemplate,
 } as const
 

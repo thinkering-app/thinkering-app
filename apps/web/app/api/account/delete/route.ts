@@ -25,10 +25,9 @@ export async function POST(req: Request): Promise<Response> {
   if (!bearer) return Response.json({ error: 'missing_access_token' }, { status: 401 })
 
   const day = utcDayOf(now())
-  if ((await store.getActionCount(auth.deviceId, day, 'account_delete')) >= RATE_LIMIT_PER_DAY) {
+  if ((await store.countDeviceAction(auth.deviceId, day, 'account_delete')) > RATE_LIMIT_PER_DAY) {
     return Response.json({ error: 'rate_limited' }, { status: 429 })
   }
-  await store.addAction(auth.deviceId, day, 'account_delete')
 
   const result = await deleteAccount(bearer[1]!)
   if (!result.ok) return Response.json({ error: result.error }, { status: result.status })

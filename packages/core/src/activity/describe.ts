@@ -14,7 +14,8 @@ export function describeResponse(block: Block, payload: ResponsePayload): string
     case 'mcq': {
       if (block.kind !== 'mcq') return undefined
       const chosen = block.options.find((o) => o.id === payload.selectedId)
-      const verdict = payload.correct === null ? '' : payload.correct ? ' (correct)' : ' (incorrect)'
+      const verdict =
+        payload.correct === null ? '' : payload.correct ? ' (correct)' : ' (incorrect)'
       return `Q: ${block.prompt}\nA: ${chosen?.label ?? payload.selectedId}${verdict}`
     }
     case 'freeText':
@@ -73,7 +74,9 @@ export function pageToPlainText(page: { blocks: Block[] | null }): string {
         lines.push(...block.items.map((step) => `- ${step.label}: ${step.md}`))
         break
       case 'resourceEmbed':
-        lines.push(`[${block.media}] ${block.title}${block.focus ? ` — watch for: ${block.focus}` : ''}`)
+        lines.push(
+          `[${block.media}] ${block.title}${block.focus ? ` — watch for: ${block.focus}` : ''}`,
+        )
         break
       case 'fillBlank':
         lines.push(`[fill in] ${block.md}`)

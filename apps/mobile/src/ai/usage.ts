@@ -11,9 +11,14 @@ export interface UsageSnapshot {
   used: number
   remaining: number
   calls: number
+  /** Extra daily budget from a redeemed code, already included in `limit`. */
+  granted: number
   /** ISO instant the daily budget resets (UTC midnight). */
   resetAt: string
 }
+
+/** A code was not accepted — unknown, expired or already used, indistinguishably. */
+export class CodeError extends Error {}
 
 /** A meter nobody can reach should say so rather than spin (no proxy, no network). */
 const TIMEOUT_MS = 8_000
@@ -32,4 +37,21 @@ export async function fetchUsage(): Promise<UsageSnapshot> {
   } finally {
     clearTimeout(timer)
   }
+}
+
+/**
+ * Redeems a code for extra daily budget (docs/04 §Usage metering). Returns the
+ * device's new daily limit, which the meter then reads against.
+ */
+export async function redeemCode(code: string): Promise<{ granted: number; limit: number }> {
+  const body = JSON.stringify({ code })
+  const res = await fetch(`${API_BASE_URL}/api/device/redeem`, {
+    method: 'POST',
+    headers: await signedHeaders(body),
+    body,
+  })
+  if (res.status === 404) throw new CodeError("That code didn't work.")
+  if (res.status === 429) throw new CodeError('Too many tries today. Try again tomorrow.')
+  if (!res.ok) throw new CodeError("We couldn't reach the server.")
+  return (await res.json()) as { granted: number; limit: number }
 }
