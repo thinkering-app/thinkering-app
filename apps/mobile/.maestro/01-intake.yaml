@@ -54,7 +54,8 @@ name: intake
 - tapOn:
     id: 'intake-continue'
 
-# 5 — what they're hoping for (G2b). Same: none selected, wait for it.
+# 5 — what they're hoping for (G2's other half). Same: none selected, wait
+# for it — normally already there, since step 4 waited on the same call.
 - extendedWaitUntil:
     visible:
       id: 'intake-continue'

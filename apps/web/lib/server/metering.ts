@@ -41,8 +41,7 @@ export const REPAIR_COUNTER = 'repair'
 /** Per-kind daily burst limits to prevent abuse of the expensive kinds. */
 export const BURST_LIMITS: Record<string, number> = {
   'intake.approach': 10,
-  'intake.topics': 10,
-  'intake.success': 10,
+  'intake.choices': 10,
   'intake.path': 15,
   'resources.search': 10,
   'activity.generate': 80,

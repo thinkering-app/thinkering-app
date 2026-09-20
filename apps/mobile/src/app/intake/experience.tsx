@@ -19,7 +19,7 @@ const OPTIONS: { value: ExperienceChoice; label: string }[] = [
  * topics for step 4, what success could look like for step 5.
  */
 export default function ExperienceStep() {
-  const { answers, update, startTopics, startSuccess } = useIntake()
+  const { answers, update, startChoices } = useIntake()
 
   return (
     <StepScreen
@@ -27,8 +27,7 @@ export default function ExperienceStep() {
       question="How much experience do you have?"
       continueDisabled={!answers.experienceChoice}
       onContinue={() => {
-        startTopics()
-        startSuccess()
+        startChoices()
         router.push('/intake/topics')
       }}
     >

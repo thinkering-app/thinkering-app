@@ -13,12 +13,12 @@ import { StepScreen } from '@/intake/step-screen'
  * the way. Selecting none is allowed.
  */
 export default function TopicsStep() {
-  const { answers, update, topics, startTopics, retryTopics } = useIntake()
+  const { answers, update, topics, startChoices, retryChoices } = useIntake()
 
   useEffect(() => {
     // Covers a cold entry (deep link, or an answer changed on the way back).
-    if (topics.status === 'idle') startTopics()
-  }, [startTopics, topics.status])
+    if (topics.status === 'idle') startChoices()
+  }, [startChoices, topics.status])
 
   return (
     <StepScreen
@@ -38,7 +38,7 @@ export default function TopicsStep() {
         }
       />
       {topics.status === 'error' ? (
-        <GenerationError message={topics.message} onRetry={retryTopics} />
+        <GenerationError message={topics.message} onRetry={retryChoices} />
       ) : topics.status !== 'ready' ? (
         <Generating label="Finding topics" />
       ) : null}

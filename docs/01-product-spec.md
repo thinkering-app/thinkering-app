@@ -15,13 +15,13 @@ Single select: **For my career / For a personal goal / For fun**, plus an open f
 
 **Step 3 — How much experience do you have?**
 Single select: **Just getting started / Explored a bit / In the middle / Have a lot of experience**, plus the same optional, growing follow-up: _"What have you tried before, and how did it go?"_
-→ On advance, fire **G2** (topic candidates; waits on G1) and **G2b** (what success could look like) together in the background.
+→ On advance, fire **G2** (topic candidates and what success could look like, in one call; waits on G1) in the background. It streams topics first, so step 4 doesn't wait on step 5's half.
 
 **Step 4 — Which topics feel most relevant?**
 Multi-select chips from G2's ~10 topics (mix of motivation-aligned, foundational/prerequisite, and adjacent-but-interesting; the mix is invisible to the user). A small field with a **+** above the chips adds their own topic, selected straight away. Selecting none is allowed. If G2 hasn't finished, a brief, branded generating state shows below the field.
 
 **Step 5 — What are you hoping for?**
-Multi-select chips from G2b's 3–5 short, varied, first-person outcomes (_"I can follow a dinner conversation"_, _"I understand when to use du or Sie"_), with the same add-your-own field. Selecting none is allowed, and so is moving on if G2b failed. (The prompt still frames these as what success would feel like; the learner-facing question is softer on purpose.)
+Multi-select chips from G2's 3–5 short, varied, first-person outcomes (_"I can follow a dinner conversation"_, _"I understand when to use du or Sie"_), with the same add-your-own field. Selecting none is allowed, and so is moving on if G2 failed. (The prompt still frames these as what success would feel like; the learner-facing question is softer on purpose.)
 → On advance, fire **G3** (initial path: short interest name + 5–8 sequenced goals, shaped by the topics and outcomes they picked).
 
 **Step 6 — How much time do you want to spend?**

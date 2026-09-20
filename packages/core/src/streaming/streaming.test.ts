@@ -4,6 +4,7 @@ import { extractJsonText } from './json'
 import { extractPartialBlocks } from './partial-blocks'
 import { extractPartialActivityDoc } from './partial-doc'
 import { extractPartialPath } from './partial-path'
+import { extractPartialTopics } from './partial-topics'
 import { accumulateEvent, emptyAccumulator, SseParser } from './sse'
 
 describe('SseParser', () => {
@@ -150,5 +151,35 @@ describe('extractJsonText', () => {
       description: "so exchanges don't dead-end.\n",
       tab: 'a\tb',
     })
+  })
+})
+
+describe('extractPartialTopics', () => {
+  const topic = (label: string) => ({ label, origin: 'foundational', blurb: `About ${label}.` })
+  const full = JSON.stringify({
+    topics: [topic('Noun genders'), topic('Present tense'), topic('Numbers')],
+    outcomes: ['I can order food', 'I can read a menu', 'I understand der, die, das'],
+  })
+
+  it('yields each topic as its object closes', () => {
+    expect(extractPartialTopics(full.slice(0, 20))).toEqual({ topics: [], complete: false })
+    const afterFirst = full.indexOf('},') + 1
+    expect(extractPartialTopics(full.slice(0, afterFirst)).topics).toEqual([topic('Noun genders')])
+  })
+
+  /**
+   * The point of the merge: step 4 renders while the outcomes for step 5 are
+   * still being written, so one call costs no more waiting than two did.
+   */
+  it('reports the topics complete as soon as outcomes begin, before the stream ends', () => {
+    const atOutcomes = full.indexOf('"outcomes"') + '"outcomes": ['.length
+    const partial = extractPartialTopics(full.slice(0, atOutcomes))
+    expect(partial.complete).toBe(true)
+    expect(partial.topics).toHaveLength(3)
+  })
+
+  it('stops at a topic that does not validate rather than showing half a chip', () => {
+    const broken = JSON.stringify({ topics: [topic('Noun genders'), { label: 'No origin' }] })
+    expect(extractPartialTopics(broken).topics).toEqual([topic('Noun genders')])
   })
 })
