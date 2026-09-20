@@ -35,6 +35,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 - Suggested resources for a new interest are a starting point now — two to
   four good ones rather than a list to work through.
+- Today writes the Next card ahead of time; Strengthen and Go further say
+  Write and are written when you ask for one. Nothing is generated for a card
+  you never open.
 - Configure learning routine shows your daily routine above the question,
   with a link to the feedback board if you'd like a different number of
   activities each day.

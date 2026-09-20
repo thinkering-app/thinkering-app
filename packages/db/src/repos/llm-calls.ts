@@ -1,4 +1,4 @@
-import { desc, eq, lt } from 'drizzle-orm'
+import { desc, eq, gte, lt, sql } from 'drizzle-orm'
 import type { Database, RepoContext } from '../database'
 import { llmCalls } from '../schema'
 
@@ -62,4 +62,33 @@ export function listLlmCalls(db: Database, limit = 100): LlmCall[] {
 
 export function getLlmCall(db: Database, id: string): LlmCall | undefined {
   return db.select().from(llmCalls).where(eq(llmCalls.id, id)).get()
+}
+
+/** One kind's share of a window's spend, for the AI Inspector's totals. */
+export interface LlmKindTotal {
+  kind: string
+  calls: number
+  inputTokens: number
+  outputTokens: number
+}
+
+/**
+ * What each kind has spent since `sinceMs`, heaviest first. The Inspector's
+ * per-call list answers "what did this prompt send"; this answers "where is
+ * the budget going", which is the question a long testing day raises. Calls
+ * that never reported tokens count toward `calls` and contribute nothing.
+ */
+export function llmCallTotals(db: Database, sinceMs: number): LlmKindTotal[] {
+  return db
+    .select({
+      kind: llmCalls.kind,
+      calls: sql<number>`count(*)`,
+      inputTokens: sql<number>`coalesce(sum(${llmCalls.inputTokens}), 0)`,
+      outputTokens: sql<number>`coalesce(sum(${llmCalls.outputTokens}), 0)`,
+    })
+    .from(llmCalls)
+    .where(gte(llmCalls.createdAt, sinceMs))
+    .groupBy(llmCalls.kind)
+    .all()
+    .sort((a, b) => b.outputTokens - a.outputTokens)
 }

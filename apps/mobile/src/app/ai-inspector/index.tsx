@@ -1,23 +1,64 @@
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
 import { FlatList, Pressable, Text, View } from 'react-native'
-import { listLlmCalls, type LlmCall } from '@thinkering/db'
+import { weightedTokens } from '@thinkering/core'
+import { listLlmCalls, llmCallTotals, type LlmCall, type LlmKindTotal } from '@thinkering/db'
 
 import { Screen } from '@/components/screen'
 import { db } from '@/db'
+
+const DAY_MS = 24 * 60 * 60 * 1000
 
 function formatTime(ms: number): string {
   const d = new Date(ms)
   return `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`
 }
 
+function formatTokens(n: number): string {
+  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n)
+}
+
+/**
+ * Where the last day's budget went, heaviest kind first. Weighted tokens are
+ * the unit the daily cap is measured in (docs/04 §Usage metering), so a row
+ * here is directly comparable to the meter in Me → Settings → AI.
+ */
+function Totals({ totals }: { totals: LlmKindTotal[] }) {
+  const weighted = (t: LlmKindTotal) => weightedTokens(t.inputTokens, t.outputTokens)
+  const all = totals.reduce((sum, t) => sum + weighted(t), 0)
+  if (totals.length === 0) return null
+  return (
+    <View className="mb-3 gap-2 rounded-card bg-surface p-4">
+      <View className="flex-row items-center justify-between">
+        <Text className="font-sans-medium text-body text-ink">Last 24 hours</Text>
+        <Text className="font-sans-medium text-body text-ink">
+          {formatTokens(all)} weighted
+        </Text>
+      </View>
+      {totals.map((total) => (
+        <View key={total.kind} className="flex-row items-center justify-between">
+          <Text className="font-sans text-caption text-ink-soft">
+            {total.kind} · {total.calls}
+          </Text>
+          <Text className="font-sans text-caption text-ink-soft">
+            in {formatTokens(total.inputTokens)} / out {formatTokens(total.outputTokens)} ·{' '}
+            {all > 0 ? Math.round((100 * weighted(total)) / all) : 0}%
+          </Text>
+        </View>
+      ))}
+    </View>
+  )
+}
+
 /** AI Inspector (docs/02 §Dev experience): the primary prompt-iteration loop. */
 export default function AiInspectorScreen() {
   const [calls, setCalls] = useState<LlmCall[]>([])
+  const [totals, setTotals] = useState<LlmKindTotal[]>([])
 
   useFocusEffect(
     useCallback(() => {
       setCalls(listLlmCalls(db))
+      setTotals(llmCallTotals(db, Date.now() - DAY_MS))
     }, []),
   )
 
@@ -32,6 +73,7 @@ export default function AiInspectorScreen() {
         <FlatList
           data={calls}
           keyExtractor={(item) => item.id}
+          ListHeaderComponent={<Totals totals={totals} />}
           renderItem={({ item }) => (
             <Pressable
               onPress={() => router.push({ pathname: '/ai-inspector/[id]', params: { id: item.id } })}

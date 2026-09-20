@@ -95,3 +95,15 @@ export function advanceGoalStatus(current: GoalStatus, tier: Tier): GoalStatus {
   const next = TIER_RESULT_STATUS[tier]
   return GOAL_STATUS_ORDER[next] > GOAL_STATUS_ORDER[current] ? next : current
 }
+
+/**
+ * How the daily budget counts a call (D14, docs/04 §Usage metering): output
+ * tokens weigh four times input, and cached input is free. The proxy meters
+ * with it and the AI Inspector reports in the same unit, so a number the
+ * Inspector shows is the number the cap is measured against.
+ */
+export const OUTPUT_TOKEN_WEIGHT = 4
+
+export function weightedTokens(inputTokens: number, outputTokens: number): number {
+  return inputTokens + OUTPUT_TOKEN_WEIGHT * outputTokens
+}

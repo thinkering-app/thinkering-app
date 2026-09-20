@@ -1,3 +1,4 @@
+import { OUTPUT_TOKEN_WEIGHT, weightedTokens } from '@thinkering/core'
 import type { TokenTotals, UsageAfter, UsageDelta, UsageRecord } from './store'
 
 /**
@@ -10,7 +11,8 @@ import type { TokenTotals, UsageAfter, UsageDelta, UsageRecord } from './store'
 export const DAILY_BUDGET_WEIGHTED = 500_000
 /** Slice only activity.review / activity.question may spend into. */
 export const RESERVED_WEIGHTED = 75_000
-export const OUTPUT_WEIGHT = 4
+/** Re-exported so the metering module reads as one piece; defined in packages/core. */
+export const OUTPUT_WEIGHT = OUTPUT_TOKEN_WEIGHT
 
 /** In-activity kinds that draw from the protected slice. */
 export const PROTECTED_KINDS = new Set(['activity.review', 'activity.question'])
@@ -59,7 +61,7 @@ export const BURST_LIMITS: Record<string, number> = {
 }
 
 export function weightedUsed(usage: TokenTotals): number {
-  return usage.inputTokens + OUTPUT_WEIGHT * usage.outputTokens
+  return weightedTokens(usage.inputTokens, usage.outputTokens)
 }
 
 /** The highest alert level the day's proxy-wide total has reached, if any. */
