@@ -27,9 +27,20 @@ export function PaperGrain() {
 export type WashColor = 'cornflower' | 'leaf' | 'sun' | 'peach'
 
 /**
- * A palette tint fading to nothing — the landing hero's blurred wash, drawn as
- * a radial gradient. Position it with `className` so it bleeds off an edge of
- * a clipped parent; use two or three, never one centred shape.
+ * How much of the palette colour the core of a wash carries. `tint` is the wash
+ * at rest — thin enough to read as colour in the paper rather than a shape, but
+ * it has to survive being spread over a whole screen, so it sits a little above
+ * the `*-tint` tokens. `flush` is the same colour much closer to itself, only
+ * ever for a moment as a celebration settles back to the tint.
+ */
+const CORE_ALPHA = { tint: '35', flush: '63' } as const
+
+export type WashTone = keyof typeof CORE_ALPHA
+
+/**
+ * A palette colour fading to nothing — the landing hero's blurred wash, drawn
+ * as a radial gradient. Position it with `className` so it bleeds off an edge
+ * of a clipped parent; use two or three, never one centred shape.
  */
 export function Wash({
   color,
@@ -41,19 +52,15 @@ export function Wash({
   /** Diameter in pixels; the solid core is the middle third. */
   size: number
   className: string
-  /**
-   * `tint` is the wash at rest. `flush` is the palette colour, thinned — only
-   * ever for a moment, as a celebration settles back to the tint.
-   */
-  tone?: 'tint' | 'flush'
+  tone?: WashTone
 }) {
-  const core = tone === 'flush' ? `${colors[color].DEFAULT}A6` : colors[color].tint
-  const clear = `${colors[color][tone === 'flush' ? 'DEFAULT' : 'tint']}00`
+  const core = `${colors[color].DEFAULT}${CORE_ALPHA[tone]}`
+  const clear = `${colors[color].DEFAULT}00`
   const gradient = `radial-gradient(circle closest-side, ${core} 0%, ${core} 35%, ${clear} 100%)`
   return (
     <View
       pointerEvents="none"
-      className={`absolute opacity-60 ${className}`}
+      className={`absolute ${className}`}
       style={[{ width: size, height: size }, gradientStyle(gradient)]}
     />
   )

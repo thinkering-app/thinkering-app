@@ -97,7 +97,9 @@ export function ConfigureSheet({
         visible={info !== null}
         onClose={() => setInfo(null)}
         title={info?.name ?? ''}
-        body={info ? [info.overview, info.whyItHelps, info.activation].filter(Boolean).join('\n\n') : ''}
+        body={
+          info ? [info.overview, info.whyItHelps, info.activation].filter(Boolean).join('\n\n') : ''
+        }
       />
     </Sheet>
   )

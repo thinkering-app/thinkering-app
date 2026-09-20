@@ -132,14 +132,10 @@
       {
         "title": "Easy German: At the Restaurant (video)",
         "description": "Street interviews ordering food",
-        "goalTitles": [
-          "Order food and drinks"
-        ]
+        "goalTitles": ["Order food and drinks"]
       }
     ],
-    "routineNotes": [
-      "Prefers speaking practice over grammar drills"
-    ]
+    "routineNotes": ["Prefers speaking practice over grammar drills"]
   },
   "activityTitle": "Hätte gern: five quick orders",
   "tier": "strengthen",
@@ -147,13 +143,10 @@
     "title": "Order food and drinks",
     "description": "Ordering politely in a café or restaurant, and understanding the reply."
   },
-  "conceptLabels": [
-    "Restaurant phrases",
-    "Polite requests with hätte gern"
-  ],
+  "conceptLabels": ["Restaurant phrases", "Polite requests with hätte gern"],
   "responses": [
     "Q: Which is the polite way to order a coffee?\nA: \"Ich hätte gern einen Kaffee.\" (correct)",
-    "Fill in the blanks (some wrong): einen → \"ein\"; gern → \"gerne\"",
+    "Fill in the blanks: Ich hätte ___ ___ Kaffee, bitte.\nA (some wrong): \"gerne\" (expected \"gern\"); \"ein\" (expected \"einen\")",
     "Q: Why is \"Ich will einen Kaffee\" risky with a stranger?\nA: It sounds like a demand, like a child asking. I think hätte gern is the past tense of haben so it's more distant."
   ],
   "trickiestConcept": "Polite requests with hätte gern"

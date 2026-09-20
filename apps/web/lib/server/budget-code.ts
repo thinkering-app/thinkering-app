@@ -28,5 +28,7 @@ export function normalizeBudgetCode(code: string): string {
 }
 
 export function hashBudgetCode(secretKey: string, code: string): string {
-  return createHmac('sha256', secretKey).update(`code.${normalizeBudgetCode(code)}`).digest('hex')
+  return createHmac('sha256', secretKey)
+    .update(`code.${normalizeBudgetCode(code)}`)
+    .digest('hex')
 }

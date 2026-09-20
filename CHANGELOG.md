@@ -10,6 +10,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 - Have a code? In Me → Settings → AI, a code we've given you adds to your
   daily amount from then on.
+- A page written in answer to something you asked now shows your question at
+  the top of it, so it still reads as a reply when you come back to it.
 - Anonymous, opt-in usage analytics — off until you say yes, asked once on the
   welcome screen, and never carrying anything you write.
 - Share session replays with the developers, if you choose — asked after
@@ -31,7 +33,9 @@ build; internal refactors and docs don't appear here. The conventions are in
   and a look at your path before you say how it's going.
 - Leave intake from any step, and choose to save it for later or discard it.
   A saved one picks up where you left off, from Me → Interests or the next
-  time you add an interest.
+  time you add an interest. Back from the first question always goes
+  somewhere: the welcome screen on your first interest, otherwise the screen
+  you started from.
 
 ### Changed
 
@@ -44,6 +48,10 @@ build; internal refactors and docs don't appear here. The conventions are in
 - Today writes the Next card ahead of time; Strengthen and Go further say
   Write and are written when you ask for one. Nothing is generated for a card
   you never open.
+- The look back at your answers, just before the end of an activity, is one
+  short paragraph on the single thing worth saying — not a second lesson.
+- The recap at the end of an activity is shorter too: a line or two on the
+  idea worth keeping.
 - Configure learning routine shows your daily routine above the question,
   with a link to the feedback board if you'd like a different number of
   activities each day.
@@ -88,6 +96,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 - Leaving a screen while something was being written no longer counts the
   whole generation against your daily amount, so you reach the cap far less
   often.
+- A page you asked for mid-activity stays where it was put. It could disappear
+  moments after arriving — taking you to the end of the activity with it — if
+  the review page was still being written when you asked.
 - Fill-in-the-blank sentences wrap instead of running off the screen, and the
   answer to a blank you got wrong appears once you move on from it, labeled,
   rather than while you're still typing.

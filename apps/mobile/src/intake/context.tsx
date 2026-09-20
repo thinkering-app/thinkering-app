@@ -324,7 +324,8 @@ function topicsState(
   state: GenerationState<ChoicesOutput>,
   partial: PartialTopics,
 ): GenerationState<PartialTopics> {
-  if (state.status === 'ready') return { status: 'ready', value: { topics: state.value.topics, complete: true } }
+  if (state.status === 'ready')
+    return { status: 'ready', value: { topics: state.value.topics, complete: true } }
   if (state.status === 'pending' && partial.complete) return { status: 'ready', value: partial }
   return state
 }

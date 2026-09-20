@@ -45,13 +45,33 @@ describe('parseIntakeDraft', () => {
       key: '{}',
       value: {
         topics: [
-        { label: 'Family introductions', origin: 'motivation', blurb: 'Who you are, and asking back.' },
-        { label: 'Talking about food', origin: 'motivation', blurb: 'Dishes, preferences, compliments.' },
-        { label: 'Present tense verbs', origin: 'foundational', blurb: 'The everyday verb forms.' },
-        { label: 'Noun genders', origin: 'foundational', blurb: 'Der, die, das and how to cope.' },
-        { label: 'Numbers and time', origin: 'foundational', blurb: 'Saying when and how many.' },
-        { label: 'German TV and music', origin: 'adjacent', blurb: 'Listening for pleasure, not study.' },
-      ],
+          {
+            label: 'Family introductions',
+            origin: 'motivation',
+            blurb: 'Who you are, and asking back.',
+          },
+          {
+            label: 'Talking about food',
+            origin: 'motivation',
+            blurb: 'Dishes, preferences, compliments.',
+          },
+          {
+            label: 'Present tense verbs',
+            origin: 'foundational',
+            blurb: 'The everyday verb forms.',
+          },
+          {
+            label: 'Noun genders',
+            origin: 'foundational',
+            blurb: 'Der, die, das and how to cope.',
+          },
+          { label: 'Numbers and time', origin: 'foundational', blurb: 'Saying when and how many.' },
+          {
+            label: 'German TV and music',
+            origin: 'adjacent',
+            blurb: 'Listening for pleasure, not study.',
+          },
+        ],
         outcomes: ['I can order food', 'I can chat', 'I can read'],
       },
     },

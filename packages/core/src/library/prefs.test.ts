@@ -6,7 +6,11 @@ import { activeLibraryItems, libraryPrefsForSection } from './prefs'
 const fresh = { startedGoalCount: 0 }
 const underway = { startedGoalCount: 4 }
 
-function activeIds(section: 'next' | 'strengthen' | 'go_further', prefs = [], situation = underway) {
+function activeIds(
+  section: 'next' | 'strengthen' | 'go_further',
+  prefs = [],
+  situation = underway,
+) {
   return activeLibraryItems(section, prefs, situation).map((i) => i.id)
 }
 

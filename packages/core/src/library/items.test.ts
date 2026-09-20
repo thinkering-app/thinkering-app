@@ -36,7 +36,10 @@ describe('library definitions', () => {
 
   it('every section has at least one default-active item', () => {
     for (const section of ['next', 'strengthen', 'go_further'] as const) {
-      expect(libraryItemsForSection(section).some((i) => i.defaultActive), section).toBe(true)
+      expect(
+        libraryItemsForSection(section).some((i) => i.defaultActive),
+        section,
+      ).toBe(true)
     }
   })
 })

@@ -133,7 +133,7 @@ export function SummaryFooter({
             <Text className="text-center font-sans text-caption text-ink-soft">
               {shareState === 'error'
                 ? "That didn't send. Try again later."
-                : 'Sends this activity, your rating and your note to the developers. Your answers stay on your device.'}
+                : 'Sends this activity, your rating and your note to the developers. What you wrote stays on your device.'}
             </Text>
           </>
         )}

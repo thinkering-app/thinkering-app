@@ -14,9 +14,11 @@ describe('migration chain', () => {
     // run the chain rather than restore the image built from it.
     const sqlite = migrateFresh()
     const tables = new Set(
-      (sqlite.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all() as { name: string }[]).map(
-        (r) => r.name,
-      ),
+      (
+        sqlite.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all() as {
+          name: string
+        }[]
+      ).map((r) => r.name),
     )
     for (const expected of [
       'interests',
@@ -57,21 +59,27 @@ describe('migration chain', () => {
         (sqlite.prepare(`SELECT count(*) AS n FROM "${table}"`).get() as { n: number }).n
       const tables = (
         sqlite
-          .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '\\_\\_%' ESCAPE '\\'")
+          .prepare(
+            "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '\\_\\_%' ESCAPE '\\'",
+          )
           .all() as { name: string }[]
       ).map((r) => r.name)
       const before = Object.fromEntries(tables.map((t) => [t, countRows(t)]))
-      expect(Object.values(before).some((n) => n > 0), `${file} must contain sample rows`).toBe(true)
+      expect(
+        Object.values(before).some((n) => n > 0),
+        `${file} must contain sample rows`,
+      ).toBe(true)
 
       migrateToHead(sqlite)
 
       for (const table of tables) {
-        expect(countRows(table), `${file} → head lost rows in ${table}`).toBeGreaterThanOrEqual(before[table]!)
+        expect(countRows(table), `${file} → head lost rows in ${table}`).toBeGreaterThanOrEqual(
+          before[table]!,
+        )
       }
       // Spot-check content survived, not just counts.
       const interest = sqlite.prepare("SELECT name FROM interests WHERE id = 'i-sample'").get() as
-        | { name: string }
-        | undefined
+        { name: string } | undefined
       expect(interest?.name).toBe('Understanding LLMs')
     }
   })
@@ -96,7 +104,10 @@ describe('additive-first check (D17)', () => {
         for (const pattern of destructive) {
           if (!pattern.test(statement)) continue
           const allowed = allowlist.some((a) => a.file === file && a.pattern.test(statement))
-          expect(allowed, `${file}: destructive statement needs an allowlist entry:\n${statement.trim()}`).toBe(true)
+          expect(
+            allowed,
+            `${file}: destructive statement needs an allowlist entry:\n${statement.trim()}`,
+          ).toBe(true)
         }
       }
     }

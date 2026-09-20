@@ -15,7 +15,10 @@ let cached: DeviceCredentials | null = null
 
 export async function getDeviceCredentials(): Promise<DeviceCredentials> {
   if (cached) return cached
-  const [deviceId, secret] = await Promise.all([secureGet(KEYS.deviceId), secureGet(KEYS.deviceSecret)])
+  const [deviceId, secret] = await Promise.all([
+    secureGet(KEYS.deviceId),
+    secureGet(KEYS.deviceSecret),
+  ])
   if (deviceId && secret) {
     cached = { deviceId, secret }
     return cached
@@ -29,7 +32,10 @@ export async function getDeviceCredentials(): Promise<DeviceCredentials> {
   })
   if (!res.ok) throw new Error(`device registration failed (${res.status})`)
   const creds = (await res.json()) as DeviceCredentials
-  await Promise.all([secureSet(KEYS.deviceId, creds.deviceId), secureSet(KEYS.deviceSecret, creds.secret)])
+  await Promise.all([
+    secureSet(KEYS.deviceId, creds.deviceId),
+    secureSet(KEYS.deviceSecret, creds.secret),
+  ])
   cached = creds
   return creds
 }

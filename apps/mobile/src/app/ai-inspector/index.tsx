@@ -37,9 +37,7 @@ function Totals({ totals }: { totals: LlmKindTotal[] }) {
     <View className="mb-3 gap-2 rounded-card bg-surface p-4">
       <View className="flex-row items-center justify-between">
         <Text className="font-sans-medium text-body text-ink">Last 24 hours</Text>
-        <Text className="font-sans-medium text-body text-ink">
-          {formatTokens(all)} weighted
-        </Text>
+        <Text className="font-sans-medium text-body text-ink">{formatTokens(all)} weighted</Text>
       </View>
       {totals.map((total) => (
         <View key={total.kind} className="flex-row items-center justify-between">
@@ -88,7 +86,9 @@ export default function AiInspectorScreen() {
           ListHeaderComponent={<Totals totals={totals} />}
           renderItem={({ item }) => (
             <Pressable
-              onPress={() => router.push({ pathname: '/ai-inspector/[id]', params: { id: item.id } })}
+              onPress={() =>
+                router.push({ pathname: '/ai-inspector/[id]', params: { id: item.id } })
+              }
               className="mb-2 rounded-card bg-surface p-4"
             >
               <View className="flex-row items-center justify-between">
@@ -105,7 +105,8 @@ export default function AiInspectorScreen() {
               </View>
               <Text className="mt-1 font-sans text-caption text-ink-soft">
                 {item.model} · in {item.inputTokens ?? '–'} / out {item.outputTokens ?? '–'} ·{' '}
-                {item.latencyMs != null ? `${item.latencyMs}ms` : '–'} · {formatTime(item.createdAt)}
+                {item.latencyMs != null ? `${item.latencyMs}ms` : '–'} ·{' '}
+                {formatTime(item.createdAt)}
               </Text>
             </Pressable>
           )}

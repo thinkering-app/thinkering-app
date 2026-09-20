@@ -18,7 +18,12 @@
       "Move from one-off exploration to a rerunnable script early, then build on it."
     ]
   },
-  "selectedTopics": ["Automating monthly reports", "Pivot tables in pandas", "Merging data from several files", "Charts from code"],
+  "selectedTopics": [
+    "Automating monthly reports",
+    "Pivot tables in pandas",
+    "Merging data from several files",
+    "Charts from code"
+  ],
   "unselectedTopics": [
     "Python basics",
     "Jupyter notebooks",

@@ -65,7 +65,12 @@ export function listBufferedEvents(db: Database): BufferedEvent[] {
 }
 
 export function countBufferedEvents(db: Database): number {
-  return db.select({ count: sql<number>`count(*)` }).from(analyticsBuffer).get()?.count ?? 0
+  return (
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(analyticsBuffer)
+      .get()?.count ?? 0
+  )
 }
 
 export function clearAnalyticsBuffer(db: Database): void {

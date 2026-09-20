@@ -30,7 +30,10 @@ export const responsePayloadSchema = z.discriminatedUnion('kind', [
 ])
 
 export type ResponsePayload = z.infer<typeof responsePayloadSchema>
-export type ResponsePayloadFor<K extends InteractiveBlockKind> = Extract<ResponsePayload, { kind: K }>
+export type ResponsePayloadFor<K extends InteractiveBlockKind> = Extract<
+  ResponsePayload,
+  { kind: K }
+>
 
 export function parseResponsePayload(value: unknown): ResponsePayload | undefined {
   const parsed = responsePayloadSchema.safeParse(value)

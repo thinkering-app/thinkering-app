@@ -1,0 +1,8 @@
+# Revisions git blame should skip — mechanical, repo-wide reformats only.
+# GitHub's blame view reads this file on its own. For `git blame` in a terminal,
+# opt in once you're on a branch that has the file — the setting is shared by
+# every worktree, and blame fails outright in one whose checkout lacks it:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# style: format the repo with prettier
+7d8c41f8aeefd21c38adca030c5c55d92220d69c

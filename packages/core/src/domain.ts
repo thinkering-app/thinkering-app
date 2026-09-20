@@ -9,7 +9,12 @@ export type InterestStatus = (typeof INTEREST_STATUSES)[number]
 export const WHY_CHOICES = ['career', 'personal_goal', 'fun'] as const
 export type WhyChoice = (typeof WHY_CHOICES)[number]
 
-export const EXPERIENCE_CHOICES = ['getting_started', 'explored', 'in_middle', 'experienced'] as const
+export const EXPERIENCE_CHOICES = [
+  'getting_started',
+  'explored',
+  'in_middle',
+  'experienced',
+] as const
 export type ExperienceChoice = (typeof EXPERIENCE_CHOICES)[number]
 
 export const FREQUENCIES = ['daily', 'several_weekly', 'when_i_can'] as const
@@ -31,7 +36,13 @@ export type Section = (typeof SECTIONS)[number]
 export const TIERS = ['introduce', 'strengthen', 'apply'] as const
 export type Tier = (typeof TIERS)[number]
 
-export const ACTIVITY_STATUSES = ['planned', 'ready', 'in_progress', 'completed', 'abandoned'] as const
+export const ACTIVITY_STATUSES = [
+  'planned',
+  'ready',
+  'in_progress',
+  'completed',
+  'abandoned',
+] as const
 export type ActivityStatus = (typeof ACTIVITY_STATUSES)[number]
 
 export const RATINGS = ['down', 'mixed', 'up'] as const

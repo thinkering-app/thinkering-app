@@ -35,10 +35,15 @@ export const FIXTURE_DOC_INTRODUCE: ActivityDoc = {
           prompt: 'Which brief would you rather receive on your first day?',
           options: [
             { id: 'a', label: '"Improve the report."' },
-            { id: 'b', label: '"Summarize the report\'s risks section in three bullets for the exec meeting."' },
+            {
+              id: 'b',
+              label:
+                '"Summarize the report\'s risks section in three bullets for the exec meeting."',
+            },
           ],
           correctId: 'b',
-          explain: 'The second names the task, the scope, and the audience — a model needs the same three things.',
+          explain:
+            'The second names the task, the scope, and the audience — a model needs the same three things.',
         },
       ],
     },
@@ -49,12 +54,12 @@ export const FIXTURE_DOC_INTRODUCE: ActivityDoc = {
         { kind: 'heading', text: 'The analogy, made precise' },
         {
           kind: 'paragraph',
-          md: 'A prompt is the whole briefing: the **task**, the **constraints** (length, format, tone), and the **context** the model can\'t guess. Models don\'t read minds; they read tokens.',
+          md: "A prompt is the whole briefing: the **task**, the **constraints** (length, format, tone), and the **context** the model can't guess. Models don't read minds; they read tokens.",
         },
         {
           kind: 'callout',
           tone: 'tip',
-          md: 'If a stranger couldn\'t do the task from your instructions alone, the model can\'t either.',
+          md: "If a stranger couldn't do the task from your instructions alone, the model can't either.",
         },
         {
           kind: 'reveal',
@@ -68,7 +73,7 @@ export const FIXTURE_DOC_INTRODUCE: ActivityDoc = {
       id: 'intro-fewshot',
       kind: 'content',
       blocks: [
-        { kind: 'heading', text: 'Show, don\'t only tell' },
+        { kind: 'heading', text: "Show, don't only tell" },
         {
           kind: 'paragraph',
           md: 'When the format matters, one or two worked examples in the prompt — *few-shot examples* — beat paragraphs of description. The model imitates the pattern.',
@@ -103,7 +108,7 @@ export const FIXTURE_DOC_INTRODUCE: ActivityDoc = {
       blocks: [
         {
           kind: 'paragraph',
-          md: 'A useful prompt briefs like you\'d brief a stranger: task, constraints, context. When format matters, show a worked example instead of describing it.',
+          md: "A useful prompt briefs like you'd brief a stranger: task, constraints, context. When format matters, show a worked example instead of describing it.",
         },
       ],
     },
@@ -161,9 +166,24 @@ export const FIXTURE_DOC_STRENGTHEN: ActivityDoc = {
           id: 'match-temp',
           prompt: 'Match the temperature to the job:',
           pairs: [
-            { leftId: 'l1', left: 'Low (≈0)', rightId: 'r1', right: 'Extracting fields from an invoice' },
-            { leftId: 'l2', left: 'Medium (≈0.7)', rightId: 'r2', right: 'Drafting a friendly email' },
-            { leftId: 'l3', left: 'High (≈1+)', rightId: 'r3', right: 'Brainstorming twenty campaign names' },
+            {
+              leftId: 'l1',
+              left: 'Low (≈0)',
+              rightId: 'r1',
+              right: 'Extracting fields from an invoice',
+            },
+            {
+              leftId: 'l2',
+              left: 'Medium (≈0.7)',
+              rightId: 'r2',
+              right: 'Drafting a friendly email',
+            },
+            {
+              leftId: 'l3',
+              left: 'High (≈1+)',
+              rightId: 'r3',
+              right: 'Brainstorming twenty campaign names',
+            },
           ],
         },
       ],
@@ -174,19 +194,21 @@ export const FIXTURE_DOC_STRENGTHEN: ActivityDoc = {
       blocks: [
         {
           kind: 'paragraph',
-          md: 'The one people miss: sampling explains why a model can give **different answers to the same question** — that\'s a setting, not a malfunction.',
+          md: "The one people miss: sampling explains why a model can give **different answers to the same question** — that's a setting, not a malfunction.",
         },
         {
           kind: 'mcq',
           id: 'tricky-q',
-          prompt: 'Your assistant gave two different summaries of the same document. The most likely explanation is…',
+          prompt:
+            'Your assistant gave two different summaries of the same document. The most likely explanation is…',
           options: [
             { id: 'a', label: 'It "remembered" the document differently' },
             { id: 'b', label: 'Temperature above 0 sampled a different token path' },
             { id: 'c', label: 'The document changed' },
           ],
           correctId: 'b',
-          explain: 'Each run samples from the same probabilities; above temperature 0, different paths are expected.',
+          explain:
+            'Each run samples from the same probabilities; above temperature 0, different paths are expected.',
         },
       ],
     },
@@ -248,9 +270,18 @@ export const FIXTURE_DOC_APPLY: ActivityDoc = {
         {
           kind: 'steps',
           items: [
-            { label: 'Budget', md: 'Long context ≠ free context: everything you include competes for attention and costs tokens.' },
-            { label: 'Position', md: 'Put the instruction and the most important material at the **start or end**, not buried in the middle.' },
-            { label: 'Prune', md: 'Retrieval or summaries of the irrelevant 80% usually beat pasting everything.' },
+            {
+              label: 'Budget',
+              md: 'Long context ≠ free context: everything you include competes for attention and costs tokens.',
+            },
+            {
+              label: 'Position',
+              md: 'Put the instruction and the most important material at the **start or end**, not buried in the middle.',
+            },
+            {
+              label: 'Prune',
+              md: 'Retrieval or summaries of the irrelevant 80% usually beat pasting everything.',
+            },
           ],
         },
         {
@@ -260,15 +291,20 @@ export const FIXTURE_DOC_APPLY: ActivityDoc = {
           title: 'Intro to LLMs — the context window segment',
           startSec: 1260,
           endSec: 1410,
-          focus: 'Watch ~2 minutes: how does he describe the context window as the model\'s "working memory"?',
+          focus:
+            'Watch ~2 minutes: how does he describe the context window as the model\'s "working memory"?',
         },
         {
           kind: 'mcq',
           id: 'lens-check',
-          prompt: 'You\'re pasting a 60-page contract to ask one question about clause 14. The expert move is…',
+          prompt:
+            "You're pasting a 60-page contract to ask one question about clause 14. The expert move is…",
           options: [
             { id: 'a', label: 'Paste all 60 pages — more context is safer' },
-            { id: 'b', label: 'Paste clause 14 (and its definitions), ask, and mention the rest exists' },
+            {
+              id: 'b',
+              label: 'Paste clause 14 (and its definitions), ask, and mention the rest exists',
+            },
             { id: 'c', label: 'Paste pages 1–30 to stay under the limit' },
           ],
           correctId: 'b',
@@ -283,7 +319,8 @@ export const FIXTURE_DOC_APPLY: ActivityDoc = {
         {
           kind: 'freeText',
           id: 'takeaway',
-          prompt: 'Your takeaway: name one real document you work with and how you\'d trim it before asking a model about it.',
+          prompt:
+            "Your takeaway: name one real document you work with and how you'd trim it before asking a model about it.",
         },
         {
           kind: 'selfRate',

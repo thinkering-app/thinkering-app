@@ -27,7 +27,9 @@ export async function currentAccount(): Promise<Account | null> {
 /** Fires on sign-in, sign-out and token refresh. Returns an unsubscribe. */
 export function onAccountChange(listener: (account: Account | null) => void): () => void {
   if (!backupConfigured) return () => {}
-  const { data } = supabase().auth.onAuthStateChange((_event, session) => listener(toAccount(session)))
+  const { data } = supabase().auth.onAuthStateChange((_event, session) =>
+    listener(toAccount(session)),
+  )
   return () => data.subscription.unsubscribe()
 }
 
@@ -67,7 +69,8 @@ export async function deleteAccount(): Promise<AuthResult> {
       method: 'POST',
       headers: { ...(await signedHeaders('')), authorization: `Bearer ${token}` },
     })
-    if (!res.ok) return { ok: false, message: "We couldn't delete the account. Nothing has changed." }
+    if (!res.ok)
+      return { ok: false, message: "We couldn't delete the account. Nothing has changed." }
     await supabase().auth.signOut()
     return { ok: true }
   } catch {

@@ -1,14 +1,17 @@
 /**
  * `pnpm prompt:check <kind> [--only <fixture>]` — live structural + tone
  * assertions on a kind's fixture inputs (docs/10 Tier 5): schema-valid,
- * kind-specific structure (page counts, review placement, concept resolution),
- * tone lints. Never string equality; quality judgment stays human (AI Inspector).
+ * kind-specific structure (page counts, review placement, concept resolution,
+ * the length budgets for the review and summary pages), tone lints. Never
+ * string equality; quality judgment stays human (AI Inspector).
  */
 import { weightedTokens } from '../src/domain'
 import { parseActivityDoc } from '../src/schemas/activity-doc'
+import type { Block } from '../src/schemas/blocks'
 import {
   checkActivityDoc,
   checkResources,
+  checkReviewBlocks,
   toneLintOutput,
   type CheckIssue,
 } from '../src/prompts/checks'
@@ -74,6 +77,8 @@ for (const fixture of loadFixtures(template.kind, only)) {
             excludeUrls: params.excludeUrls,
           }),
         )
+      } else if (template.kind === 'activity.review') {
+        issues.push(...checkReviewBlocks((parsed.data as { blocks: Block[] }).blocks, fixture.name))
       } else {
         issues.push(...toneLintOutput(parsed.data, fixture.name))
       }

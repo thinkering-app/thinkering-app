@@ -69,19 +69,30 @@ export function nextGoalSortOrder(db: Database, interestId: string): number {
  * changes, via a fractional order between its new neighbours; if midpoints have
  * exhausted double precision, the whole path is renumbered instead.
  */
-export function moveGoal(db: Database, ctx: RepoContext, goalId: string, targetIndex: number): void {
+export function moveGoal(
+  db: Database,
+  ctx: RepoContext,
+  goalId: string,
+  targetIndex: number,
+): void {
   const goal = getGoal(db, goalId)
   if (!goal) return
   const path = listGoals(db, goal.interestId)
   const without = path.filter((g) => g.id !== goalId)
   const index = Math.max(0, Math.min(targetIndex, without.length))
-  const order = sortOrderBetween(without[index - 1]?.sortOrder ?? null, without[index]?.sortOrder ?? null)
+  const order = sortOrderBetween(
+    without[index - 1]?.sortOrder ?? null,
+    without[index]?.sortOrder ?? null,
+  )
   const now = ctx.now()
   if (order === null) {
     const reordered = [...without.slice(0, index), goal, ...without.slice(index)]
     const spread = respreadSortOrders(reordered.length)
     for (const [i, row] of reordered.entries()) {
-      db.update(goals).set({ sortOrder: spread[i]!, updatedAt: now }).where(eq(goals.id, row.id)).run()
+      db.update(goals)
+        .set({ sortOrder: spread[i]!, updatedAt: now })
+        .where(eq(goals.id, row.id))
+        .run()
     }
     return
   }
@@ -110,7 +121,12 @@ export function softDeleteGoal(db: Database, ctx: RepoContext, id: string): void
  * only moves forward via advanceGoalStatus; the tier's timestamp records the most
  * recent completion of that tier (spaced review orders by it), so it always updates.
  */
-export function recordGoalTierCompletion(db: Database, ctx: RepoContext, goalId: string, tier: Tier): void {
+export function recordGoalTierCompletion(
+  db: Database,
+  ctx: RepoContext,
+  goalId: string,
+  tier: Tier,
+): void {
   const goal = getGoal(db, goalId)
   if (!goal) return
   const now = ctx.now()

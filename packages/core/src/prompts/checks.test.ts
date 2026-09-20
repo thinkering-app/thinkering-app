@@ -5,6 +5,7 @@ import type { ResourceDraft } from '../schemas/generations'
 import {
   checkActivityDoc,
   checkResources,
+  checkReviewBlocks,
   pageCountRange,
   toneLintIssues,
   type ResourceExpectations,
@@ -69,6 +70,39 @@ describe('checkActivityDoc', () => {
       (i) => i.check,
     )
     expect(checks).toContain('concepts')
+  })
+
+  it('flags a summary recap that runs long or carries a heading', () => {
+    const doc = freshDoc()
+    const summary = doc.pages.at(-1)!
+    summary.blocks = [
+      { kind: 'heading', text: 'What you covered' },
+      { kind: 'paragraph', md: `${'word '.repeat(90)}` },
+    ]
+    const checks = checkActivityDoc(doc, { estMinutes: 5, goalConceptIds: GOAL_CONCEPTS }).map(
+      (i) => i.check,
+    )
+    expect(checks).toContain('summary-length')
+    expect(checks).toContain('summary-shape')
+  })
+
+  it('flags an interaction on the summary recap', () => {
+    const doc = freshDoc()
+    doc.pages.at(-1)!.blocks = [
+      {
+        kind: 'mcq',
+        id: 'one-more',
+        prompt: 'One more before you go?',
+        options: [
+          { id: 'a', label: 'Sure' },
+          { id: 'b', label: 'No' },
+        ],
+      },
+    ]
+    const checks = checkActivityDoc(doc, { estMinutes: 5, goalConceptIds: GOAL_CONCEPTS }).map(
+      (i) => i.check,
+    )
+    expect(checks).toContain('summary-shape')
   })
 
   it('tone lints catch filler praise and patronizing framings', () => {
@@ -172,5 +206,27 @@ describe('checkResources', () => {
     expect(checks([video(), article({ goalTitles: ['Talk about your familiy'] })])).toContain(
       'goal-titles',
     )
+  })
+})
+
+describe('checkReviewBlocks', () => {
+  it('passes one short paragraph', () => {
+    expect(
+      checkReviewBlocks([
+        {
+          kind: 'paragraph',
+          md: "Not quite — *hätte gern* isn't past tense. It's the conditional, \"I would like\", and that's what softens the ask.",
+        },
+      ]),
+    ).toEqual([])
+  })
+
+  it('flags the lesson-shaped review the prompt is trying to prevent', () => {
+    const checks = checkReviewBlocks([
+      { kind: 'heading', text: 'You nailed the form' },
+      { kind: 'paragraph', md: `${'word '.repeat(90)}` },
+    ]).map((i) => i.check)
+    expect(checks).toContain('review-length')
+    expect(checks).toContain('review-shape')
   })
 })

@@ -35,14 +35,18 @@ async function main() {
   // A typo — `--days 3O` — is NaN, which is falsy, which would quietly store no
   // expiry at all and issue a permanent grant. Omitting --days asks for that.
   if (days !== undefined && (!Number.isInteger(days) || days <= 0)) {
-    console.error('--days must be a positive whole number of days. Omit it for one that never expires.')
+    console.error(
+      '--days must be a positive whole number of days. Omit it for one that never expires.',
+    )
     process.exit(1)
   }
 
   const url = process.env.SUPABASE_URL
   const secretKey = process.env.SUPABASE_SECRET_KEY
   if (!url || !secretKey) {
-    console.error('No SUPABASE_URL / SUPABASE_SECRET_KEY: put them in apps/web/.env or export them.')
+    console.error(
+      'No SUPABASE_URL / SUPABASE_SECRET_KEY: put them in apps/web/.env or export them.',
+    )
     process.exit(1)
   }
 
@@ -61,7 +65,9 @@ async function main() {
   }
 
   console.log(`\n  ${code}\n`)
-  console.log(`  ${label} · +${bonus.toLocaleString()} weighted/day${days ? ` · ${days} days` : ''}`)
+  console.log(
+    `  ${label} · +${bonus.toLocaleString()} weighted/day${days ? ` · ${days} days` : ''}`,
+  )
   console.log('  Shown once. Only its hash is stored.\n')
 }
 

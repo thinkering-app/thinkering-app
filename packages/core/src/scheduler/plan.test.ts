@@ -112,7 +112,8 @@ describe('planToday', () => {
 
   it('reflect card appears at ≤3 not_started goals and not before', () => {
     const started = [goal('a', 'introduced')]
-    const notStarted = (n: number) => Array.from({ length: n }, (_, i) => goal(`n${i}`, 'not_started'))
+    const notStarted = (n: number) =>
+      Array.from({ length: n }, (_, i) => goal(`n${i}`, 'not_started'))
     expect(planToday([...started, ...notStarted(4)]).showReflectCard).toBe(false)
     expect(planToday([...started, ...notStarted(3)]).showReflectCard).toBe(true)
     expect(planToday([...started, ...notStarted(0)]).showReflectCard).toBe(true)

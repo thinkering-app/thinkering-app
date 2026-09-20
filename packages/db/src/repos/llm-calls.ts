@@ -58,7 +58,12 @@ export function logLlmCall(db: Database, ctx: RepoContext, input: NewLlmCall): s
 }
 
 export function listLlmCalls(db: Database, limit = 100): LlmCall[] {
-  return db.select().from(llmCalls).orderBy(desc(llmCalls.createdAt), desc(llmCalls.id)).limit(limit).all()
+  return db
+    .select()
+    .from(llmCalls)
+    .orderBy(desc(llmCalls.createdAt), desc(llmCalls.id))
+    .limit(limit)
+    .all()
 }
 
 export function getLlmCall(db: Database, id: string): LlmCall | undefined {
@@ -106,5 +111,9 @@ export function llmCallTotals(db: Database, sinceMs: number): LlmKindTotal[] {
     .where(gte(llmCalls.createdAt, sinceMs))
     .groupBy(llmCalls.kind)
     .all()
-    .sort((a, b) => weightedTokens(b.inputTokens, b.outputTokens) - weightedTokens(a.inputTokens, a.outputTokens))
+    .sort(
+      (a, b) =>
+        weightedTokens(b.inputTokens, b.outputTokens) -
+        weightedTokens(a.inputTokens, a.outputTokens),
+    )
 }

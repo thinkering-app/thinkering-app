@@ -14,7 +14,11 @@ import { analyticsBuffer, genCache, llmCalls, settings } from './schema'
  * (WP1.3) — so UI work needs no tokens. Idempotent per name: skips if the
  * interest already exists.
  */
-export function seedFixtureData(db: Database, ctx: RepoContext, opts: { today: LocalDate }): boolean {
+export function seedFixtureData(
+  db: Database,
+  ctx: RepoContext,
+  opts: { today: LocalDate },
+): boolean {
   if (listInterests(db).some((i) => i.name === 'Understanding LLMs')) return false
 
   const dayMs = 86_400_000
@@ -53,7 +57,7 @@ export function seedFixtureData(db: Database, ctx: RepoContext, opts: { today: L
     },
     {
       title: 'Context windows and their limits',
-      description: 'The model\'s working memory: what fits, what falls out, what it costs.',
+      description: "The model's working memory: what fits, what falls out, what it costs.",
       concepts: [
         { id: 'c-ctx-window', label: 'Context window', kind: 'concept' },
         { id: 'c-ctx-budget', label: 'Working within limits', kind: 'skill' },
@@ -102,8 +106,10 @@ export function seedFixtureData(db: Database, ctx: RepoContext, opts: { today: L
     {
       url: 'https://www.youtube.com/watch?v=zjkBMFhNj_g',
       title: 'Intro to Large Language Models',
-      description: 'Andrej Karpathy\'s hour-long talk: what an LLM is, how it\'s trained, where it\'s going.',
-      howToUse: 'Long, so take it a segment at a time. The context window part starts around 21 minutes in.',
+      description:
+        "Andrej Karpathy's hour-long talk: what an LLM is, how it's trained, where it's going.",
+      howToUse:
+        'Long, so take it a segment at a time. The context window part starts around 21 minutes in.',
     },
     {
       url: 'https://arxiv.org/abs/2307.03172',
@@ -113,20 +119,46 @@ export function seedFixtureData(db: Database, ctx: RepoContext, opts: { today: L
     },
   ]
   for (const r of resourceDefs) {
-    createResource(db, ctx, { interestId: interest.id, ...r, source: 'suggested', goalIds: [goals[1]!.id] })
+    createResource(db, ctx, {
+      interestId: interest.id,
+      ...r,
+      source: 'suggested',
+      goalIds: [goals[1]!.id],
+    })
   }
 
   // A week of history. Completing via the repos drives the goal statuses to:
   // g1 applied · g2 strengthened · g3 introduced · g4–g6 not started (reflect card shows at ≤3).
   const history: { goal: number; tier: Tier; title: string; item: string; day: number }[] = [
     { goal: 0, tier: 'introduce', title: 'Tokens, not words', item: 'plain-explainer', day: 6 },
-    { goal: 0, tier: 'strengthen', title: 'Quick retrieval: tokens', item: 'retrieval-quiz', day: 5 },
-    { goal: 1, tier: 'introduce', title: 'The working-memory window', item: 'worked-example', day: 4 },
-    { goal: 0, tier: 'apply', title: 'Estimate a real prompt\'s cost', item: 'put-to-work', day: 3 },
-    { goal: 1, tier: 'strengthen', title: 'Complete the example: context math', item: 'faded-example', day: 2 },
+    {
+      goal: 0,
+      tier: 'strengthen',
+      title: 'Quick retrieval: tokens',
+      item: 'retrieval-quiz',
+      day: 5,
+    },
+    {
+      goal: 1,
+      tier: 'introduce',
+      title: 'The working-memory window',
+      item: 'worked-example',
+      day: 4,
+    },
+    { goal: 0, tier: 'apply', title: "Estimate a real prompt's cost", item: 'put-to-work', day: 3 },
+    {
+      goal: 1,
+      tier: 'strengthen',
+      title: 'Complete the example: context math',
+      item: 'faded-example',
+      day: 2,
+    },
     { goal: 2, tier: 'introduce', title: 'One token at a time', item: 'guided-discovery', day: 1 },
   ]
-  const docForTier = (tier: Tier) => FIXTURE_ACTIVITY_DOCS[tier === 'introduce' ? 'introduce' : tier === 'strengthen' ? 'strengthen' : 'apply']
+  const docForTier = (tier: Tier) =>
+    FIXTURE_ACTIVITY_DOCS[
+      tier === 'introduce' ? 'introduce' : tier === 'strengthen' ? 'strengthen' : 'apply'
+    ]
 
   let lastHistoryActivityId = ''
   for (const h of history) {
@@ -136,7 +168,8 @@ export function seedFixtureData(db: Database, ctx: RepoContext, opts: { today: L
     const activity = createActivity(db, backdated, {
       interestId: interest.id,
       goalId: goals[h.goal]!.id,
-      section: h.tier === 'introduce' ? 'next' : h.tier === 'strengthen' ? 'strengthen' : 'go_further',
+      section:
+        h.tier === 'introduce' ? 'next' : h.tier === 'strengthen' ? 'strengthen' : 'go_further',
       tier: h.tier,
       libraryItemId: h.item,
       title: h.title,
