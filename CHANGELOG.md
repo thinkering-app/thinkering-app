@@ -93,6 +93,10 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Fixed
 
+- Starting a new interest works again on a version of the app installed before
+  the last update. It failed straight away, with nothing to say why; if an
+  update is what's needed, the app now says so.
+- Deleting your backup account no longer fails.
 - Leaving a screen while something was being written no longer counts the
   whole generation against your daily amount, so you reach the cap far less
   often.

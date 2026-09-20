@@ -1,6 +1,7 @@
 export {
   callAi,
   AiBudgetError,
+  AiOutdatedClientError,
   AiOutputError,
   isSearchFailure,
   type AiCallOptions,

@@ -1,3 +1,4 @@
+import Constants from 'expo-constants'
 import { fetch } from 'expo/fetch'
 import { Platform } from 'react-native'
 import { hmacSha256Hex } from './hmac'
@@ -49,5 +50,12 @@ export async function signedHeaders(body: string): Promise<Record<string, string
     'x-device-id': deviceId,
     'x-timestamp': String(timestamp),
     'x-signature': signature,
+    // Which build is talking (docs/04 §Retired kinds). The bundle is frozen at
+    // build time while the proxy moves on, so this is the only way to know
+    // what's still out there — and so the only way to know when a compatibility
+    // shim is safe to delete. Outside the signature on purpose: it is a
+    // diagnostic, not a claim, and signing it would break the older builds
+    // that don't send it.
+    'x-app-version': Constants.expoConfig?.version ?? 'unknown',
   }
 }

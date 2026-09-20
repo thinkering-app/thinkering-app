@@ -97,6 +97,17 @@ Measured once per level on the committed fixtures; revisit with the AI Inspector
 - G6 not ready when the user reaches the review page: show it as "one more look at your answers…" skeleton for up to ~5s, then gracefully convert the page to a generic summary if the call failed.
 - Aborted streams (user backs out): mark `llm_calls.status = aborted`; keep partial doc only if ≥1 valid page.
 
+## Retired kinds
+
+A `kind` is a wire contract, not an internal name. The client sends `{kind, params}` and the proxy renders from **its own** copy of the registry, so a kind removed or renamed here stops working for every install that hasn't updated — and the mobile bundle is baked into the build, with no OTA. The rejection lands at `getPromptTemplate`, before the usage reservation, so it leaves no row in `device_usage`: the learner sees a generic failure and the server keeps no trace of it. This is how the `intake.topics` + `intake.success` → `intake.choices` merge broke intake on builds that predated it.
+
+The rules that follow from that:
+
+- **Retiring a kind keeps it registered for one release.** The template moves to `RETIRED_PROMPTS` in `prompts/registry.ts`, unchanged and with its version untouched, so old installs get exactly what they were built against. It stays out of `PROMPTS`, which drives the snapshot tests, the input fixtures and the internal prompts page — none of which should list a prompt nobody sends. Retired kinds need no recording: fixture mode never crosses the wire, so an old build uses its own.
+- **Delete the shims only once the builds that send them are gone.** Removing them is deleting the map entry and the template file.
+- **The same applies to params.** Adding a required field to an existing kind's `paramsSchema` rejects old clients as `invalid_params`, before the reservation, just as invisibly.
+- **`unknown_kind` is logged server-side** (`logAiCall`, `errorType: 'unknown_kind'`) and reaches the learner as "Update thinkering to keep going." rather than the generic failure — it is the one generation error retrying can never fix.
+
 ## Observability
 
 - **Local**: `llm_calls` table + AI Inspector screen (prompt, response, tokens, latency, est. cost). This is the primary prompt-iteration loop. One row per attempt, so a repaired call logs the attempt that failed validation as well as the repair — otherwise the row would report the call as costing half what it did. The screen's per-kind totals for the last day are in weighted tokens, the unit the cap uses, but they are **a floor rather than the meter**: an aborted stream never reaches `message_delta` and so reports no tokens at all, while the proxy charges what it streamed. The panel shows how many such calls it couldn't count rather than letting a low number pass for the day's spend.

@@ -20,6 +20,30 @@ export const approachOutputSchema = z.object({
 export type ApproachOutput = z.infer<typeof approachOutputSchema>
 
 /**
+ * Retired with `intake.choices`, kept for one release so builds shipped before
+ * the merge keep working (docs/04 §Retired kinds). Delete with the templates.
+ */
+export const topicsOutputSchema = z.object({
+  topics: z
+    .array(
+      z.object({
+        label: z.string().min(1).max(60),
+        origin: z.enum(['motivation', 'foundational', 'adjacent']),
+        blurb: z.string().min(1),
+      }),
+    )
+    .min(6)
+    .max(14),
+})
+export type TopicsOutput = z.infer<typeof topicsOutputSchema>
+
+/** Retired with `intake.choices`; see `topicsOutputSchema`. */
+export const successOutputSchema = z.object({
+  outcomes: z.array(z.string().min(1).max(80)).min(3).max(6),
+})
+export type SuccessOutput = z.infer<typeof successOutputSchema>
+
+/**
  * G2 `intake.choices` — what the learner picks from on steps 4 and 5: ~10 topic
  * chips (the origin mix is invisible to them) and a few first-person outcomes
  * ("I can…", "I understand…"). One call rather than two: the params are

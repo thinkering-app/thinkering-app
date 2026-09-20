@@ -35,16 +35,20 @@ create table if not exists device_usage (
 create table if not exists device_actions (
   device_id uuid not null references devices (device_id),
   day date not null,
-  action text not null check (action in ('feedback', 'activity_report', 'redeem')),
+  action text not null check (
+    action in ('feedback', 'activity_report', 'account_delete', 'redeem')
+  ),
   count integer not null default 0,
   primary key (device_id, day, action)
 );
 
--- Re-runnable on a project created before 'redeem' existed: a code is guessable
--- in a way a feedback message is not, so the attempts have to be counted.
+-- Re-runnable on a project created before 'redeem' or 'account_delete' existed.
+-- A code is guessable in a way a feedback message is not, so the attempts have
+-- to be counted; 'account_delete' has been written by the delete route since it
+-- shipped, and was missing here, so every deletion failed on the constraint.
 alter table device_actions drop constraint if exists device_actions_action_check;
 alter table device_actions add constraint device_actions_action_check
-  check (action in ('feedback', 'activity_report', 'redeem'));
+  check (action in ('feedback', 'activity_report', 'account_delete', 'redeem'));
 
 -- Codes that raise one device's daily budget (docs/04 §Usage metering). Each
 -- is redeemable once, by one device, and only the HMAC of the code is stored:
