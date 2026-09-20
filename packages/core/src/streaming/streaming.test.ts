@@ -10,8 +10,13 @@ import { accumulateEvent, emptyAccumulator, SseParser } from './sse'
 describe('SseParser', () => {
   it('assembles events across arbitrary chunk boundaries', () => {
     const parser = new SseParser()
-    const wire = 'event: message_start\ndata: {"a":1}\n\nevent: content_block_delta\ndata: {"b":2}\n\n'
-    const events = [...parser.push(wire.slice(0, 13)), ...parser.push(wire.slice(13, 40)), ...parser.push(wire.slice(40))]
+    const wire =
+      'event: message_start\ndata: {"a":1}\n\nevent: content_block_delta\ndata: {"b":2}\n\n'
+    const events = [
+      ...parser.push(wire.slice(0, 13)),
+      ...parser.push(wire.slice(13, 40)),
+      ...parser.push(wire.slice(40)),
+    ]
     expect(events).toEqual([
       { event: 'message_start', data: '{"a":1}' },
       { event: 'content_block_delta', data: '{"b":2}' },
@@ -21,11 +26,24 @@ describe('SseParser', () => {
   it('accumulates text and usage from anthropic stream events', () => {
     let acc = emptyAccumulator()
     acc = accumulateEvent(acc, 'message_start', { message: { usage: { input_tokens: 500 } } })
-    acc = accumulateEvent(acc, 'content_block_delta', { delta: { type: 'text_delta', text: '{"na' } })
-    acc = accumulateEvent(acc, 'content_block_delta', { delta: { type: 'text_delta', text: 'me":"x"}' } })
-    acc = accumulateEvent(acc, 'message_delta', { usage: { output_tokens: 42 }, delta: { stop_reason: 'end_turn' } })
+    acc = accumulateEvent(acc, 'content_block_delta', {
+      delta: { type: 'text_delta', text: '{"na' },
+    })
+    acc = accumulateEvent(acc, 'content_block_delta', {
+      delta: { type: 'text_delta', text: 'me":"x"}' },
+    })
+    acc = accumulateEvent(acc, 'message_delta', {
+      usage: { output_tokens: 42 },
+      delta: { stop_reason: 'end_turn' },
+    })
     acc = accumulateEvent(acc, 'message_stop', {})
-    expect(acc).toEqual({ text: '{"name":"x"}', inputTokens: 500, outputTokens: 42, done: true, stopReason: 'end_turn' })
+    expect(acc).toEqual({
+      text: '{"name":"x"}',
+      inputTokens: 500,
+      outputTokens: 42,
+      done: true,
+      stopReason: 'end_turn',
+    })
   })
 })
 
@@ -94,7 +112,9 @@ describe('extractPartialPath', () => {
 
   it('yields each goal as its object closes', () => {
     const cut = full.indexOf('"Read a simple menu"') + 10
-    expect(extractPartialPath(full.slice(0, cut)).goals.map((g) => g.title)).toEqual(['Order in a café'])
+    expect(extractPartialPath(full.slice(0, cut)).goals.map((g) => g.title)).toEqual([
+      'Order in a café',
+    ])
     expect(extractPartialPath(full).goals.map((g) => g.title)).toEqual([
       'Order in a café',
       'Read a simple menu',
@@ -140,7 +160,9 @@ describe('extractJsonText', () => {
 
   it('finds the object after the narration a web-search turn writes first', () => {
     const object = '{"resources":[{"url":"https://example.com"}]}'
-    expect(extractJsonText(`I searched for a few sources. Here they are:\n\n${object}`)).toBe(object)
+    expect(extractJsonText(`I searched for a few sources. Here they are:\n\n${object}`)).toBe(
+      object,
+    )
     // A stray brace in the narration doesn't win — the real object is larger.
     expect(extractJsonText(`Nothing usable {yet}.\n${object}`)).toBe(object)
   })
@@ -156,10 +178,22 @@ describe('extractJsonText', () => {
 
 describe('extractPartialTopics', () => {
   const topic = (label: string) => ({ label, origin: 'foundational', blurb: `About ${label}.` })
-  const full = JSON.stringify({
-    topics: [topic('Noun genders'), topic('Present tense'), topic('Numbers')],
-    outcomes: ['I can order food', 'I can read a menu', 'I understand der, die, das'],
-  })
+  const LABELS = [
+    'Noun genders',
+    'Present tense',
+    'Numbers',
+    'Greetings',
+    'Word order',
+    'Food and drink',
+    'Asking questions',
+  ]
+  /** The schema wants 6–14, so a realistic array is six or more. */
+  const topics = (n: number) => LABELS.slice(0, n).map(topic)
+  const document = (
+    n: number,
+    outcomes = ['I can order food', 'I can read a menu', 'I can ask for the bill'],
+  ) => JSON.stringify({ topics: topics(n), outcomes })
+  const full = document(6)
 
   it('yields each topic as its object closes', () => {
     expect(extractPartialTopics(full.slice(0, 20))).toEqual({ topics: [], complete: false })
@@ -175,11 +209,56 @@ describe('extractPartialTopics', () => {
     const atOutcomes = full.indexOf('"outcomes"') + '"outcomes": ['.length
     const partial = extractPartialTopics(full.slice(0, atOutcomes))
     expect(partial.complete).toBe(true)
-    expect(partial.topics).toHaveLength(3)
+    expect(partial.topics).toHaveLength(6)
   })
 
   it('stops at a topic that does not validate rather than showing half a chip', () => {
     const broken = JSON.stringify({ topics: [topic('Noun genders'), { label: 'No origin' }] })
     expect(extractPartialTopics(broken).topics).toEqual([topic('Noun genders')])
+  })
+
+  /**
+   * Key order is the model's to get wrong. Every case below would once have
+   * read some text after the topics as proof there was no more to come, and
+   * frozen step 4 on a fraction of its chips; now they wait for the finished
+   * call instead, which is a wait rather than a broken step.
+   */
+  it('does not call the topics complete while they stream after the outcomes', () => {
+    const reversed = JSON.stringify({
+      outcomes: ['I can order food'],
+      topics: topics(6),
+    })
+    const midTopics = reversed.indexOf('Present tense')
+    const partial = extractPartialTopics(reversed.slice(0, midTopics))
+    expect(partial.topics).toEqual([topic('Noun genders')])
+    expect(partial.complete).toBe(false)
+
+    expect(extractPartialTopics(reversed).complete).toBe(true)
+  })
+
+  it('does not call the topics complete when one of a closed array is malformed', () => {
+    const broken = JSON.stringify({
+      topics: [...topics(5), { label: 'No origin' }, topic('Asking questions')],
+      outcomes: ['I can order food'],
+    })
+    expect(extractPartialTopics(broken).complete).toBe(false)
+  })
+
+  /**
+   * A closed array is not the whole test: the finished call is validated
+   * against `choicesOutputSchema`, which wants 6–14, so releasing four would
+   * fill step 4 with chips the same call is about to have repaired or fail on.
+   */
+  it('does not release a closed array the output schema would reject', () => {
+    expect(extractPartialTopics(document(4)).complete).toBe(false)
+    expect(extractPartialTopics(document(4)).topics).toHaveLength(4)
+    expect(extractPartialTopics(document(6)).complete).toBe(true)
+  })
+
+  it('does not call an empty topics array complete', () => {
+    expect(extractPartialTopics(JSON.stringify({ topics: [], outcomes: [] }))).toEqual({
+      topics: [],
+      complete: false,
+    })
   })
 })
