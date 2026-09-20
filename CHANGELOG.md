@@ -31,7 +31,9 @@ build; internal refactors and docs don't appear here. The conventions are in
   and a look at your path before you say how it's going.
 - Leave intake from any step, and choose to save it for later or discard it.
   A saved one picks up where you left off, from Me → Interests or the next
-  time you add an interest.
+  time you add an interest. Back from the first question always goes
+  somewhere: the welcome screen on your first interest, otherwise the screen
+  you started from.
 
 ### Changed
 
