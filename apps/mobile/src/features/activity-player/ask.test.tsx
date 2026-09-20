@@ -144,4 +144,24 @@ describe('ask', () => {
       'summary',
     ])
   })
+
+  it('stores a review that lands after the learner closed the activity', async () => {
+    const review = deferred<Block[]>()
+    mockGenerate.review.mockReturnValue(review.promise)
+
+    const { unmount } = await render(<ActivityScreen />)
+    await fireEvent.press(screen.getByTestId('player-continue'))
+    expect(mockGenerate.review).toHaveBeenCalledTimes(1)
+
+    unmount()
+    await act(async () => {
+      review.settle([{ kind: 'paragraph', md: 'You leaned on examples.' }])
+    })
+
+    // Nothing renders it now, but it was paid for: it belongs in the row, or
+    // resuming pays for the same call again.
+    const stored = mockDb.attachDoc.mock.calls.at(-1)?.[3] as ActivityDoc
+    const reviewPage = stored.pages.find((p) => p.kind === 'review')
+    expect(reviewPage?.blocks).toEqual([{ kind: 'paragraph', md: 'You leaned on examples.' }])
+  })
 })

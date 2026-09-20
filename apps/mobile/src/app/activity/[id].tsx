@@ -78,7 +78,7 @@ export default function ActivityScreen() {
   const [askState, setAskState] = useState<'idle' | 'pending' | 'error'>('idle')
   const [askError, setAskError] = useState<string>()
   const reviewRequested = useRef(false)
-  const persisted = useRef<ActivityDoc | null>(activity?.doc ?? null)
+  const latest = useRef<ActivityDoc | null>(activity?.doc ?? null)
   const openedAt = useRef(0)
   const questionsAsked = useRef(0)
   const completed = useRef(false)
@@ -122,7 +122,7 @@ export default function ActivityScreen() {
     write.promise.then(
       (written) => {
         // Already stored by the write itself; only later revisions need saving.
-        persisted.current = written
+        latest.current = written
         if (!left) setDoc(written)
       },
       (e: unknown) => {
@@ -141,18 +141,24 @@ export default function ActivityScreen() {
    * rather than into the snapshot the call started from. A generation that
    * resolves late must never replace the whole document: an Ask page inserted
    * while G6 was in flight would disappear, from the screen and from the row.
+   *
+   * It merges into a ref rather than into rendered state, and stores what it
+   * merged, so a call that lands after the learner closed the activity still
+   * reaches the row: the screen is gone, but the generation was paid for and
+   * the page they come back to should have it.
    */
-  const reviseDoc = useCallback((revise: (prev: ActivityDoc) => ActivityDoc) => {
-    setDoc((prev) => (prev === null ? prev : revise(prev)))
-  }, [])
-
-  // What's on screen is what's stored. Saving here rather than at each call
-  // site means the row gets the merged document, once, whatever produced it.
-  useEffect(() => {
-    if (!activity || !doc || doc === persisted.current) return
-    persisted.current = doc
-    attachDoc(db, repoContext, activity.id, doc)
-  }, [activity, doc])
+  const reviseDoc = useCallback(
+    (revise: (prev: ActivityDoc) => ActivityDoc) => {
+      const prev = latest.current
+      if (!activity || prev === null) return
+      const next = revise(prev)
+      if (next === prev) return
+      latest.current = next
+      attachDoc(db, repoContext, activity.id, next)
+      setDoc(next)
+    },
+    [activity],
+  )
 
   const changePage = useCallback(
     (next: number) => {
