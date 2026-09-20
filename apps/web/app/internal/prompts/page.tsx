@@ -4,12 +4,12 @@ import {
   getPromptTemplate,
   modelRequestFields,
   PROMPTS,
-  renderPromptFixture,
   SHARED_PREAMBLE,
   type AnyPromptTemplate,
   type ImplementedKind,
   type RenderedPrompt,
 } from '@thinkering/core'
+import { renderPromptFixture } from '@thinkering/core/prompt-inputs'
 
 import { requireArea } from '@/lib/server/internal-session'
 
