@@ -214,6 +214,23 @@ as $$
   returning daily_bonus_weighted;
 $$;
 
+-- The signed equivalent of count_ip_action, for the per-device daily limits on
+-- the routes that don't spend tokens (feedback, activity reports, account
+-- deletion, code redemption). One statement on purpose: a select followed by
+-- an upsert lets concurrent requests all read the same count and write the
+-- same number back, which leaves a code redemption limit that a caller can
+-- walk straight past by making its attempts in parallel.
+create or replace function count_device_action(p_device_id uuid, p_day date, p_action text)
+returns integer
+language sql
+set search_path = public
+as $$
+  insert into device_actions as a (device_id, day, action, count)
+  values (p_device_id, p_day, p_action, 1)
+  on conflict (device_id, day, action) do update set count = a.count + 1
+  returning count;
+$$;
+
 create or replace function count_ip_action(p_ip_hash text, p_day date, p_action text)
 returns integer
 language sql
@@ -232,6 +249,8 @@ revoke execute on function add_device_usage(uuid, date, text[], integer, bigint,
 grant execute on function add_device_usage(uuid, date, text[], integer, bigint, bigint) to service_role;
 revoke execute on function count_ip_action(text, date, text) from public, anon, authenticated;
 grant execute on function count_ip_action(text, date, text) to service_role;
+revoke execute on function count_device_action(uuid, date, text) from public, anon, authenticated;
+grant execute on function count_device_action(uuid, date, text) to service_role;
 revoke execute on function device_bonus_weighted(uuid) from public, anon, authenticated;
 grant execute on function device_bonus_weighted(uuid) to service_role;
 revoke execute on function redeem_budget_code(text, uuid) from public, anon, authenticated;

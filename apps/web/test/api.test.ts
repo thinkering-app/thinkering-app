@@ -3,10 +3,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { FIXTURE_DOC_INTRODUCE, getPromptTemplate } from '@thinkering/core'
 import { POST as aiPost } from '@/app/api/ai/route'
 import { POST as registerPost, REGISTRATIONS_PER_IP_PER_DAY } from '@/app/api/device/register/route'
-import {
-  POST as redeemPost,
-  REDEMPTIONS_PER_DEVICE_PER_DAY,
-} from '@/app/api/device/redeem/route'
+import { POST as redeemPost, REDEMPTIONS_PER_DEVICE_PER_DAY } from '@/app/api/device/redeem/route'
 import { POST as contactPost, resetContactLimitForTests } from '@/app/api/contact/route'
 import { POST as feedbackPost } from '@/app/api/feedback/route'
 import { POST as reportPost } from '@/app/api/activity-report/route'
@@ -34,7 +31,10 @@ describe('POST /api/device/register', () => {
   it('issues credentials and stores the device', async () => {
     const { store } = setupDeps()
     const res = await registerPost(
-      new Request('http://x/api/device/register', { method: 'POST', body: JSON.stringify({ platform: 'ios' }) }),
+      new Request('http://x/api/device/register', {
+        method: 'POST',
+        body: JSON.stringify({ platform: 'ios' }),
+      }),
     )
     expect(res.status).toBe(200)
     const { deviceId, secret } = (await res.json()) as { deviceId: string; secret: string }
@@ -45,10 +45,15 @@ describe('POST /api/device/register', () => {
   it('rejects bad input with 400, never 500', async () => {
     setupDeps()
     const res = await registerPost(
-      new Request('http://x/api/device/register', { method: 'POST', body: '{"platform":"toaster"}' }),
+      new Request('http://x/api/device/register', {
+        method: 'POST',
+        body: '{"platform":"toaster"}',
+      }),
     )
     expect(res.status).toBe(400)
-    const noBody = await registerPost(new Request('http://x/api/device/register', { method: 'POST', body: 'not json' }))
+    const noBody = await registerPost(
+      new Request('http://x/api/device/register', { method: 'POST', body: 'not json' }),
+    )
     expect(noBody.status).toBe(400)
   })
 
@@ -73,14 +78,20 @@ describe('POST /api/ai — device auth (D10)', () => {
   it('rejects a bad signature', async () => {
     const { store } = setupDeps()
     const creds = await registerDevice(store)
-    const req = signedRequest('http://x/api/ai', creds, { body: APPROACH_BODY, signature: 'f'.repeat(64) })
+    const req = signedRequest('http://x/api/ai', creds, {
+      body: APPROACH_BODY,
+      signature: 'f'.repeat(64),
+    })
     expect((await aiPost(req)).status).toBe(401)
   })
 
   it('rejects a stale timestamp', async () => {
     const { store } = setupDeps()
     const creds = await registerDevice(store)
-    const req = signedRequest('http://x/api/ai', creds, { body: APPROACH_BODY, timestamp: NOW - 10 * 60 * 1000 })
+    const req = signedRequest('http://x/api/ai', creds, {
+      body: APPROACH_BODY,
+      timestamp: NOW - 10 * 60 * 1000,
+    })
     expect((await aiPost(req)).status).toBe(401)
   })
 
@@ -96,7 +107,11 @@ describe('POST /api/ai — device auth (D10)', () => {
 
   it('rejects an unknown device', async () => {
     setupDeps()
-    const req = signedRequest('http://x/api/ai', { deviceId: 'ghost', secret: 'b'.repeat(64) }, { body: APPROACH_BODY })
+    const req = signedRequest(
+      'http://x/api/ai',
+      { deviceId: 'ghost', secret: 'b'.repeat(64) },
+      { body: APPROACH_BODY },
+    )
     expect((await aiPost(req)).status).toBe(401)
   })
 })
@@ -107,10 +122,14 @@ describe('POST /api/ai — validation and behavior', () => {
     const creds = await registerDevice(store)
 
     const unknown = JSON.stringify({ kind: 'nope.kind', params: {} })
-    expect((await aiPost(signedRequest('http://x/api/ai', creds, { body: unknown }))).status).toBe(400)
+    expect((await aiPost(signedRequest('http://x/api/ai', creds, { body: unknown }))).status).toBe(
+      400,
+    )
 
     const badParams = JSON.stringify({ kind: 'intake.approach', params: { wantToLearn: 42 } })
-    expect((await aiPost(signedRequest('http://x/api/ai', creds, { body: badParams }))).status).toBe(400)
+    expect(
+      (await aiPost(signedRequest('http://x/api/ai', creds, { body: badParams }))).status,
+    ).toBe(400)
   })
 
   it('returns the response with budget headers and meters usage (non-stream)', async () => {
@@ -293,15 +312,24 @@ describe('POST /api/ai — validation and behavior', () => {
     })
     const maxTokens = getPromptTemplate('intake.approach')!.maxTokens
     const cases = [
-      { error: new Anthropic.InternalServerError(529, undefined, 'overloaded', new Headers()), charged: 0 },
+      {
+        error: new Anthropic.InternalServerError(529, undefined, 'overloaded', new Headers()),
+        charged: 0,
+      },
       { error: new Anthropic.APIConnectionTimeoutError(), charged: maxTokens },
     ]
     for (const [i, { error, charged }] of cases.entries()) {
       const { store } = setupDeps({ anthropic: () => failing(error) as unknown as Anthropic })
       const creds = await registerDevice(store)
-      const req = signedRequest('http://x/api/ai', creds, { body: APPROACH_BODY, timestamp: NOW + i })
+      const req = signedRequest('http://x/api/ai', creds, {
+        body: APPROACH_BODY,
+        timestamp: NOW + i,
+      })
       expect((await aiPost(req)).status).toBe(502)
-      expect(await store.getUsage(creds.deviceId, '2026-09-15')).toMatchObject({ calls: 1, outputTokens: charged })
+      expect(await store.getUsage(creds.deviceId, '2026-09-15')).toMatchObject({
+        calls: 1,
+        outputTokens: charged,
+      })
     }
   })
 
@@ -316,7 +344,9 @@ describe('POST /api/ai — validation and behavior', () => {
     })
     process.env.RESEND_API_KEY = 'test-key'
     const res = await aiPost(signedRequest('http://x/api/ai', creds, { body: APPROACH_BODY }))
-    await aiPost(signedRequest('http://x/api/ai', creds, { body: APPROACH_BODY, timestamp: NOW + 1 }))
+    await aiPost(
+      signedRequest('http://x/api/ai', creds, { body: APPROACH_BODY, timestamp: NOW + 1 }),
+    )
     delete process.env.RESEND_API_KEY
     expect(res.status).toBe(429)
     expect(((await res.json()) as { error: string }).error).toBe('service_limit_reached')
@@ -334,7 +364,10 @@ describe('POST /api/ai — validation and behavior', () => {
     })
     process.env.RESEND_API_KEY = 'test-key'
     for (let i = 0; i < 3; i++) {
-      const req = signedRequest('http://x/api/ai', creds, { body: APPROACH_BODY, timestamp: NOW + i })
+      const req = signedRequest('http://x/api/ai', creds, {
+        body: APPROACH_BODY,
+        timestamp: NOW + i,
+      })
       expect((await aiPost(req)).status).toBe(200)
     }
     delete process.env.RESEND_API_KEY
@@ -377,10 +410,17 @@ describe('POST /api/ai — validation and behavior', () => {
       ...JSON.parse(APPROACH_BODY),
       repair: { previousText: '{"domain": 42}', issues: ['domain: expected string'] },
     })
-    expect((await aiPost(signedRequest('http://x/api/ai', creds, { body: withRepair }))).status).toBe(200)
+    expect(
+      (await aiPost(signedRequest('http://x/api/ai', creds, { body: withRepair }))).status,
+    ).toBe(200)
 
-    const badRepair = JSON.stringify({ ...JSON.parse(APPROACH_BODY), repair: { previousText: 'x', issues: [] } })
-    expect((await aiPost(signedRequest('http://x/api/ai', creds, { body: badRepair }))).status).toBe(400)
+    const badRepair = JSON.stringify({
+      ...JSON.parse(APPROACH_BODY),
+      repair: { previousText: 'x', issues: [] },
+    })
+    expect(
+      (await aiPost(signedRequest('http://x/api/ai', creds, { body: badRepair }))).status,
+    ).toBe(400)
   })
 
   it('the logger never receives prompt or response bodies', async () => {
@@ -389,7 +429,14 @@ describe('POST /api/ai — validation and behavior', () => {
     await aiPost(signedRequest('http://x/api/ai', creds, { body: APPROACH_BODY }))
     expect(logged).toHaveLength(1)
     const keys = Object.keys(logged[0]!)
-    expect(keys.sort()).toEqual(['inputTokens', 'kind', 'latencyMs', 'model', 'outputTokens', 'status'])
+    expect(keys.sort()).toEqual([
+      'inputTokens',
+      'kind',
+      'latencyMs',
+      'model',
+      'outputTokens',
+      'status',
+    ])
     expect(JSON.stringify(logged[0])).not.toContain('German')
   })
 })
@@ -418,7 +465,12 @@ describe('GET /api/usage', () => {
   it('returns the meter for the signed device', async () => {
     const { store } = setupDeps()
     const creds = await registerDevice(store)
-    await store.addUsage(creds.deviceId, '2026-09-15', { counters: ['today.plan'], calls: 1, inputTokens: 1000, outputTokens: 500 })
+    await store.addUsage(creds.deviceId, '2026-09-15', {
+      counters: ['today.plan'],
+      calls: 1,
+      inputTokens: 1000,
+      outputTokens: 500,
+    })
     const res = await usageGet(signedRequest('http://x/api/usage', creds))
     expect(res.status).toBe(200)
     const body = (await res.json()) as { used: number; remaining: number; resetAt: string }
@@ -461,7 +513,9 @@ describe('POST /api/feedback (private channel)', () => {
     const creds = await registerDevice(store)
     process.env.RESEND_API_KEY = 'test-key'
     const withEmail = JSON.stringify({ message: 'Ping me', replyEmail: 'learner@example.com' })
-    const res = await feedbackPost(signedRequest('http://x/api/feedback', creds, { body: withEmail }))
+    const res = await feedbackPost(
+      signedRequest('http://x/api/feedback', creds, { body: withEmail }),
+    )
     delete process.env.RESEND_API_KEY
 
     expect(res.status).toBe(200)
@@ -481,25 +535,34 @@ describe('POST /api/feedback (private channel)', () => {
   it('rejects an empty message, an over-long one, and an unknown screen', async () => {
     const { store } = setupDeps()
     const creds = await registerDevice(store)
-    const post = (raw: string) => feedbackPost(signedRequest('http://x/api/feedback', creds, { body: raw }))
+    const post = (raw: string) =>
+      feedbackPost(signedRequest('http://x/api/feedback', creds, { body: raw }))
 
     expect((await post(JSON.stringify({ message: '' }))).status).toBe(400)
     expect((await post(JSON.stringify({ message: 'x'.repeat(4001) }))).status).toBe(400)
-    expect((await post(body({ context: { screen: '/activity/0199a0f0', platform: 'ios', appVersion: '0.1.0' } }))).status).toBe(400)
+    expect(
+      (
+        await post(
+          body({ context: { screen: '/activity/0199a0f0', platform: 'ios', appVersion: '0.1.0' } }),
+        )
+      ).status,
+    ).toBe(400)
   })
 
   it('counts against a persistent daily limit', async () => {
     const { store } = setupDeps()
     const creds = await registerDevice(store)
     const day = '2026-09-15'
-    for (let i = 0; i < 20; i++) await store.addAction(creds.deviceId, day, 'feedback')
+    for (let i = 0; i < 20; i++) await store.countDeviceAction(creds.deviceId, day, 'feedback')
     const res = await feedbackPost(signedRequest('http://x/api/feedback', creds, { body: body() }))
     expect(res.status).toBe(429)
   })
 
   it('reports a provider failure without logging the message', async () => {
     const logs: string[] = []
-    const spy = vi.spyOn(console, 'log').mockImplementation((line: unknown) => logs.push(String(line)))
+    const spy = vi
+      .spyOn(console, 'log')
+      .mockImplementation((line: unknown) => logs.push(String(line)))
     const { store } = setupDeps({
       fetch: (async () => new Response('nope', { status: 500 })) as typeof fetch,
     })
@@ -556,17 +619,26 @@ describe('POST /api/activity-report (D18)', () => {
     const { store } = setupDeps()
     const creds = await registerDevice(store)
     const huge = report({ comment: 'x'.repeat(90_000) })
-    expect((await reportPost(signedRequest('http://x/api/activity-report', creds, { body: huge }))).status).toBe(413)
+    expect(
+      (await reportPost(signedRequest('http://x/api/activity-report', creds, { body: huge })))
+        .status,
+    ).toBe(413)
 
     const broken = report({ doc: { version: 1, pages: [] } })
-    expect((await reportPost(signedRequest('http://x/api/activity-report', creds, { body: broken }))).status).toBe(400)
+    expect(
+      (await reportPost(signedRequest('http://x/api/activity-report', creds, { body: broken })))
+        .status,
+    ).toBe(400)
   })
 
   it('counts against its own, tighter daily limit', async () => {
     const { store } = setupDeps()
     const creds = await registerDevice(store)
-    for (let i = 0; i < 5; i++) await store.addAction(creds.deviceId, '2026-09-15', 'activity_report')
-    const res = await reportPost(signedRequest('http://x/api/activity-report', creds, { body: report() }))
+    for (let i = 0; i < 5; i++)
+      await store.countDeviceAction(creds.deviceId, '2026-09-15', 'activity_report')
+    const res = await reportPost(
+      signedRequest('http://x/api/activity-report', creds, { body: report() }),
+    )
     expect(res.status).toBe(429)
   })
 })
@@ -610,7 +682,8 @@ describe('POST /api/account/delete (App Review 5.1.1(v))', () => {
     const unsigned = new Request('http://x/api/account/delete', { method: 'POST' })
     expect((await deleteAccountPost(unsigned)).status).toBe(401)
 
-    for (let i = 0; i < 5; i++) await store.addAction(creds.deviceId, '2026-09-15', 'account_delete')
+    for (let i = 0; i < 5; i++)
+      await store.countDeviceAction(creds.deviceId, '2026-09-15', 'account_delete')
     expect((await deleteAccountPost(signed(creds, 'token'))).status).toBe(429)
   })
 })
@@ -736,19 +809,25 @@ describe('POST /api/device/redeem (budget codes)', () => {
     })
     // ...and a grant lifts both, or the kind limit would make the extra
     // tokens unspendable.
-    expect(checkBudget('today.plan', atIncluded, { bonusWeighted: DAILY_BUDGET_WEIGHTED })).toEqual({
-      allowed: true,
-    })
+    expect(checkBudget('today.plan', atIncluded, { bonusWeighted: DAILY_BUDGET_WEIGHTED })).toEqual(
+      {
+        allowed: true,
+      },
+    )
     expect(deviceLimit(BONUS)).toBe(DAILY_BUDGET_WEIGHTED + BONUS)
   })
 
   it('cannot lift the proxy-wide cap', () => {
     const spent = { inputTokens: GLOBAL_DAILY_BUDGET_WEIGHTED, outputTokens: 0 }
     expect(
-      checkBudget('today.plan', { inputTokens: 0, outputTokens: 0, calls: 0, kindCalls: {} }, {
-        total: spent,
-        bonusWeighted: BONUS,
-      }),
+      checkBudget(
+        'today.plan',
+        { inputTokens: 0, outputTokens: 0, calls: 0, kindCalls: {} },
+        {
+          total: spent,
+          bonusWeighted: BONUS,
+        },
+      ),
     ).toEqual({ allowed: false, reason: 'service_limit_reached' })
   })
 })

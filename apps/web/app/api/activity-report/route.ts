@@ -60,10 +60,9 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   const day = utcDayOf(now())
-  if ((await store.getActionCount(auth.deviceId, day, 'activity_report')) >= RATE_LIMIT_PER_DAY) {
+  if ((await store.countDeviceAction(auth.deviceId, day, 'activity_report')) > RATE_LIMIT_PER_DAY) {
     return Response.json({ error: 'rate_limited' }, { status: 429 })
   }
-  await store.addAction(auth.deviceId, day, 'activity_report')
 
   const report = body.data
   const context = report.context ? sanitizeFeedbackContext(report.context) : undefined

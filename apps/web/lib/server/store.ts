@@ -78,11 +78,14 @@ export interface MeteringStore {
   /** How a typed code becomes the stored hash; the store owns the key it uses. */
   hashCode(code: string): string
   /**
-   * Persistent per-device/day counters for the routes that don't spend tokens
-   * (docs/02 §Feedback). A count, never any submitted content.
+   * Counts a signed action from a device for a UTC day and returns the count
+   * including this one — the persistent per-day limits on the routes that
+   * don't spend tokens (docs/02 §Feedback). A count, never any submitted
+   * content. One operation, like `countIpAction`: a read followed by a write
+   * lets concurrent requests all read the same count and each write it back,
+   * which is no limit at all against a caller making them in parallel.
    */
-  getActionCount(deviceId: string, day: string, action: string): Promise<number>
-  addAction(deviceId: string, day: string, action: string): Promise<void>
+  countDeviceAction(deviceId: string, day: string, action: string): Promise<number>
   /**
    * Counts an unsigned action from an IP address for a UTC day and returns the
    * count including this one (docs/02 §Device identity). Persistent stores key
@@ -163,13 +166,11 @@ export class MemoryStore implements MeteringStore {
     this.codes.set(this.hashCode(code), { bonusWeighted })
   }
 
-  async getActionCount(deviceId: string, day: string, action: string): Promise<number> {
-    return this.actions.get(`${deviceId}:${day}:${action}`) ?? 0
-  }
-
-  async addAction(deviceId: string, day: string, action: string): Promise<void> {
+  async countDeviceAction(deviceId: string, day: string, action: string): Promise<number> {
     const key = `${deviceId}:${day}:${action}`
-    this.actions.set(key, (this.actions.get(key) ?? 0) + 1)
+    const count = (this.actions.get(key) ?? 0) + 1
+    this.actions.set(key, count)
+    return count
   }
 
   async countIpAction(ip: string, day: string, action: 'register'): Promise<number> {

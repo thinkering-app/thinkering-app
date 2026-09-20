@@ -11,9 +11,10 @@ import { deviceLimit, utcDayOf } from '@/lib/server/metering'
  */
 
 /**
- * Attempts per device per day. A code is guessable in a way a feedback message
- * is not, so the attempts are counted even though the route is authenticated:
- * one device must not be able to sweep the keyspace.
+ * Attempts per device per day, counted whether or not the code was good. A
+ * code is guessable in a way a feedback message is not, so the attempts are
+ * counted even though the route is authenticated: one device must not be able
+ * to sweep the keyspace, in sequence or in parallel.
  */
 export const REDEMPTIONS_PER_DEVICE_PER_DAY = 10
 
@@ -36,10 +37,11 @@ export async function POST(req: Request): Promise<Response> {
   if (!body.success) return Response.json({ error: 'invalid_request' }, { status: 400 })
 
   const day = utcDayOf(now())
-  if ((await store.getActionCount(auth.deviceId, day, 'redeem')) >= REDEMPTIONS_PER_DEVICE_PER_DAY) {
+  if (
+    (await store.countDeviceAction(auth.deviceId, day, 'redeem')) > REDEMPTIONS_PER_DEVICE_PER_DAY
+  ) {
     return Response.json({ error: 'rate_limited' }, { status: 429 })
   }
-  await store.addAction(auth.deviceId, day, 'redeem')
 
   const granted = await store.redeemCode(store.hashCode(body.data.code), auth.deviceId)
   // Unknown, expired and already-redeemed are one answer on purpose: telling

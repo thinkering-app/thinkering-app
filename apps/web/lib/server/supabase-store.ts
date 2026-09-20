@@ -16,10 +16,10 @@ import {
  * is why it stays away from the user-data mirror entirely. Schema:
  * supabase/schema.sql.
  *
- * addUsage and countIpAction are single-statement RPCs and claimSpendAlert a
- * single insert, so concurrent requests can't lose each other's writes;
- * addAction is still read-modify-write, which only costs a feedback message or
- * two past its limit.
+ * Every counter here is a single statement — addUsage, countIpAction and
+ * countDeviceAction are RPCs, claimSpendAlert an insert — so concurrent
+ * requests can't lose each other's writes and no limit can be walked past by
+ * making its requests in parallel.
  */
 export class SupabaseStore implements MeteringStore {
   private client: SupabaseClient
@@ -138,24 +138,14 @@ export class SupabaseStore implements MeteringStore {
     return hashBudgetCode(this.secretKey, code)
   }
 
-  async getActionCount(deviceId: string, day: string, action: string): Promise<number> {
-    const { data, error } = await this.client
-      .from('device_actions')
-      .select('count')
-      .eq('device_id', deviceId)
-      .eq('day', day)
-      .eq('action', action)
-      .maybeSingle()
-    if (error) throw new Error(`device_actions select failed: ${error.message}`)
-    return data?.count ?? 0
-  }
-
-  async addAction(deviceId: string, day: string, action: string): Promise<void> {
-    const current = await this.getActionCount(deviceId, day, action)
-    const { error } = await this.client
-      .from('device_actions')
-      .upsert({ device_id: deviceId, day, action, count: current + 1 }, { onConflict: 'device_id,day,action' })
-    if (error) throw new Error(`device_actions upsert failed: ${error.message}`)
+  async countDeviceAction(deviceId: string, day: string, action: string): Promise<number> {
+    const { data, error } = await this.client.rpc('count_device_action', {
+      p_device_id: deviceId,
+      p_day: day,
+      p_action: action,
+    })
+    if (error) throw new Error(`count_device_action failed: ${error.message}`)
+    return Number(data ?? 0)
   }
 
   async countIpAction(ip: string, day: string, action: 'register'): Promise<number> {
