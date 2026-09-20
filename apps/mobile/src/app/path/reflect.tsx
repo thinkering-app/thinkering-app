@@ -38,7 +38,7 @@ import {
 } from '@thinkering/db'
 
 import { callAi, describeAiError, useGeneration } from '@/ai'
-import { interestContext } from '@/ai/context'
+import { interestContext, RECENT_HISTORY } from '@/ai/context'
 import { Button } from '@/components/button'
 import { GenerationError } from '@/components/generation-error'
 import { Generating } from '@/components/generating'
@@ -64,16 +64,21 @@ const CACHE_KIND = 'reflect_open'
 
 /**
  * What would make G8a's recap or its outcomes different: the path and its
- * statuses, the outcomes they already hold, and the last thing they finished.
- * Nothing else in the context block reaches either, so browsing into the flow
- * and back out reads the cache rather than generating again.
+ * statuses, the outcomes they already hold, and the recent history the recap
+ * is written from. Nothing else in the context block reaches either, so
+ * browsing into the flow and back out reads the cache rather than generating
+ * again.
+ *
+ * History is the same window the context block carries, ratings included: a
+ * completed activity can be reopened from History and rated again, which
+ * changes what G8a is told without changing which activity is newest.
  */
 function reflectScope(interest: Interest, goals: readonly Goal[]): string {
-  const [last] = listHistory(db, { interestId: interest.id, limit: 1 })
+  const recent = listHistory(db, { interestId: interest.id, limit: RECENT_HISTORY })
   return pathSignature([
     ...goals.map((g) => ({ id: g.id, title: `${g.title}|${g.status}` })),
     { id: '\u0000outcomes', title: (interest.successOutcomes ?? []).join('|') },
-    { id: '\u0000last', title: last?.id ?? '' },
+    ...recent.map((a) => ({ id: `\u0000history:${a.id}`, title: String(a.rating ?? '') })),
   ])
 }
 
