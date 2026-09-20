@@ -4,3 +4,12 @@ dist
 .expo
 .turbo
 pnpm-lock.yaml
+
+# Generated output: the generator owns the bytes, not prettier. Reformatting it
+# only churns the next time the generator runs.
+apps/web/next-env.d.ts
+packages/db/migrations
+packages/db/fixtures
+packages/core/fixtures/recorded
+# Deliberately broken model output — some of it isn't parseable by design.
+packages/core/fixtures/malformed

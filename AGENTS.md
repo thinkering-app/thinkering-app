@@ -33,14 +33,14 @@ The app is feature-complete for a first beta and heading to TestFlight; what's l
 
 | Command | What it's for |
 | --- | --- |
-| `pnpm verify` | The gate: typecheck + lint + tests (vitest in core, db, web; jest in mobile). Offline, under a minute. Run before calling work done. |
+| `pnpm verify` | The gate: formatting + typecheck + lint + tests (vitest in core, db, web; jest in mobile). Offline, under a minute. Run before calling work done. |
 | `pnpm --filter @thinkering/core test src/scheduler` | The inner loop — run only what you're changing. Every package has `test:watch`. |
 | `pnpm --filter @thinkering/mobile test blocks` | Mobile's jest tests, filtered. |
 | `pnpm --filter @thinkering/core test:cov` | Coverage by hand. It's off locally and enforced in CI. |
 | `pnpm --filter @thinkering/db generate` | Generate a migration from `src/schema.ts`. |
 | `pnpm --filter @thinkering/db snapshot` | Dump `fixtures/db/v<N>.sql` after adding a migration. |
 | `pnpm prompt:check <kind>` / `pnpm prompt:run <kind> [--record]` | **Live model calls.** They read `ANTHROPIC_API_KEY` from `apps/web/.env` (or your shell) and cost money. Ask before running them. Each runs every input fixture for the kind; `--only <fixture>` runs one. |
-| `pnpm format` | Prettier. |
+| `pnpm format` | Prettier, over the whole repo. `main` is formatted, so this only ever touches what you changed; if it touches more, you're on a stale branch — rebase. |
 
 `--filter <package>` runs a script in one workspace package instead of all of them. The names are in each `package.json`: `@thinkering/core`, `@thinkering/db`, `@thinkering/mobile`, `@thinkering/web`. Words after the script name go to the test runner, which treats them as a file filter.
 
