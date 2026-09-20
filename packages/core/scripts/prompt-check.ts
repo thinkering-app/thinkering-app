@@ -33,7 +33,9 @@ for (const fixture of loadFixtures(template.kind, only)) {
       const goalConceptIds = params.goal.concepts.map((c) => c.id)
       const parsed = parseActivityDoc(output, { goalConceptIds })
       if (!parsed.ok) {
-        issues.push(...parsed.issues.map((i) => ({ check: 'schema', message: `${i.path}: ${i.message}` })))
+        issues.push(
+          ...parsed.issues.map((i) => ({ check: 'schema', message: `${i.path}: ${i.message}` })),
+        )
       } else {
         issues.push(
           ...checkActivityDoc(parsed.doc, {
@@ -59,7 +61,9 @@ for (const fixture of loadFixtures(template.kind, only)) {
   }
 
   if (issues.length === 0) {
-    console.log(`${fixture.name}: PASS (${result.usage.outputTokens} out tokens, ${result.latencyMs}ms)`)
+    console.log(
+      `${fixture.name}: PASS (${result.usage.outputTokens} out tokens, ${result.latencyMs}ms)`,
+    )
   } else {
     failures++
     console.log(`${fixture.name}: FAIL`)

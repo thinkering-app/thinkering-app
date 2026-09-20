@@ -57,7 +57,12 @@ export function logLlmCall(db: Database, ctx: RepoContext, input: NewLlmCall): s
 }
 
 export function listLlmCalls(db: Database, limit = 100): LlmCall[] {
-  return db.select().from(llmCalls).orderBy(desc(llmCalls.createdAt), desc(llmCalls.id)).limit(limit).all()
+  return db
+    .select()
+    .from(llmCalls)
+    .orderBy(desc(llmCalls.createdAt), desc(llmCalls.id))
+    .limit(limit)
+    .all()
 }
 
 export function getLlmCall(db: Database, id: string): LlmCall | undefined {

@@ -27,7 +27,15 @@ export const DURATION_BUCKETS = [
 ] as const
 export type DurationBucket = (typeof DURATION_BUCKETS)[number]
 
-export const LATENCY_BUCKETS = ['<500ms', '0.5-1s', '1-2s', '2-5s', '5-10s', '10-30s', '30s+'] as const
+export const LATENCY_BUCKETS = [
+  '<500ms',
+  '0.5-1s',
+  '1-2s',
+  '2-5s',
+  '5-10s',
+  '10-30s',
+  '30s+',
+] as const
 export type LatencyBucket = (typeof LATENCY_BUCKETS)[number]
 
 export const DAYS_SINCE_INSTALL_BUCKETS = ['0', '1-6', '7-29', '30-89', '90+'] as const
@@ -101,7 +109,10 @@ export type AnalyticsEvent =
       }
     }
   | { event: 'intake_started'; properties: { is_first_interest: boolean; resumed: boolean } }
-  | { event: 'intake_step_completed'; properties: { step: number; duration_bucket: DurationBucket } }
+  | {
+      event: 'intake_step_completed'
+      properties: { step: number; duration_bucket: DurationBucket }
+    }
   | {
       event: 'intake_completed'
       properties: { topics_selected_count: number; frequency: Frequency; session_minutes: number }

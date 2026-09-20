@@ -14,7 +14,9 @@ const { kind, only, record } = parseScriptArgs(process.argv.slice(2))
 const template = requireTemplate(kind)
 
 for (const fixture of loadFixtures(template.kind, only)) {
-  console.error(`\n── ${template.kind} · ${fixture.name} · model=${template.model} v${template.version} ──`)
+  console.error(
+    `\n── ${template.kind} · ${fixture.name} · model=${template.model} v${template.version} ──`,
+  )
   const result = await runLive(template, fixture.params)
 
   let outputOk = false

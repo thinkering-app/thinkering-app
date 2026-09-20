@@ -12,7 +12,9 @@ export interface TestSetup {
 }
 
 /** A minimal fake of the Anthropic client covering what the route uses. */
-export function fakeAnthropic(opts: { text?: string; inputTokens?: number; outputTokens?: number } = {}) {
+export function fakeAnthropic(
+  opts: { text?: string; inputTokens?: number; outputTokens?: number } = {},
+) {
   const text = opts.text ?? '{"ok":true}'
   const message = {
     model: 'claude-test',
@@ -58,7 +60,9 @@ export function setupDeps(overrides: Partial<ServerDeps> = {}): TestSetup {
   return { store, logged, fetchCalls }
 }
 
-export async function registerDevice(store: MeteringStore): Promise<{ deviceId: string; secret: string }> {
+export async function registerDevice(
+  store: MeteringStore,
+): Promise<{ deviceId: string; secret: string }> {
   const creds = { deviceId: 'device-1', secret: 'a'.repeat(64) }
   await store.createDevice({ ...creds, platform: 'ios', createdAt: NOW, attested: false })
   return creds

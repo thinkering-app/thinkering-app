@@ -4,3 +4,19 @@ dist
 .expo
 .turbo
 pnpm-lock.yaml
+
+# Generated output: the generator owns the bytes, not prettier. Reformatting it
+# only churns the next time the generator runs.
+apps/web/next-env.d.ts
+packages/db/migrations
+packages/db/fixtures
+packages/core/fixtures/recorded
+# Deliberately broken model output — some of it isn't parseable by design.
+packages/core/fixtures/malformed
+
+# Agent and workspace scratch. These are excluded in .git/info/exclude, which
+# prettier can't see — it reads .gitignore — so without this the gate fails on
+# files that aren't the project's.
+.context
+.claude
+.conductor/settings.local.*

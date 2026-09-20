@@ -55,14 +55,14 @@ placeholder until the app exists in App Store Connect.
 EAS builds don't read `.env`. The public client values live as EAS environment
 variables on the `production` and `preview` environments:
 
-| Variable                                | Notes                                            |
-| --------------------------------------- | ------------------------------------------------ |
-| `EXPO_PUBLIC_API_URL`                   | Set in `eas.json`; the proxy's origin.           |
-| `EXPO_PUBLIC_SUPABASE_URL`              | Backup. Unset hides synced backup entirely.      |
-| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`  | `sb_publishable_…`. Public by design.            |
-| `EXPO_PUBLIC_POSTHOG_KEY`               | The production project's key (`08`).             |
-| `EXPO_PUBLIC_POSTHOG_HOST`              | Defaults to the US cloud, the project's region.  |
-| `EXPO_PUBLIC_FEATUREBASE_PORTAL_URL`    | Unset hides the community feedback option.       |
+| Variable                               | Notes                                           |
+| -------------------------------------- | ----------------------------------------------- |
+| `EXPO_PUBLIC_API_URL`                  | Set in `eas.json`; the proxy's origin.          |
+| `EXPO_PUBLIC_SUPABASE_URL`             | Backup. Unset hides synced backup entirely.     |
+| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_…`. Public by design.           |
+| `EXPO_PUBLIC_POSTHOG_KEY`              | The production project's key (`08`).            |
+| `EXPO_PUBLIC_POSTHOG_HOST`             | Defaults to the US cloud, the project's region. |
+| `EXPO_PUBLIC_FEATUREBASE_PORTAL_URL`   | Unset hides the community feedback option.      |
 
 PostHog has two projects, dev and production (`08` §Environments). The
 production key goes only here, on the `production` and `preview` environments,

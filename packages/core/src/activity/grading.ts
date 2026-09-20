@@ -26,7 +26,9 @@ export function gradeMcq(block: McqBlock, selectedId: string): boolean | null {
 export function gradeBlank(blank: FillBlankBlock['blanks'][number], answer: string): boolean {
   const normalize = (s: string) => s.trim().toLowerCase()
   const given = normalize(answer)
-  return given.length > 0 && [blank.answer, ...(blank.alts ?? [])].some((a) => normalize(a) === given)
+  return (
+    given.length > 0 && [blank.answer, ...(blank.alts ?? [])].some((a) => normalize(a) === given)
+  )
 }
 
 export function gradeFillBlank(block: FillBlankBlock, answers: Record<string, string>): boolean {
@@ -34,7 +36,10 @@ export function gradeFillBlank(block: FillBlankBlock, answers: Record<string, st
 }
 
 export function gradeOrdering(block: OrderingBlock, order: readonly string[]): boolean {
-  return order.length === block.correctOrder.length && order.every((id, i) => id === block.correctOrder[i])
+  return (
+    order.length === block.correctOrder.length &&
+    order.every((id, i) => id === block.correctOrder[i])
+  )
 }
 
 /** Pairs are matched left id → right id; correct when every left holds its own right. */

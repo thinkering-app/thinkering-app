@@ -44,10 +44,14 @@ export function lastInteractivePageIndex(doc: ActivityDoc): number {
 }
 
 /** Every interactive block in the pages before the review slot, in reading order. */
-export function interactiveBlocksBeforeReview(doc: ActivityDoc): { pageId: string; block: Block }[] {
+export function interactiveBlocksBeforeReview(
+  doc: ActivityDoc,
+): { pageId: string; block: Block }[] {
   const review = reviewPageIndex(doc)
   const limit = review === -1 ? doc.pages.length : review
-  return doc.pages.slice(0, limit).flatMap((page) =>
-    (page.blocks ?? []).filter(isInteractiveBlock).map((block) => ({ pageId: page.id, block })),
-  )
+  return doc.pages
+    .slice(0, limit)
+    .flatMap((page) =>
+      (page.blocks ?? []).filter(isInteractiveBlock).map((block) => ({ pageId: page.id, block })),
+    )
 }

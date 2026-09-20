@@ -26,9 +26,15 @@ describe('outcomeLine (docs/01 §6, D1)', () => {
 
   it("uses the Go further item's own label", () => {
     const goFurther = { section: 'go_further', tier: 'apply', goalTitle: 'Prompt clearly' } as const
-    expect(outcomeLine({ ...goFurther, libraryItemId: 'put-to-work' })).toBe('Put to use Prompt clearly')
-    expect(outcomeLine({ ...goFurther, libraryItemId: 'dig-deeper' })).toBe('Went deeper on Prompt clearly')
-    expect(outcomeLine({ ...goFurther, libraryItemId: 'connect-ideas' })).toBe('Branched out from Prompt clearly')
+    expect(outcomeLine({ ...goFurther, libraryItemId: 'put-to-work' })).toBe(
+      'Put to use Prompt clearly',
+    )
+    expect(outcomeLine({ ...goFurther, libraryItemId: 'dig-deeper' })).toBe(
+      'Went deeper on Prompt clearly',
+    )
+    expect(outcomeLine({ ...goFurther, libraryItemId: 'connect-ideas' })).toBe(
+      'Branched out from Prompt clearly',
+    )
   })
 
   it('falls back to the topic, then to the bare verb', () => {
@@ -42,7 +48,12 @@ describe('outcomeLine (docs/01 §6, D1)', () => {
       }),
     ).toBe('Strengthened Verb conjugation')
     expect(
-      outcomeLine({ section: 'next', tier: 'introduce', libraryItemId: 'gone-missing', goalTitle: '  ' }),
+      outcomeLine({
+        section: 'next',
+        tier: 'introduce',
+        libraryItemId: 'gone-missing',
+        goalTitle: '  ',
+      }),
     ).toBe('Introduced')
   })
 })

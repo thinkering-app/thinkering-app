@@ -101,13 +101,21 @@ describe('routine notes', () => {
     })
     createRoutineNote(db, ctx, { interestId: other.id, note: 'Tactics please' })
 
-    expect(listRoutineNotes(db, interest.id).map((n) => n.note)).toEqual(['Mornings only', 'More speaking'])
+    expect(listRoutineNotes(db, interest.id).map((n) => n.note)).toEqual([
+      'Mornings only',
+      'More speaking',
+    ])
   })
 })
 
 describe('gen cache', () => {
   it('drops an entry once it has expired', () => {
-    putCached(db, ctx, { kind: 'goal_suggestions', scopeKey: 'i1', payload: { goals: [] }, expiresAt: 2_000 })
+    putCached(db, ctx, {
+      kind: 'goal_suggestions',
+      scopeKey: 'i1',
+      payload: { goals: [] },
+      expiresAt: 2_000,
+    })
     expect(getCached(db, 'goal_suggestions', 'i1', 1_500)).toEqual({ goals: [] })
     expect(getCached(db, 'goal_suggestions', 'i1', 2_000)).toBeUndefined()
     // Re-putting replaces rather than accumulating.

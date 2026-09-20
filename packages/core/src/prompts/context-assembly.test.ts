@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  buildInterestContext,
-  estimateTokens,
-  type InterestContextInput,
-} from './context-assembly'
+import { buildInterestContext, estimateTokens, type InterestContextInput } from './context-assembly'
 
 function input(overrides: Partial<InterestContextInput> = {}): InterestContextInput {
   return {
@@ -17,8 +13,16 @@ function input(overrides: Partial<InterestContextInput> = {}): InterestContextIn
       approachNotes: 'Comprehensible input paired with pushed output.',
     },
     goals: [
-      { title: 'Greet and introduce yourself', status: 'strengthened', concepts: [{ label: 'Greetings', kind: 'concept' }] },
-      { title: 'Order food', status: 'introduced', concepts: [{ label: 'Restaurant phrases', kind: 'concept' }] },
+      {
+        title: 'Greet and introduce yourself',
+        status: 'strengthened',
+        concepts: [{ label: 'Greetings', kind: 'concept' }],
+      },
+      {
+        title: 'Order food',
+        status: 'introduced',
+        concepts: [{ label: 'Restaurant phrases', kind: 'concept' }],
+      },
     ],
     recentHistory: [
       { title: 'Hätte gern', goalTitle: 'Order food', tier: 'introduce', rating: 'up' },

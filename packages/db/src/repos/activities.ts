@@ -79,7 +79,12 @@ export function startActivity(db: Database, ctx: RepoContext, id: string): void 
 }
 
 /** Persists the resume point (docs/05). */
-export function saveProgress(db: Database, ctx: RepoContext, id: string, currentPage: number): void {
+export function saveProgress(
+  db: Database,
+  ctx: RepoContext,
+  id: string,
+  currentPage: number,
+): void {
   db.update(activities)
     .set({ currentPage, updatedAt: ctx.now() })
     .where(and(eq(activities.id, id), isNull(activities.deletedAt)))
@@ -151,7 +156,11 @@ export function abandonActivity(db: Database, ctx: RepoContext, id: string): voi
 }
 
 /** The day's plan for an interest (one planned set per interest per local date, docs/03). */
-export function listPlannedForDate(db: Database, interestId: string, plannedFor: LocalDate): Activity[] {
+export function listPlannedForDate(
+  db: Database,
+  interestId: string,
+  plannedFor: LocalDate,
+): Activity[] {
   return db
     .select()
     .from(activities)
@@ -179,7 +188,8 @@ export function listHistory(
     isNull(activities.deletedAt),
   ]
   if (opts.interestId !== undefined) conditions.push(eq(activities.interestId, opts.interestId))
-  if (opts.beforeCompletedAt !== undefined) conditions.push(lt(activities.completedAt, opts.beforeCompletedAt))
+  if (opts.beforeCompletedAt !== undefined)
+    conditions.push(lt(activities.completedAt, opts.beforeCompletedAt))
   return db
     .select()
     .from(activities)
@@ -194,7 +204,10 @@ export function listHistory(
  * to concept coverage (D16, `conceptCoverage` in packages/core). An interest's
  * completed set stays small, so this reads them whole rather than paging.
  */
-export function listCoverage(db: Database, interestId: string): { goalId: string | null; doc: ActivityDoc | null }[] {
+export function listCoverage(
+  db: Database,
+  interestId: string,
+): { goalId: string | null; doc: ActivityDoc | null }[] {
   return db
     .select({ goalId: activities.goalId, doc: activities.doc })
     .from(activities)
@@ -216,7 +229,11 @@ export function listCoverage(db: Database, interestId: string): { goalId: string
 export function createDailyPlan(
   db: Database,
   ctx: RepoContext,
-  input: { interestId: string; plannedFor: LocalDate; cards: Omit<NewActivity, 'interestId' | 'plannedFor'>[] },
+  input: {
+    interestId: string
+    plannedFor: LocalDate
+    cards: Omit<NewActivity, 'interestId' | 'plannedFor'>[]
+  },
 ): Activity[] {
   return db.transaction((tx) =>
     input.cards.map((card) =>

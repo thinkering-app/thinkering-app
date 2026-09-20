@@ -45,7 +45,9 @@ const objects = sqlite
 for (const obj of objects) lines.push(obj.sql + ';')
 
 const tables = sqlite
-  .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name")
+  .prepare(
+    "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
+  )
   .all() as { name: string }[]
 
 for (const { name } of tables) {

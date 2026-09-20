@@ -25,16 +25,16 @@ workspace warms every other one.
 
 ### What a change needs
 
-| You changed                                 | Write                                          | Check before done                                               |
-| ------------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------- |
-| Scheduler, schemas, other `packages/core`   | Table-driven vitest cases (Tier 1)             | The package's tests, then `pnpm verify`                         |
-| The database schema                         | Migration + snapshot (Tier 2)                  | `packages/db` tests, then `pnpm verify`                         |
-| An `/api` route                             | A handler test (Tier 3)                        | `apps/web` tests, then `pnpm verify`                            |
-| A block type or the activity player         | One behavioral test (Tier 4)                   | `apps/mobile` tests, then `pnpm verify`                         |
-| A prompt template                           | The updated snapshot (Tier 5)                  | `pnpm prompt:check <kind>` (live — ask first), the AI Inspector |
-| A screen's layout, copy, or styling         | Nothing                                        | Look at it: run the app and seed it (Tier 6)                    |
-| Web startup, storage, or the SQLite worker  | A browser spec if it's a new way to break      | `pnpm --filter @thinkering/mobile test:web`                     |
-| A Maestro flow, or cutting a release        | —                                              | `pnpm e2e`, and `RELEASING.md`                                  |
+| You changed                                | Write                                     | Check before done                                               |
+| ------------------------------------------ | ----------------------------------------- | --------------------------------------------------------------- |
+| Scheduler, schemas, other `packages/core`  | Table-driven vitest cases (Tier 1)        | The package's tests, then `pnpm verify`                         |
+| The database schema                        | Migration + snapshot (Tier 2)             | `packages/db` tests, then `pnpm verify`                         |
+| An `/api` route                            | A handler test (Tier 3)                   | `apps/web` tests, then `pnpm verify`                            |
+| A block type or the activity player        | One behavioral test (Tier 4)              | `apps/mobile` tests, then `pnpm verify`                         |
+| A prompt template                          | The updated snapshot (Tier 5)             | `pnpm prompt:check <kind>` (live — ask first), the AI Inspector |
+| A screen's layout, copy, or styling        | Nothing                                   | Look at it: run the app and seed it (Tier 6)                    |
+| Web startup, storage, or the SQLite worker | A browser spec if it's a new way to break | `pnpm --filter @thinkering/mobile test:web`                     |
+| A Maestro flow, or cutting a release       | —                                         | `pnpm e2e`, and `RELEASING.md`                                  |
 
 ## Where the effort goes
 

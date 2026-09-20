@@ -21,8 +21,7 @@ export async function exportToFile(now: number): Promise<void> {
 }
 
 export type ImportOutcome =
-  | { ok: true; rowCount: number }
-  | { ok: false; reason: ImportRefusal | 'cancelled' }
+  { ok: true; rowCount: number } | { ok: false; reason: ImportRefusal | 'cancelled' }
 
 export async function importFromFile(): Promise<ImportOutcome> {
   let text: string | null

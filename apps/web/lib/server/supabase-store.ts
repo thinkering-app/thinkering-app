@@ -123,7 +123,10 @@ export class SupabaseStore implements MeteringStore {
     const current = await this.getActionCount(deviceId, day, action)
     const { error } = await this.client
       .from('device_actions')
-      .upsert({ device_id: deviceId, day, action, count: current + 1 }, { onConflict: 'device_id,day,action' })
+      .upsert(
+        { device_id: deviceId, day, action, count: current + 1 },
+        { onConflict: 'device_id,day,action' },
+      )
     if (error) throw new Error(`device_actions upsert failed: ${error.message}`)
   }
 

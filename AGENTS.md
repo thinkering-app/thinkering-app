@@ -31,16 +31,16 @@ The app is feature-complete for a first beta and heading to TestFlight; what's l
 
 ## Commands
 
-| Command | What it's for |
-| --- | --- |
-| `pnpm verify` | The gate: typecheck + lint + tests (vitest in core, db, web; jest in mobile). Offline, under a minute. Run before calling work done. |
-| `pnpm --filter @thinkering/core test src/scheduler` | The inner loop — run only what you're changing. Every package has `test:watch`. |
-| `pnpm --filter @thinkering/mobile test blocks` | Mobile's jest tests, filtered. |
-| `pnpm --filter @thinkering/core test:cov` | Coverage by hand. It's off locally and enforced in CI. |
-| `pnpm --filter @thinkering/db generate` | Generate a migration from `src/schema.ts`. |
-| `pnpm --filter @thinkering/db snapshot` | Dump `fixtures/db/v<N>.sql` after adding a migration. |
+| Command                                                          | What it's for                                                                                                                                                                                              |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm verify`                                                    | The gate: formatting + typecheck + lint + tests (vitest in core, db, web; jest in mobile). Offline, under a minute. Run before calling work done.                                                          |
+| `pnpm --filter @thinkering/core test src/scheduler`              | The inner loop — run only what you're changing. Every package has `test:watch`.                                                                                                                            |
+| `pnpm --filter @thinkering/mobile test blocks`                   | Mobile's jest tests, filtered.                                                                                                                                                                             |
+| `pnpm --filter @thinkering/core test:cov`                        | Coverage by hand. It's off locally and enforced in CI.                                                                                                                                                     |
+| `pnpm --filter @thinkering/db generate`                          | Generate a migration from `src/schema.ts`.                                                                                                                                                                 |
+| `pnpm --filter @thinkering/db snapshot`                          | Dump `fixtures/db/v<N>.sql` after adding a migration.                                                                                                                                                      |
 | `pnpm prompt:check <kind>` / `pnpm prompt:run <kind> [--record]` | **Live model calls.** They read `ANTHROPIC_API_KEY` from `apps/web/.env` (or your shell) and cost money. Ask before running them. Each runs every input fixture for the kind; `--only <fixture>` runs one. |
-| `pnpm format` | Prettier. |
+| `pnpm format`                                                    | Prettier, over the whole repo. `main` is formatted, so this only ever touches what you changed; if it touches more, you're on a stale branch — rebase.                                                     |
 
 `--filter <package>` runs a script in one workspace package instead of all of them. The names are in each `package.json`: `@thinkering/core`, `@thinkering/db`, `@thinkering/mobile`, `@thinkering/web`. Words after the script name go to the test runner, which treats them as a file filter.
 
@@ -58,6 +58,7 @@ Don't run `pnpm e2e` while iterating. The Maestro flows are a pre-release check 
 **Database.** Edit `packages/db/src/schema.ts`, run `generate`, then `snapshot`, and commit the SQL, the `meta/` files, `migrations.js` and the new snapshot together. Migrations are additive-first; a test fails on any drop, rename or retype that isn't in its commented allowlist. Never edit an applied migration. Every synced table carries `updated_at` and `deleted_at`: soft-delete, never hard-delete synced rows. IDs are UUIDv7 generated client-side. Timestamps are epoch ms UTC, and day boundaries use the device's local timezone.
 
 **Prompts.** One template per kind in `src/prompts/kinds/`, registered in `registry.ts`. Request fields (model, limits, thinking, tools) come only from `modelRequestFields` — never build them at a call site. A Sonnet kind states its `effort` and leaves `maxTokens` room for thinking plus output (`docs/04` §Thinking). On any change:
+
 - Bump the template's `version`.
 - Review the prompt snapshot diff and update it with vitest `-u`. The diff is the review.
 - Run `pnpm prompt:check <kind>`, then eyeball the output in the AI Inspector. Quality judgment stays human.
@@ -84,3 +85,18 @@ The full strategy is in `docs/10-testing.md`; read it before writing tests.
 - Commit messages use `type(scope): summary`, imperative and lowercase — e.g. `fix(db): keep tombstones out of history`. Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`. Scopes: `mobile`, `web`, `core`, `db`, `config`, `ci`. Drop the scope when a change spans several.
 - A PR closes its issue (`Closes #12`), passes `pnpm verify`, and updates any doc that reality has drifted from.
 - A change a learner would notice gets a line under `## Unreleased` in `CHANGELOG.md`, in the product's plain voice. Refactors, tests and docs don't (`RELEASING.md`).
+
+### Rebasing a branch that predates the formatting commit
+
+`main` was formatted in one commit (`style: format the repo with prettier`, listed in `.git-blame-ignore-revs`). A branch that started before it conflicts with that commit in a handful of files. Rebase in two steps, so the real conflicts and the mechanical ones stay apart:
+
+```sh
+git fetch origin
+fmt=$(git log -1 --format=%H --grep '^style: format the repo' origin/main)
+git rebase --onto "$fmt^" "$(git merge-base HEAD origin/main)"  # content only: the conflicts you'd have had anyway
+git rebase --onto origin/main "$fmt^"                           # the formatting commit
+#   on conflict, keep your side: git checkout --theirs -- <file> && git add <file>
+pnpm format                                                     # then re-format what you kept
+```
+
+Nothing is lost keeping your own side in the second step: the other side of those conflicts is only line wrapping. Delete this section once the branches that predate the commit have landed.

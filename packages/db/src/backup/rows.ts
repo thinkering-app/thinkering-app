@@ -30,7 +30,8 @@ export function syncColumns(table: SQLiteTable): {
 } {
   const columns = getTableColumns(table) as Record<string, SQLiteColumn>
   const { id, updatedAt, deletedAt } = columns
-  if (!id || !updatedAt || !deletedAt) throw new Error(`${getTableName(table)} is not a synced table`)
+  if (!id || !updatedAt || !deletedAt)
+    throw new Error(`${getTableName(table)} is not a synced table`)
   return { id, updatedAt, deletedAt }
 }
 

@@ -14,8 +14,6 @@ export function deviceTimeZone(): string {
  */
 export function useLocalToday(): LocalDate {
   const [today, setToday] = useState<LocalDate>(() => localDateOf(Date.now(), deviceTimeZone()))
-  useFocusEffect(
-    useCallback(() => setToday(localDateOf(Date.now(), deviceTimeZone())), []),
-  )
+  useFocusEffect(useCallback(() => setToday(localDateOf(Date.now(), deviceTimeZone())), []))
   return today
 }

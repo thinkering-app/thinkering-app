@@ -50,7 +50,12 @@ export function listTopics(db: Database, interestId: string): Topic[] {
     .all()
 }
 
-export function setTopicSelected(db: Database, ctx: RepoContext, id: string, selected: boolean): void {
+export function setTopicSelected(
+  db: Database,
+  ctx: RepoContext,
+  id: string,
+  selected: boolean,
+): void {
   db.update(topics)
     .set({ selected, updatedAt: ctx.now() })
     .where(and(eq(topics.id, id), isNull(topics.deletedAt)))

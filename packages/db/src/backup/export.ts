@@ -78,7 +78,11 @@ export function parseExportFile(input: unknown): ParseExportResult {
     const raw = file.tables[name] ?? []
     const parsed = z.array(syncedRowSchema(name)).safeParse(raw)
     if (!parsed.success) {
-      return { ok: false, reason: 'invalid', detail: `${name}: ${parsed.error.issues[0]?.message ?? 'invalid'}` }
+      return {
+        ok: false,
+        reason: 'invalid',
+        detail: `${name}: ${parsed.error.issues[0]?.message ?? 'invalid'}`,
+      }
     }
     rows[name] = parsed.data
   }

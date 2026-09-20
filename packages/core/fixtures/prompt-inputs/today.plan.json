@@ -132,14 +132,10 @@
       {
         "title": "Easy German: At the Restaurant (video)",
         "description": "Street interviews ordering food",
-        "goalTitles": [
-          "Order food and drinks"
-        ]
+        "goalTitles": ["Order food and drinks"]
       }
     ],
-    "routineNotes": [
-      "Prefers speaking practice over grammar drills"
-    ]
+    "routineNotes": ["Prefers speaking practice over grammar drills"]
   },
   "sessionMinutes": 10,
   "picks": {
@@ -163,21 +159,9 @@
     ]
   },
   "activeItems": {
-    "next": [
-      "plain-explainer",
-      "guided-discovery",
-      "watch-along"
-    ],
-    "strengthen": [
-      "retrieval-quiz",
-      "focused-drill",
-      "faded-example"
-    ],
-    "goFurther": [
-      "make-something",
-      "put-to-work",
-      "connect-ideas"
-    ]
+    "next": ["plain-explainer", "guided-discovery", "watch-along"],
+    "strengthen": ["retrieval-quiz", "focused-drill", "faded-example"],
+    "goFurther": ["make-something", "put-to-work", "connect-ideas"]
   },
   "yesterdayItems": [
     {
