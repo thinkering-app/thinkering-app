@@ -33,6 +33,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- Suggested resources for a new interest are a starting point now — two to
+  four good ones rather than a list to work through.
 - Configure learning routine shows your daily routine above the question,
   with a link to the feedback board if you'd like a different number of
   activities each day.
@@ -74,6 +76,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Fixed
 
+- Leaving a screen while something was being written no longer counts the
+  whole generation against your daily amount, so you reach the cap far less
+  often.
 - Fill-in-the-blank sentences wrap instead of running off the screen, and the
   answer to a blank you got wrong appears once you move on from it, labeled,
   rather than while you're still typing.

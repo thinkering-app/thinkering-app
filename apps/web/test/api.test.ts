@@ -184,11 +184,12 @@ describe('POST /api/ai — validation and behavior', () => {
     expect(usage).toMatchObject({ calls: 10, inputTokens: 10 * 1000, outputTokens: 10 * 200 })
   })
 
-  it('stops the model when the client disconnects, and charges the held output', async () => {
+  /** A stream that yields `deltas`, then hangs until the proxy aborts it. */
+  const hangingStream = (deltas: unknown[]) => {
     const upstream = new AbortController()
     async function* events() {
       yield { type: 'message_start', message: { usage: { input_tokens: 700 } } }
-      yield { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: '{"do' } }
+      for (const delta of deltas) yield { type: 'content_block_delta', index: 0, delta }
       await new Promise((_, reject) => {
         const stop = () => reject(new Error('aborted'))
         if (upstream.signal.aborted) stop()
@@ -198,20 +199,79 @@ describe('POST /api/ai — validation and behavior', () => {
     const anthropic = {
       messages: { create: async () => Object.assign(events(), { controller: upstream }) },
     }
-    const { store } = setupDeps({ anthropic: () => anthropic as unknown as Anthropic })
+    return { upstream, anthropic: anthropic as unknown as Anthropic }
+  }
+
+  const disconnect = async (anthropic: Anthropic) => {
+    const { store } = setupDeps({ anthropic: () => anthropic })
     const creds = await registerDevice(store)
     const body = JSON.stringify({ ...JSON.parse(APPROACH_BODY), stream: true })
     const res = await aiPost(signedRequest('http://x/api/ai', creds, { body }))
     const reader = res.body!.getReader()
     await reader.read()
     await reader.cancel()
+    return { store, deviceId: creds.deviceId }
+  }
+
+  it('stops the model when the client disconnects, and charges only what streamed', async () => {
+    // 600 characters of thinking and 300 of text are both billed output, so
+    // both count; the signature between them is a blob, so it does not.
+    const { upstream, anthropic } = hangingStream([
+      { type: 'thinking_delta', thinking: 'x'.repeat(600) },
+      { type: 'signature_delta', signature: 's'.repeat(9000) },
+      { type: 'text_delta', text: 'y'.repeat(300) },
+    ])
+    const { store, deviceId } = await disconnect(anthropic)
 
     expect(upstream.signal.aborted).toBe(true)
+    // Far below the reservation this used to be charged.
+    await vi.waitFor(async () =>
+      expect(await store.getUsage(deviceId, '2026-09-15')).toMatchObject({
+        calls: 1,
+        inputTokens: 700,
+        outputTokens: 300,
+      }),
+    )
+  })
+
+  it('charges a disconnect before the first token almost nothing', async () => {
+    const { store, deviceId } = await disconnect(hangingStream([]).anthropic)
+
+    await vi.waitFor(async () =>
+      expect(await store.getUsage(deviceId, '2026-09-15')).toMatchObject({
+        calls: 1,
+        outputTokens: 0,
+      }),
+    )
+  })
+
+  it('keeps the held output when the stream breaks rather than being cancelled', async () => {
+    // Indistinguishable from a response Anthropic billed for and we lost, so
+    // the reservation stands (docs/04 §Usage metering).
+    async function* events() {
+      yield { type: 'message_start', message: { usage: { input_tokens: 700 } } }
+      yield {
+        type: 'content_block_delta',
+        index: 0,
+        delta: { type: 'text_delta', text: 'y'.repeat(300) },
+      }
+      throw new Error('connection reset')
+    }
+    const anthropic = {
+      messages: {
+        create: async () => Object.assign(events(), { controller: new AbortController() }),
+      },
+    }
+    const { store } = setupDeps({ anthropic: () => anthropic as unknown as Anthropic })
+    const creds = await registerDevice(store)
+    const body = JSON.stringify({ ...JSON.parse(APPROACH_BODY), stream: true })
+    const res = await aiPost(signedRequest('http://x/api/ai', creds, { body }))
+    await new Response(res.body).text()
+
     const maxTokens = getPromptTemplate('intake.approach')!.maxTokens
     await vi.waitFor(async () =>
       expect(await store.getUsage(creds.deviceId, '2026-09-15')).toMatchObject({
         calls: 1,
-        inputTokens: 700,
         outputTokens: maxTokens,
       }),
     )

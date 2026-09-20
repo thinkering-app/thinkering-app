@@ -33,7 +33,8 @@ Return JSON (and nothing else after your searches): {
 }
 
 Rules:
-- Search before answering. Four to six resources, spread across their goals rather than piled on one.
+- Search before answering. Two to four resources, spread across their goals rather than piled on one.
+- A starting point, not a reading list: enough that they have something good to reach for, no more.
 - Reputable and specific: a well-regarded explainer, documentation, a course page, a good YouTube video. No SEO filler, no listicles, no aggregator pages, nothing behind a hard paywall.
 - Only include a URL you actually saw in search results. Never construct or guess one.
 - Match their level and their session length: something that takes an hour is fine as a resource, but say so in how-to-use.
@@ -42,11 +43,11 @@ Rules:
 export const resourcesSearchTemplate: PromptTemplate<ResourcesSearchParams, ResourcesSearchOutput> =
   {
     kind: 'resources.search',
-    version: 2,
+    version: 3,
     model: 'sonnet',
     maxTokens: 16000,
-    effort: 'high',
-    tools: { webSearch: { maxUses: 6 } },
+    effort: 'medium',
+    tools: { webSearch: { maxUses: 4 } },
     paramsSchema: resourcesSearchParamsSchema,
     outputSchema: resourcesSearchOutputSchema,
     render: (params) => ({

@@ -231,6 +231,19 @@ Activity library:
 }
 `;
 
+exports[`prompt templates > activity.generate sends stable request fields (snapshot) 1`] = `
+{
+  "max_tokens": 16000,
+  "model": "claude-sonnet-5",
+  "output_config": {
+    "effort": "high",
+  },
+  "thinking": {
+    "type": "adaptive",
+  },
+}
+`;
+
 exports[`prompt templates > activity.question renders stably (snapshot) 1`] = `
 {
   "messages": [
@@ -335,6 +348,19 @@ Rules:
 - Don't restate the page they're on, and don't tell them they'll cover it later.",
     },
   ],
+}
+`;
+
+exports[`prompt templates > activity.question sends stable request fields (snapshot) 1`] = `
+{
+  "max_tokens": 8000,
+  "model": "claude-sonnet-5",
+  "output_config": {
+    "effort": "low",
+  },
+  "thinking": {
+    "type": "adaptive",
+  },
 }
 `;
 
@@ -455,6 +481,14 @@ Rules:
 }
 `;
 
+exports[`prompt templates > activity.review sends stable request fields (snapshot) 1`] = `
+{
+  "max_tokens": 1200,
+  "model": "claude-haiku-4-5",
+  "temperature": 0.6,
+}
+`;
+
 exports[`prompt templates > intake.approach renders stably (snapshot) 1`] = `
 {
   "messages": [
@@ -511,6 +545,19 @@ Every later generation reads this, so it is a brief, and briefs are short. Downs
 The approach notes are user-visible: write them to the learner ("you"), plainly.",
     },
   ],
+}
+`;
+
+exports[`prompt templates > intake.approach sends stable request fields (snapshot) 1`] = `
+{
+  "max_tokens": 8000,
+  "model": "claude-sonnet-5",
+  "output_config": {
+    "effort": "low",
+  },
+  "thinking": {
+    "type": "adaptive",
+  },
 }
 `;
 
@@ -586,6 +633,19 @@ Concept chips name the specific thing taught ("Verb-second rule", not "Word orde
 }
 `;
 
+exports[`prompt templates > intake.path sends stable request fields (snapshot) 1`] = `
+{
+  "max_tokens": 16000,
+  "model": "claude-sonnet-5",
+  "output_config": {
+    "effort": "medium",
+  },
+  "thinking": {
+    "type": "adaptive",
+  },
+}
+`;
+
 exports[`prompt templates > intake.success renders stably (snapshot) 1`] = `
 {
   "messages": [
@@ -633,6 +693,19 @@ Return JSON: { "outcomes": string[] }
 Make them genuinely varied, and a bit longer term — cover different kinds of success, not one kind restated: understanding something, doing something, making or finishing something, a real moment in their life tied to why they're learning, and confidence or habit. Concrete and specific to what they told you, and pitched to their experience: reachable in weeks to months, not years.",
     },
   ],
+}
+`;
+
+exports[`prompt templates > intake.success sends stable request fields (snapshot) 1`] = `
+{
+  "max_tokens": 8000,
+  "model": "claude-sonnet-5",
+  "output_config": {
+    "effort": "low",
+  },
+  "thinking": {
+    "type": "adaptive",
+  },
 }
 `;
 
@@ -688,6 +761,19 @@ Return JSON: { "topics": [{ "label": string, "origin": "motivation"|"foundationa
 Labels: 2–5 words, chip-sized, concrete, no jargon the learner wouldn't recognize at their level. Blurb: one plain sentence on what this covers. 9–12 topics, no near-duplicates.",
     },
   ],
+}
+`;
+
+exports[`prompt templates > intake.topics sends stable request fields (snapshot) 1`] = `
+{
+  "max_tokens": 8000,
+  "model": "claude-sonnet-5",
+  "output_config": {
+    "effort": "low",
+  },
+  "thinking": {
+    "type": "adaptive",
+  },
 }
 `;
 
@@ -772,6 +858,14 @@ Rules:
 }
 `;
 
+exports[`prompt templates > path.suggestGoals sends stable request fields (snapshot) 1`] = `
+{
+  "max_tokens": 1200,
+  "model": "claude-haiku-4-5",
+  "temperature": 0.7,
+}
+`;
+
 exports[`prompt templates > reflect.open renders stably (snapshot) 1`] = `
 {
   "messages": [
@@ -845,6 +939,14 @@ Return JSON: { "recap": string, "outcomes": string[] }
 - Never repeat or lightly rephrase one they already hold. Vary the kind: understanding, doing, making, a real moment in their life, confidence or habit.",
     },
   ],
+}
+`;
+
+exports[`prompt templates > reflect.open sends stable request fields (snapshot) 1`] = `
+{
+  "max_tokens": 600,
+  "model": "claude-haiku-4-5",
+  "temperature": 0.3,
 }
 `;
 
@@ -948,6 +1050,19 @@ Rules:
 }
 `;
 
+exports[`prompt templates > reflect.update sends stable request fields (snapshot) 1`] = `
+{
+  "max_tokens": 8000,
+  "model": "claude-sonnet-5",
+  "output_config": {
+    "effort": "low",
+  },
+  "thinking": {
+    "type": "adaptive",
+  },
+}
+`;
+
 exports[`prompt templates > resource.describe renders stably (snapshot) 1`] = `
 {
   "messages": [
@@ -1009,6 +1124,14 @@ Rules:
 - Copy goal titles exactly, or return an empty list.",
     },
   ],
+}
+`;
+
+exports[`prompt templates > resource.describe sends stable request fields (snapshot) 1`] = `
+{
+  "max_tokens": 1200,
+  "model": "claude-haiku-4-5",
+  "temperature": 0.2,
 }
 `;
 
@@ -1092,11 +1215,32 @@ Return JSON (and nothing else after your searches): {
 }
 
 Rules:
-- Search before answering. Four to six resources, spread across their goals rather than piled on one.
+- Search before answering. Two to four resources, spread across their goals rather than piled on one.
+- A starting point, not a reading list: enough that they have something good to reach for, no more.
 - Reputable and specific: a well-regarded explainer, documentation, a course page, a good YouTube video. No SEO filler, no listicles, no aggregator pages, nothing behind a hard paywall.
 - Only include a URL you actually saw in search results. Never construct or guess one.
 - Match their level and their session length: something that takes an hour is fine as a resource, but say so in how-to-use.
 - Copy goal titles exactly. A resource that fits no single goal gets an empty list rather than a wrong one.",
+    },
+  ],
+}
+`;
+
+exports[`prompt templates > resources.search sends stable request fields (snapshot) 1`] = `
+{
+  "max_tokens": 16000,
+  "model": "claude-sonnet-5",
+  "output_config": {
+    "effort": "medium",
+  },
+  "thinking": {
+    "type": "adaptive",
+  },
+  "tools": [
+    {
+      "max_uses": 4,
+      "name": "web_search",
+      "type": "web_search_20260209",
     },
   ],
 }
@@ -1287,6 +1431,14 @@ Activity library:
   Flavor: extend",
     },
   ],
+}
+`;
+
+exports[`prompt templates > routine.customize sends stable request fields (snapshot) 1`] = `
+{
+  "max_tokens": 800,
+  "model": "claude-haiku-4-5",
+  "temperature": 0.2,
 }
 `;
 
@@ -1496,5 +1648,13 @@ Activity library:
   Flavor: extend",
     },
   ],
+}
+`;
+
+exports[`prompt templates > today.plan sends stable request fields (snapshot) 1`] = `
+{
+  "max_tokens": 1500,
+  "model": "claude-haiku-4-5",
+  "temperature": 0.7,
 }
 `;

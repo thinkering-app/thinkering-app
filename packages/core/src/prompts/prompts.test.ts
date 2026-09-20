@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { SHARED_PREAMBLE } from './preamble'
-import { PROMPTS, type ImplementedKind } from './registry'
+import { getPromptTemplate, PROMPTS, type ImplementedKind } from './registry'
+import { modelRequestFields } from './request'
 import { MODEL_IDS } from './types'
 
 const fixtureDir = join(__dirname, '../../fixtures/prompt-inputs')
@@ -22,6 +23,13 @@ describe('prompt templates', () => {
   // is the review (docs/10 Tier 1). Bump the template version when one changes.
   it.each(kinds)('%s renders stably (snapshot)', (kind) => {
     expect(renderFixture(kind)).toMatchSnapshot()
+  })
+
+  // The prompt snapshot carries none of this, so a changed model, token
+  // limit, thinking effort or search budget used to land invisibly in a
+  // review (docs/04 §Thinking, §Latency & cost).
+  it.each(kinds)('%s sends stable request fields (snapshot)', (kind) => {
+    expect(modelRequestFields(getPromptTemplate(kind)!)).toMatchSnapshot()
   })
 
   it.each(kinds)('%s: cache breakpoint sits after the shared preamble', (kind) => {

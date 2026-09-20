@@ -26,6 +26,15 @@ export const maxDuration = 300
 /** Generous: English runs near 4 characters a token, and JSON escaping adds a little. */
 const MAX_CHARS_PER_TOKEN = 6
 
+/**
+ * Charging a cancelled stream (docs/04 §Usage metering). The real output count
+ * arrives only in `message_delta`, at the end, so a call the client walked away
+ * from has to be charged from what actually reached us. Deliberately low —
+ * overestimating tokens is the safe direction, and either way it beats the
+ * reservation, which runs several times a finished call.
+ */
+const CHARS_PER_OUTPUT_TOKEN = 3
+
 const bodySchema = z.object({
   kind: z.string().min(1),
   params: z.unknown(),
@@ -136,32 +145,33 @@ export async function POST(req: Request): Promise<Response> {
   let settled = false
   /**
    * Records the call once, whichever way it ends. `outputTokens` undefined
-   * means the model may have generated tokens we never got a count for (a
-   * stream cut short), so the reservation stands as the charge.
+   * means we never got a real count: `fallback` is then the charge, defaulting
+   * to the reservation because the model may have generated tokens we lost.
    */
   const settle = async (
     inputTokens: number,
     outputTokens: number | undefined,
     status: 'ok' | 'error',
-    e?: unknown,
+    opts: { fallback?: number; error?: unknown } = {},
   ) => {
     if (settled) return
     settled = true
+    const charged = outputTokens ?? opts.fallback ?? reservedOutput
     logAiCall({
       kind: template.kind,
       model,
       status,
       inputTokens,
-      outputTokens: outputTokens ?? reservedOutput,
+      outputTokens: charged,
       latencyMs: now() - started,
-      ...(e ? { errorType: (e as Error).name } : {}),
+      ...(opts.error ? { errorType: (opts.error as Error).name } : {}),
     })
     try {
       const after = await store.addUsage(auth.deviceId, day, {
         counters: [],
         calls: 0,
         inputTokens,
-        outputTokens: (outputTokens ?? reservedOutput) - reservedOutput,
+        outputTokens: charged - reservedOutput,
       })
       await alertOnSpend(day, after.total)
     } catch (err) {
@@ -199,6 +209,12 @@ export async function POST(req: Request): Promise<Response> {
     const encoder = new TextEncoder()
     let inputTokens = 0
     let outputTokens: number | undefined
+    /** Characters of billable output seen so far — what a cancelled call is charged on. */
+    let streamedChars = 0
+    /** Set by `cancel`: this stream was stopped by us, not broken under us. */
+    let clientGone = false
+    const streamedOutput = () =>
+      Math.min(reservedOutput, Math.ceil(streamedChars / CHARS_PER_OUTPUT_TOKEN))
     const readable = new ReadableStream<Uint8Array>({
       async start(controller) {
         // After the client disconnects the controller refuses writes; the
@@ -216,13 +232,26 @@ export async function POST(req: Request): Promise<Response> {
               inputTokens = event.message.usage.input_tokens
             } else if (event.type === 'message_delta') {
               outputTokens = event.usage.output_tokens
+            } else if (event.type === 'content_block_delta') {
+              // Thinking is billed as output, so it counts too; the signature
+              // that follows it is a blob, not tokens.
+              if (event.delta.type === 'text_delta') streamedChars += event.delta.text.length
+              else if (event.delta.type === 'thinking_delta')
+                streamedChars += event.delta.thinking.length
             }
             send(event.type, event)
           }
           send('done', {})
           await settle(inputTokens, outputTokens, 'ok')
         } catch (e) {
-          await settle(inputTokens, outputTokens, 'error', e)
+          // A client that walked away is charged for what it streamed: we
+          // stopped the generation ourselves, so there is nothing more to pay
+          // for. A stream that broke under us keeps the reservation, since a
+          // response Anthropic billed for may have been lost (docs/04).
+          await settle(inputTokens, outputTokens, 'error', {
+            error: e,
+            ...(clientGone ? { fallback: streamedOutput() } : {}),
+          })
           send('proxy_error', { message: 'upstream_error' })
         }
         try {
@@ -232,8 +261,10 @@ export async function POST(req: Request): Promise<Response> {
         }
       },
       // The client went away: stop the generation it will never read. The loop
-      // above then ends and settles, holding the reservation as the charge.
+      // above then ends and settles, charging what had streamed by now. This
+      // runs before the abort it causes, so the flag is always set in time.
       cancel() {
+        clientGone = true
         stream.controller.abort()
       },
     })
@@ -251,7 +282,7 @@ export async function POST(req: Request): Promise<Response> {
     // counts. A connection error or timeout may have lost a response Anthropic
     // did bill for, so there the hold stands.
     const rejected = e instanceof Anthropic.APIError && e.status !== undefined
-    await settle(0, rejected ? 0 : undefined, 'error', e)
+    await settle(0, rejected ? 0 : undefined, 'error', { error: e })
     return Response.json({ error: 'upstream_error' }, { status: 502, headers })
   }
 }
