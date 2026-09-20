@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { FIXTURE_DOC_INTRODUCE } from '../fixtures/activity-docs'
 import type { ActivityDoc } from '../schemas/activity-doc'
-import { checkActivityDoc, pageCountRange, toneLintIssues } from './checks'
+import { checkActivityDoc, checkReviewBlocks, pageCountRange, toneLintIssues } from './checks'
 
 const GOAL_CONCEPTS = ['c-prompt-clear', 'c-prompt-fewshot']
 
@@ -64,9 +64,64 @@ describe('checkActivityDoc', () => {
     expect(checks).toContain('concepts')
   })
 
+  it('flags a summary recap that runs long or carries a heading', () => {
+    const doc = freshDoc()
+    const summary = doc.pages.at(-1)!
+    summary.blocks = [
+      { kind: 'heading', text: 'What you covered' },
+      { kind: 'paragraph', md: `${'word '.repeat(90)}` },
+    ]
+    const checks = checkActivityDoc(doc, { estMinutes: 5, goalConceptIds: GOAL_CONCEPTS }).map(
+      (i) => i.check,
+    )
+    expect(checks).toContain('summary-length')
+    expect(checks).toContain('summary-shape')
+  })
+
+  it('flags an interaction on the summary recap', () => {
+    const doc = freshDoc()
+    doc.pages.at(-1)!.blocks = [
+      {
+        kind: 'mcq',
+        id: 'one-more',
+        prompt: 'One more before you go?',
+        options: [
+          { id: 'a', label: 'Sure' },
+          { id: 'b', label: 'No' },
+        ],
+      },
+    ]
+    const checks = checkActivityDoc(doc, { estMinutes: 5, goalConceptIds: GOAL_CONCEPTS }).map(
+      (i) => i.check,
+    )
+    expect(checks).toContain('summary-shape')
+  })
+
   it('tone lints catch filler praise and patronizing framings', () => {
     expect(toneLintIssues('Great job! You nailed it', 'x')).not.toEqual([])
     expect(toneLintIssues("you haven't learned subjunctive yet", 'x')).not.toEqual([])
     expect(toneLintIssues("In thinkering you've covered greetings and ordering.", 'x')).toEqual([])
+  })
+})
+
+describe('checkReviewBlocks', () => {
+  it('passes one short paragraph', () => {
+    expect(
+      checkReviewBlocks([
+        {
+          kind: 'paragraph',
+          md: "Not quite — *hätte gern* isn't past tense. It's the conditional, \"I would like\", and that's what softens the ask.",
+        },
+      ]),
+    ).toEqual([])
+  })
+
+  it('flags the lesson-shaped review the prompt is trying to prevent', () => {
+    const checks = checkReviewBlocks([
+      { kind: 'heading', text: 'You nailed the form' },
+      { kind: 'paragraph', md: `${'word '.repeat(90)}` },
+    ]).map((i) => i.check)
+    expect(checks).toContain('review-length')
+    expect(checks).toContain('review-shape')
   })
 })

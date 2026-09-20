@@ -95,8 +95,9 @@ Additional rules for this task:
 - Emit pages in reading order, page 1 first (it renders while you're still writing).
 - End every document with exactly these two pages, in this order and with these kinds:
   { "id": "review", "kind": "review", "blocks": null },
-  { "id": "summary", "kind": "summary", "blocks": [ …2–3 recap blocks, no interaction… ] }
+  { "id": "summary", "kind": "summary", "blocks": [ …one recap block, no interaction… ] }
   The summary is "kind": "summary", not "content" — a content page would fail validation.
+- The summary recap is under 50 words, whichever shape suits what was taught: one short paragraph, or a bullet list with one line per idea the activity actually covered. The words are the ideas worth carrying away, in the plainest form they fit in. No heading block: the app already shows one above the recap, and the concepts are listed as chips below it.
 - "concepts": declare which of the goal's concept/skill ids this activity genuinely targets (use their exact ids in goalConceptId). Don't claim coverage you don't deliver.
 - Ground apply-tier activities in the learner's contexts and resources only when they genuinely fit — never force it.
 - If a resource is provided, build around it with resourceEmbed blocks carrying its exact url, resourceId and media: short segments, focus prompts, interaction after each segment. Never "watch this 20-minute video". Embed no other video.
@@ -372,7 +373,8 @@ Trickiest concept here: Polite requests with hätte gern
 Their answers:
 Q: Which is the polite way to order a coffee?
 A: "Ich hätte gern einen Kaffee." (correct)
-Fill in the blanks (some wrong): einen → "ein"; gern → "gerne"
+Fill in the blanks: Ich hätte ___ ___ Kaffee, bitte.
+A (some wrong): "gerne" (expected "gern"); "ein" (expected "einen")
 Q: Why is "Ich will einen Kaffee" risky with a stranger?
 A: It sounds like a demand, like a child asking. I think hätte gern is the past tense of haben so it's more distant.",
       "role": "user",
@@ -410,43 +412,17 @@ Output contract: respond with a single JSON object exactly matching the schema i
       "cache": true,
       "text": "Task: write the review page of an activity the learner has just worked through. You see their actual answers.
 
-Return JSON: { "blocks": Block[] }  — 1–3 blocks, using the same Block types as an Activity Document.
+Return JSON: { "blocks": [{ "kind": "paragraph", "md": string }] } — exactly one paragraph. No other block kinds. "md" allows only inline bold, italic and code.
 
-Activity Document JSON format (version 1):
-{
-  "version": 1,
-  "title": string,                    // shown on the card; short, concrete, no colon-subtitle pileups
-  "estMinutes": number,
-  "tier": "introduce" | "strengthen" | "apply",
-  "libraryItemId": string,            // the library item you were given
-  "concepts": [{ "goalConceptId"?: string, "label": string }],  // which of the goal's concept/skill ids this targets; goalConceptId must be one of the provided ids
-  "pages": [
-    { "id": string, "kind": "content", "blocks": Block[] },
-    { "id": string, "kind": "review", "blocks": null },          // reserved; exactly one, placed second-to-last; leave blocks null
-    { "id": string, "kind": "summary", "blocks": Block[] }       // exactly one, last; concept recap only — the app appends the rating UI
-  ]
-}
-
-Every block is an object whose discriminator field is "kind" — never "type": { "kind": "paragraph", "md": "…" }.
-
-Content blocks: { "kind": "heading", "text": string } · { "kind": "paragraph", "md": string } · { "kind": "list", "style": "bullet"|"numbered", "items": md[] } · { "kind": "callout", "tone": "note"|"example"|"tip", "md": string } · { "kind": "steps", "items": [{ "label": string, "md": string }] } · { "kind": "resourceEmbed", "resourceId"?, "url": string, "media": "video"|"article", "title": string, "startSec"?, "endSec"?, "focus"? }
-
-Interactive blocks (each also needs its own unique "id"): { "kind": "mcq", "id", "prompt", "options": [{ "id", "label" }], "correctId"?, "explain"? } · { "kind": "freeText", "id", "prompt", "placeholder"? } · { "kind": "fillBlank", "id", "md", "blanks": [{ "id", "answer", "alts"? }] } · { "kind": "ordering", "id", "prompt", "items": [{ "id", "label" }], "correctOrder": [id] } · { "kind": "matching", "id", "prompt", "pairs": [{ "leftId", "left", "rightId", "right" }] } · { "kind": "reveal", "id", "prompt", "md" } · { "kind": "selfRate", "id", "prompt", "scale": [{ "id", "label" }] }
-
-"md" fields allow only inline bold/italic/code. In a fillBlank, write each blank as ___ in the "md". A blank's answer must follow from what earlier pages or blocks taught, and nothing else on that page may give it away.
-
-Rules: 3–7 pages for a 5-minute session, scaling with estMinutes. Pages carry their own "kind" too: the teaching pages are "content", the second-to-last page is the reserved "review" page with "blocks": null, and the final page is the "summary" page — emit those two with those kinds, not as content pages. Every content page includes at least one interactive block; the summary page is a recap and has none. Page ids unique. Follow the library item's page skeleton. Interaction before explanation where the strategy calls for it; explanation before practice for worked examples. One idea per page. resourceEmbed: short segments only (use startSec/endSec), always paired with an interactive block, with "focus" telling the learner what to watch or read for.
-
-Choose exactly one thing to do, whichever is most valuable for this learner right now:
+Choose exactly one thing to say, whichever is most valuable for this learner right now:
 - Correct a misconception their answers reveal — kindly, directly, and specifically; name what they said and what's actually true.
 - Build on a good answer — add the next layer of nuance it earned.
 - Answer a question their answer implies but didn't ask.
 If their answers were sparse or mostly blank, reinforce the trickiest concept in the activity instead, without remarking on how little they wrote.
 
 Rules:
-- Short: a heading is optional, then one or two short paragraphs — under 80 words in all. It's read on a phone.
-- One thing only. Don't walk through their answers one by one; leave the rest unsaid.
-- An interactive block is allowed but not required — never add one just to have one.
+- Under 45 words. One paragraph on a phone, between the last page and the summary — not a lesson, not a wrap-up of the session.
+- One thing only. Don't walk through their answers in turn, don't clear up the other mistakes too, don't close with a tip or an encouragement. Leave the rest unsaid.
 - Speak to what they wrote. Quote or paraphrase their words when you correct or extend them.
 - Praise only when it's earned and specific about why. No "Great job!", no filler.
 - Never imply their knowledge is limited to this app.",

@@ -57,6 +57,7 @@ export {
   insertPageAfter,
   lastInteractivePageIndex,
   interactiveBlocksBeforeReview,
+  docForReport,
 } from './activity/doc-ops'
 export {
   youtubeVideoId,
@@ -84,7 +85,13 @@ export {
   type ContextAssemblyOptions,
 } from './prompts/context-assembly'
 export {
+  blockWordCount,
   checkActivityDoc,
+  checkReviewBlocks,
+  REVIEW_MAX_WORDS,
+  REVIEW_WORDS_ASKED,
+  SUMMARY_MAX_WORDS,
+  SUMMARY_WORDS_ASKED,
   toneLintOutput,
   toneLintIssues,
   pageCountRange,

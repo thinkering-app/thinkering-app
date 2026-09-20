@@ -1,5 +1,6 @@
+import { pageToPlainText } from '../activity/describe'
 import type { ActivityDoc } from '../schemas/activity-doc'
-import { isInteractiveBlock } from '../schemas/blocks'
+import { isInteractiveBlock, type Block } from '../schemas/blocks'
 
 /**
  * Structural and tone assertions shared by `pnpm prompt:check` and tests
@@ -45,6 +46,61 @@ export function toneLintOutput(output: unknown, where = 'output'): CheckIssue[] 
   return strings.flatMap((s) => toneLintIssues(s, where))
 }
 
+/**
+ * Where the two short pages at the end of an activity (docs/05) stop being
+ * short and start being a lesson. A bloated page is structurally valid, so
+ * length is the only thing that catches the drift.
+ *
+ * Both sit above what the prompts ask for — 45 words for the review page, 50
+ * for the summary recap — on purpose. A paragraph that ran to 47 is fine; the
+ * regression worth a failed check is the slide back to a few hundred.
+ */
+export const REVIEW_MAX_WORDS = 65
+export const REVIEW_WORDS_ASKED = 45
+export const SUMMARY_MAX_WORDS = 70
+export const SUMMARY_WORDS_ASKED = 50
+
+/** What the recap may be made of: one paragraph, or a bullet per idea (docs/05). */
+const SUMMARY_BLOCK_KINDS: readonly string[] = ['paragraph', 'list']
+
+/** Learner-facing words in a list of blocks — markup and our ids dropped. */
+export function blockWordCount(blocks: readonly Block[]): number {
+  return pageToPlainText({ blocks: [...blocks] })
+    .split(/\s+/)
+    .filter(Boolean).length
+}
+
+/**
+ * G6's review page: one short paragraph saying one thing. Length and shape are
+ * the whole check — the schema accepts any blocks, and a lesson is what the
+ * model reaches for unprompted.
+ */
+export function checkReviewBlocks(blocks: readonly Block[], where = 'review'): CheckIssue[] {
+  const issues: CheckIssue[] = []
+  const words = blockWordCount(blocks)
+  if (words > REVIEW_MAX_WORDS) {
+    issues.push({
+      check: 'review-length',
+      message: `${where}: ${words} words (prompt asks ${REVIEW_WORDS_ASKED}, flagged over ${REVIEW_MAX_WORDS})`,
+    })
+  }
+  const other = blocks.filter((b) => b.kind !== 'paragraph').map((b) => b.kind)
+  if (other.length > 0) {
+    issues.push({
+      check: 'review-shape',
+      message: `${where}: paragraphs only, got ${other.join(', ')}`,
+    })
+  }
+  if (blocks.length > 1) {
+    issues.push({
+      check: 'review-shape',
+      message: `${where}: ${blocks.length} blocks (expected one)`,
+    })
+  }
+  issues.push(...toneLintOutput(blocks, where))
+  return issues
+}
+
 /** Page-count range for a session length: 3–7 for 5 minutes, scaling with estMinutes. */
 export function pageCountRange(estMinutes: number): { min: number; max: number } {
   const scale = Math.max(0, Math.ceil((estMinutes - 5) / 5))
@@ -55,7 +111,7 @@ export function pageCountRange(estMinutes: number): { min: number; max: number }
  * Structural checks for a G5b Activity Document beyond what the Zod schema
  * enforces: page-count range for the session length, the reserved (empty)
  * review page second-to-last, declared concepts resolving to real goal
- * concepts, and tone lints.
+ * concepts, the summary recap's word budget, and tone lints.
  */
 export function checkActivityDoc(
   doc: ActivityDoc,
@@ -115,6 +171,35 @@ export function checkActivityDoc(
       check: 'library-item',
       message: `doc says ${doc.libraryItemId}, card said ${opts.libraryItemId}`,
     })
+  }
+
+  const summary = doc.pages.at(-1)
+  if (summary?.kind === 'summary') {
+    const words = blockWordCount(summary.blocks)
+    if (words > SUMMARY_MAX_WORDS) {
+      issues.push({
+        check: 'summary-length',
+        message: `summary recap is ${words} words (prompt asks ${SUMMARY_WORDS_ASKED}, flagged over ${SUMMARY_MAX_WORDS})`,
+      })
+    }
+    // Prose or a bullet list, and nothing else: the renderer already puts a
+    // heading above the recap, and the last page before the rating row is not
+    // a place to ask them something.
+    const wrong = summary.blocks
+      .filter((b) => !SUMMARY_BLOCK_KINDS.includes(b.kind))
+      .map((b) => b.kind)
+    if (wrong.length > 0) {
+      issues.push({
+        check: 'summary-shape',
+        message: `summary recap: paragraphs or a list only, got ${wrong.join(', ')}`,
+      })
+    }
+    if (summary.blocks.length > 2) {
+      issues.push({
+        check: 'summary-shape',
+        message: `summary recap has ${summary.blocks.length} blocks (expected one or two)`,
+      })
+    }
   }
 
   issues.push(...toneLintOutput(doc, `doc "${doc.title}"`))

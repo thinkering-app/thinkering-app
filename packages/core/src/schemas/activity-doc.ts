@@ -31,10 +31,13 @@ export const pageSchema = z.discriminatedUnion('kind', [
     kind: z.literal('summary'),
     blocks: z.array(blockSchema).min(1),
   }),
-  // Created by G7 (Ask); interaction optional.
+  // Created by G7 (Ask); interaction optional. `question` is what the learner
+  // asked, kept so the page still reads as an answer when they come back to it.
+  // Optional: pages inserted before it was recorded are still valid.
   z.object({
     id: z.string().min(1),
     kind: z.literal('inserted'),
+    question: z.string().min(1).optional(),
     blocks: z.array(blockSchema).min(1),
   }),
 ])

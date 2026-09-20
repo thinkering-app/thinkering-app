@@ -38,6 +38,7 @@ export function AskSheet({
       title="Ask"
       footer={
         <Button
+          testID="ask-submit"
           label="Ask"
           disabled={question.trim().length === 0 || state === 'pending'}
           onPress={() => onAsk(question.trim())}

@@ -146,7 +146,7 @@
   "conceptLabels": ["Restaurant phrases", "Polite requests with hätte gern"],
   "responses": [
     "Q: Which is the polite way to order a coffee?\nA: \"Ich hätte gern einen Kaffee.\" (correct)",
-    "Fill in the blanks (some wrong): einen → \"ein\"; gern → \"gerne\"",
+    "Fill in the blanks: Ich hätte ___ ___ Kaffee, bitte.\nA (some wrong): \"gerne\" (expected \"gern\"); \"ein\" (expected \"einen\")",
     "Q: Why is \"Ich will einen Kaffee\" risky with a stranger?\nA: It sounds like a demand, like a child asking. I think hätte gern is the past tense of haben so it's more distant."
   ],
   "trickiestConcept": "Polite requests with hätte gern"

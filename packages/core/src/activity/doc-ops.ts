@@ -43,6 +43,22 @@ export function lastInteractivePageIndex(doc: ActivityDoc): number {
   return -1
 }
 
+/**
+ * The document as it may leave the device in a shared activity report (D18,
+ * docs/08): generated content only. An Ask page keeps the question the learner
+ * typed so the page still reads as a reply, and a report promises that nothing
+ * they wrote is included — so it comes off here, on the way out.
+ */
+export function docForReport(doc: ActivityDoc): ActivityDoc {
+  return {
+    ...doc,
+    pages: doc.pages.map((page) => {
+      if (page.kind !== 'inserted' || page.question === undefined) return page
+      return { id: page.id, kind: page.kind, blocks: page.blocks }
+    }),
+  }
+}
+
 /** Every interactive block in the pages before the review slot, in reading order. */
 export function interactiveBlocksBeforeReview(
   doc: ActivityDoc,
