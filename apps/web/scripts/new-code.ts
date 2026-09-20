@@ -32,6 +32,12 @@ async function main() {
     console.error('--bonus must be a positive number of weighted tokens.')
     process.exit(1)
   }
+  // A typo — `--days 3O` — is NaN, which is falsy, which would quietly store no
+  // expiry at all and issue a permanent grant. Omitting --days asks for that.
+  if (days !== undefined && (!Number.isInteger(days) || days <= 0)) {
+    console.error('--days must be a positive whole number of days. Omit it for one that never expires.')
+    process.exit(1)
+  }
 
   const url = process.env.SUPABASE_URL
   const secretKey = process.env.SUPABASE_SECRET_KEY
