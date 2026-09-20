@@ -4,6 +4,7 @@ import { Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   durationBucket,
+  fillReviewPage,
   getLibraryItem,
   insertPageAfter,
   lastInteractivePageIndex,
@@ -35,9 +36,9 @@ import { GenerationError } from '@/components/generation-error'
 import { db, repoContext } from '@/db'
 import { AskSheet } from '@/features/activity-player/ask-sheet'
 import {
-  fallbackReviewPage,
+  fallbackReviewBlocks,
   generateAskPage,
-  generateReviewPage,
+  generateReviewBlocks,
   writeActivityDoc,
 } from '@/features/activity-player/generate'
 import { ActivityPlayer } from '@/features/activity-player/player'
@@ -77,6 +78,7 @@ export default function ActivityScreen() {
   const [askState, setAskState] = useState<'idle' | 'pending' | 'error'>('idle')
   const [askError, setAskError] = useState<string>()
   const reviewRequested = useRef(false)
+  const persisted = useRef<ActivityDoc | null>(activity?.doc ?? null)
   const openedAt = useRef(0)
   const questionsAsked = useRef(0)
   const completed = useRef(false)
@@ -119,6 +121,8 @@ export default function ActivityScreen() {
     const write = writeActivityDoc(activity, setPartial)
     write.promise.then(
       (written) => {
+        // Already stored by the write itself; only later revisions need saving.
+        persisted.current = written
         if (!left) setDoc(written)
       },
       (e: unknown) => {
@@ -131,29 +135,46 @@ export default function ActivityScreen() {
     }
   }, [activity, attempt])
 
-  /** G6, once they move past the last page that asked them anything. */
-  const maybeGenerateReview = useCallback(
-    (next: number, current: ActivityDoc) => {
-      if (reviewRequested.current) return
-      const review = reviewPageIndex(current)
-      if (review === -1 || current.pages[review]?.blocks !== null) return
-      if (next <= lastInteractivePageIndex(current)) return
-      reviewRequested.current = true
-      generateReviewPage(activity!, current)
-        .then(setDoc)
-        .catch(() => setDoc(fallbackReviewPage(activity!, current)))
-    },
-    [activity],
-  )
+  /**
+   * Every revision to the document after it was written — G6's review page, an
+   * Ask page — goes through here, so it merges into the document as it stands
+   * rather than into the snapshot the call started from. A generation that
+   * resolves late must never replace the whole document: an Ask page inserted
+   * while G6 was in flight would disappear, from the screen and from the row.
+   */
+  const reviseDoc = useCallback((revise: (prev: ActivityDoc) => ActivityDoc) => {
+    setDoc((prev) => (prev === null ? prev : revise(prev)))
+  }, [])
+
+  // What's on screen is what's stored. Saving here rather than at each call
+  // site means the row gets the merged document, once, whatever produced it.
+  useEffect(() => {
+    if (!activity || !doc || doc === persisted.current) return
+    persisted.current = doc
+    attachDoc(db, repoContext, activity.id, doc)
+  }, [activity, doc])
 
   const changePage = useCallback(
     (next: number) => {
       setPage(next)
       if (activity) saveProgress(db, repoContext, activity.id, next)
-      if (doc) maybeGenerateReview(next, doc)
     },
-    [activity, doc, maybeGenerateReview],
+    [activity],
   )
+
+  // G6, once they move past the last page that asked them anything. Derived
+  // from where they are rather than fired from the page change, so it reads the
+  // document Ask may have just grown.
+  useEffect(() => {
+    if (!activity || !doc || reviewRequested.current) return
+    const review = reviewPageIndex(doc)
+    if (review === -1 || doc.pages[review]?.blocks !== null) return
+    if (page <= lastInteractivePageIndex(doc)) return
+    reviewRequested.current = true
+    generateReviewBlocks(activity, doc)
+      .then((blocks) => reviseDoc((prev) => fillReviewPage(prev, blocks)))
+      .catch(() => reviseDoc((prev) => fillReviewPage(prev, fallbackReviewBlocks(prev))))
+  }, [activity, doc, page, reviseDoc])
 
   // If G6 is slow or failed, the review page becomes a plain recap rather than
   // sitting empty (docs/04 §Failure handling).
@@ -162,10 +183,10 @@ export default function ActivityScreen() {
     const review = reviewPageIndex(doc)
     if (review !== page || doc.pages[review]?.blocks !== null) return
     const timer = setTimeout(() => {
-      setDoc((prev) => (prev ? fallbackReviewPage(activity, prev) : prev))
+      reviseDoc((prev) => fillReviewPage(prev, fallbackReviewBlocks(prev)))
     }, REVIEW_PATIENCE_MS)
     return () => clearTimeout(timer)
-  }, [activity, doc, page])
+  }, [activity, doc, page, reviseDoc])
 
   /** G7: the answer streams into a page inserted after the current one. */
   const ask = useCallback(
@@ -174,41 +195,39 @@ export default function ActivityScreen() {
       setAskState('pending')
       questionsAsked.current += 1
       track('question_asked', { tier: activity.tier })
-      let insertedId: string | null = null
+      // Both settled before the first block lands: deciding them inside the
+      // state updater would make it impure, and React may run an updater more
+      // than once or later than the line after it.
+      const pageId = repoContext.newId()
+      const askedFrom = page
+      let shown = false
       const applyBlocks = (blocks: Block[]) => {
         if (blocks.length === 0) return
-        setDoc((prev) => {
-          if (!prev) return prev
-          if (insertedId === null) {
-            insertedId = repoContext.newId()
-            return insertPageAfter(prev, page, { id: insertedId, kind: 'inserted', blocks })
-          }
-          return {
-            ...prev,
-            pages: prev.pages.map((p) => (p.id === insertedId ? { ...p, blocks } : p)),
-          }
-        })
-        if (insertedId !== null) {
-          setAskOpen(false)
-          setAskState('idle')
-          changePage(page + 1)
-        }
+        reviseDoc((prev) =>
+          prev.pages.some((p) => p.id === pageId)
+            ? { ...prev, pages: prev.pages.map((p) => (p.id === pageId ? { ...p, blocks } : p)) }
+            : insertPageAfter(prev, askedFrom, {
+                id: pageId,
+                kind: 'inserted',
+                question,
+                blocks,
+              }),
+        )
+        if (shown) return
+        shown = true
+        setAskOpen(false)
+        setAskState('idle')
+        changePage(askedFrom + 1)
       }
 
       generateAskPage(activity, doc, page, question, { onPartial: applyBlocks })
-        .then((blocks) => {
-          applyBlocks(blocks)
-          setDoc((prev) => {
-            if (prev) attachDoc(db, repoContext, activity.id, prev)
-            return prev
-          })
-        })
+        .then(applyBlocks)
         .catch((e: unknown) => {
           setAskState('error')
           setAskError(describeAiError(e))
         })
     },
-    [activity, changePage, doc, page],
+    [activity, changePage, doc, page, reviseDoc],
   )
 
   const onShare = useCallback(

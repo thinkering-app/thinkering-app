@@ -8,6 +8,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Added
 
+- A page written in answer to something you asked now shows your question at
+  the top of it, so it still reads as a reply when you come back to it.
 - Anonymous, opt-in usage analytics — off until you say yes, asked once on the
   welcome screen, and never carrying anything you write.
 - Share session replays with the developers, if you choose — asked after
@@ -74,6 +76,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Fixed
 
+- A page you asked for mid-activity stays where it was put. It could disappear
+  moments after arriving — taking you to the end of the activity with it — if
+  the review page was still being written when you asked.
 - Fill-in-the-blank sentences wrap instead of running off the screen, and the
   answer to a blank you got wrong appears once you move on from it, labeled,
   rather than while you're still typing.

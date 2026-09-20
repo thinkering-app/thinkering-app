@@ -4,7 +4,6 @@ import {
   describeResponse,
   extractPartialBlocks,
   extractPartialActivityDoc,
-  fillReviewPage,
   getLibraryItem,
   groundBlocks,
   groundPages,
@@ -38,8 +37,10 @@ import { db, repoContext } from '@/db'
 /**
  * The three generation calls an activity makes (docs/04): G5b writes the
  * document (streamed, page by page), G6 fills the reserved review page from
- * the learner's answers, and G7 answers an Ask. Each persists what it gets —
- * an Ask page survives leaving and coming back.
+ * the learner's answers, and G7 answers an Ask. G5b owns its document and
+ * stores it; G6 and G7 return blocks for the route to merge into the document
+ * as it stands and persist from there — a call that started before an Ask must
+ * not overwrite the page the Ask inserted.
  */
 
 /**
@@ -130,12 +131,16 @@ async function generateActivityDoc(
 /**
  * G6. Fires when the learner finishes the last interactive page before the
  * review slot, so it lands while they read that page (docs/05).
+ *
+ * Returns the blocks, not a document: `doc` is the snapshot the call was made
+ * from, and by the time it resolves an Ask may have inserted a page into the
+ * real one. The caller merges into current state (docs/05 §Ask).
  */
-export async function generateReviewPage(
+export async function generateReviewBlocks(
   activity: Activity,
   doc: ActivityDoc,
   opts: { signal?: AbortSignal } = {},
-): Promise<ActivityDoc> {
+): Promise<Block[]> {
   const interest = getInterest(db, activity.interestId)
   if (!interest) throw new Error('interest is gone')
   const goal = activity.goalId ? getGoal(db, activity.goalId) : undefined
@@ -172,16 +177,16 @@ export async function generateReviewPage(
     activityId: activity.id,
     signal: opts.signal,
   })
-  return persist(activity, fillReviewPage(doc, output.blocks))
+  return output.blocks
 }
 
 /**
- * The review page when G6 couldn't deliver (docs/04): a plain recap rather than
- * a page that sits empty. Never pretends to have read their answers.
+ * The review page's blocks when G6 couldn't deliver (docs/04): a plain recap
+ * rather than a page that sits empty. Never pretends to have read their answers.
  */
-export function fallbackReviewPage(activity: Activity, doc: ActivityDoc): ActivityDoc {
+export function fallbackReviewBlocks(doc: ActivityDoc): Block[] {
   const labels = doc.concepts.map((c) => c.label)
-  const blocks: Block[] = [
+  return [
     {
       kind: 'paragraph',
       md:
@@ -190,7 +195,6 @@ export function fallbackReviewPage(activity: Activity, doc: ActivityDoc): Activi
           : 'Worth holding on to: the idea this activity was built around.',
     },
   ]
-  return persist(activity, fillReviewPage(doc, blocks))
 }
 
 /** G7 (Ask). Streams the answer into a page inserted after the current one. */
@@ -255,11 +259,6 @@ function onNewPartial<T>(
 
 function docShape(partial: PartialActivityDoc): string {
   return `${partial.pages.length}|${partial.title ?? ''}|${partial.estMinutes ?? ''}`
-}
-
-function persist(activity: Activity, doc: ActivityDoc): ActivityDoc {
-  attachDoc(db, repoContext, activity.id, doc)
-  return doc
 }
 
 // ── Writing ahead (docs/04 §Latency & cost) ──────────────────────────────────

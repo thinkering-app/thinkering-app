@@ -9,6 +9,7 @@ import { FadeIn } from '@/components/fade-in'
 import { Generating } from '@/components/generating'
 import { ProgressBar } from '@/components/progress-bar'
 import { colors } from '@/theme/tokens'
+import { AskedHeader } from './asked-header'
 import { BlockView } from './blocks'
 import {
   CELEBRATION_BY_TIER,
@@ -114,6 +115,9 @@ export function ActivityPlayer({
       <View className="gap-5">
         {page.kind === 'summary' ? (
           <SummaryHeader celebrationKey={doc.title} tier={doc.tier} goalTitle={goalTitle} />
+        ) : null}
+        {page.kind === 'inserted' && page.question ? (
+          <AskedHeader question={page.question} />
         ) : null}
         {(page.blocks ?? []).map((block, i) => (
           <BlockView key={`${page.id}-${i}`} pageId={page.id} block={block} />

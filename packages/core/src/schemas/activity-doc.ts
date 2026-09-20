@@ -19,8 +19,15 @@ export const pageSchema = z.discriminatedUnion('kind', [
   z.object({ id: z.string().min(1), kind: z.literal('review'), blocks: z.array(blockSchema).min(1).nullable() }),
   // Last page; the renderer appends the rating UI.
   z.object({ id: z.string().min(1), kind: z.literal('summary'), blocks: z.array(blockSchema).min(1) }),
-  // Created by G7 (Ask); interaction optional.
-  z.object({ id: z.string().min(1), kind: z.literal('inserted'), blocks: z.array(blockSchema).min(1) }),
+  // Created by G7 (Ask); interaction optional. `question` is what the learner
+  // asked, kept so the page still reads as an answer when they come back to it.
+  // Optional: pages inserted before it was recorded are still valid.
+  z.object({
+    id: z.string().min(1),
+    kind: z.literal('inserted'),
+    question: z.string().min(1).optional(),
+    blocks: z.array(blockSchema).min(1),
+  }),
 ])
 
 export type Page = z.infer<typeof pageSchema>
