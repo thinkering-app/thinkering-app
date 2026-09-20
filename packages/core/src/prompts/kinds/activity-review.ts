@@ -65,7 +65,9 @@ export const activityReviewTemplate: PromptTemplate<ActivityReviewParams, Review
           `Activity: ${params.activityTitle} (${params.tier})`,
           `Goal: ${params.goal.title} — ${params.goal.description}`,
           `Concepts targeted: ${params.conceptLabels.join(', ')}`,
-          ...(params.trickiestConcept ? [`Trickiest concept here: ${params.trickiestConcept}`] : []),
+          ...(params.trickiestConcept
+            ? [`Trickiest concept here: ${params.trickiestConcept}`]
+            : []),
           '',
           'Their answers:',
           ...(params.responses.length > 0 ? params.responses : ['(they answered nothing)']),

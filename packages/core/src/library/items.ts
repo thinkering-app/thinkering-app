@@ -82,7 +82,13 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     whyItHelps: 'Pausing to answer questions turns watching into learning.',
     pedagogy:
       'Multimedia learning: segmenting + embedded questions measurably beat passive watching. Uses a saved resource (resourceEmbed). Great for demos, technique, worked examples on video.',
-    pageSkeleton: ['why this clip (focus prompt)', 'clip segment', 'checkpoint', 'second segment', 'recap check'],
+    pageSkeleton: [
+      'why this clip (focus prompt)',
+      'clip segment',
+      'checkpoint',
+      'second segment',
+      'recap check',
+    ],
     interactions: ['mcq', 'freeText'],
     defaultActive: true,
     goodFor: 'demos, technique, worked examples on video',
@@ -97,7 +103,12 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     whyItHelps: 'Reading with a purpose helps you notice and keep what matters.',
     pedagogy:
       'Elaborative interrogation + reading with purpose; comprehensible input for languages. Uses a saved resource.',
-    pageSkeleton: ['the question to hold', 'excerpt/link', 'what did you find', 'connect to the concept'],
+    pageSkeleton: [
+      'the question to hold',
+      'excerpt/link',
+      'what did you find',
+      'connect to the concept',
+    ],
     interactions: ['freeText', 'mcq'],
     defaultActive: true,
     goodFor: 'knowledge-rich domains, language comprehensible input',
@@ -204,7 +215,12 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     whyItHelps: "Many fast, checked judgments build an expert's instant recognition.",
     pedagogy:
       "Perceptual learning (Kellman): many short classification trials with feedback build the expert's fast pattern recognition. Great for chess positions, art/composition, grammar forms, chart reading.",
-    pageSkeleton: ['what to notice', '5–8 quick classify/compare reps', 'the pattern named', 'transfer rep'],
+    pageSkeleton: [
+      'what to notice',
+      '5–8 quick classify/compare reps',
+      'the pattern named',
+      'transfer rep',
+    ],
     interactions: ['mcq', 'matching'],
     defaultActive: true,
     goodFor: 'chess positions, art/composition, grammar forms, chart reading',
@@ -219,7 +235,12 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     whyItHelps: 'Using an idea somewhere real is how it becomes yours.',
     pedagogy:
       "Transfer + relevance; uses the interest's contexts (projects/people/environments) when they fit.",
-    pageSkeleton: ['pick/confirm the context', 'plan the application', 'pressure-test', 'concrete next step'],
+    pageSkeleton: [
+      'pick/confirm the context',
+      'plan the application',
+      'pressure-test',
+      'concrete next step',
+    ],
     interactions: ['freeText', 'mcq', 'reveal'],
     defaultActive: true,
     goodFor: 'users with saved contexts; practical domains',
@@ -247,7 +268,12 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     overview: "Plan how you'd explain this to someone you know.",
     whyItHelps: 'Preparing to teach shows you where your own understanding has gaps.',
     pedagogy: 'Protégé effect; forces organization and gap-finding.',
-    pageSkeleton: ['choose audience', 'draft the explanation', 'anticipate their question', 'G6 feedback'],
+    pageSkeleton: [
+      'choose audience',
+      'draft the explanation',
+      'anticipate their question',
+      'G6 feedback',
+    ],
     interactions: ['freeText', 'mcq'],
     defaultActive: true,
     goodFor: 'conceptual material worth articulating',
@@ -276,7 +302,12 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     whyItHelps: "Spotting ideas out in the world connects what you learn to where it's used.",
     pedagogy:
       'Perceptual learning and critique; connects learning to the world; uses resources when relevant.',
-    pageSkeleton: ['the artifact (link/excerpt)', 'what do you notice', 'expert lens', 'your takeaway'],
+    pageSkeleton: [
+      'the artifact (link/excerpt)',
+      'what do you notice',
+      'expert lens',
+      'your takeaway',
+    ],
     interactions: ['freeText', 'mcq'],
     defaultActive: true,
     goodFor: 'domains with rich real-world artifacts',
@@ -292,7 +323,12 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     whyItHelps:
       'First explanations simplify; the nuance is what makes your understanding accurate.',
     pedagogy: 'Desirable difficulty + refining mental models beyond the first-pass simplification.',
-    pageSkeleton: ['the simplified version recalled (reveal)', 'the complication', 'wrestle with it', 'revised rule of thumb'],
+    pageSkeleton: [
+      'the simplified version recalled (reveal)',
+      'the complication',
+      'wrestle with it',
+      'revised rule of thumb',
+    ],
     interactions: ['reveal', 'mcq', 'freeText'],
     defaultActive: true,
     goodFor: 'goals whose intro deliberately simplified',
@@ -306,7 +342,12 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     overview: 'Link this goal to another goal, interest or field.',
     whyItHelps: "Ideas you've connected are easier to recall and use together.",
     pedagogy: 'Elaboration + far transfer; building a connected schema rather than islands.',
-    pageSkeleton: ['the two ideas', 'find the bridge', 'a case where the connection pays off', 'takeaway'],
+    pageSkeleton: [
+      'the two ideas',
+      'find the bridge',
+      'a case where the connection pays off',
+      'takeaway',
+    ],
     interactions: ['freeText', 'matching'],
     defaultActive: true,
     goodFor: 'users with multiple goals or interests',
@@ -321,6 +362,8 @@ export function getLibraryItem(id: string): LibraryItem | undefined {
   return byId.get(id)
 }
 
-export function libraryItemsForSection(section: 'next' | 'strengthen' | 'go_further'): LibraryItem[] {
+export function libraryItemsForSection(
+  section: 'next' | 'strengthen' | 'go_further',
+): LibraryItem[] {
   return LIBRARY_ITEMS.filter((item) => item.sections.includes(section))
 }

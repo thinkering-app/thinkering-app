@@ -23,7 +23,10 @@ const INSTRUCTIONS = `Task: propose ~10 topic chips the learner will pick from (
 Return JSON: { "topics": [{ "label": string, "origin": "motivation"|"foundational"|"adjacent", "blurb": string }] }
 Labels: 2–5 words, chip-sized, concrete, no jargon the learner wouldn't recognize at their level. Blurb: one plain sentence on what this covers. 9–12 topics, no near-duplicates.`
 
-export const intakeTopicsTemplate: PromptTemplate<IntakeTopicsParams, z.infer<typeof topicsOutputSchema>> = {
+export const intakeTopicsTemplate: PromptTemplate<
+  IntakeTopicsParams,
+  z.infer<typeof topicsOutputSchema>
+> = {
   kind: 'intake.topics',
   version: 2,
   model: 'sonnet',

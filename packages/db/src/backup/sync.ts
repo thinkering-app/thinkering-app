@@ -39,7 +39,10 @@ export interface SyncPayload {
 }
 
 /** Every synced row written since `sinceCursor`. */
-export function collectPush(db: Database, sinceCursor: number): { push: SyncPayload[]; cursor: number } {
+export function collectPush(
+  db: Database,
+  sinceCursor: number,
+): { push: SyncPayload[]; cursor: number } {
   const push: SyncPayload[] = []
   let cursor = sinceCursor
 
@@ -47,7 +50,11 @@ export function collectPush(db: Database, sinceCursor: number): { push: SyncPayl
     const t = syncedTable(table)
     // Narrowed in SQL so a sync doesn't deserialize every ActivityDoc on the
     // device; `selectPush` stays the one place that decides what is due.
-    const changed = db.select().from(t).where(gt(syncColumns(t).updatedAt, sinceCursor)).all() as Row[]
+    const changed = db
+      .select()
+      .from(t)
+      .where(gt(syncColumns(t).updatedAt, sinceCursor))
+      .all() as Row[]
     const selected = selectPush(changed as unknown as SyncRowMeta[], sinceCursor)
     if (selected.cursor > cursor) cursor = selected.cursor
 

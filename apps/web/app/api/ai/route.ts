@@ -47,7 +47,10 @@ function toAnthropicRequest(
   return {
     // Model, limits, thinking, sampling and tools, shared with the BYO-key
     // client and the prompt scripts (packages/core/src/prompts/request.ts).
-    ...(modelRequestFields(template) as Omit<Anthropic.MessageCreateParamsNonStreaming, 'messages'>),
+    ...(modelRequestFields(template) as Omit<
+      Anthropic.MessageCreateParamsNonStreaming,
+      'messages'
+    >),
     system: rendered.system.map((b) => ({
       type: 'text' as const,
       text: b.text,
@@ -188,7 +191,10 @@ export async function POST(req: Request): Promise<Response> {
           text,
           model: message.model,
           stopReason: message.stop_reason,
-          usage: { inputTokens: message.usage.input_tokens, outputTokens: message.usage.output_tokens },
+          usage: {
+            inputTokens: message.usage.input_tokens,
+            outputTokens: message.usage.output_tokens,
+          },
         },
         { headers },
       )

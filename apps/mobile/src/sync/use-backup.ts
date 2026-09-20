@@ -24,7 +24,9 @@ export function useBackup() {
   const [account, setAccount] = useState<Account | null>(null)
   const [enabled, setEnabled] = useState(() => isBackupEnabled(db))
   const [syncing, setSyncing] = useState(false)
-  const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(() => getSyncCursors(db).lastSyncedAt)
+  const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(
+    () => getSyncCursors(db).lastSyncedAt,
+  )
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -44,7 +46,9 @@ export function useBackup() {
       setLastSyncedAt(outcome.at)
       setError(null)
     } else if (outcome.reason === 'newer_schema') {
-      setError('Your other device is on a newer version of thinkering. Update this one to keep syncing.')
+      setError(
+        'Your other device is on a newer version of thinkering. Update this one to keep syncing.',
+      )
     } else if (outcome.reason === 'failed') {
       setError("We couldn't reach the backup just now.")
     }

@@ -15,7 +15,10 @@ export interface CheckIssue {
 /** Phrases generated content must never contain (docs/04 tone rules). */
 const TONE_PATTERNS: { pattern: RegExp; label: string }[] = [
   { pattern: /great job/i, label: 'filler praise ("Great job")' },
-  { pattern: /you haven'?t (yet )?(learned|covered|studied|done)/i, label: 'patronizing "you haven\'t learned X" framing' },
+  {
+    pattern: /you haven'?t (yet )?(learned|covered|studied|done)/i,
+    label: 'patronizing "you haven\'t learned X" framing',
+  },
   { pattern: /awesome!|amazing!|fantastic!/i, label: 'exclamation-mark cheerleading' },
 ]
 
@@ -31,7 +34,8 @@ export function toneLintIssues(text: string, where: string): CheckIssue[] {
 function collectStrings(value: unknown, out: string[]): void {
   if (typeof value === 'string') out.push(value)
   else if (Array.isArray(value)) for (const v of value) collectStrings(v, out)
-  else if (value && typeof value === 'object') for (const v of Object.values(value)) collectStrings(v, out)
+  else if (value && typeof value === 'object')
+    for (const v of Object.values(value)) collectStrings(v, out)
 }
 
 /** Tone-lint every string in a generation output. */
@@ -73,19 +77,32 @@ export function checkActivityDoc(
   }
   const review = doc.pages[reviewIndex]
   if (review && review.kind === 'review' && review.blocks !== null) {
-    issues.push({ check: 'review-empty', message: 'freshly generated review page must have blocks: null (G6 fills it)' })
+    issues.push({
+      check: 'review-empty',
+      message: 'freshly generated review page must have blocks: null (G6 fills it)',
+    })
   }
 
   for (const page of doc.pages) {
-    if (page.kind !== 'summary' && page.kind !== 'review' && !page.blocks.some(isInteractiveBlock)) {
-      issues.push({ check: 'interactivity', message: `non-summary page "${page.id}" has no interactive block` })
+    if (
+      page.kind !== 'summary' &&
+      page.kind !== 'review' &&
+      !page.blocks.some(isInteractiveBlock)
+    ) {
+      issues.push({
+        check: 'interactivity',
+        message: `non-summary page "${page.id}" has no interactive block`,
+      })
     }
   }
 
   const known = new Set(opts.goalConceptIds)
   for (const c of doc.concepts) {
     if (c.goalConceptId !== undefined && !known.has(c.goalConceptId)) {
-      issues.push({ check: 'concepts', message: `declared goalConceptId "${c.goalConceptId}" not on the goal` })
+      issues.push({
+        check: 'concepts',
+        message: `declared goalConceptId "${c.goalConceptId}" not on the goal`,
+      })
     }
   }
   // A goal-less card (prerequisite, or a request with no goal) has nothing to cover.
@@ -94,7 +111,10 @@ export function checkActivityDoc(
   }
 
   if (opts.libraryItemId && doc.libraryItemId !== opts.libraryItemId) {
-    issues.push({ check: 'library-item', message: `doc says ${doc.libraryItemId}, card said ${opts.libraryItemId}` })
+    issues.push({
+      check: 'library-item',
+      message: `doc says ${doc.libraryItemId}, card said ${opts.libraryItemId}`,
+    })
   }
 
   issues.push(...toneLintOutput(doc, `doc "${doc.title}"`))

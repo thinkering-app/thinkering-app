@@ -33,9 +33,11 @@ describe('checkActivityDoc', () => {
     const filled = freshDoc()
     const review = filled.pages.find((p) => p.kind === 'review')!
     review.blocks = [{ kind: 'paragraph', md: 'premature feedback' }]
-    expect(checkActivityDoc(filled, { estMinutes: 5, goalConceptIds: GOAL_CONCEPTS }).map((i) => i.check)).toContain(
-      'review-empty',
-    )
+    expect(
+      checkActivityDoc(filled, { estMinutes: 5, goalConceptIds: GOAL_CONCEPTS }).map(
+        (i) => i.check,
+      ),
+    ).toContain('review-empty')
   })
 
   it('flags page counts outside the range for the session length', () => {
@@ -48,21 +50,23 @@ describe('checkActivityDoc', () => {
       clone.id = `dup-${doc.pages.length}`
       doc.pages.unshift(clone)
     }
-    expect(checkActivityDoc(doc, { estMinutes: 5, goalConceptIds: GOAL_CONCEPTS }).map((i) => i.check)).toContain(
-      'page-count',
-    )
+    expect(
+      checkActivityDoc(doc, { estMinutes: 5, goalConceptIds: GOAL_CONCEPTS }).map((i) => i.check),
+    ).toContain('page-count')
   })
 
   it('flags unknown goal concept ids and zero declared coverage', () => {
     const doc = freshDoc()
     doc.concepts = [{ goalConceptId: 'c-imaginary', label: 'Made up' }]
-    const checks = checkActivityDoc(doc, { estMinutes: 5, goalConceptIds: GOAL_CONCEPTS }).map((i) => i.check)
+    const checks = checkActivityDoc(doc, { estMinutes: 5, goalConceptIds: GOAL_CONCEPTS }).map(
+      (i) => i.check,
+    )
     expect(checks).toContain('concepts')
   })
 
   it('tone lints catch filler praise and patronizing framings', () => {
     expect(toneLintIssues('Great job! You nailed it', 'x')).not.toEqual([])
     expect(toneLintIssues("you haven't learned subjunctive yet", 'x')).not.toEqual([])
-    expect(toneLintIssues('In thinkering you\'ve covered greetings and ordering.', 'x')).toEqual([])
+    expect(toneLintIssues("In thinkering you've covered greetings and ordering.", 'x')).toEqual([])
   })
 })

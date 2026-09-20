@@ -18,11 +18,17 @@ export function newDeviceCredentials(): { deviceId: string; secret: string } {
   return { deviceId: randomUUID(), secret: randomBytes(32).toString('hex') }
 }
 
-export function signRequest(secret: string, deviceId: string, timestamp: number, body: string): string {
+export function signRequest(
+  secret: string,
+  deviceId: string,
+  timestamp: number,
+  body: string,
+): string {
   return createHmac('sha256', secret).update(`${deviceId}.${timestamp}.${body}`).digest('hex')
 }
 
-export type AuthResult = { ok: true; deviceId: string } | { ok: false; status: number; message: string }
+export type AuthResult =
+  { ok: true; deviceId: string } | { ok: false; status: number; message: string }
 
 export async function verifyDeviceAuth(
   req: Request,

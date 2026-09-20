@@ -28,7 +28,9 @@ describe('export/import round-trip', () => {
     if (!parsed.ok) return
 
     const { db } = openTestDb()
-    db.insert(genCache).values({ id: 'c1', kind: 'daily_plan', scopeKey: 'x', payload: {}, createdAt: 1 }).run()
+    db.insert(genCache)
+      .values({ id: 'c1', kind: 'daily_plan', scopeKey: 'x', payload: {}, createdAt: 1 })
+      .run()
     importData(db, parsed.rows)
 
     const after = JSON.parse(JSON.stringify(exportData(db, 1_757_900_000_000)))
@@ -60,7 +62,9 @@ describe('export/import round-trip', () => {
       .run()
 
     importData(db, parsed.rows)
-    const ids = (sqlite.prepare('SELECT id FROM interests').all() as { id: string }[]).map((r) => r.id)
+    const ids = (sqlite.prepare('SELECT id FROM interests').all() as { id: string }[]).map(
+      (r) => r.id,
+    )
     expect(ids).toEqual(['i-sample'])
   })
 })
@@ -79,7 +83,10 @@ describe('version handling', () => {
   })
 
   it('migrates an older file forward — columns added since are simply absent', () => {
-    const file = exportedJson() as { schemaVersion: number; tables: Record<string, Record<string, unknown>[]> }
+    const file = exportedJson() as {
+      schemaVersion: number
+      tables: Record<string, Record<string, unknown>[]>
+    }
     // A v1 export predates activities.topic (migration 0001).
     const older = {
       ...file,
@@ -96,7 +103,9 @@ describe('version handling', () => {
 
     const { db, sqlite } = openTestDb()
     importData(db, parsed.rows)
-    const row = sqlite.prepare("SELECT topic, title FROM activities WHERE id = 'a-sample'").get() as {
+    const row = sqlite
+      .prepare("SELECT topic, title FROM activities WHERE id = 'a-sample'")
+      .get() as {
       topic: string | null
       title: string
     }

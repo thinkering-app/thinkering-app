@@ -119,15 +119,31 @@ export async function callAi<T = unknown>(
   }
 
   try {
-    let execution = await executeWithRetry(mode, kind, template, parsedParams, rendered, undefined, opts)
+    let execution = await executeWithRetry(
+      mode,
+      kind,
+      template,
+      parsedParams,
+      rendered,
+      undefined,
+      opts,
+    )
     let validated = validateOutput(kind, template, parsedParams, execution.text)
 
     if (!validated.ok) {
       // One repair round-trip: send the validation errors back (docs/04).
-      execution = await executeWithRetry(mode, kind, template, parsedParams, rendered, {
-        previousText: execution.text,
-        issues: validated.issues,
-      }, opts)
+      execution = await executeWithRetry(
+        mode,
+        kind,
+        template,
+        parsedParams,
+        rendered,
+        {
+          previousText: execution.text,
+          issues: validated.issues,
+        },
+        opts,
+      )
       validated = validateOutput(kind, template, parsedParams, execution.text)
       if (!validated.ok) {
         finishLog('error', execution, `invalid output: ${validated.issues.slice(0, 3).join('; ')}`)
@@ -165,7 +181,9 @@ function validateOutput(
 ): { ok: true; output: unknown } | { ok: false; issues: string[] } {
   if (kind === 'activity.generate') {
     const goal = (params as { goal?: { concepts?: { id: string }[] } }).goal
-    const result = parseActivityDoc(text, { goalConceptIds: goal?.concepts?.map((c) => c.id) ?? [] })
+    const result = parseActivityDoc(text, {
+      goalConceptIds: goal?.concepts?.map((c) => c.id) ?? [],
+    })
     return result.ok
       ? { ok: true, output: result.doc }
       : { ok: false, issues: result.issues.map((i) => `${i.path}: ${i.message}`) }
@@ -195,7 +213,9 @@ async function executeWithRetry(
     return await executeOnce(mode, kind, template, params, rendered, repair, opts)
   } catch (e) {
     const retryable =
-      !(e instanceof AiBudgetError) && !opts.signal?.aborted && (e as { transient?: boolean }).transient === true
+      !(e instanceof AiBudgetError) &&
+      !opts.signal?.aborted &&
+      (e as { transient?: boolean }).transient === true
     if (!retryable) throw e
     return executeOnce(mode, kind, template, params, rendered, repair, opts)
   }
@@ -227,7 +247,10 @@ async function fixtureCall(kind: string, params: unknown, opts: AiCallOptions): 
     text = JSON.stringify(fixtureDocForGoal(tier, goal.concepts))
   } else {
     const recorded = RECORDED_RESPONSES[kind]
-    if (!recorded) throw new Error(`no recorded fixture for kind "${kind}" — run pnpm prompt:run ${kind} --record`)
+    if (!recorded)
+      throw new Error(
+        `no recorded fixture for kind "${kind}" — run pnpm prompt:run ${kind} --record`,
+      )
     text = recorded.text
   }
 
@@ -246,7 +269,12 @@ async function fixtureCall(kind: string, params: unknown, opts: AiCallOptions): 
 
 // ── proxy mode ───────────────────────────────────────────────────────────────
 
-async function proxyCall(kind: string, params: unknown, repair: Repair | undefined, opts: AiCallOptions): Promise<Execution> {
+async function proxyCall(
+  kind: string,
+  params: unknown,
+  repair: Repair | undefined,
+  opts: AiCallOptions,
+): Promise<Execution> {
   const body = JSON.stringify({ kind, params, stream: true, ...(repair ? { repair } : {}) })
   const res = await fetch(`${API_BASE_URL}/api/ai`, {
     method: 'POST',
@@ -278,10 +306,12 @@ async function byokCall(
   const apiKey = await secureGet(KEYS.byokKey)
   if (!apiKey) throw new Error('no Anthropic key saved — add one in Me → Settings → AI')
 
-  const messages: { role: 'user' | 'assistant'; content: string }[] = rendered.messages.map((m) => ({
-    role: m.role,
-    content: m.content,
-  }))
+  const messages: { role: 'user' | 'assistant'; content: string }[] = rendered.messages.map(
+    (m) => ({
+      role: m.role,
+      content: m.content,
+    }),
+  )
   if (repair) {
     messages.push(
       { role: 'assistant', content: repair.previousText },
@@ -358,5 +388,10 @@ async function consumeSse(res: Response, opts: AiCallOptions): Promise<Execution
     }
   }
 
-  return { text: acc.text, model: model || 'unknown', inputTokens: acc.inputTokens, outputTokens: acc.outputTokens }
+  return {
+    text: acc.text,
+    model: model || 'unknown',
+    inputTokens: acc.inputTokens,
+    outputTokens: acc.outputTokens,
+  }
 }

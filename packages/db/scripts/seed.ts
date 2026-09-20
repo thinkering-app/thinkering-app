@@ -25,7 +25,11 @@ const db = drizzle(sqlite, { schema })
 migrate(db, { migrationsFolder: join(root, 'migrations') })
 
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
-seedFixtureData(db as unknown as RepoDatabase, { now: () => Date.now(), newId: uuidv7 }, {
-  today: localDateOf(Date.now(), timeZone),
-})
+seedFixtureData(
+  db as unknown as RepoDatabase,
+  { now: () => Date.now(), newId: uuidv7 },
+  {
+    today: localDateOf(Date.now(), timeZone),
+  },
+)
 console.log(`seeded ${out}`)

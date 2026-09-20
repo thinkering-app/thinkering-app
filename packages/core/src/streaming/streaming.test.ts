@@ -9,8 +9,13 @@ import { accumulateEvent, emptyAccumulator, SseParser } from './sse'
 describe('SseParser', () => {
   it('assembles events across arbitrary chunk boundaries', () => {
     const parser = new SseParser()
-    const wire = 'event: message_start\ndata: {"a":1}\n\nevent: content_block_delta\ndata: {"b":2}\n\n'
-    const events = [...parser.push(wire.slice(0, 13)), ...parser.push(wire.slice(13, 40)), ...parser.push(wire.slice(40))]
+    const wire =
+      'event: message_start\ndata: {"a":1}\n\nevent: content_block_delta\ndata: {"b":2}\n\n'
+    const events = [
+      ...parser.push(wire.slice(0, 13)),
+      ...parser.push(wire.slice(13, 40)),
+      ...parser.push(wire.slice(40)),
+    ]
     expect(events).toEqual([
       { event: 'message_start', data: '{"a":1}' },
       { event: 'content_block_delta', data: '{"b":2}' },
@@ -20,11 +25,24 @@ describe('SseParser', () => {
   it('accumulates text and usage from anthropic stream events', () => {
     let acc = emptyAccumulator()
     acc = accumulateEvent(acc, 'message_start', { message: { usage: { input_tokens: 500 } } })
-    acc = accumulateEvent(acc, 'content_block_delta', { delta: { type: 'text_delta', text: '{"na' } })
-    acc = accumulateEvent(acc, 'content_block_delta', { delta: { type: 'text_delta', text: 'me":"x"}' } })
-    acc = accumulateEvent(acc, 'message_delta', { usage: { output_tokens: 42 }, delta: { stop_reason: 'end_turn' } })
+    acc = accumulateEvent(acc, 'content_block_delta', {
+      delta: { type: 'text_delta', text: '{"na' },
+    })
+    acc = accumulateEvent(acc, 'content_block_delta', {
+      delta: { type: 'text_delta', text: 'me":"x"}' },
+    })
+    acc = accumulateEvent(acc, 'message_delta', {
+      usage: { output_tokens: 42 },
+      delta: { stop_reason: 'end_turn' },
+    })
     acc = accumulateEvent(acc, 'message_stop', {})
-    expect(acc).toEqual({ text: '{"name":"x"}', inputTokens: 500, outputTokens: 42, done: true, stopReason: 'end_turn' })
+    expect(acc).toEqual({
+      text: '{"name":"x"}',
+      inputTokens: 500,
+      outputTokens: 42,
+      done: true,
+      stopReason: 'end_turn',
+    })
   })
 })
 
@@ -93,7 +111,9 @@ describe('extractPartialPath', () => {
 
   it('yields each goal as its object closes', () => {
     const cut = full.indexOf('"Read a simple menu"') + 10
-    expect(extractPartialPath(full.slice(0, cut)).goals.map((g) => g.title)).toEqual(['Order in a café'])
+    expect(extractPartialPath(full.slice(0, cut)).goals.map((g) => g.title)).toEqual([
+      'Order in a café',
+    ])
     expect(extractPartialPath(full).goals.map((g) => g.title)).toEqual([
       'Order in a café',
       'Read a simple menu',
@@ -139,7 +159,9 @@ describe('extractJsonText', () => {
 
   it('finds the object after the narration a web-search turn writes first', () => {
     const object = '{"resources":[{"url":"https://example.com"}]}'
-    expect(extractJsonText(`I searched for a few sources. Here they are:\n\n${object}`)).toBe(object)
+    expect(extractJsonText(`I searched for a few sources. Here they are:\n\n${object}`)).toBe(
+      object,
+    )
     // A stray brace in the narration doesn't win — the real object is larger.
     expect(extractJsonText(`Nothing usable {yet}.\n${object}`)).toBe(object)
   })

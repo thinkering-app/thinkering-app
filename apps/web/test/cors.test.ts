@@ -30,7 +30,11 @@ describe('CORS middleware', () => {
   })
 
   it('stays silent for an unknown origin and for same-origin calls', () => {
-    expect(middleware(request('POST', 'https://evil.example')).headers.get('access-control-allow-origin')).toBeNull()
+    expect(
+      middleware(request('POST', 'https://evil.example')).headers.get(
+        'access-control-allow-origin',
+      ),
+    ).toBeNull()
     expect(middleware(request('POST')).headers.get('access-control-allow-origin')).toBeNull()
   })
 })

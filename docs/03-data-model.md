@@ -43,23 +43,23 @@ Concept **coverage** (which concepts/skills have been targeted — shown when a 
 
 ## activities ⟳
 
-| column                               | type  | notes                                                       |
-| ------------------------------------ | ----- | ----------------------------------------------------------- |
+| column                               | type  | notes                                                                                         |
+| ------------------------------------ | ----- | --------------------------------------------------------------------------------------------- |
 | id / interest_id / goal_id           |       | `goal_id` null only on the strengthen prerequisite card, or a + card asked for without a goal |
-| topic                                | text? | a goal-less card's topic: the prerequisite's, or a short name for the learner's request |
-| focus                                | text? | what the learner asked a + card to focus on, or how to learn it; passed to G5b (docs/01 §3) |
-| section                              | text  | `next \| strengthen \| go_further`                          |
-| tier                                 | text  | `introduce \| strengthen \| apply`                          |
-| library_item_id                      | text  | e.g. `worked-example`                                       |
-| title / est_minutes                  |       | shown on card                                               |
-| doc                                  | json? | Activity Document (null until G5b generates content)        |
-| status                               | text  | `planned \| ready \| in_progress \| completed \| abandoned` |
-| current_page                         | int   | resume point                                                |
-| planned_for                          | text  | local date `YYYY-MM-DD` the scheduler planned it for        |
-| started_at / completed_at            | int?  |                                                             |
-| rating                               | text? | `down \| mixed \| up`                                       |
-| rating_text                          | text? |                                                             |
-| created_at / updated_at / deleted_at | int   |                                                             |
+| topic                                | text? | a goal-less card's topic: the prerequisite's, or a short name for the learner's request       |
+| focus                                | text? | what the learner asked a + card to focus on, or how to learn it; passed to G5b (docs/01 §3)   |
+| section                              | text  | `next \| strengthen \| go_further`                                                            |
+| tier                                 | text  | `introduce \| strengthen \| apply`                                                            |
+| library_item_id                      | text  | e.g. `worked-example`                                                                         |
+| title / est_minutes                  |       | shown on card                                                                                 |
+| doc                                  | json? | Activity Document (null until G5b generates content)                                          |
+| status                               | text  | `planned \| ready \| in_progress \| completed \| abandoned`                                   |
+| current_page                         | int   | resume point                                                                                  |
+| planned_for                          | text  | local date `YYYY-MM-DD` the scheduler planned it for                                          |
+| started_at / completed_at            | int?  |                                                                                               |
+| rating                               | text? | `down \| mixed \| up`                                                                         |
+| rating_text                          | text? |                                                                                               |
+| created_at / updated_at / deleted_at | int   |                                                                                               |
 
 History = completed activities (indexed on `interest_id, completed_at`). Calendar = distinct local dates of `completed_at`.
 
