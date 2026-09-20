@@ -3,7 +3,7 @@ import { Text, View } from 'react-native'
 
 import { BYOK_AVAILABLE, getAiMode, setAiMode, type AiMode } from '@/ai/settings'
 import { KEYS, secureDelete, secureGet, secureSet } from '@/ai/secure-store'
-import { fetchUsage, type UsageSnapshot } from '@/ai/usage'
+import { CodeError, fetchUsage, redeemCode, type UsageSnapshot } from '@/ai/usage'
 import { ReplayMask, track } from '@/analytics'
 import { Button } from '@/components/button'
 import { Meter } from '@/components/meter'
@@ -12,8 +12,9 @@ import { TextField } from '@/components/text-field'
 
 /**
  * Me → Settings → AI (docs/01 §7): today's usage against the included daily
- * amount, and the option to bring your own Anthropic key (D10 — SecureStore,
- * calls go direct and unmetered). Native only: web has no keychain.
+ * amount, a code field for the extra allowance we hand out during the beta,
+ * and the option to bring your own Anthropic key (D10 — SecureStore, calls go
+ * direct and unmetered). Native only: web has no keychain.
  */
 
 export default function AiScreen() {
@@ -21,6 +22,9 @@ export default function AiScreen() {
   const [usageError, setUsageError] = useState(false)
   const [byok, setByok] = useState<boolean | null>(null)
   const [key, setKey] = useState('')
+  const [code, setCode] = useState('')
+  const [codeStatus, setCodeStatus] = useState<{ ok: boolean; message: string } | null>(null)
+  const [redeeming, setRedeeming] = useState(false)
   const mode: AiMode = getAiMode()
 
   useEffect(() => {
@@ -42,6 +46,27 @@ export default function AiScreen() {
       live = false
     }
   }, [mode])
+
+  const applyCode = async () => {
+    const trimmed = code.trim()
+    if (trimmed.length === 0 || redeeming) return
+    setRedeeming(true)
+    setCodeStatus(null)
+    try {
+      await redeemCode(trimmed)
+      setCode('')
+      setCodeStatus({ ok: true, message: 'Added. Your daily amount is higher from now on.' })
+      // The meter is the proof, so re-read it rather than doing the sum here.
+      setUsage(await fetchUsage())
+    } catch (e) {
+      setCodeStatus({
+        ok: false,
+        message: e instanceof CodeError ? e.message : "That code didn't work.",
+      })
+    } finally {
+      setRedeeming(false)
+    }
+  }
 
   const saveKey = async () => {
     const trimmed = key.trim()
@@ -86,6 +111,35 @@ export default function AiScreen() {
       ) : (
         <Text className="font-sans text-body text-ink-soft">Checking today&apos;s usage…</Text>
       )}
+
+      {mode === 'proxy' ? (
+        <View className="gap-3">
+          <Text className="font-heading-bold text-heading text-ink">Have a code?</Text>
+          <TextField
+            value={code}
+            onChangeText={(next) => {
+              setCode(next)
+              setCodeStatus(null)
+            }}
+            placeholder="XXXX-XXXX-XXXX"
+            accessibilityLabel="Extra usage code"
+            autoCapitalize="characters"
+            autoCorrect={false}
+          />
+          <Button
+            label={redeeming ? 'Adding…' : 'Add code'}
+            onPress={() => void applyCode()}
+            disabled={code.trim() === '' || redeeming}
+          />
+          {codeStatus ? (
+            <Text
+              className={`font-sans text-secondary ${codeStatus.ok ? 'text-ink-soft' : 'text-peach'}`}
+            >
+              {codeStatus.message}
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
 
       {BYOK_AVAILABLE ? (
         <View className="gap-3">

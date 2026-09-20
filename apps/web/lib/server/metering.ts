@@ -108,6 +108,7 @@ export function withoutDelta(after: UsageAfter, delta: UsageDelta): UsageAfter {
       inputTokens: after.total.inputTokens - delta.inputTokens,
       outputTokens: after.total.outputTokens - delta.outputTokens,
     },
+    bonusWeighted: after.bonusWeighted,
   }
 }
 
@@ -129,33 +130,58 @@ export function reverseDelta(delta: UsageDelta): UsageDelta {
 export function checkBudget(
   kind: string,
   usage: UsageRecord,
-  opts: { repair?: boolean; total?: TokenTotals } = {},
+  opts: { repair?: boolean; total?: TokenTotals; bonusWeighted?: number } = {},
 ): BudgetDecision {
+  const limit = deviceLimit(opts.bonusWeighted)
   const counters = opts.repair ? [kind, REPAIR_COUNTER] : [kind]
   for (const counter of counters) {
-    const limit = BURST_LIMITS[counter]
-    if (limit !== undefined && (usage.kindCalls[counter] ?? 0) >= limit) {
+    const burst = burstLimit(counter, opts.bonusWeighted)
+    if (burst !== undefined && (usage.kindCalls[counter] ?? 0) >= burst) {
       return { allowed: false, reason: 'kind_limit_reached' }
     }
   }
+  // A code raises one device's ceiling; it can't lift the proxy-wide one.
   if (opts.total && weightedUsed(opts.total) >= GLOBAL_DAILY_BUDGET_WEIGHTED) {
     return { allowed: false, reason: 'service_limit_reached' }
   }
   const used = weightedUsed(usage)
-  const ceiling = PROTECTED_KINDS.has(kind)
-    ? DAILY_BUDGET_WEIGHTED
-    : DAILY_BUDGET_WEIGHTED - RESERVED_WEIGHTED
+  const ceiling = PROTECTED_KINDS.has(kind) ? limit : limit - RESERVED_WEIGHTED
   if (used >= ceiling) return { allowed: false, reason: 'budget_exhausted' }
   return { allowed: true }
 }
 
-/** Remaining-budget headers the app mirrors in Me → AI usage. */
-export function budgetHeaders(usage: UsageRecord, nowMs: number): Record<string, string> {
+/** The device's own daily ceiling: the included amount plus any granted by code. */
+export function deviceLimit(bonusWeighted = 0): number {
+  return DAILY_BUDGET_WEIGHTED + Math.max(0, bonusWeighted)
+}
+
+/**
+ * Burst limits scale with the grant, in the same proportion. A code that
+ * doubles the tokens has to double the per-kind headroom too, or the kind
+ * limits stop the extra budget from ever being spendable — `intake.choices`
+ * at 10/day binds long before 500,000 weighted tokens do.
+ */
+function burstLimit(counter: string, bonusWeighted = 0): number | undefined {
+  const base = BURST_LIMITS[counter]
+  if (base === undefined) return undefined
+  return Math.floor((base * deviceLimit(bonusWeighted)) / DAILY_BUDGET_WEIGHTED)
+}
+
+/**
+ * Remaining-budget headers the app mirrors in Me → AI usage. The limit is the
+ * device's own, so a redeemed code needs no arithmetic on the client.
+ */
+export function budgetHeaders(
+  usage: UsageRecord,
+  nowMs: number,
+  bonusWeighted = 0,
+): Record<string, string> {
+  const limit = deviceLimit(bonusWeighted)
   const used = weightedUsed(usage)
   return {
-    'x-budget-limit': String(DAILY_BUDGET_WEIGHTED),
-    'x-budget-used': String(Math.min(used, DAILY_BUDGET_WEIGHTED)),
-    'x-budget-remaining': String(Math.max(0, DAILY_BUDGET_WEIGHTED - used)),
+    'x-budget-limit': String(limit),
+    'x-budget-used': String(Math.min(used, limit)),
+    'x-budget-remaining': String(Math.max(0, limit - used)),
     'x-budget-reset': nextUtcMidnight(nowMs),
   }
 }

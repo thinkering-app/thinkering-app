@@ -3,6 +3,10 @@ import Anthropic from '@anthropic-ai/sdk'
 import { FIXTURE_DOC_INTRODUCE, getPromptTemplate } from '@thinkering/core'
 import { POST as aiPost } from '@/app/api/ai/route'
 import { POST as registerPost, REGISTRATIONS_PER_IP_PER_DAY } from '@/app/api/device/register/route'
+import {
+  POST as redeemPost,
+  REDEMPTIONS_PER_DEVICE_PER_DAY,
+} from '@/app/api/device/redeem/route'
 import { POST as contactPost, resetContactLimitForTests } from '@/app/api/contact/route'
 import { POST as feedbackPost } from '@/app/api/feedback/route'
 import { POST as reportPost } from '@/app/api/activity-report/route'
@@ -13,10 +17,12 @@ import {
   BURST_LIMITS,
   checkBudget,
   DAILY_BUDGET_WEIGHTED,
+  deviceLimit,
   GLOBAL_DAILY_BUDGET_WEIGHTED,
   REPAIR_COUNTER,
   RESERVED_WEIGHTED,
 } from '@/lib/server/metering'
+import type { MemoryStore } from '@/lib/server/store'
 import { APPROACH_BODY, NOW, registerDevice, setupDeps, signedRequest } from './helpers'
 
 beforeEach(() => resetReplayCacheForTests())
@@ -653,5 +659,96 @@ describe('POST /api/contact (landing page form)', () => {
     setupDeps()
     for (let i = 0; i < 5; i++) expect((await post(body())).status).toBe(200)
     expect((await post(body())).status).toBe(429)
+  })
+})
+
+describe('POST /api/device/redeem (budget codes)', () => {
+  const BONUS = 1_000_000
+
+  const setupWithCode = async (code = 'BETA-TEST-0001') => {
+    const { store } = setupDeps()
+    ;(store as MemoryStore).addCodeForTests(code, BONUS)
+    const creds = await registerDevice(store)
+    return { store, creds, code }
+  }
+
+  const redeem = (creds: { deviceId: string; secret: string }, code: string, at = NOW) => {
+    const body = JSON.stringify({ code })
+    return redeemPost(signedRequest('http://x/api/device/redeem', creds, { body, timestamp: at }))
+  }
+
+  it('grants the bonus once, and the meter reports the raised limit', async () => {
+    const { store, creds, code } = await setupWithCode()
+
+    const res = await redeem(creds, code)
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ granted: BONUS, limit: DAILY_BUDGET_WEIGHTED + BONUS })
+
+    const usage = await usageGet(
+      signedRequest('http://x/api/usage', creds, { body: '', method: 'GET', timestamp: NOW + 1 }),
+    )
+    expect(await usage.json()).toMatchObject({
+      limit: DAILY_BUDGET_WEIGHTED + BONUS,
+      granted: BONUS,
+    })
+    expect(await store.getBonus(creds.deviceId)).toBe(BONUS)
+  })
+
+  it('accepts the code however it was typed', async () => {
+    const { creds } = await setupWithCode('BETA-TEST-0001')
+    expect((await redeem(creds, ' beta test 0001 ')).status).toBe(200)
+  })
+
+  it('refuses a second device the same code, and says no more than that', async () => {
+    const { store, creds, code } = await setupWithCode()
+    expect((await redeem(creds, code)).status).toBe(200)
+
+    const other = await registerDevice(store)
+    const res = await redeem(other, code, NOW + 1)
+    expect(res.status).toBe(404)
+    // Unknown and already-used answer alike, so the route says nothing about
+    // which codes exist.
+    const unknown = await redeem(other, 'ZZZZ-ZZZZ-ZZZZ', NOW + 2)
+    expect(unknown.status).toBe(404)
+    expect(await res.json()).toEqual(await unknown.json())
+  })
+
+  it('counts attempts so one device cannot sweep the keyspace', async () => {
+    const { creds } = await setupWithCode()
+    for (let i = 0; i < REDEMPTIONS_PER_DEVICE_PER_DAY; i++) {
+      expect((await redeem(creds, 'ZZZZ-ZZZZ-ZZZZ', NOW + i)).status).toBe(404)
+    }
+    const over = await redeem(creds, 'ZZZZ-ZZZZ-ZZZZ', NOW + 99)
+    expect(over.status).toBe(429)
+  })
+
+  it('raises the token ceiling and the burst limits together', () => {
+    const atIncluded = {
+      inputTokens: DAILY_BUDGET_WEIGHTED,
+      outputTokens: 0,
+      calls: 0,
+      kindCalls: { 'today.plan': BURST_LIMITS['today.plan']! },
+    }
+    // Both ceilings stop the call without a grant...
+    expect(checkBudget('today.plan', atIncluded)).toEqual({
+      allowed: false,
+      reason: 'kind_limit_reached',
+    })
+    // ...and a grant lifts both, or the kind limit would make the extra
+    // tokens unspendable.
+    expect(checkBudget('today.plan', atIncluded, { bonusWeighted: DAILY_BUDGET_WEIGHTED })).toEqual({
+      allowed: true,
+    })
+    expect(deviceLimit(BONUS)).toBe(DAILY_BUDGET_WEIGHTED + BONUS)
+  })
+
+  it('cannot lift the proxy-wide cap', () => {
+    const spent = { inputTokens: GLOBAL_DAILY_BUDGET_WEIGHTED, outputTokens: 0 }
+    expect(
+      checkBudget('today.plan', { inputTokens: 0, outputTokens: 0, calls: 0, kindCalls: {} }, {
+        total: spent,
+        bonusWeighted: BONUS,
+      }),
+    ).toEqual({ allowed: false, reason: 'service_limit_reached' })
   })
 })

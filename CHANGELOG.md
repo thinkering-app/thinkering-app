@@ -8,6 +8,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Added
 
+- Have a code? In Me → Settings → AI, a code we've given you adds to your
+  daily amount from then on.
 - Anonymous, opt-in usage analytics — off until you say yes, asked once on the
   welcome screen, and never carrying anything you write.
 - Share session replays with the developers, if you choose — asked after

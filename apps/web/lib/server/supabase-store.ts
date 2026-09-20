@@ -1,4 +1,5 @@
 import { createHmac } from 'node:crypto'
+import { hashBudgetCode } from './budget-code'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import {
   EMPTY_USAGE,
@@ -92,6 +93,7 @@ export class SupabaseStore implements MeteringStore {
       kind_calls: Record<string, number>
       total_input_tokens: number
       total_output_tokens: number
+      bonus_weighted: number
     }
     return {
       device: {
@@ -104,7 +106,36 @@ export class SupabaseStore implements MeteringStore {
         inputTokens: Number(row.total_input_tokens),
         outputTokens: Number(row.total_output_tokens),
       },
+      bonusWeighted: Number(row.bonus_weighted ?? 0),
     }
+  }
+
+  async getBonus(deviceId: string): Promise<number> {
+    const { data, error } = await this.client.rpc('device_bonus_weighted', {
+      p_device_id: deviceId,
+    })
+    if (error) throw new Error(`device_bonus_weighted failed: ${error.message}`)
+    return Number(data ?? 0)
+  }
+
+  async redeemCode(codeHash: string, deviceId: string): Promise<number | null> {
+    // The `redeemed_by is null` predicate lives inside the update, so two
+    // devices racing one code cannot both win it.
+    const { data, error } = await this.client.rpc('redeem_budget_code', {
+      p_code_hash: codeHash,
+      p_device_id: deviceId,
+    })
+    if (error) throw new Error(`redeem_budget_code failed: ${error.message}`)
+    return data === null || data === undefined ? null : Number(data)
+  }
+
+  /**
+   * A code is a bearer secret and the table only ever needs to recognise one,
+   * never read it back, so what is stored is an HMAC under the server key —
+   * the same treatment IP addresses get in `countIpAction`.
+   */
+  hashCode(code: string): string {
+    return hashBudgetCode(this.secretKey, code)
   }
 
   async getActionCount(deviceId: string, day: string, action: string): Promise<number> {

@@ -35,10 +35,37 @@ create table if not exists device_usage (
 create table if not exists device_actions (
   device_id uuid not null references devices (device_id),
   day date not null,
-  action text not null check (action in ('feedback', 'activity_report')),
+  action text not null check (action in ('feedback', 'activity_report', 'redeem')),
   count integer not null default 0,
   primary key (device_id, day, action)
 );
+
+-- Re-runnable on a project created before 'redeem' existed: a code is guessable
+-- in a way a feedback message is not, so the attempts have to be counted.
+alter table device_actions drop constraint if exists device_actions_action_check;
+alter table device_actions add constraint device_actions_action_check
+  check (action in ('feedback', 'activity_report', 'redeem'));
+
+-- Codes that raise one device's daily budget (docs/04 §Usage metering). Each
+-- is redeemable once, by one device, and only the HMAC of the code is stored:
+-- a code is a bearer secret, and nothing here needs to read it back. The
+-- bonus is a daily allowance, not a pool, so it fits the per-day accounting
+-- the rest of this schema already does — and it scales the per-kind burst
+-- limits by the same proportion, so a code lifts both ceilings at once.
+create table if not exists budget_codes (
+  code_hash text primary key,
+  -- Who it was issued to, for reading the table back. Never a device or a user.
+  label text not null,
+  daily_bonus_weighted bigint not null check (daily_bonus_weighted > 0),
+  -- When the grant stops applying; null never expires.
+  expires_at timestamptz,
+  created_at timestamptz not null default now(),
+  redeemed_by uuid references devices (device_id),
+  redeemed_at timestamptz
+);
+
+create index if not exists budget_codes_device_idx on budget_codes (redeemed_by)
+  where redeemed_by is not null;
 
 -- Token totals across every device for a day: the proxy-wide daily cap
 -- (docs/04 §Usage metering), a backstop for however many devices exist.
@@ -69,6 +96,7 @@ create table if not exists spend_alerts (
 );
 
 alter table devices enable row level security;
+alter table budget_codes enable row level security;
 alter table device_usage enable row level security;
 alter table device_actions enable row level security;
 alter table usage_totals enable row level security;
@@ -95,7 +123,9 @@ revoke all on spend_by_day from public, anon, authenticated;
 -- call's maximum output before calling the model and settles the real count
 -- afterwards; the upsert's row lock serialises concurrent calls from a device,
 -- so each sees the reservations of the ones still in flight. Returns the
--- device's day and the proxy-wide totals after the change.
+-- device's day, the proxy-wide totals after the change, and any budget the
+-- device has been granted by code — folded in here rather than fetched
+-- separately, since every generation needs it and this already runs.
 create or replace function add_device_usage(
   p_device_id uuid,
   p_day date,
@@ -144,9 +174,44 @@ begin
     'calls', device.calls,
     'kind_calls', device.kind_calls,
     'total_input_tokens', total.input_tokens,
-    'total_output_tokens', total.output_tokens
+    'total_output_tokens', total.output_tokens,
+    'bonus_weighted', device_bonus_weighted(p_device_id)
   );
 end;
+$$;
+
+-- Extra daily budget a device holds, from every unexpired code it has
+-- redeemed. Zero for a device that has redeemed none.
+create or replace function device_bonus_weighted(p_device_id uuid)
+returns bigint
+language sql
+stable
+set search_path = public
+as $$
+  select coalesce(sum(daily_bonus_weighted), 0)::bigint
+  from budget_codes
+  where redeemed_by = p_device_id
+    and (expires_at is null or expires_at > now());
+$$;
+
+/*
+ * Claims a code for a device, atomically: the `redeemed_by is null` predicate
+ * inside the update is the race guard, so two devices racing the same code
+ * cannot both win. Returns the bonus granted, or null if the code is unknown,
+ * expired or already used — the caller must not tell those apart, or the
+ * route becomes an oracle for which codes exist.
+ */
+create or replace function redeem_budget_code(p_code_hash text, p_device_id uuid)
+returns bigint
+language sql
+set search_path = public
+as $$
+  update budget_codes
+  set redeemed_by = p_device_id, redeemed_at = now()
+  where code_hash = p_code_hash
+    and redeemed_by is null
+    and (expires_at is null or expires_at > now())
+  returning daily_bonus_weighted;
 $$;
 
 create or replace function count_ip_action(p_ip_hash text, p_day date, p_action text)
@@ -167,6 +232,10 @@ revoke execute on function add_device_usage(uuid, date, text[], integer, bigint,
 grant execute on function add_device_usage(uuid, date, text[], integer, bigint, bigint) to service_role;
 revoke execute on function count_ip_action(text, date, text) from public, anon, authenticated;
 grant execute on function count_ip_action(text, date, text) to service_role;
+revoke execute on function device_bonus_weighted(uuid) from public, anon, authenticated;
+grant execute on function device_bonus_weighted(uuid) to service_role;
+revoke execute on function redeem_budget_code(text, uuid) from public, anon, authenticated;
+grant execute on function redeem_budget_code(text, uuid) to service_role;
 
 -- ── User data mirror (docs/02 §Backup & sync) ───────────────────────────────
 --

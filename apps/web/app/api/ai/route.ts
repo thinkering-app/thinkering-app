@@ -127,10 +127,11 @@ export async function POST(req: Request): Promise<Response> {
     outputTokens: reservedOutput,
   }
   const before = withoutDelta(await store.addUsage(auth.deviceId, day, reservation), reservation)
-  const headers = budgetHeaders(before.device, now())
+  const headers = budgetHeaders(before.device, now(), before.bonusWeighted)
   const decision = checkBudget(template.kind, before.device, {
     repair: body.data.repair !== undefined,
     total: before.total,
+    bonusWeighted: before.bonusWeighted,
   })
   if (!decision.allowed) {
     await store.addUsage(auth.deviceId, day, reverseDelta(reservation))

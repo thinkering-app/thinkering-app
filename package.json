@@ -18,6 +18,7 @@
     "ui:tree": "pnpm --filter @thinkering/mobile ui:tree",
     "prompt:run": "pnpm --filter @thinkering/core prompt:run",
     "prompt:check": "pnpm --filter @thinkering/core prompt:check",
+    "codes:new": "pnpm --filter @thinkering/web codes:new",
     "sync:check": "pnpm --filter @thinkering/db sync:check",
     "e2e": "maestro test -e APP_ID=${APP_ID:-app.thinkering} -e DEV_URL=${DEV_URL:-exp://127.0.0.1:8081/--/} apps/mobile/.maestro"
   },
