@@ -104,10 +104,7 @@ export default function ResourcesScreen() {
 
       <ScrollView className="flex-1" contentContainerClassName="gap-3 px-5 py-6">
         {resources.length === 0 ? (
-          <EmptyState
-            color="peach"
-            message="Nothing saved yet. Paste a link to something worth coming back to."
-          />
+          <EmptyState color="peach" message="Nothing saved yet. Find more, or paste a link." />
         ) : (
           resources.map((resource) => (
             <Pressable
