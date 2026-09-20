@@ -1,3 +1,4 @@
+import { weightedTokens } from '@thinkering/core'
 import { desc, eq, gte, lt, sql } from 'drizzle-orm'
 import type { Database, RepoContext } from '../database'
 import { llmCalls } from '../schema'
@@ -70,13 +71,27 @@ export interface LlmKindTotal {
   calls: number
   inputTokens: number
   outputTokens: number
+  /**
+   * Calls that reported no token counts and so contribute nothing to the sums
+   * — an aborted stream never reaches `message_delta`, though the proxy still
+   * charges what it streamed. What makes these totals a floor rather than the
+   * meter (docs/04 §Usage metering).
+   */
+  unreported: number
 }
 
 /**
  * What each kind has spent since `sinceMs`, heaviest first. The Inspector's
  * per-call list answers "what did this prompt send"; this answers "where is
- * the budget going", which is the question a long testing day raises. Calls
- * that never reported tokens count toward `calls` and contribute nothing.
+ * the budget going", which is the question a long testing day raises.
+ *
+ * A floor, not the meter: a call that reported no tokens counts toward `calls`
+ * and `unreported` but adds nothing to the sums, so a day with aborted streams
+ * in it reads lower here than in Me → Settings → AI.
+ *
+ * Heaviest is in weighted tokens, the unit the daily cap uses and the one the
+ * panel displays — sorting on output alone would put an input-heavy kind below
+ * a cheaper one.
  */
 export function llmCallTotals(db: Database, sinceMs: number): LlmKindTotal[] {
   return db
@@ -85,10 +100,11 @@ export function llmCallTotals(db: Database, sinceMs: number): LlmKindTotal[] {
       calls: sql<number>`count(*)`,
       inputTokens: sql<number>`coalesce(sum(${llmCalls.inputTokens}), 0)`,
       outputTokens: sql<number>`coalesce(sum(${llmCalls.outputTokens}), 0)`,
+      unreported: sql<number>`sum(case when ${llmCalls.outputTokens} is null then 1 else 0 end)`,
     })
     .from(llmCalls)
     .where(gte(llmCalls.createdAt, sinceMs))
     .groupBy(llmCalls.kind)
     .all()
-    .sort((a, b) => b.outputTokens - a.outputTokens)
+    .sort((a, b) => weightedTokens(b.inputTokens, b.outputTokens) - weightedTokens(a.inputTokens, a.outputTokens))
 }

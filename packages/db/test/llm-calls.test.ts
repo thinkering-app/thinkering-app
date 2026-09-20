@@ -21,18 +21,36 @@ describe('llm_calls log', () => {
     const { db } = openTestDb()
     const ctx = testContext()
     const log = (kind: string, inputTokens: number | null, outputTokens: number | null) =>
-      logLlmCall(db, ctx, { kind, model: 'm', request: {}, status: 'ok', inputTokens, outputTokens })
+      logLlmCall(db, ctx, {
+        kind,
+        model: 'm',
+        request: {},
+        status: 'ok',
+        inputTokens,
+        outputTokens,
+      })
 
     log('today.plan', 900, 300)
     log('activity.generate', 2000, 5000)
     log('activity.generate', 2000, 4000)
+    // Heavy on input, light on output: heaviest is weighted tokens, the unit
+    // the cap uses, so this outranks activity.generate on 9,000 output.
+    log('resources.search', 42_000, 80)
     // A call that never reported tokens is still a call.
     log('reflect.open', null, null)
 
     const totals = llmCallTotals(db, ctx.now() - 1000)
-    expect(totals.map((t) => t.kind)).toEqual(['activity.generate', 'today.plan', 'reflect.open'])
-    expect(totals[0]).toMatchObject({ calls: 2, inputTokens: 4000, outputTokens: 9000 })
-    expect(totals[2]).toMatchObject({ calls: 1, inputTokens: 0, outputTokens: 0 })
+    expect(totals.map((t) => t.kind)).toEqual([
+      'resources.search',
+      'activity.generate',
+      'today.plan',
+      'reflect.open',
+    ])
+    expect(totals[1]).toMatchObject({ calls: 2, inputTokens: 4000, outputTokens: 9000 })
+    // …and one the sums can't see, which is what `unreported` is for: an
+    // aborted stream is charged by the proxy and reports nothing back.
+    expect(totals[3]).toMatchObject({ calls: 1, inputTokens: 0, outputTokens: 0, unreported: 1 })
+    expect(totals[1]).toMatchObject({ unreported: 0 })
     expect(llmCallTotals(db, ctx.now() + 1)).toEqual([])
   })
 })

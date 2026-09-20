@@ -19,13 +19,19 @@ function formatTokens(n: number): string {
 }
 
 /**
- * Where the last day's budget went, heaviest kind first. Weighted tokens are
- * the unit the daily cap is measured in (docs/04 §Usage metering), so a row
- * here is directly comparable to the meter in Me → Settings → AI.
+ * Where the last day's budget went, heaviest kind first, in the weighted
+ * tokens the daily cap is measured in (docs/04 §Usage metering).
+ *
+ * What each call reported, which is a floor rather than the meter in
+ * Me → Settings → AI: an aborted stream never reaches `message_delta`, so it
+ * reports nothing here while the proxy charges what it streamed. The shares
+ * are of what's shown, not of the day's cap — so the unreported count is on
+ * the screen too rather than left to be inferred from a number that looks low.
  */
 function Totals({ totals }: { totals: LlmKindTotal[] }) {
   const weighted = (t: LlmKindTotal) => weightedTokens(t.inputTokens, t.outputTokens)
   const all = totals.reduce((sum, t) => sum + weighted(t), 0)
+  const unreported = totals.reduce((sum, t) => sum + t.unreported, 0)
   if (totals.length === 0) return null
   return (
     <View className="mb-3 gap-2 rounded-card bg-surface p-4">
@@ -46,6 +52,12 @@ function Totals({ totals }: { totals: LlmKindTotal[] }) {
           </Text>
         </View>
       ))}
+      {unreported > 0 ? (
+        <Text className="font-sans text-caption text-ink-soft">
+          {unreported} {unreported === 1 ? 'call' : 'calls'} reported no tokens, so nothing above
+          counts them — the proxy still charged what they streamed.
+        </Text>
+      ) : null}
     </View>
   )
 }
