@@ -35,6 +35,49 @@ const MAX_CHARS_PER_TOKEN = 6
  */
 const CHARS_PER_OUTPUT_TOKEN = 3
 
+/**
+ * Wire code for a generation whose web search failed, matched by name in the
+ * mobile client (`apps/mobile/src/ai/client.ts`). Distinct from
+ * `upstream_error` because the client must not retry it.
+ */
+const SEARCH_UNAVAILABLE = 'search_unavailable'
+
+const TOOL_RESULT_TYPES = new Set(['web_search_tool_result', 'web_fetch_tool_result'])
+
+/**
+ * The error code of a failed server tool, if this content block is one.
+ *
+ * Server tools don't raise. A search that was rate limited or ran out of uses
+ * comes back as a normal 200 whose tool-result block holds a single error
+ * object instead of a list of results, so an outage is indistinguishable from
+ * a good answer unless it is looked for. Unlooked-for, it gets billed as `ok`,
+ * and the model's narration about why it couldn't search reads downstream as
+ * malformed output — which invites a repair, running the same searches again
+ * for the same failure (docs/04 §Usage metering).
+ */
+function serverToolError(block: unknown): string | undefined {
+  const { type, content } = (block ?? {}) as { type?: string; content?: unknown }
+  if (type === undefined || !TOOL_RESULT_TYPES.has(type)) return undefined
+  // Success is a list of results; failure is one object carrying `error_code`.
+  if (content === null || typeof content !== 'object' || Array.isArray(content)) return undefined
+  return (content as { error_code?: string }).error_code ?? 'unknown'
+}
+
+function toolErrorOf(blocks: readonly unknown[]): string | undefined {
+  for (const block of blocks) {
+    const code = serverToolError(block)
+    if (code !== undefined) return code
+  }
+  return undefined
+}
+
+/** Named so `settle` records it as its own error type rather than a generic one. */
+function toolFailure(code: string): Error {
+  const error = new Error(`server tool failed: ${code}`)
+  error.name = `search:${code}`
+  return error
+}
+
 const bodySchema = z.object({
   kind: z.string().min(1),
   params: z.unknown(),
@@ -56,7 +99,10 @@ function toAnthropicRequest(
   return {
     // Model, limits, thinking, sampling and tools, shared with the BYO-key
     // client and the prompt scripts (packages/core/src/prompts/request.ts).
-    ...(modelRequestFields(template) as Omit<Anthropic.MessageCreateParamsNonStreaming, 'messages'>),
+    ...(modelRequestFields(template) as Omit<
+      Anthropic.MessageCreateParamsNonStreaming,
+      'messages'
+    >),
     system: rendered.system.map((b) => ({
       type: 'text' as const,
       text: b.text,
@@ -114,6 +160,15 @@ export async function POST(req: Request): Promise<Response> {
   }
   const request = toAnthropicRequest(template, rendered)
   const model = request.model
+
+  /**
+   * The SDK retries 429s and 5xxs twice by default. On a kind that searches
+   * the web that turns one rate-limited call into three, each running its own
+   * searches and each billed — and the thing being rate limited is usually the
+   * search, so the retries fail the same way. These kinds surface the failure
+   * instead (docs/04 §Usage metering).
+   */
+  const requestOptions = template.tools?.webSearch ? { maxRetries: 0 } : {}
 
   // Reserve before calling: the call is counted and its most expensive outcome
   // held against the budget up front, so parallel requests see each other.
@@ -188,7 +243,14 @@ export async function POST(req: Request): Promise<Response> {
 
   try {
     if (!body.data.stream) {
-      const message = await anthropic().messages.create(request)
+      const message = await anthropic().messages.create(request, requestOptions)
+      const toolError = toolErrorOf(message.content)
+      if (toolError !== undefined) {
+        await settle(message.usage.input_tokens, message.usage.output_tokens, 'error', {
+          error: toolFailure(toolError),
+        })
+        return Response.json({ error: SEARCH_UNAVAILABLE }, { status: 502, headers })
+      }
       const text = message.content
         .filter((b): b is Anthropic.TextBlock => b.type === 'text')
         .map((b) => b.text)
@@ -199,17 +261,22 @@ export async function POST(req: Request): Promise<Response> {
           text,
           model: message.model,
           stopReason: message.stop_reason,
-          usage: { inputTokens: message.usage.input_tokens, outputTokens: message.usage.output_tokens },
+          usage: {
+            inputTokens: message.usage.input_tokens,
+            outputTokens: message.usage.output_tokens,
+          },
         },
         { headers },
       )
     }
 
     // SSE passthrough: forward Anthropic's stream events as our own SSE lines.
-    const stream = await anthropic().messages.create({ ...request, stream: true })
+    const stream = await anthropic().messages.create({ ...request, stream: true }, requestOptions)
     const encoder = new TextEncoder()
     let inputTokens = 0
     let outputTokens: number | undefined
+    /** The first failed server tool of the turn, if the search broke. */
+    let toolError: string | undefined
     /** Characters of billable output seen so far — what a cancelled call is charged on. */
     let streamedChars = 0
     /** Set by `cancel`: this stream was stopped by us, not broken under us. */
@@ -239,11 +306,20 @@ export async function POST(req: Request): Promise<Response> {
               if (event.delta.type === 'text_delta') streamedChars += event.delta.text.length
               else if (event.delta.type === 'thinking_delta')
                 streamedChars += event.delta.thinking.length
+            } else if (event.type === 'content_block_start') {
+              toolError ??= serverToolError(event.content_block)
             }
             send(event.type, event)
           }
-          send('done', {})
-          await settle(inputTokens, outputTokens, 'ok')
+          if (toolError !== undefined) {
+            // The turn completed, so it is paid for either way; what it must
+            // not do is look like a usable answer.
+            await settle(inputTokens, outputTokens, 'error', { error: toolFailure(toolError) })
+            send('proxy_error', { message: SEARCH_UNAVAILABLE })
+          } else {
+            send('done', {})
+            await settle(inputTokens, outputTokens, 'ok')
+          }
         } catch (e) {
           // A client that walked away is charged for what it streamed: we
           // stopped the generation ourselves, so there is nothing more to pay
