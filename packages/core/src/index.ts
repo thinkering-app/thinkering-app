@@ -57,6 +57,7 @@ export {
   insertPageAfter,
   lastInteractivePageIndex,
   interactiveBlocksBeforeReview,
+  docForReport,
 } from './activity/doc-ops'
 export {
   youtubeVideoId,

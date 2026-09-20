@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
+  docForReport,
   durationBucket,
   fillReviewPage,
   getLibraryItem,
@@ -240,15 +241,16 @@ export default function ActivityScreen() {
     (comment: string) => {
       if (!activity || !doc) return
       setShareState('pending')
-      // Their answers never travel with a report — only what they chose to
-      // write here (docs/08 §Activity quality review).
+      // Nothing the learner wrote travels with a report — not their answers,
+      // not the questions they asked — only the note they typed here (docs/08
+      // §Activity quality review).
       const report: ActivityReport = {
         title: activity.title,
         libraryItemId: activity.libraryItemId,
         tier: activity.tier,
         rating,
         comment,
-        doc,
+        doc: docForReport(doc),
       }
       postActivityReport(report, feedbackContext)
         .then(() => {

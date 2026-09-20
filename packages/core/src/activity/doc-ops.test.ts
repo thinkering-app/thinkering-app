@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { FIXTURE_DOC_INTRODUCE } from '../fixtures/activity-docs'
 import { activityDocSchema } from '../schemas/activity-doc'
 import {
+  docForReport,
   fillReviewPage,
   insertPageAfter,
   interactiveBlocksBeforeReview,
@@ -42,6 +43,22 @@ describe('doc ops', () => {
       blocks: [{ kind: 'paragraph', md: 'One more thing.' }],
     })
     expect(activityDocSchema.safeParse(doc).success).toBe(true)
+  })
+
+  it("takes the learner's question out of a shared report", () => {
+    const doc = insertPageAfter(FIXTURE_DOC_INTRODUCE, 0, {
+      id: 'ask-1',
+      kind: 'inserted',
+      question: 'Why does one example beat ten?',
+      blocks: [{ kind: 'paragraph', md: 'Good question.' }],
+    })
+    const shared = docForReport(doc)
+    const page = shared.pages[1]
+    expect(page?.kind === 'inserted' && page.question).toBeUndefined()
+    expect(JSON.stringify(shared)).not.toContain('Why does one example')
+    // The answer still travels; it's ours, not theirs.
+    expect(page?.blocks).toEqual([{ kind: 'paragraph', md: 'Good question.' }])
+    expect(activityDocSchema.safeParse(shared).success).toBe(true)
   })
 
   it('finds the last interactive page before the review slot (the G6 trigger)', () => {
