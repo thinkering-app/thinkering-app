@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { FIXTURE_DOC_INTRODUCE } from '../fixtures/activity-docs'
 import type { ActivityDoc } from '../schemas/activity-doc'
-import { checkActivityDoc, pageCountRange, toneLintIssues } from './checks'
+import { checkActivityDoc, checkReviewBlocks, pageCountRange, toneLintIssues } from './checks'
 
 const GOAL_CONCEPTS = ['c-prompt-clear', 'c-prompt-fewshot']
 
@@ -33,9 +33,11 @@ describe('checkActivityDoc', () => {
     const filled = freshDoc()
     const review = filled.pages.find((p) => p.kind === 'review')!
     review.blocks = [{ kind: 'paragraph', md: 'premature feedback' }]
-    expect(checkActivityDoc(filled, { estMinutes: 5, goalConceptIds: GOAL_CONCEPTS }).map((i) => i.check)).toContain(
-      'review-empty',
-    )
+    expect(
+      checkActivityDoc(filled, { estMinutes: 5, goalConceptIds: GOAL_CONCEPTS }).map(
+        (i) => i.check,
+      ),
+    ).toContain('review-empty')
   })
 
   it('flags page counts outside the range for the session length', () => {
@@ -48,21 +50,59 @@ describe('checkActivityDoc', () => {
       clone.id = `dup-${doc.pages.length}`
       doc.pages.unshift(clone)
     }
-    expect(checkActivityDoc(doc, { estMinutes: 5, goalConceptIds: GOAL_CONCEPTS }).map((i) => i.check)).toContain(
-      'page-count',
-    )
+    expect(
+      checkActivityDoc(doc, { estMinutes: 5, goalConceptIds: GOAL_CONCEPTS }).map((i) => i.check),
+    ).toContain('page-count')
   })
 
   it('flags unknown goal concept ids and zero declared coverage', () => {
     const doc = freshDoc()
     doc.concepts = [{ goalConceptId: 'c-imaginary', label: 'Made up' }]
-    const checks = checkActivityDoc(doc, { estMinutes: 5, goalConceptIds: GOAL_CONCEPTS }).map((i) => i.check)
+    const checks = checkActivityDoc(doc, { estMinutes: 5, goalConceptIds: GOAL_CONCEPTS }).map(
+      (i) => i.check,
+    )
     expect(checks).toContain('concepts')
+  })
+
+  it('flags a summary recap that runs long or carries a heading', () => {
+    const doc = freshDoc()
+    const summary = doc.pages.at(-1)!
+    summary.blocks = [
+      { kind: 'heading', text: 'What you covered' },
+      { kind: 'paragraph', md: `${'word '.repeat(60)}` },
+    ]
+    const checks = checkActivityDoc(doc, { estMinutes: 5, goalConceptIds: GOAL_CONCEPTS }).map(
+      (i) => i.check,
+    )
+    expect(checks).toContain('summary-length')
+    expect(checks).toContain('summary-shape')
   })
 
   it('tone lints catch filler praise and patronizing framings', () => {
     expect(toneLintIssues('Great job! You nailed it', 'x')).not.toEqual([])
     expect(toneLintIssues("you haven't learned subjunctive yet", 'x')).not.toEqual([])
-    expect(toneLintIssues('In thinkering you\'ve covered greetings and ordering.', 'x')).toEqual([])
+    expect(toneLintIssues("In thinkering you've covered greetings and ordering.", 'x')).toEqual([])
+  })
+})
+
+describe('checkReviewBlocks', () => {
+  it('passes one short paragraph', () => {
+    expect(
+      checkReviewBlocks([
+        {
+          kind: 'paragraph',
+          md: "Not quite — *hätte gern* isn't past tense. It's the conditional, \"I would like\", and that's what softens the ask.",
+        },
+      ]),
+    ).toEqual([])
+  })
+
+  it('flags the lesson-shaped review the prompt is trying to prevent', () => {
+    const checks = checkReviewBlocks([
+      { kind: 'heading', text: 'You nailed the form' },
+      { kind: 'paragraph', md: `${'word '.repeat(60)}` },
+    ]).map((i) => i.check)
+    expect(checks).toContain('review-length')
+    expect(checks).toContain('review-shape')
   })
 })

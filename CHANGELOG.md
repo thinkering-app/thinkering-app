@@ -35,6 +35,10 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- The look back at your answers, just before the end of an activity, is one
+  short paragraph on the single thing worth saying — not a second lesson.
+- The recap at the end of an activity is shorter too: a line or two on the
+  idea worth keeping.
 - Configure learning routine shows your daily routine above the question,
   with a link to the feedback board if you'd like a different number of
   activities each day.

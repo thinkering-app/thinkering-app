@@ -84,7 +84,11 @@ export {
   type ContextAssemblyOptions,
 } from './prompts/context-assembly'
 export {
+  blockWordCount,
   checkActivityDoc,
+  checkReviewBlocks,
+  REVIEW_MAX_WORDS,
+  SUMMARY_MAX_WORDS,
   toneLintOutput,
   toneLintIssues,
   pageCountRange,

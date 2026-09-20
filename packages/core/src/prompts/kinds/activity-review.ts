@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { reviewOutputSchema, type ReviewOutput } from '../../schemas/generations'
 import { buildInterestContext, type InterestContextInput } from '../context-assembly'
-import { ACTIVITY_DOC_FORMAT, SHARED_PREAMBLE } from '../preamble'
+import { SHARED_PREAMBLE } from '../preamble'
 import type { PromptTemplate } from '../types'
 
 /**
@@ -25,27 +25,28 @@ export type ActivityReviewParams = z.infer<typeof activityReviewParamsSchema>
 
 const INSTRUCTIONS = `Task: write the review page of an activity the learner has just worked through. You see their actual answers.
 
-Return JSON: { "blocks": Block[] }  — 1–3 blocks, using the same Block types as an Activity Document.
+Return JSON: { "blocks": [{ "kind": "paragraph", "md": string }] } — exactly one paragraph. No other block kinds. "md" allows only inline bold, italic and code.
 
-${ACTIVITY_DOC_FORMAT}
-
-Choose exactly one thing to do, whichever is most valuable for this learner right now:
+Choose exactly one thing to say, whichever is most valuable for this learner right now:
 - Correct a misconception their answers reveal — kindly, directly, and specifically; name what they said and what's actually true.
 - Build on a good answer — add the next layer of nuance it earned.
 - Answer a question their answer implies but didn't ask.
 If their answers were sparse or mostly blank, reinforce the trickiest concept in the activity instead, without remarking on how little they wrote.
 
 Rules:
-- Short: a heading is optional, then one or two short paragraphs — under 80 words in all. It's read on a phone.
-- One thing only. Don't walk through their answers one by one; leave the rest unsaid.
-- An interactive block is allowed but not required — never add one just to have one.
+- Under 45 words. One paragraph on a phone, between the last page and the summary — not a lesson, not a wrap-up of the session.
+- One thing only. Don't walk through their answers in turn, don't clear up the other mistakes too, don't close with a tip or an encouragement. Leave the rest unsaid.
 - Speak to what they wrote. Quote or paraphrase their words when you correct or extend them.
 - Praise only when it's earned and specific about why. No "Great job!", no filler.
 - Never imply their knowledge is limited to this app.`
 
 export const activityReviewTemplate: PromptTemplate<ActivityReviewParams, ReviewOutput> = {
   kind: 'activity.review',
-  version: 2,
+  // v2: 1–3 blocks, under 80 words, one thing only.
+  // v3: one paragraph under 45 words — v2 still read as a lesson on device.
+  //     The Activity Document format left with it: the page is prose now, and
+  //     listing every block kind was an invitation to use them.
+  version: 3,
   model: 'haiku',
   maxTokens: 1200,
   temperature: 0.6,
@@ -65,7 +66,9 @@ export const activityReviewTemplate: PromptTemplate<ActivityReviewParams, Review
           `Activity: ${params.activityTitle} (${params.tier})`,
           `Goal: ${params.goal.title} — ${params.goal.description}`,
           `Concepts targeted: ${params.conceptLabels.join(', ')}`,
-          ...(params.trickiestConcept ? [`Trickiest concept here: ${params.trickiestConcept}`] : []),
+          ...(params.trickiestConcept
+            ? [`Trickiest concept here: ${params.trickiestConcept}`]
+            : []),
           '',
           'Their answers:',
           ...(params.responses.length > 0 ? params.responses : ['(they answered nothing)']),

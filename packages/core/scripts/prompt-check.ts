@@ -1,11 +1,18 @@
 /**
  * `pnpm prompt:check <kind> [--only <fixture>]` — live structural + tone
  * assertions on a kind's fixture inputs (docs/10 Tier 5): schema-valid,
- * kind-specific structure (page counts, review placement, concept resolution),
- * tone lints. Never string equality; quality judgment stays human (AI Inspector).
+ * kind-specific structure (page counts, review placement, concept resolution,
+ * the length budgets for the review and summary pages), tone lints. Never
+ * string equality; quality judgment stays human (AI Inspector).
  */
 import { parseActivityDoc } from '../src/schemas/activity-doc'
-import { checkActivityDoc, toneLintOutput, type CheckIssue } from '../src/prompts/checks'
+import type { Block } from '../src/schemas/blocks'
+import {
+  checkActivityDoc,
+  checkReviewBlocks,
+  toneLintOutput,
+  type CheckIssue,
+} from '../src/prompts/checks'
 import type { ActivityGenerateParams } from '../src/prompts/kinds/activity-generate'
 import { loadFixtures, parseScriptArgs, requireTemplate, runLive } from './prompt-lib'
 import { extractJsonText } from '../src/streaming/json'
@@ -33,7 +40,9 @@ for (const fixture of loadFixtures(template.kind, only)) {
       const goalConceptIds = params.goal.concepts.map((c) => c.id)
       const parsed = parseActivityDoc(output, { goalConceptIds })
       if (!parsed.ok) {
-        issues.push(...parsed.issues.map((i) => ({ check: 'schema', message: `${i.path}: ${i.message}` })))
+        issues.push(
+          ...parsed.issues.map((i) => ({ check: 'schema', message: `${i.path}: ${i.message}` })),
+        )
       } else {
         issues.push(
           ...checkActivityDoc(parsed.doc, {
@@ -52,6 +61,8 @@ for (const fixture of loadFixtures(template.kind, only)) {
             message: `${i.path.join('.')}: ${i.message}`,
           })),
         )
+      } else if (template.kind === 'activity.review') {
+        issues.push(...checkReviewBlocks((parsed.data as { blocks: Block[] }).blocks, fixture.name))
       } else {
         issues.push(...toneLintOutput(parsed.data, fixture.name))
       }
@@ -59,7 +70,9 @@ for (const fixture of loadFixtures(template.kind, only)) {
   }
 
   if (issues.length === 0) {
-    console.log(`${fixture.name}: PASS (${result.usage.outputTokens} out tokens, ${result.latencyMs}ms)`)
+    console.log(
+      `${fixture.name}: PASS (${result.usage.outputTokens} out tokens, ${result.latencyMs}ms)`,
+    )
   } else {
     failures++
     console.log(`${fixture.name}: FAIL`)
