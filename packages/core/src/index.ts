@@ -146,6 +146,7 @@ export {
   resourcesSearchTemplate,
   type ResourcesSearchParams,
 } from './prompts/kinds/resources-search'
+export { resourcesMoreTemplate, type ResourcesMoreParams } from './prompts/kinds/resources-more'
 export {
   resourceDescribeTemplate,
   type ResourceDescribeParams,

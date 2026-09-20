@@ -9,7 +9,7 @@ import { useIntake } from '@/intake/context'
 import { GenerationError } from '@/components/generation-error'
 import { selectOnArrival } from '@/interests/selection'
 import { PrimaryAction, StepScreen } from '@/intake/step-screen'
-import { seedResources } from '@/resources/seed'
+import { AUTO_SEED_RESOURCES, seedResources } from '@/resources/seed'
 import { colors } from '@/theme/tokens'
 
 /**
@@ -39,10 +39,14 @@ export default function DirectionStep() {
     selectOnArrival(interestId)
     // Today plans the day and writes its cards ahead on arrival. G4 searches
     // for resources from here, fully in the background: nobody is waiting on
-    // it, so a failure is silent and the resources simply don't appear.
-    seedResources(interestId).catch((e: unknown) => {
-      if (__DEV__) console.warn('[resources] seeding failed', e)
-    })
+    // it, so a failure is silent and the resources simply don't appear. On the
+    // web it doesn't run at all — Find more in the resources panel is how you
+    // get them there (AUTO_SEED_RESOURCES).
+    if (AUTO_SEED_RESOURCES) {
+      seedResources(interestId).catch((e: unknown) => {
+        if (__DEV__) console.warn('[resources] seeding failed', e)
+      })
+    }
     router.replace('/today')
   }
 

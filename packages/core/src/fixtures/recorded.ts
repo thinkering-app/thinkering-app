@@ -7,6 +7,7 @@ import pathSuggestGoals from '../../fixtures/recorded/path.suggestGoals/default.
 import reflectOpen from '../../fixtures/recorded/reflect.open/default.json'
 import reflectUpdate from '../../fixtures/recorded/reflect.update/default.json'
 import resourceDescribe from '../../fixtures/recorded/resource.describe/default.json'
+import resourcesMore from '../../fixtures/recorded/resources.more/default.json'
 import resourcesSearch from '../../fixtures/recorded/resources.search/default.json'
 import routineCustomize from '../../fixtures/recorded/routine.customize/default.json'
 import todayPlan from '../../fixtures/recorded/today.plan/default.json'
@@ -45,5 +46,6 @@ export const RECORDED_RESPONSES: Record<string, RecordedResponse> = {
   'reflect.open': reflectOpen,
   'reflect.update': reflectUpdate,
   'resources.search': resourcesSearch,
+  'resources.more': resourcesMore,
   'resource.describe': resourceDescribe,
 }

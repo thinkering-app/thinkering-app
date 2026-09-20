@@ -35,8 +35,12 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
-- Suggested resources for a new interest are a starting point now — two to
-  four good ones rather than a list to work through.
+- A new interest starts with two suggested resources — one to watch and one to
+  read — rather than a list to work through. Each points at a single video or
+  article you can open, not a channel or a home page.
+- Find more, in Resources, looks for more whenever you want them, across your
+  whole path and skipping anything you already have. It keeps looking if you
+  leave the screen.
 - Today writes the Next card ahead of time; Strengthen and Go further say
   Write and are written when you ask for one. Nothing is generated for a card
   you never open.

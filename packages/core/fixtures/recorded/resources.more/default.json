@@ -1,0 +1,14 @@
+{
+  "kind": "resources.more",
+  "promptVersion": 1,
+  "model": "hand-authored",
+  "fixture": "default",
+  "text": "{\"resources\": [{\"url\": \"https://www.youtube.com/watch?v=Kx9xZ8bYHgQ\", \"title\": \"German Word Order Explained (Deutsch mit Marija)\", \"description\": \"A twelve-minute walkthrough of why the verb lands where it does, worked through with sentences rather than tables.\", \"howToUse\": \"Watch it once straight through, then pause after each example and say the sentence yourself before she does.\", \"summary\": \"A single explainer video covering German main-clause word order: verb-second position, how time-manner-place orders the middle field, and what changes in subordinate clauses. Examples are spoken at a moderate pace and repeated, and the presenter contrasts each pattern with its English equivalent, which suits a learner whose errors come from applying English structure. Useful for the small-talk and weekend-conversation goals, where getting the verb in the right place matters more than vocabulary.\", \"goalTitles\": [\"Handle small talk about your weekend\"]}, {\"url\": \"https://www.thegermanproject.com/german-lessons/greetings\", \"title\": \"German Greetings and Introductions\", \"description\": \"A short, plainly written lesson on greetings by formality, with audio for each phrase.\", \"howToUse\": \"Read it in one sitting, then use the audio to check yourself on du versus Sie before a family visit.\", \"summary\": \"A single lesson page covering everyday German greetings and introductions: formal and informal address, time-of-day greetings, and the phrases used when meeting someone for the first time. Each phrase carries a recording, so pronunciation can be checked without a separate tool. Short enough for a ten-minute session and focused on the spoken social register rather than written grammar.\", \"goalTitles\": [\"Greet and introduce yourself\"]}, {\"url\": \"https://slowgerman.com/2023/03/17/sg-248-die-bayerische-kueche/\", \"title\": \"Slow German: Die bayerische Küche\", \"description\": \"A short podcast episode on Bavarian food, spoken slowly, with the full transcript on the page.\", \"howToUse\": \"Listen once without the transcript and note what you caught, then read along on a second pass.\", \"summary\": \"An episode of the Slow German podcast about Bavarian cuisine, delivered at a deliberately reduced pace for intermediate learners, with a complete German transcript published alongside the audio. Vocabulary covers dishes, ingredients and mealtime customs specific to Bavaria. It doubles as listening practice and as preparation for dinner-table conversation about food with family in Munich.\", \"goalTitles\": [\"Talk about your family\", \"Order food and drinks\"]}]}",
+  "usage": {
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0
+  },
+  "latencyMs": 0
+}

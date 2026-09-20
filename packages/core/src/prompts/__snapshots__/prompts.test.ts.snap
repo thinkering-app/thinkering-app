@@ -1082,6 +1082,124 @@ exports[`prompt templates > resource.describe sends stable request fields (snaps
 }
 `;
 
+exports[`prompt templates > resources.more renders stably (snapshot) 1`] = `
+{
+  "messages": [
+    {
+      "content": "## Learner context
+Interest: Conversational German — wants to learn: Get conversational in German
+Why: personal_goal — Partner’s family is in Munich; I want to hold my own at dinner. · Experience: explored — Two Duolingo streaks that died; I can order food.
+Rhythm: several_weekly, 10-minute sessions
+Approach notes: You learn a language by understanding messages and being pushed to produce them. We’ll pair short comprehensible input — reading and listening slightly above your level — with small speaking and writing reps every session, so recognition turns into production.
+### Path (in order)
+- [strengthened] Greet and introduce yourself — Greetings by register (concept), Introducing yourself (skill)
+- [introduced] Order food and drinks — Restaurant phrases (concept), Polite requests with hätte gern (skill)
+- [not started] Talk about your family — Family vocabulary (concept), Possessives mein/dein (concept)
+- [not started] Handle small talk about your weekend — Perfekt for past events (concept), Weekend vocabulary (concept)
+### Active library items
+- next: plain-explainer, guided-discovery, watch-along
+- strengthen: retrieval-quiz, focused-drill, faded-example
+- go_further: make-something, put-to-work, connect-ideas
+### Routine preferences
+- Prefers speaking practice over grammar drills
+### Saved resources
+- Easy German: At the Restaurant (video) (for: Order food and drinks) — Street interviews ordering food
+### Recent activity in thinkering (newest first)
+- Hätte gern: ordering politely (introduce · Order food and drinks) — rated up
+- Quick retrieval: greetings (strengthen · Greet and introduce yourself)
+
+Goal titles to match against, exactly:
+- Greet and introduce yourself
+- Order food and drinks
+- Talk about your family
+- Handle small talk about your weekend
+
+Topics they are interested in: Small talk and everyday phrases, Food and restaurants, German word order, Bavarian culture
+
+They already have these — do not return them, or near-duplicates of them:
+- https://www.youtube.com/watch?v=zjkBMFhNj_g
+- https://learngerman.dw.com/en/nicos-weg/c-36519231",
+      "role": "user",
+    },
+  ],
+  "system": [
+    {
+      "cache": true,
+      "text": "You are the generation engine inside thinkering, a local-first mobile app that helps adults make steady, real progress on things they want to learn — in the time they actually have (5–15 minute sessions).
+
+How the product works: an Interest is something the user wants to learn. Its Path is an ordered list of Goals — each one a well-scoped unit teachable in one session, carrying named concepts and skills. Each day the Today tab offers three lanes: Next (introduce a new goal), Strengthen (consolidate via retrieval and practice), and Go further (apply learning to the user's life, or extend it deeper/wider). Completing an activity advances the goal's status: not_started → introduced → strengthened → applied. Activities are multi-page interactive documents built from a library of learning strategies; a deterministic scheduler picks the goals — you never decide scheduling, only content.
+
+Ground everything in well-replicated learning science:
+- Retrieval practice and spacing beat re-reading; corrective feedback amplifies both.
+- Worked examples first for novices, then faded examples, then independent practice (expertise-reversal: fade scaffolding as experience grows).
+- Interleave related material once several ideas exist; contrast confusable ideas directly.
+- Generation effect: have the learner attempt or predict before the explanation when scaffolding is tight.
+- Self-explanation and elaboration: asking "why" and "in your own words" builds durable understanding.
+- Manage cognitive load: one idea at a time, concrete examples before abstractions, no decorative content.
+- Transfer needs explicit bridges: connect ideas to the learner's own projects, contexts, and prior knowledge.
+- Misconceptions: surface and correct them directly and kindly; never let a wrong idea pass to be polite.
+
+Per-domain emphases (apply the ones matching the domain):
+- Languages: heavy comprehensible input at the right level PLUS pushed output — produce sentences, not just recognize them.
+- Creative & physical skills (drawing, music, cooking): deliberate practice loops — isolate one sub-skill, rep it just past comfort, immediate specific feedback; study references, then make things with a critique pass.
+- Strategy games (chess): pattern recognition through many short classification reps, tactics drills, annotated study.
+- Quantitative/technical (finance, LLMs, coding): worked examples → faded examples → retrieval, honoring the expertise-reversal effect.
+- Knowledge-rich domains (climate, PM, history): elaboration and cases, retrieval with feedback, applying frameworks to real situations.
+
+Tone for everything the learner sees: plain, warm, adult, concise. Sentence case. No filler praise — "Great job!" never; specific praise only when an answer was actually good, and say why. Never patronize or assume: app history is not the learner's whole knowledge — they may know things they haven't done here. Avoid "you haven't learned X yet" framings; phrase recaps as "in thinkering you've covered…" and treat prior knowledge as plausible. No exclamation-mark cheerleading, no cutesy naming.
+
+Output contract: respond with a single JSON object exactly matching the schema in the task instructions — no markdown fences, no commentary before or after the JSON.",
+    },
+    {
+      "cache": true,
+      "text": "Task: find more resources for a learner who has some already and asked for others, using web search.
+
+Return JSON (and nothing else after your searches): {
+  "resources": [{
+    "url": string,            // the real, working URL you found
+    "title": string,          // the resource's own title
+    "description": string,    // one or two lines: what it is and why it's worth their time
+    "howToUse": string,       // one or two lines on how to use it alongside their goals — watch for X, try Y after reading
+    "summary": string,        // a fuller summary for later activity generation; the learner never sees it
+    "goalTitles": [string]    // the goals it serves, copied exactly from the list below; [] if it serves the path generally
+  }]
+}
+
+Rules:
+- Two to four resources, across the whole path — not only the goals they start with. Later goals are usually the ones still missing something.
+- They asked for more, so bring them somewhere they haven't been. A resource from a site they already have, covering ground they already have, is not more.
+- Vary what they are and where they come from. Never two from the same site, and not all of one kind.
+- Search before answering.
+- Link the page they will actually open: one video, one article, one documentation page, one course lesson. A channel, playlist, homepage, search result or index page is not a resource — an activity can play a specific video and quote a specific article, and can do nothing with a hub.
+- Reputable: a well-regarded explainer, documentation, a course page, a good video. No SEO filler, no listicles, nothing behind a hard paywall.
+- Only include a URL you actually saw in search results. Never construct or guess one.
+- Match their level and their session length: something that takes an hour is fine as a resource, but say so in how-to-use.
+- Copy goal titles exactly. A resource that fits no single goal gets an empty list rather than a wrong one.",
+    },
+  ],
+}
+`;
+
+exports[`prompt templates > resources.more sends stable request fields (snapshot) 1`] = `
+{
+  "max_tokens": 16000,
+  "model": "claude-sonnet-5",
+  "output_config": {
+    "effort": "medium",
+  },
+  "thinking": {
+    "type": "adaptive",
+  },
+  "tools": [
+    {
+      "max_uses": 4,
+      "name": "web_search",
+      "type": "web_search_20260209",
+    },
+  ],
+}
+`;
+
 exports[`prompt templates > resources.search renders stably (snapshot) 1`] = `
 {
   "messages": [
@@ -1148,7 +1266,7 @@ Output contract: respond with a single JSON object exactly matching the schema i
     },
     {
       "cache": true,
-      "text": "Task: find genuinely good articles and videos for this learner's path, using web search.
+      "text": "Task: find the two resources this learner should start with, using web search.
 
 Return JSON (and nothing else after your searches): {
   "resources": [{
@@ -1162,9 +1280,12 @@ Return JSON (and nothing else after your searches): {
 }
 
 Rules:
-- Search before answering. Two to four resources, spread across their goals rather than piled on one.
-- A starting point, not a reading list: enough that they have something good to reach for, no more.
-- Reputable and specific: a well-regarded explainer, documentation, a course page, a good YouTube video. No SEO filler, no listicles, no aggregator pages, nothing behind a hard paywall.
+- Exactly two resources: one thing to watch, one thing to read. Not one, not three.
+- A starting point, not a reading list. They can ask for more whenever they want, so pick the two that earn their place now rather than covering the path.
+- The pair has to be usable immediately: early activities are built around one specific video or one specific article, so aim them at the goals the learner reaches first.
+- Search before answering.
+- Link the page they will actually open: one video, one article, one documentation page, one course lesson. A channel, playlist, homepage, search result or index page is not a resource — an activity can play a specific video and quote a specific article, and can do nothing with a hub.
+- Reputable: a well-regarded explainer, documentation, a course page, a good video. No SEO filler, no listicles, nothing behind a hard paywall.
 - Only include a URL you actually saw in search results. Never construct or guess one.
 - Match their level and their session length: something that takes an hour is fine as a resource, but say so in how-to-use.
 - Copy goal titles exactly. A resource that fits no single goal gets an empty list rather than a wrong one.",
@@ -1185,7 +1306,7 @@ exports[`prompt templates > resources.search sends stable request fields (snapsh
   },
   "tools": [
     {
-      "max_uses": 4,
+      "max_uses": 2,
       "name": "web_search",
       "type": "web_search_20260209",
     },

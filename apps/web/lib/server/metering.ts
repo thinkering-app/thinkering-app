@@ -44,6 +44,8 @@ export const BURST_LIMITS: Record<string, number> = {
   'intake.choices': 10,
   'intake.path': 15,
   'resources.search': 10,
+  /** Asked for by hand, one tap at a time, and each one is minutes of web search. */
+  'resources.more': 10,
   'activity.generate': 80,
   'today.plan': 60,
   'reflect.open': 15,

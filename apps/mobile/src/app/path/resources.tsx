@@ -26,6 +26,7 @@ import {
   normalizeUrl,
   type ResourceDraft,
 } from '@/resources/link'
+import { findMoreResources } from '@/resources/seed'
 import { colors } from '@/theme/tokens'
 
 /**
@@ -43,6 +44,27 @@ export default function ResourcesScreen() {
     [interestId, version],
   )
   const [adding, setAdding] = useState(false)
+  const [searching, setSearching] = useState(false)
+  const [searchError, setSearchError] = useState('')
+
+  /**
+   * G12. A web search runs for minutes, so this doesn't hold the screen: the
+   * resources are written to the database as they're found and appear on the
+   * next read, whether or not the learner stayed. Unlike G4's silent seeding,
+   * a failure is shown — they asked for this one.
+   */
+  const findMore = () => {
+    if (!interestId) return
+    setSearching(true)
+    setSearchError('')
+    findMoreResources(interestId)
+      .then((found) => {
+        setVersion((n) => n + 1)
+        if (found === 0) setSearchError('Nothing new this time. Worth trying again later.')
+      })
+      .catch((e: unknown) => setSearchError(describeAiError(e)))
+      .finally(() => setSearching(false))
+  }
 
   if (!interest) {
     return (
@@ -123,9 +145,17 @@ export default function ResourcesScreen() {
             </Pressable>
           ))
         )}
-        <View className="pt-2">
-          <Button label="Add a link" onPress={() => setAdding(true)} />
-        </View>
+        {searching ? (
+          <Generating label="Looking for resources" />
+        ) : (
+          <View className="gap-2 pt-2">
+            <Button label="Add a link" onPress={() => setAdding(true)} />
+            <Button label="Find more" variant="quiet" onPress={findMore} />
+          </View>
+        )}
+        {searchError ? (
+          <Text className="px-1 font-sans text-secondary text-ink-soft">{searchError}</Text>
+        ) : null}
       </ScrollView>
 
       <AddLinkSheet

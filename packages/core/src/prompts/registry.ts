@@ -8,13 +8,14 @@ import { pathSuggestGoalsTemplate } from './kinds/path-suggest-goals'
 import { reflectOpenTemplate } from './kinds/reflect-open'
 import { reflectUpdateTemplate } from './kinds/reflect-update'
 import { resourceDescribeTemplate } from './kinds/resource-describe'
+import { resourcesMoreTemplate } from './kinds/resources-more'
 import { resourcesSearchTemplate } from './kinds/resources-search'
 import { routineCustomizeTemplate } from './kinds/routine-customize'
 import { todayPlanTemplate } from './kinds/today-plan'
 import type { AnyPromptTemplate, GenerationKind } from './types'
 
 /**
- * Every implemented prompt template by kind — all thirteen of docs/04's
+ * Every implemented prompt template by kind — all fourteen of docs/04's
  * generation map. The proxy rejects kinds not present here.
  */
 export const PROMPTS = {
@@ -30,6 +31,7 @@ export const PROMPTS = {
   'reflect.open': reflectOpenTemplate,
   'reflect.update': reflectUpdateTemplate,
   'resources.search': resourcesSearchTemplate,
+  'resources.more': resourcesMoreTemplate,
   'resource.describe': resourceDescribeTemplate,
 } as const
 

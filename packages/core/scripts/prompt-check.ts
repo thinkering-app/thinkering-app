@@ -4,9 +4,16 @@
  * kind-specific structure (page counts, review placement, concept resolution),
  * tone lints. Never string equality; quality judgment stays human (AI Inspector).
  */
+import { weightedTokens } from '../src/domain'
 import { parseActivityDoc } from '../src/schemas/activity-doc'
-import { checkActivityDoc, toneLintOutput, type CheckIssue } from '../src/prompts/checks'
+import {
+  checkActivityDoc,
+  checkResources,
+  toneLintOutput,
+  type CheckIssue,
+} from '../src/prompts/checks'
 import type { ActivityGenerateParams } from '../src/prompts/kinds/activity-generate'
+import type { ResourcesSearchParams } from '../src/prompts/kinds/resources-search'
 import { loadFixtures, parseScriptArgs, requireTemplate, runLive } from './prompt-lib'
 import { extractJsonText } from '../src/streaming/json'
 
@@ -33,7 +40,9 @@ for (const fixture of loadFixtures(template.kind, only)) {
       const goalConceptIds = params.goal.concepts.map((c) => c.id)
       const parsed = parseActivityDoc(output, { goalConceptIds })
       if (!parsed.ok) {
-        issues.push(...parsed.issues.map((i) => ({ check: 'schema', message: `${i.path}: ${i.message}` })))
+        issues.push(
+          ...parsed.issues.map((i) => ({ check: 'schema', message: `${i.path}: ${i.message}` })),
+        )
       } else {
         issues.push(
           ...checkActivityDoc(parsed.doc, {
@@ -52,17 +61,40 @@ for (const fixture of loadFixtures(template.kind, only)) {
             message: `${i.path.join('.')}: ${i.message}`,
           })),
         )
+      } else if (template.kind === 'resources.search' || template.kind === 'resources.more') {
+        // Same output shape, different briefs: G4 seeds the pair early
+        // activities need, G12 ranges wider because the learner asked.
+        const params = template.paramsSchema.parse(fixture.params) as ResourcesSearchParams
+        const seeding = template.kind === 'resources.search'
+        issues.push(
+          ...checkResources(parsed.data as never, {
+            goalTitles: params.goalTitles,
+            count: seeding ? { min: 2, max: 2 } : { min: 2, max: 4 },
+            mediaSplit: seeding,
+            excludeUrls: params.excludeUrls,
+          }),
+        )
       } else {
         issues.push(...toneLintOutput(parsed.data, fixture.name))
       }
     }
   }
 
+  // Weighted tokens are the unit the daily budget is measured in (docs/04
+  // §Usage metering), so a run here is comparable to the AI Inspector's totals
+  // — and a kind being tuned for cost can be read off directly. Reported on a
+  // failure too: a change that fixes the output by doubling the spend has not
+  // made things better.
+  const { inputTokens, outputTokens, cacheReadTokens } = result.usage
+  const usage =
+    `in ${inputTokens} (${cacheReadTokens} cached) / out ${outputTokens} · ` +
+    `${weightedTokens(inputTokens, outputTokens)} weighted · ${result.latencyMs}ms`
+
   if (issues.length === 0) {
-    console.log(`${fixture.name}: PASS (${result.usage.outputTokens} out tokens, ${result.latencyMs}ms)`)
+    console.log(`${fixture.name}: PASS (${usage})`)
   } else {
     failures++
-    console.log(`${fixture.name}: FAIL`)
+    console.log(`${fixture.name}: FAIL (${usage})`)
     for (const issue of issues) console.log(`  [${issue.check}] ${issue.message}`)
   }
 }

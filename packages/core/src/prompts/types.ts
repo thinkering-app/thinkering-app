@@ -20,6 +20,7 @@ export const GENERATION_KINDS = [
   'path.suggestGoals', // G9
   'resource.describe', // G10
   'routine.customize', // G11
+  'resources.more', // G12
 ] as const
 export type GenerationKind = (typeof GENERATION_KINDS)[number]
 
@@ -68,7 +69,7 @@ export interface PromptTemplate<TParams, TOutput> {
   temperature?: number
   /** Sonnet kinds only, and required there (asserted in prompts.test.ts). */
   effort?: PromptEffort
-  /** Only G4 uses these today: reputable-source search needs the live web. */
+  /** Only G4 and G12 use these: reputable-source search needs the live web. */
   tools?: PromptTools
   paramsSchema: z.ZodType<TParams>
   outputSchema: z.ZodType<TOutput>
