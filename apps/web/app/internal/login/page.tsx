@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 
-import { areaOf, AREA_LABELS } from '@/lib/server/internal-auth'
+import { areaOf, AREA_LABELS, safeNext } from '@/lib/server/internal-auth'
 import { unlockedAreas } from '@/lib/server/internal-session'
 import { signIn } from './actions'
 
@@ -18,13 +18,14 @@ const ERRORS: Record<string, string> = {
 export default async function InternalLogin({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; error?: string }>
+  searchParams: Promise<{ next?: string | string[]; error?: string }>
 }) {
   const { next, error } = await searchParams
-  const wanted = areaOf(next ?? '')
+  const target = safeNext(next)
+  const wanted = areaOf(target)
   // Already in: only bounce for a page this visitor has actually unlocked.
   const unlocked = await unlockedAreas()
-  if (wanted ? unlocked.includes(wanted) : unlocked.length > 0) redirect(next ?? '/internal')
+  if (wanted ? unlocked.includes(wanted) : unlocked.length > 0) redirect(target)
 
   return (
     <div className="mx-auto max-w-sm px-6 py-24">
@@ -36,7 +37,7 @@ export default async function InternalLogin({
         action={signIn}
         className="mt-6 rounded-card border border-hairline bg-surface p-6 shadow-card"
       >
-        <input type="hidden" name="next" value={next ?? '/internal'} />
+        <input type="hidden" name="next" value={target} />
         <label className="flex flex-col gap-1.5">
           <span className="text-secondary font-medium text-ink">Password</span>
           <input

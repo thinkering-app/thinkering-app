@@ -9,20 +9,12 @@ import {
   COOKIE_PATH,
   createSessionToken,
   INTERNAL_AREAS,
+  safeNext,
   SESSION_TTL_MS,
 } from '@/lib/server/internal-auth'
 import { tooManyAttempts } from '@/lib/server/login-attempts'
 
 /** Sign in to and out of the internal pages (docs/02 §Internal pages). */
-
-/** Only ever bounce back into the internal area — never an attacker's URL. */
-function safeNext(next: unknown): string {
-  return typeof next === 'string' &&
-    /^\/internal(\/|$)/.test(next) &&
-    !next.startsWith('/internal/login')
-    ? next
-    : '/internal'
-}
 
 /** Failures come back as a search param, so the login page needs no client JS. */
 function backToLogin(next: string, error: string): never {

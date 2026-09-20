@@ -36,6 +36,19 @@ export function cookieFor(area: InternalArea): string {
   return `thinkering_internal_${area}`
 }
 
+/**
+ * Only ever bounce back into the internal area — never an attacker's URL, and
+ * never the login page itself. A duplicated `?next=` arrives as an array, so
+ * anything that isn't a string lands on `/internal` too.
+ */
+export function safeNext(next: unknown): string {
+  return typeof next === 'string' &&
+    /^\/internal(\/|$)/.test(next) &&
+    !next.startsWith('/internal/login')
+    ? next
+    : '/internal'
+}
+
 /** `/internal/prompts` and anything under it is the prompts area. */
 export function areaOf(pathname: string): InternalArea | undefined {
   return INTERNAL_AREAS.find(

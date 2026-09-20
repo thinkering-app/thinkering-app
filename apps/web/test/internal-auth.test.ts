@@ -5,6 +5,7 @@ import {
   areaPassword,
   cookieFor,
   createSessionToken,
+  safeNext,
   SESSION_TTL_MS,
   verifySessionToken,
 } from '@/lib/server/internal-auth'
@@ -133,6 +134,21 @@ describe('internal middleware gate', () => {
     const forged = { [cookieFor('library')]: `${Date.now() + 1000}.${'a'.repeat(64)}` }
     const res = await middleware(page('/internal/library', forged))
     expect(new URL(res.headers.get('location')!).pathname).toBe('/internal/login')
+  })
+})
+
+describe('where sign-in sends you next', () => {
+  it('only ever lands inside the internal area', () => {
+    expect(safeNext('/internal/prompts')).toBe('/internal/prompts')
+    // An off-site URL would turn the login page into an open redirect.
+    expect(safeNext('https://attacker.example')).toBe('/internal')
+    expect(safeNext('//attacker.example')).toBe('/internal')
+    expect(safeNext('/internal-evil')).toBe('/internal')
+    // A duplicated ?next= arrives as an array, not a string.
+    expect(safeNext(['/internal/prompts', '/internal/library'])).toBe('/internal')
+    expect(safeNext(undefined)).toBe('/internal')
+    // Bouncing back to the login page would be a loop.
+    expect(safeNext('/internal/login')).toBe('/internal')
   })
 })
 
