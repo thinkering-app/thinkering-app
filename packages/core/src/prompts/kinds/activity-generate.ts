@@ -50,9 +50,9 @@ Additional rules for this task:
 - Emit pages in reading order, page 1 first (it renders while you're still writing).
 - End every document with exactly these two pages, in this order and with these kinds:
   { "id": "review", "kind": "review", "blocks": null },
-  { "id": "summary", "kind": "summary", "blocks": [ …1–2 recap paragraphs, no interaction… ] }
+  { "id": "summary", "kind": "summary", "blocks": [ …one recap paragraph, no interaction… ] }
   The summary is "kind": "summary", not "content" — a content page would fail validation.
-- The summary recap is one or two short paragraphs, under 40 words in all: the idea worth carrying away, in the plainest words it fits in. No heading block — the app already shows one above it — no list, and no walk back through the pages.
+- The summary recap is one short paragraph, under 30 words: the single idea worth carrying away, in the plainest words it fits in. No heading block — the app already shows one above it — no list, and no walk back through the pages.
 - "concepts": declare which of the goal's concept/skill ids this activity genuinely targets (use their exact ids in goalConceptId). Don't claim coverage you don't deliver.
 - Ground apply-tier activities in the learner's contexts and resources only when they genuinely fit — never force it.
 - If a resource is provided, build around it with resourceEmbed blocks carrying its exact url, resourceId and media: short segments, focus prompts, interaction after each segment. Never "watch this 20-minute video". Embed no other video.
@@ -73,9 +73,11 @@ export const activityGenerateTemplate: PromptTemplate<ActivityGenerateParams, Ac
   // v5: the learner's own request, from the + card.
   // v6: the request's own words win over saved contexts — a card for a host
   // family was being rewritten for a partner's mother.
-  // v8: a shorter summary recap — one or two paragraphs under 40 words, no
-  // heading. The last page was a wall of text before the rating.
-  version: 8,
+  // v8: a shorter summary recap — the last page was a wall of text.
+  // v9: one paragraph under 30 words, the shape of the hand-written fixture
+  // recaps (21–25 words). v8's 40 was picked from nothing and, going by how
+  // activity.review wrote to its cap, would have been written to.
+  version: 9,
   model: 'sonnet',
   // Thinking plus the document: a 10-minute activity ran ~5.6k at high effort,
   // and 15-minute ones need the room.
