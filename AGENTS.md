@@ -85,3 +85,18 @@ The full strategy is in `docs/10-testing.md`; read it before writing tests.
 - Commit messages use `type(scope): summary`, imperative and lowercase — e.g. `fix(db): keep tombstones out of history`. Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`. Scopes: `mobile`, `web`, `core`, `db`, `config`, `ci`. Drop the scope when a change spans several.
 - A PR closes its issue (`Closes #12`), passes `pnpm verify`, and updates any doc that reality has drifted from.
 - A change a learner would notice gets a line under `## Unreleased` in `CHANGELOG.md`, in the product's plain voice. Refactors, tests and docs don't (`RELEASING.md`).
+
+### Rebasing a branch that predates the formatting commit
+
+`main` was formatted in one commit (`style: format the repo with prettier`, listed in `.git-blame-ignore-revs`). A branch that started before it conflicts with that commit in a handful of files. Rebase in two steps, so the real conflicts and the mechanical ones stay apart:
+
+```sh
+git fetch origin
+fmt=$(git log -1 --format=%H --grep '^style: format the repo' origin/main)
+git rebase --onto "$fmt^" "$(git merge-base HEAD origin/main)"  # content only: the conflicts you'd have had anyway
+git rebase --onto origin/main "$fmt^"                           # the formatting commit
+#   on conflict, keep your side: git checkout --theirs -- <file> && git add <file>
+pnpm format                                                     # then re-format what you kept
+```
+
+Nothing is lost keeping your own side in the second step: the other side of those conflicts is only line wrapping. Delete this section once the branches that predate the commit have landed.
