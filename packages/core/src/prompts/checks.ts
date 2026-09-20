@@ -47,12 +47,18 @@ export function toneLintOutput(output: unknown, where = 'output'): CheckIssue[] 
 }
 
 /**
- * Word budgets for the two short pages at the end of an activity (docs/05).
- * Both are read on a phone after the work is done, and both drift long: the
- * budget is the assertion, because a bloated page is structurally valid.
+ * Where the two short pages at the end of an activity (docs/05) stop being
+ * short and start being a lesson. A bloated page is structurally valid, so
+ * length is the only thing that catches the drift.
+ *
+ * Both sit above what the prompts ask for — 45 words for the review page, 40
+ * for the summary recap — on purpose. A paragraph that ran to 47 is fine; the
+ * regression worth a failed check is the slide back to a few hundred.
  */
-export const REVIEW_MAX_WORDS = 45
-export const SUMMARY_MAX_WORDS = 40
+export const REVIEW_MAX_WORDS = 65
+export const REVIEW_WORDS_ASKED = 45
+export const SUMMARY_MAX_WORDS = 60
+export const SUMMARY_WORDS_ASKED = 40
 
 /** Learner-facing words in a list of blocks — markup and our ids dropped. */
 export function blockWordCount(blocks: readonly Block[]): number {
@@ -72,7 +78,7 @@ export function checkReviewBlocks(blocks: readonly Block[], where = 'review'): C
   if (words > REVIEW_MAX_WORDS) {
     issues.push({
       check: 'review-length',
-      message: `${where}: ${words} words (budget ${REVIEW_MAX_WORDS})`,
+      message: `${where}: ${words} words (prompt asks ${REVIEW_WORDS_ASKED}, flagged over ${REVIEW_MAX_WORDS})`,
     })
   }
   const other = blocks.filter((b) => b.kind !== 'paragraph').map((b) => b.kind)
@@ -170,7 +176,7 @@ export function checkActivityDoc(
     if (words > SUMMARY_MAX_WORDS) {
       issues.push({
         check: 'summary-length',
-        message: `summary recap is ${words} words (budget ${SUMMARY_MAX_WORDS})`,
+        message: `summary recap is ${words} words (prompt asks ${SUMMARY_WORDS_ASKED}, flagged over ${SUMMARY_MAX_WORDS})`,
       })
     }
     if (summary.blocks.some((b) => b.kind === 'heading')) {

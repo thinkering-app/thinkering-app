@@ -69,7 +69,7 @@ describe('checkActivityDoc', () => {
     const summary = doc.pages.at(-1)!
     summary.blocks = [
       { kind: 'heading', text: 'What you covered' },
-      { kind: 'paragraph', md: `${'word '.repeat(60)}` },
+      { kind: 'paragraph', md: `${'word '.repeat(90)}` },
     ]
     const checks = checkActivityDoc(doc, { estMinutes: 5, goalConceptIds: GOAL_CONCEPTS }).map(
       (i) => i.check,
@@ -100,7 +100,7 @@ describe('checkReviewBlocks', () => {
   it('flags the lesson-shaped review the prompt is trying to prevent', () => {
     const checks = checkReviewBlocks([
       { kind: 'heading', text: 'You nailed the form' },
-      { kind: 'paragraph', md: `${'word '.repeat(60)}` },
+      { kind: 'paragraph', md: `${'word '.repeat(90)}` },
     ]).map((i) => i.check)
     expect(checks).toContain('review-length')
     expect(checks).toContain('review-shape')
