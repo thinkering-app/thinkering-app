@@ -60,6 +60,9 @@ export const REVIEW_WORDS_ASKED = 45
 export const SUMMARY_MAX_WORDS = 70
 export const SUMMARY_WORDS_ASKED = 50
 
+/** What the recap may be made of: one paragraph, or a bullet per idea (docs/05). */
+const SUMMARY_BLOCK_KINDS: readonly string[] = ['paragraph', 'list']
+
 /** Learner-facing words in a list of blocks — markup and our ids dropped. */
 export function blockWordCount(blocks: readonly Block[]): number {
   return pageToPlainText({ blocks: [...blocks] })
@@ -179,10 +182,16 @@ export function checkActivityDoc(
         message: `summary recap is ${words} words (prompt asks ${SUMMARY_WORDS_ASKED}, flagged over ${SUMMARY_MAX_WORDS})`,
       })
     }
-    if (summary.blocks.some((b) => b.kind === 'heading')) {
+    // Prose or a bullet list, and nothing else: the renderer already puts a
+    // heading above the recap, and the last page before the rating row is not
+    // a place to ask them something.
+    const wrong = summary.blocks
+      .filter((b) => !SUMMARY_BLOCK_KINDS.includes(b.kind))
+      .map((b) => b.kind)
+    if (wrong.length > 0) {
       issues.push({
         check: 'summary-shape',
-        message: 'summary recap has a heading block; the renderer already shows one',
+        message: `summary recap: paragraphs or a list only, got ${wrong.join(', ')}`,
       })
     }
     if (summary.blocks.length > 2) {

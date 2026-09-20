@@ -78,6 +78,25 @@ describe('checkActivityDoc', () => {
     expect(checks).toContain('summary-shape')
   })
 
+  it('flags an interaction on the summary recap', () => {
+    const doc = freshDoc()
+    doc.pages.at(-1)!.blocks = [
+      {
+        kind: 'mcq',
+        id: 'one-more',
+        prompt: 'One more before you go?',
+        options: [
+          { id: 'a', label: 'Sure' },
+          { id: 'b', label: 'No' },
+        ],
+      },
+    ]
+    const checks = checkActivityDoc(doc, { estMinutes: 5, goalConceptIds: GOAL_CONCEPTS }).map(
+      (i) => i.check,
+    )
+    expect(checks).toContain('summary-shape')
+  })
+
   it('tone lints catch filler praise and patronizing framings', () => {
     expect(toneLintIssues('Great job! You nailed it', 'x')).not.toEqual([])
     expect(toneLintIssues("you haven't learned subjunctive yet", 'x')).not.toEqual([])
