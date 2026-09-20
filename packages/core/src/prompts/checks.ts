@@ -51,14 +51,14 @@ export function toneLintOutput(output: unknown, where = 'output'): CheckIssue[] 
  * short and start being a lesson. A bloated page is structurally valid, so
  * length is the only thing that catches the drift.
  *
- * Both sit above what the prompts ask for — 45 words for the review page, 30
+ * Both sit above what the prompts ask for — 45 words for the review page, 50
  * for the summary recap — on purpose. A paragraph that ran to 47 is fine; the
  * regression worth a failed check is the slide back to a few hundred.
  */
 export const REVIEW_MAX_WORDS = 65
 export const REVIEW_WORDS_ASKED = 45
-export const SUMMARY_MAX_WORDS = 45
-export const SUMMARY_WORDS_ASKED = 30
+export const SUMMARY_MAX_WORDS = 70
+export const SUMMARY_WORDS_ASKED = 50
 
 /** Learner-facing words in a list of blocks — markup and our ids dropped. */
 export function blockWordCount(blocks: readonly Block[]): number {

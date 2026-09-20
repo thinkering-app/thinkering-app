@@ -52,7 +52,7 @@ Additional rules for this task:
   { "id": "review", "kind": "review", "blocks": null },
   { "id": "summary", "kind": "summary", "blocks": [ …one recap block, no interaction… ] }
   The summary is "kind": "summary", not "content" — a content page would fail validation.
-- The summary recap is under 30 words, whichever shape suits what was taught: one short paragraph, or a bullet list with one line per idea the activity actually covered — two or three, never padded to a third. The words are the ideas worth carrying away, in the plainest form they fit in. No heading block: the app already shows one above the recap, and the concepts are listed as chips below it.
+- The summary recap is under 50 words, whichever shape suits what was taught: one short paragraph, or a bullet list with one line per idea the activity actually covered. The words are the ideas worth carrying away, in the plainest form they fit in. No heading block: the app already shows one above the recap, and the concepts are listed as chips below it.
 - "concepts": declare which of the goal's concept/skill ids this activity genuinely targets (use their exact ids in goalConceptId). Don't claim coverage you don't deliver.
 - Ground apply-tier activities in the learner's contexts and resources only when they genuinely fit — never force it.
 - If a resource is provided, build around it with resourceEmbed blocks carrying its exact url, resourceId and media: short segments, focus prompts, interaction after each segment. Never "watch this 20-minute video". Embed no other video.
@@ -73,14 +73,12 @@ export const activityGenerateTemplate: PromptTemplate<ActivityGenerateParams, Ac
   // v5: the learner's own request, from the + card.
   // v6: the request's own words win over saved contexts — a card for a host
   // family was being rewritten for a partner's mother.
-  // v8: a shorter summary recap — the last page was a wall of text.
-  // v9: one paragraph under 30 words, the shape of the hand-written fixture
-  // recaps (21–25 words). v8's 40 was picked from nothing and, going by how
-  // activity.review wrote to its cap, would have been written to.
-  // v10: a short bullet list is allowed again — it reads well when the
-  // activity had two or three distinct ideas. The 30 words are the budget
-  // either way, so bullets redistribute the length rather than add to it.
-  version: 10,
+  // v7: a fill-in-the-blank's answer has to follow from what was taught, and
+  // nothing else on the page may give it away.
+  // v8: a shorter summary recap — one paragraph or a bullet per idea, under
+  // 50 words, no heading of its own. The last page was a wall of text before
+  // the rating.
+  version: 8,
   model: 'sonnet',
   // Thinking plus the document: a 10-minute activity ran ~5.6k at high effort,
   // and 15-minute ones need the room.
