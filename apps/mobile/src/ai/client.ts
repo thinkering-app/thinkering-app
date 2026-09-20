@@ -44,6 +44,19 @@ export class AiOutputError extends Error {
   }
 }
 
+/**
+ * The proxy doesn't know a kind this build sends: this install is older than
+ * the deployment (docs/04 §Retired kinds). Retrying never helps and the app
+ * can't fix itself — there is no OTA — so it's worth its own error and its own
+ * sentence rather than the generic failure.
+ */
+export class AiOutdatedClientError extends Error {
+  constructor() {
+    super('proxy does not know this kind')
+    this.name = 'AiOutdatedClientError'
+  }
+}
+
 export interface AiCallOptions {
   interestId?: string
   activityId?: string
@@ -80,6 +93,9 @@ const RATE_LIMITED = 'daily generation budget used'
 
 /** The proxy's wire code for a generation whose web search failed. */
 const SEARCH_UNAVAILABLE = 'search_unavailable'
+
+/** The proxy's wire code for a kind it has no template for. */
+const UNKNOWN_KIND = 'unknown_kind'
 
 /**
  * A generation whose web search didn't run: either the proxy said so
@@ -334,9 +350,13 @@ async function proxyCall(
     throw new AiBudgetError(payload.resetAt ?? '')
   }
   if (!res.ok) {
+    const body = await res.text()
+    // The proxy renders from its own registry, so a kind it rejects means this
+    // build predates the deployment. Nothing here can fix that.
+    if (res.status === 400 && body.includes(UNKNOWN_KIND)) throw new AiOutdatedClientError()
     // A failed web search answers 502, which is otherwise retryable; retrying
     // runs the searches again into the same outage (see consumeSse).
-    const searchFailed = (await res.text()).includes(SEARCH_UNAVAILABLE)
+    const searchFailed = body.includes(SEARCH_UNAVAILABLE)
     const error = new Error(
       searchFailed ? 'web search unavailable' : `proxy error ${res.status}`,
     ) as Error & { transient?: boolean }
