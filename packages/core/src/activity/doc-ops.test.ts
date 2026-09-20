@@ -13,7 +13,9 @@ import {
 
 describe('doc ops', () => {
   it('fills the reserved review page and leaves a valid document', () => {
-    const filled = fillReviewPage(FIXTURE_DOC_INTRODUCE, [{ kind: 'paragraph', md: 'About your answer…' }])
+    const filled = fillReviewPage(FIXTURE_DOC_INTRODUCE, [
+      { kind: 'paragraph', md: 'About your answer…' },
+    ])
     const page = filled.pages[reviewPageIndex(filled)]
     expect(page?.blocks).toHaveLength(1)
     expect(activityDocSchema.safeParse(filled).success).toBe(true)

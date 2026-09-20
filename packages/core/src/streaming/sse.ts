@@ -49,7 +49,11 @@ export function emptyAccumulator(): StreamAccumulator {
   return { text: '', inputTokens: 0, outputTokens: 0, done: false, stopReason: null }
 }
 
-export function accumulateEvent(acc: StreamAccumulator, eventType: string, data: unknown): StreamAccumulator {
+export function accumulateEvent(
+  acc: StreamAccumulator,
+  eventType: string,
+  data: unknown,
+): StreamAccumulator {
   const d = data as {
     message?: { usage?: { input_tokens?: number } }
     delta?: { type?: string; text?: string; stop_reason?: string }

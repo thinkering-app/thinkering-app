@@ -30,7 +30,13 @@ export function createRoutineNote(
   const now = ctx.now()
   const id = ctx.newId()
   db.insert(routineNotes)
-    .values({ id, interestId: input.interestId ?? null, note: input.note, createdAt: now, updatedAt: now })
+    .values({
+      id,
+      interestId: input.interestId ?? null,
+      note: input.note,
+      createdAt: now,
+      updatedAt: now,
+    })
     .run()
   return db.select().from(routineNotes).where(eq(routineNotes.id, id)).get()!
 }

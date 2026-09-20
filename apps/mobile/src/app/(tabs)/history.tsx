@@ -52,7 +52,9 @@ export default function HistoryScreen() {
         onEndReached={hasMore ? loadMore : undefined}
         onEndReachedThreshold={0.5}
         renderSectionHeader={({ section }) => (
-          <Text className="px-5 pb-3 pt-4 font-heading-bold text-heading text-ink">{section.title}</Text>
+          <Text className="px-5 pb-3 pt-4 font-heading-bold text-heading text-ink">
+            {section.title}
+          </Text>
         )}
         renderItem={({ item }) => (
           <HistoryEntry row={item} interestName={interestNames?.get(item.interestId)} />

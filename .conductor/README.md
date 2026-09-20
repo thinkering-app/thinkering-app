@@ -21,14 +21,14 @@ Developer switches AI mode and clears or reseeds the data.
 
 The static web export, served on `$CONDUCTOR_PORT` with the deployment's
 COOP/COEP headers — the same pair the Playwright suite uses, so what you see is
-what Vercel serves. Expo's *dev* server can't run this app (expo-sqlite's web
+what Vercel serves. Expo's _dev_ server can't run this app (expo-sqlite's web
 worker chunk fails under `web.output: 'static'`), so there is no hot reload:
 restart the script after a change and it re-exports in about a minute.
 
 To start from a known state, open `/dev/reset` (empty) or `/dev/reset?seed=1`
 (only the fixture interest) on the app's port.
 
-**app-proxy** is the same export against the *landing* script's `/api`, which
+**app-proxy** is the same export against the _landing_ script's `/api`, which
 has to be running too with `ANTHROPIC_API_KEY` in `apps/web/.env`; the
 production proxy doesn't answer browsers on localhost. It uses the app's port,
 so stop the fixture one first.

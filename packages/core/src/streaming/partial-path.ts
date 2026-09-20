@@ -22,7 +22,10 @@ export function extractPartialPath(text: string): PartialPath {
   const result: PartialPath = { goals: [] }
   const goalsStart = findArrayStart(text, 'goals')
 
-  result.name = matchStringField(text.slice(0, goalsStart === -1 ? text.length : goalsStart), 'name')
+  result.name = matchStringField(
+    text.slice(0, goalsStart === -1 ? text.length : goalsStart),
+    'name',
+  )
   if (goalsStart === -1) return result
 
   for (const objectText of balancedObjects(text.slice(goalsStart))) {

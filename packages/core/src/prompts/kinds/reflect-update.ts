@@ -81,9 +81,7 @@ export const reflectUpdateTemplate: PromptTemplate<ReflectUpdateParams, ReflectU
             : []),
           '',
           'Their path, by ref:',
-          ...params.goals.map(
-            (g) => `- ${g.ref} [${g.status}] ${g.title} — ${g.description}`,
-          ),
+          ...params.goals.map((g) => `- ${g.ref} [${g.status}] ${g.title} — ${g.description}`),
           '',
           `Their reflection: ${params.feelingText}`,
         ].join('\n'),

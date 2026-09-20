@@ -52,7 +52,8 @@ describe('seedFixtureData', () => {
       )
       .all() as { name: string }[]
     const nonEmpty = tables.filter(
-      ({ name }) => (sqlite.prepare(`SELECT count(*) AS n FROM "${name}"`).get() as { n: number }).n > 0,
+      ({ name }) =>
+        (sqlite.prepare(`SELECT count(*) AS n FROM "${name}"`).get() as { n: number }).n > 0,
     )
     expect(nonEmpty.map((t) => t.name)).toEqual([])
   })

@@ -29,7 +29,9 @@ import { getConsent, writeConsent } from './consent'
 
 /** Events with no properties may be tracked with one argument. */
 type TrackArgs<N extends AnalyticsEventName> =
-  AnalyticsProperties<N> extends NoProperties ? [properties?: NoProperties] : [properties: AnalyticsProperties<N>]
+  AnalyticsProperties<N> extends NoProperties
+    ? [properties?: NoProperties]
+    : [properties: AnalyticsProperties<N>]
 
 export function track<N extends AnalyticsEventName>(event: N, ...args: TrackArgs<N>): void {
   try {

@@ -56,7 +56,11 @@ function makeGoal(interestId: string, sortOrder = 1) {
   })
 }
 
-function makeActivity(interestId: string, goalId: string, tier: 'introduce' | 'strengthen' | 'apply' = 'introduce') {
+function makeActivity(
+  interestId: string,
+  goalId: string,
+  tier: 'introduce' | 'strengthen' | 'apply' = 'introduce',
+) {
   return createActivity(db, ctx, {
     interestId,
     goalId,
@@ -74,7 +78,12 @@ describe('soft delete', () => {
     const interest = makeInterest()
     const goal = makeGoal(interest.id)
     const activity = makeActivity(interest.id, goal.id)
-    saveResponse(db, ctx, { activityId: activity.id, pageId: 'p1', blockId: 'q1', payload: { kind: 'mcq', selectedId: 'b', correct: true } })
+    saveResponse(db, ctx, {
+      activityId: activity.id,
+      pageId: 'p1',
+      blockId: 'q1',
+      payload: { kind: 'mcq', selectedId: 'b', correct: true },
+    })
 
     softDeleteInterest(db, ctx, interest.id)
 
@@ -178,7 +187,10 @@ describe('activity lifecycle and goal transitions', () => {
     const all = listHistory(db, { interestId: interest.id })
     expect(all.map((a) => a.id)).toEqual([...ids].reverse())
 
-    const page2 = listHistory(db, { interestId: interest.id, beforeCompletedAt: all[0]!.completedAt! })
+    const page2 = listHistory(db, {
+      interestId: interest.id,
+      beforeCompletedAt: all[0]!.completedAt!,
+    })
     expect(page2.map((a) => a.id)).toEqual([ids[1], ids[0]])
   })
 
@@ -201,9 +213,19 @@ describe('responses', () => {
     const goal = makeGoal(interest.id)
     const a = makeActivity(interest.id, goal.id)
 
-    saveResponse(db, ctx, { activityId: a.id, pageId: 'p1', blockId: 'q1', payload: { kind: 'mcq', selectedId: 'a', correct: false } })
+    saveResponse(db, ctx, {
+      activityId: a.id,
+      pageId: 'p1',
+      blockId: 'q1',
+      payload: { kind: 'mcq', selectedId: 'a', correct: false },
+    })
     ctx.advance(2_000)
-    saveResponse(db, ctx, { activityId: a.id, pageId: 'p1', blockId: 'q1', payload: { kind: 'mcq', selectedId: 'b', correct: true } })
+    saveResponse(db, ctx, {
+      activityId: a.id,
+      pageId: 'p1',
+      blockId: 'q1',
+      payload: { kind: 'mcq', selectedId: 'b', correct: true },
+    })
 
     const rows = listResponses(db, a.id)
     expect(rows).toHaveLength(1)

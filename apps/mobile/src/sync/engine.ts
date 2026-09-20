@@ -74,7 +74,9 @@ async function runSync(): Promise<SyncOutcome> {
     const { push, cursor: pushCursor } = collectPush(db, cursors.lastPushAt)
     for (let i = 0; i < push.length; i += PUSH_BATCH) {
       const rows = push.slice(i, i + PUSH_BATCH).map((payload) => toRow(userId, payload))
-      const { error } = await client.from(TABLE).upsert(rows, { onConflict: 'user_id,table_name,id' })
+      const { error } = await client
+        .from(TABLE)
+        .upsert(rows, { onConflict: 'user_id,table_name,id' })
       if (error) throw new Error(error.message)
     }
 
@@ -82,7 +84,11 @@ async function runSync(): Promise<SyncOutcome> {
     setSyncCursors(db, { lastPullAt: pull.cursor, lastPushAt: pushCursor, lastSyncedAt: at })
     return { ok: true, pushed: push.length, pulled: pull.applied, at }
   } catch (error) {
-    return { ok: false, reason: 'failed', message: error instanceof Error ? error.message : undefined }
+    return {
+      ok: false,
+      reason: 'failed',
+      message: error instanceof Error ? error.message : undefined,
+    }
   }
 }
 

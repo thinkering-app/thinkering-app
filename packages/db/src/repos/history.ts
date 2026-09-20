@@ -49,7 +49,9 @@ function interestFilter(interestIds: string[] | undefined) {
   return interestIds === undefined ? [] : [inArray(activities.interestId, interestIds)]
 }
 
-function rows(query: { all: () => (Omit<HistoryRow, 'completedAt'> & { completedAt: number | null })[] }): HistoryRow[] {
+function rows(query: {
+  all: () => (Omit<HistoryRow, 'completedAt'> & { completedAt: number | null })[]
+}): HistoryRow[] {
   return query.all().filter((row): row is HistoryRow => row.completedAt !== null)
 }
 

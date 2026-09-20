@@ -27,7 +27,9 @@ describe('recorded fixtures', () => {
   it.each(KINDS)('%s parses against its output schema', (kind) => {
     const recorded = RECORDED_RESPONSES[kind]!
     const result = schemaFor(kind).safeParse(JSON.parse(extractJsonText(recorded.text)))
-    expect(result.success, JSON.stringify(!result.success && result.error.issues.slice(0, 5))).toBe(true)
+    expect(result.success, JSON.stringify(!result.success && result.error.issues.slice(0, 5))).toBe(
+      true,
+    )
   })
 })
 

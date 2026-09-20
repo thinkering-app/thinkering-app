@@ -78,7 +78,7 @@ async function main() {
 
   // ── RLS: nobody else can see or touch it ─────────────────────────────────
   const intruder = await pull(bob, 0)
-  check("another account sees none of it", intruder.length === 0, `${intruder.length} rows`)
+  check('another account sees none of it', intruder.length === 0, `${intruder.length} rows`)
 
   // ── D17: the server refuses a build older than the floor ─────────────────
   const stale = await bob.client.from('sync_rows').insert({
@@ -90,10 +90,17 @@ async function main() {
     schema_version: 0,
     data: {},
   })
-  check('the schema_version floor rejects an out-of-date build', stale.error !== null, 'accepted it')
+  check(
+    'the schema_version floor rejects an out-of-date build',
+    stale.error !== null,
+    'accepted it',
+  )
 
   // ── turning backup off removes the server copy ───────────────────────────
-  const { error: deleteError } = await alice.client.from('sync_rows').delete().eq('user_id', alice.id)
+  const { error: deleteError } = await alice.client
+    .from('sync_rows')
+    .delete()
+    .eq('user_id', alice.id)
   const left = await pull(alice, 0)
   check(
     'turning backup off deletes the server copy',
@@ -112,8 +119,13 @@ interface Signed {
 async function signedInClient(label: string): Promise<Signed> {
   const email = `sync-check+${label}-${Date.now()}@thinkering.app`
   const password = `check-${Math.random().toString(36).slice(2)}-${Date.now()}`
-  const { data, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true })
-  if (error || !data.user) throw new Error(`could not create the ${label} test user: ${error?.message}`)
+  const { data, error } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+  })
+  if (error || !data.user)
+    throw new Error(`could not create the ${label} test user: ${error?.message}`)
   createdUsers.push(data.user.id)
 
   const client = createClient(url, publishableKey, { auth: { persistSession: false } })
