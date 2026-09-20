@@ -19,8 +19,16 @@ export const approachOutputSchema = z.object({
 })
 export type ApproachOutput = z.infer<typeof approachOutputSchema>
 
-/** G2 `intake.topics` — ~10 chips; the origin mix is invisible to the user. */
-export const topicsOutputSchema = z.object({
+/**
+ * G2 `intake.choices` — what the learner picks from on steps 4 and 5: ~10 topic
+ * chips (the origin mix is invisible to them) and a few first-person outcomes
+ * ("I can…", "I understand…"). One call rather than two: the params are
+ * identical, and asking twice paid for the same reasoning twice.
+ *
+ * `topics` comes first on the wire so step 4 can render it while the outcomes
+ * are still being written (see extractPartialTopics).
+ */
+export const choicesOutputSchema = z.object({
   topics: z
     .array(
       z.object({
@@ -31,17 +39,9 @@ export const topicsOutputSchema = z.object({
     )
     .min(6)
     .max(14),
-})
-export type TopicsOutput = z.infer<typeof topicsOutputSchema>
-
-/**
- * G2b `intake.success` — short first-person outcomes ("I can…", "I understand…")
- * the learner picks from on "What would feel like success?".
- */
-export const successOutputSchema = z.object({
   outcomes: z.array(z.string().min(1).max(80)).min(3).max(6),
 })
-export type SuccessOutput = z.infer<typeof successOutputSchema>
+export type ChoicesOutput = z.infer<typeof choicesOutputSchema>
 
 /**
  * G8a `reflect.open` — what the reflection flow shows before the learner

@@ -2,6 +2,7 @@ export {
   callAi,
   AiBudgetError,
   AiOutputError,
+  isSearchFailure,
   type AiCallOptions,
   type AiCallResult,
 } from './client'

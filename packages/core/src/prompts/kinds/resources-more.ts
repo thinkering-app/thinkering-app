@@ -1,0 +1,72 @@
+import { z } from 'zod'
+import { resourcesSearchOutputSchema, type ResourcesSearchOutput } from '../../schemas/generations'
+import { buildInterestContext, type InterestContextInput } from '../context-assembly'
+import { SHARED_PREAMBLE } from '../preamble'
+import { excludeUrlLines, RESOURCE_JSON, RESOURCE_RULES } from '../resource-rules'
+import type { PromptTemplate } from '../types'
+
+/**
+ * G12 `resources.more` — Find more, in the resources panel. The half of
+ * resource searching the learner asks for, against G4's two-item seed.
+ *
+ * A separate kind rather than a parameter on G4 because the two differ in
+ * their search budget, and `tools` is a template field: request fields come
+ * only from `modelRequestFields` (docs/04), never from a call site. They also
+ * differ in intent — G4 seeds what early activities need, this ranges over the
+ * whole path — which is enough to want its own brief and its own version.
+ *
+ * Deliberate, so it can spend more than G4, but still background: a search
+ * runs for minutes, so the panel doesn't wait on it (docs/01 §5).
+ */
+
+export const resourcesMoreParamsSchema = z.object({
+  context: z.custom<InterestContextInput>((v) => typeof v === 'object' && v !== null),
+  /** Exact goal titles — matches must come back as one of these. */
+  goalTitles: z.array(z.string()).min(1),
+  topics: z.array(z.string()).optional(),
+  /** Every saved URL. Asking for more is asking for what they don't have. */
+  excludeUrls: z.array(z.string()).optional(),
+})
+export type ResourcesMoreParams = z.infer<typeof resourcesMoreParamsSchema>
+
+const INSTRUCTIONS = `Task: find more resources for a learner who has some already and asked for others, using web search.
+
+${RESOURCE_JSON}
+
+Rules:
+- Two to four resources, across the whole path — not only the goals they start with. Later goals are usually the ones still missing something.
+- They asked for more, so bring them somewhere they haven't been. A resource from a site they already have, covering ground they already have, is not more.
+- Vary what they are and where they come from. Never two from the same site, and not all of one kind.
+${RESOURCE_RULES}`
+
+export const resourcesMoreTemplate: PromptTemplate<ResourcesMoreParams, ResourcesSearchOutput> = {
+  kind: 'resources.more',
+  version: 1,
+  model: 'sonnet',
+  maxTokens: 16000,
+  effort: 'medium',
+  tools: { webSearch: { maxUses: 4 } },
+  paramsSchema: resourcesMoreParamsSchema,
+  outputSchema: resourcesSearchOutputSchema,
+  render: (params) => ({
+    system: [
+      { text: SHARED_PREAMBLE, cache: true },
+      { text: INSTRUCTIONS, cache: true },
+    ],
+    messages: [
+      {
+        role: 'user',
+        content: [
+          buildInterestContext(params.context),
+          '',
+          'Goal titles to match against, exactly:',
+          ...params.goalTitles.map((t) => `- ${t}`),
+          ...(params.topics && params.topics.length > 0
+            ? ['', `Topics they are interested in: ${params.topics.join(', ')}`]
+            : []),
+          ...excludeUrlLines(params.excludeUrls),
+        ].join('\n'),
+      },
+    ],
+  }),
+}

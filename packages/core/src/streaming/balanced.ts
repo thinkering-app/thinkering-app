@@ -13,12 +13,20 @@ export function findArrayStart(text: string, key: string): number {
   return bracket === -1 ? -1 : bracket + 1
 }
 
+export interface ArrayScan {
+  /** The complete, balanced top-level `{…}` substrings seen so far. */
+  objects: string[]
+  /** The array's own `]` arrived: `objects` is all of it, and nothing more is coming. */
+  closed: boolean
+}
+
 /**
- * Extracts the complete, balanced top-level `{…}` substrings from an array body,
- * stopping at the array's closing bracket. A trailing half-written object is
- * simply absent — that's the point.
+ * Scans an array body, reporting both its finished objects and whether the
+ * array has closed. A caller that only renders what has arrived wants the
+ * objects; one that has to decide "is this all of them?" needs `closed`, and
+ * must not infer it from whatever follows the array in the document.
  */
-export function balancedObjects(text: string): string[] {
+export function scanArrayObjects(text: string): ArrayScan {
   const objects: string[] = []
   let depth = 0
   let start = -1
@@ -43,10 +51,19 @@ export function balancedObjects(text: string): string[] {
         start = -1
       }
     } else if (ch === ']' && depth === 0) {
-      break // end of the array
+      return { objects, closed: true } // end of the array
     }
   }
-  return objects
+  return { objects, closed: false }
+}
+
+/**
+ * Extracts the complete, balanced top-level `{…}` substrings from an array body,
+ * stopping at the array's closing bracket. A trailing half-written object is
+ * simply absent — that's the point.
+ */
+export function balancedObjects(text: string): string[] {
+  return scanArrayObjects(text).objects
 }
 
 /** Reads a string field out of a partial document head, unescaping it. */

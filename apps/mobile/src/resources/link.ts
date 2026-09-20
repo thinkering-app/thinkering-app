@@ -89,6 +89,16 @@ export function hostOf(url: string): string {
   }
 }
 
+/**
+ * When two resources are the same one. Used to keep a search from saving a
+ * URL the learner already has: a model told not to return them can still do
+ * it, and nothing below this point would notice.
+ */
+export function sameResourceKey(url: string): string {
+  const normalized = normalizeUrl(url) ?? url.trim()
+  return normalized.replace(/\/+$/, '').toLowerCase()
+}
+
 /** Accepts what people actually paste, including a bare domain. */
 export function normalizeUrl(input: string): string | null {
   const trimmed = input.trim()

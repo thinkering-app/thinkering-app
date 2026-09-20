@@ -1,11 +1,6 @@
 import { z } from 'zod'
 import { EXPERIENCE_CHOICES, FREQUENCIES, WHY_CHOICES } from '../domain'
-import {
-  approachOutputSchema,
-  pathOutputSchema,
-  successOutputSchema,
-  topicsOutputSchema,
-} from '../schemas/generations'
+import { approachOutputSchema, choicesOutputSchema, pathOutputSchema } from '../schemas/generations'
 
 /**
  * An intake that hasn't finished yet (docs/01 §1): the answers so far, the step
@@ -65,8 +60,7 @@ export const intakeDraftSchema = z.object({
   /** The step they were last on, 1-based. */
   step: z.number().int().min(1).max(INTAKE_STEP_TOTAL),
   approach: keyed(approachOutputSchema),
-  topics: keyed(topicsOutputSchema),
-  success: keyed(successOutputSchema),
+  choices: keyed(choicesOutputSchema),
   path: keyed(pathOutputSchema),
   updatedAt: z.number(),
 })
@@ -84,7 +78,7 @@ export function isDraftWorthKeeping(answers: IntakeAnswers): boolean {
 
 /**
  * The furthest step the answers allow: each step needs the required answers
- * before it. Topics and success have no required answer, so a complete set
+ * before it. Topics and outcomes have no required answer, so a complete set
  * reaches step 7.
  */
 export function furthestIntakeStep(answers: IntakeAnswers): number {

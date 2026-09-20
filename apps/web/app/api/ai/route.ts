@@ -26,6 +26,58 @@ export const maxDuration = 300
 /** Generous: English runs near 4 characters a token, and JSON escaping adds a little. */
 const MAX_CHARS_PER_TOKEN = 6
 
+/**
+ * Charging a cancelled stream (docs/04 §Usage metering). The real output count
+ * arrives only in `message_delta`, at the end, so a call the client walked away
+ * from has to be charged from what actually reached us. Deliberately low —
+ * overestimating tokens is the safe direction, and either way it beats the
+ * reservation, which runs several times a finished call.
+ */
+const CHARS_PER_OUTPUT_TOKEN = 3
+
+/**
+ * Wire code for a generation whose web search failed, matched by name in the
+ * mobile client (`apps/mobile/src/ai/client.ts`). Distinct from
+ * `upstream_error` because the client must not retry it.
+ */
+const SEARCH_UNAVAILABLE = 'search_unavailable'
+
+const TOOL_RESULT_TYPES = new Set(['web_search_tool_result', 'web_fetch_tool_result'])
+
+/**
+ * The error code of a failed server tool, if this content block is one.
+ *
+ * Server tools don't raise. A search that was rate limited or ran out of uses
+ * comes back as a normal 200 whose tool-result block holds a single error
+ * object instead of a list of results, so an outage is indistinguishable from
+ * a good answer unless it is looked for. Unlooked-for, it gets billed as `ok`,
+ * and the model's narration about why it couldn't search reads downstream as
+ * malformed output — which invites a repair, running the same searches again
+ * for the same failure (docs/04 §Usage metering).
+ */
+function serverToolError(block: unknown): string | undefined {
+  const { type, content } = (block ?? {}) as { type?: string; content?: unknown }
+  if (type === undefined || !TOOL_RESULT_TYPES.has(type)) return undefined
+  // Success is a list of results; failure is one object carrying `error_code`.
+  if (content === null || typeof content !== 'object' || Array.isArray(content)) return undefined
+  return (content as { error_code?: string }).error_code ?? 'unknown'
+}
+
+function toolErrorOf(blocks: readonly unknown[]): string | undefined {
+  for (const block of blocks) {
+    const code = serverToolError(block)
+    if (code !== undefined) return code
+  }
+  return undefined
+}
+
+/** Named so `settle` records it as its own error type rather than a generic one. */
+function toolFailure(code: string): Error {
+  const error = new Error(`server tool failed: ${code}`)
+  error.name = `search:${code}`
+  return error
+}
+
 const bodySchema = z.object({
   kind: z.string().min(1),
   params: z.unknown(),
@@ -109,6 +161,15 @@ export async function POST(req: Request): Promise<Response> {
   const request = toAnthropicRequest(template, rendered)
   const model = request.model
 
+  /**
+   * The SDK retries 429s and 5xxs twice by default. On a kind that searches
+   * the web that turns one rate-limited call into three, each running its own
+   * searches and each billed — and the thing being rate limited is usually the
+   * search, so the retries fail the same way. These kinds surface the failure
+   * instead (docs/04 §Usage metering).
+   */
+  const requestOptions = template.tools?.webSearch ? { maxRetries: 0 } : {}
+
   // Reserve before calling: the call is counted and its most expensive outcome
   // held against the budget up front, so parallel requests see each other.
   // Settling afterwards swaps the held output for the real count.
@@ -121,10 +182,11 @@ export async function POST(req: Request): Promise<Response> {
     outputTokens: reservedOutput,
   }
   const before = withoutDelta(await store.addUsage(auth.deviceId, day, reservation), reservation)
-  const headers = budgetHeaders(before.device, now())
+  const headers = budgetHeaders(before.device, now(), before.bonusWeighted)
   const decision = checkBudget(template.kind, before.device, {
     repair: body.data.repair !== undefined,
     total: before.total,
+    bonusWeighted: before.bonusWeighted,
   })
   if (!decision.allowed) {
     await store.addUsage(auth.deviceId, day, reverseDelta(reservation))
@@ -139,32 +201,33 @@ export async function POST(req: Request): Promise<Response> {
   let settled = false
   /**
    * Records the call once, whichever way it ends. `outputTokens` undefined
-   * means the model may have generated tokens we never got a count for (a
-   * stream cut short), so the reservation stands as the charge.
+   * means we never got a real count: `fallback` is then the charge, defaulting
+   * to the reservation because the model may have generated tokens we lost.
    */
   const settle = async (
     inputTokens: number,
     outputTokens: number | undefined,
     status: 'ok' | 'error',
-    e?: unknown,
+    opts: { fallback?: number; error?: unknown } = {},
   ) => {
     if (settled) return
     settled = true
+    const charged = outputTokens ?? opts.fallback ?? reservedOutput
     logAiCall({
       kind: template.kind,
       model,
       status,
       inputTokens,
-      outputTokens: outputTokens ?? reservedOutput,
+      outputTokens: charged,
       latencyMs: now() - started,
-      ...(e ? { errorType: (e as Error).name } : {}),
+      ...(opts.error ? { errorType: (opts.error as Error).name } : {}),
     })
     try {
       const after = await store.addUsage(auth.deviceId, day, {
         counters: [],
         calls: 0,
         inputTokens,
-        outputTokens: (outputTokens ?? reservedOutput) - reservedOutput,
+        outputTokens: charged - reservedOutput,
       })
       await alertOnSpend(day, after.total)
     } catch (err) {
@@ -180,7 +243,14 @@ export async function POST(req: Request): Promise<Response> {
 
   try {
     if (!body.data.stream) {
-      const message = await anthropic().messages.create(request)
+      const message = await anthropic().messages.create(request, requestOptions)
+      const toolError = toolErrorOf(message.content)
+      if (toolError !== undefined) {
+        await settle(message.usage.input_tokens, message.usage.output_tokens, 'error', {
+          error: toolFailure(toolError),
+        })
+        return Response.json({ error: SEARCH_UNAVAILABLE }, { status: 502, headers })
+      }
       const text = message.content
         .filter((b): b is Anthropic.TextBlock => b.type === 'text')
         .map((b) => b.text)
@@ -201,10 +271,18 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     // SSE passthrough: forward Anthropic's stream events as our own SSE lines.
-    const stream = await anthropic().messages.create({ ...request, stream: true })
+    const stream = await anthropic().messages.create({ ...request, stream: true }, requestOptions)
     const encoder = new TextEncoder()
     let inputTokens = 0
     let outputTokens: number | undefined
+    /** The first failed server tool of the turn, if the search broke. */
+    let toolError: string | undefined
+    /** Characters of billable output seen so far — what a cancelled call is charged on. */
+    let streamedChars = 0
+    /** Set by `cancel`: this stream was stopped by us, not broken under us. */
+    let clientGone = false
+    const streamedOutput = () =>
+      Math.min(reservedOutput, Math.ceil(streamedChars / CHARS_PER_OUTPUT_TOKEN))
     const readable = new ReadableStream<Uint8Array>({
       async start(controller) {
         // After the client disconnects the controller refuses writes; the
@@ -222,13 +300,35 @@ export async function POST(req: Request): Promise<Response> {
               inputTokens = event.message.usage.input_tokens
             } else if (event.type === 'message_delta') {
               outputTokens = event.usage.output_tokens
+            } else if (event.type === 'content_block_delta') {
+              // Thinking is billed as output, so it counts too; the signature
+              // that follows it is a blob, not tokens.
+              if (event.delta.type === 'text_delta') streamedChars += event.delta.text.length
+              else if (event.delta.type === 'thinking_delta')
+                streamedChars += event.delta.thinking.length
+            } else if (event.type === 'content_block_start') {
+              toolError ??= serverToolError(event.content_block)
             }
             send(event.type, event)
           }
-          send('done', {})
-          await settle(inputTokens, outputTokens, 'ok')
+          if (toolError !== undefined) {
+            // The turn completed, so it is paid for either way; what it must
+            // not do is look like a usable answer.
+            await settle(inputTokens, outputTokens, 'error', { error: toolFailure(toolError) })
+            send('proxy_error', { message: SEARCH_UNAVAILABLE })
+          } else {
+            send('done', {})
+            await settle(inputTokens, outputTokens, 'ok')
+          }
         } catch (e) {
-          await settle(inputTokens, outputTokens, 'error', e)
+          // A client that walked away is charged for what it streamed: we
+          // stopped the generation ourselves, so there is nothing more to pay
+          // for. A stream that broke under us keeps the reservation, since a
+          // response Anthropic billed for may have been lost (docs/04).
+          await settle(inputTokens, outputTokens, 'error', {
+            error: e,
+            ...(clientGone ? { fallback: streamedOutput() } : {}),
+          })
           send('proxy_error', { message: 'upstream_error' })
         }
         try {
@@ -238,8 +338,10 @@ export async function POST(req: Request): Promise<Response> {
         }
       },
       // The client went away: stop the generation it will never read. The loop
-      // above then ends and settles, holding the reservation as the charge.
+      // above then ends and settles, charging what had streamed by now. This
+      // runs before the abort it causes, so the flag is always set in time.
       cancel() {
+        clientGone = true
         stream.controller.abort()
       },
     })
@@ -257,7 +359,7 @@ export async function POST(req: Request): Promise<Response> {
     // counts. A connection error or timeout may have lost a response Anthropic
     // did bill for, so there the hold stands.
     const rejected = e instanceof Anthropic.APIError && e.status !== undefined
-    await settle(0, rejected ? 0 : undefined, 'error', e)
+    await settle(0, rejected ? 0 : undefined, 'error', { error: e })
     return Response.json({ error: 'upstream_error' }, { status: 502, headers })
   }
 }

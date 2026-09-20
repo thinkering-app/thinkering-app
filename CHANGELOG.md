@@ -8,6 +8,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Added
 
+- Have a code? In Me → Settings → AI, a code we've given you adds to your
+  daily amount from then on.
 - A page written in answer to something you asked now shows your question at
   the top of it, so it still reads as a reply when you come back to it.
 - Anonymous, opt-in usage analytics — off until you say yes, asked once on the
@@ -37,6 +39,15 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- A new interest starts with two suggested resources — one to watch and one to
+  read — rather than a list to work through. Each points at a single video or
+  article you can open, not a channel or a home page.
+- Find more, in Resources, looks for more whenever you want them, across your
+  whole path and skipping anything you already have. It keeps looking if you
+  leave the screen.
+- Today writes the Next card ahead of time; Strengthen and Go further say
+  Write and are written when you ask for one. Nothing is generated for a card
+  you never open.
 - The look back at your answers, just before the end of an activity, is one
   short paragraph on the single thing worth saying — not a second lesson.
 - The recap at the end of an activity is shorter too: a line or two on the
@@ -82,6 +93,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Fixed
 
+- Leaving a screen while something was being written no longer counts the
+  whole generation against your daily amount, so you reach the cap far less
+  often.
 - A page you asked for mid-activity stays where it was put. It could disappear
   moments after arriving — taking you to the end of the activity with it — if
   the review page was still being written when you asked.

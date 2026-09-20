@@ -1,6 +1,8 @@
 import { pageToPlainText } from '../activity/describe'
+import { resourceMediaOf, youtubeVideoId } from '../activity/resources'
 import type { ActivityDoc } from '../schemas/activity-doc'
 import { isInteractiveBlock, type Block } from '../schemas/blocks'
+import type { ResourcesSearchOutput } from '../schemas/generations'
 
 /**
  * Structural and tone assertions shared by `pnpm prompt:check` and tests
@@ -203,5 +205,124 @@ export function checkActivityDoc(
   }
 
   issues.push(...toneLintOutput(doc, `doc "${doc.title}"`))
+  return issues
+}
+
+/**
+ * What a resource search was asked for, which differs by kind and which the
+ * shared output schema deliberately stays loose around: the schema guards what
+ * the app stores, this guards what the prompt was meant to produce.
+ */
+export interface ResourceExpectations {
+  goalTitles: readonly string[]
+  count: { min: number; max: number }
+  /**
+   * G4 seeds one video and one article: watch-along wants a video,
+   * guided-reading wants an article, and pickResource silently falls back to
+   * whatever is saved when the media it wants is absent.
+   */
+  mediaSplit?: boolean
+  /** Saved URLs the search was told not to return. */
+  excludeUrls?: readonly string[]
+}
+
+function hostOf(url: string): string | undefined {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '').toLowerCase()
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * A page the learner opens, rather than a place to browse from. Only the two
+ * shapes we can judge without guessing: a YouTube URL that isn't one video
+ * (a channel, playlist or search), and a bare homepage. `groundBlocks` already
+ * refuses to play either inside an activity, so a saved one is dead weight.
+ */
+function hubReason(url: string): string | undefined {
+  const host = hostOf(url)
+  if (host === undefined) return undefined
+  if (/(^|\.)(youtube\.com|youtu\.be)$/.test(host) && !youtubeVideoId(url)) {
+    return 'a YouTube channel, playlist or search, not one video'
+  }
+  try {
+    const { pathname, search } = new URL(url)
+    if (pathname.replace(/\/+$/, '') === '' && search === '') return 'a site homepage'
+  } catch {
+    return undefined
+  }
+  return undefined
+}
+
+/**
+ * Structural checks for a resource search (G4, G12) beyond what the schema
+ * enforces: the count and variety the prompt asks for, the media split early
+ * activities depend on, goal titles that will survive the client's exact-title
+ * matching, and pages specific enough to build on.
+ */
+export function checkResources(
+  output: ResourcesSearchOutput,
+  expected: ResourceExpectations,
+): CheckIssue[] {
+  const issues: CheckIssue[] = []
+  const { resources } = output
+  const { min, max } = expected.count
+
+  if (resources.length < min || resources.length > max) {
+    issues.push({
+      check: 'count',
+      message: `${resources.length} resources (expected ${min === max ? min : `${min}–${max}`})`,
+    })
+  }
+
+  if (expected.mediaSplit) {
+    const media = resources.map((r) => resourceMediaOf(r.url))
+    if (!media.includes('video') || !media.includes('article')) {
+      issues.push({
+        check: 'media-split',
+        message: `needs one video and one article; got ${media.join(' + ') || 'nothing'}`,
+      })
+    }
+  }
+
+  const excluded = new Set((expected.excludeUrls ?? []).map((u) => u.toLowerCase()))
+  const seen = new Map<string, string>()
+  for (const resource of resources) {
+    const host = hostOf(resource.url)
+    if (host !== undefined) {
+      const first = seen.get(host)
+      if (first !== undefined) {
+        issues.push({
+          check: 'variety',
+          message: `two from ${host}: "${first}" and "${resource.title}"`,
+        })
+      } else {
+        seen.set(host, resource.title)
+      }
+    }
+
+    if (excluded.has(resource.url.toLowerCase())) {
+      issues.push({
+        check: 'duplicate',
+        message: `"${resource.title}" is already saved: ${resource.url}`,
+      })
+    }
+
+    const hub = hubReason(resource.url)
+    if (hub)
+      issues.push({ check: 'specific', message: `"${resource.title}" is ${hub}: ${resource.url}` })
+
+    for (const title of resource.goalTitles) {
+      if (!expected.goalTitles.includes(title)) {
+        issues.push({
+          check: 'goal-titles',
+          message: `"${resource.title}" names a goal that isn't on the path, so it will be dropped: "${title}"`,
+        })
+      }
+    }
+  }
+
+  issues.push(...toneLintOutput(output, 'resources'))
   return issues
 }

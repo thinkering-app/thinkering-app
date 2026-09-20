@@ -24,7 +24,11 @@ import { db } from '@/db'
  * packages/core; this is only the reading.
  */
 
-const RECENT_HISTORY = 10
+/**
+ * How much history every context block carries. Exported because a cache keyed
+ * on what a prompt read has to use the same window — see `reflectScope`.
+ */
+export const RECENT_HISTORY = 10
 
 export function librarySituation(goals: readonly Goal[]): LibrarySituation {
   return { startedGoalCount: goals.filter((g) => g.status !== 'not_started').length }

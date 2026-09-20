@@ -1,3 +1,5 @@
+import { hashBudgetCode } from './budget-code'
+
 /**
  * Metering store (docs/02 §Device identity, docs/04 §Usage metering).
  * Operational data only — never user learning data, never prompt/response
@@ -46,6 +48,12 @@ export interface TokenTotals {
 export interface UsageAfter {
   device: UsageRecord
   total: TokenTotals
+  /**
+   * Extra daily budget this device holds from redeemed codes, 0 for most.
+   * Returned here rather than fetched on its own: every generation needs it,
+   * and this call already runs on that path (docs/04 §Usage metering).
+   */
+  bonusWeighted: number
 }
 
 export interface MeteringStore {
@@ -59,12 +67,25 @@ export interface MeteringStore {
    * the others' reservations (docs/04 §Usage metering).
    */
   addUsage(deviceId: string, day: string, delta: UsageDelta): Promise<UsageAfter>
+  /** The same bonus on its own, for the usage meter — not a hot path. */
+  getBonus(deviceId: string): Promise<number>
   /**
-   * Persistent per-device/day counters for the routes that don't spend tokens
-   * (docs/02 §Feedback). A count, never any submitted content.
+   * Claims a code for a device, once and for all. Returns the weighted bonus
+   * granted, or null when the code is unknown, expired or already redeemed —
+   * which the caller must not tell apart (docs/02 §Device identity).
    */
-  getActionCount(deviceId: string, day: string, action: string): Promise<number>
-  addAction(deviceId: string, day: string, action: string): Promise<void>
+  redeemCode(codeHash: string, deviceId: string): Promise<number | null>
+  /** How a typed code becomes the stored hash; the store owns the key it uses. */
+  hashCode(code: string): string
+  /**
+   * Counts a signed action from a device for a UTC day and returns the count
+   * including this one — the persistent per-day limits on the routes that
+   * don't spend tokens (docs/02 §Feedback). A count, never any submitted
+   * content. One operation, like `countIpAction`: a read followed by a write
+   * lets concurrent requests all read the same count and each write it back,
+   * which is no limit at all against a caller making them in parallel.
+   */
+  countDeviceAction(deviceId: string, day: string, action: string): Promise<number>
   /**
    * Counts an unsigned action from an IP address for a UTC day and returns the
    * count including this one (docs/02 §Device identity). Persistent stores key
@@ -85,6 +106,8 @@ export class MemoryStore implements MeteringStore {
   private totals = new Map<string, TokenTotals>()
   private ipActions = new Map<string, number>()
   private spendAlerts = new Set<string>()
+  private codes = new Map<string, { bonusWeighted: number; redeemedBy?: string }>()
+  private bonuses = new Map<string, number>()
 
   async createDevice(device: DeviceRecord): Promise<void> {
     this.devices.set(device.deviceId, device)
@@ -117,16 +140,37 @@ export class MemoryStore implements MeteringStore {
     }
     this.usage.set(`${deviceId}:${day}`, device)
     this.totals.set(day, total)
-    return { device, total }
+    return { device, total, bonusWeighted: this.bonuses.get(deviceId) ?? 0 }
   }
 
-  async getActionCount(deviceId: string, day: string, action: string): Promise<number> {
-    return this.actions.get(`${deviceId}:${day}:${action}`) ?? 0
+  async getBonus(deviceId: string): Promise<number> {
+    return this.bonuses.get(deviceId) ?? 0
   }
 
-  async addAction(deviceId: string, day: string, action: string): Promise<void> {
+  async redeemCode(codeHash: string, deviceId: string): Promise<number | null> {
+    const code = this.codes.get(codeHash)
+    if (!code || code.redeemedBy) return null
+    code.redeemedBy = deviceId
+    this.bonuses.set(deviceId, (this.bonuses.get(deviceId) ?? 0) + code.bonusWeighted)
+    return code.bonusWeighted
+  }
+
+  hashCode(code: string): string {
+    // A fixed key: this store only ever exists in dev and tests, where there
+    // is no secret to protect, but the shape has to match Supabase's.
+    return hashBudgetCode('memory-store', code)
+  }
+
+  /** Test seam: production codes are created by `pnpm codes:new`, never here. */
+  addCodeForTests(code: string, bonusWeighted: number): void {
+    this.codes.set(this.hashCode(code), { bonusWeighted })
+  }
+
+  async countDeviceAction(deviceId: string, day: string, action: string): Promise<number> {
     const key = `${deviceId}:${day}:${action}`
-    this.actions.set(key, (this.actions.get(key) ?? 0) + 1)
+    const count = (this.actions.get(key) ?? 0) + 1
+    this.actions.set(key, count)
+    return count
   }
 
   async countIpAction(ip: string, day: string, action: 'register'): Promise<number> {

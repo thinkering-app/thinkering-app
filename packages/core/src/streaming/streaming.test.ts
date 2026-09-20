@@ -4,6 +4,7 @@ import { extractJsonText } from './json'
 import { extractPartialBlocks } from './partial-blocks'
 import { extractPartialActivityDoc } from './partial-doc'
 import { extractPartialPath } from './partial-path'
+import { extractPartialTopics } from './partial-topics'
 import { accumulateEvent, emptyAccumulator, SseParser } from './sse'
 
 describe('SseParser', () => {
@@ -171,6 +172,93 @@ describe('extractJsonText', () => {
     expect(JSON.parse(extractJsonText(raw))).toEqual({
       description: "so exchanges don't dead-end.\n",
       tab: 'a\tb',
+    })
+  })
+})
+
+describe('extractPartialTopics', () => {
+  const topic = (label: string) => ({ label, origin: 'foundational', blurb: `About ${label}.` })
+  const LABELS = [
+    'Noun genders',
+    'Present tense',
+    'Numbers',
+    'Greetings',
+    'Word order',
+    'Food and drink',
+    'Asking questions',
+  ]
+  /** The schema wants 6–14, so a realistic array is six or more. */
+  const topics = (n: number) => LABELS.slice(0, n).map(topic)
+  const document = (
+    n: number,
+    outcomes = ['I can order food', 'I can read a menu', 'I can ask for the bill'],
+  ) => JSON.stringify({ topics: topics(n), outcomes })
+  const full = document(6)
+
+  it('yields each topic as its object closes', () => {
+    expect(extractPartialTopics(full.slice(0, 20))).toEqual({ topics: [], complete: false })
+    const afterFirst = full.indexOf('},') + 1
+    expect(extractPartialTopics(full.slice(0, afterFirst)).topics).toEqual([topic('Noun genders')])
+  })
+
+  /**
+   * The point of the merge: step 4 renders while the outcomes for step 5 are
+   * still being written, so one call costs no more waiting than two did.
+   */
+  it('reports the topics complete as soon as outcomes begin, before the stream ends', () => {
+    const atOutcomes = full.indexOf('"outcomes"') + '"outcomes": ['.length
+    const partial = extractPartialTopics(full.slice(0, atOutcomes))
+    expect(partial.complete).toBe(true)
+    expect(partial.topics).toHaveLength(6)
+  })
+
+  it('stops at a topic that does not validate rather than showing half a chip', () => {
+    const broken = JSON.stringify({ topics: [topic('Noun genders'), { label: 'No origin' }] })
+    expect(extractPartialTopics(broken).topics).toEqual([topic('Noun genders')])
+  })
+
+  /**
+   * Key order is the model's to get wrong. Every case below would once have
+   * read some text after the topics as proof there was no more to come, and
+   * frozen step 4 on a fraction of its chips; now they wait for the finished
+   * call instead, which is a wait rather than a broken step.
+   */
+  it('does not call the topics complete while they stream after the outcomes', () => {
+    const reversed = JSON.stringify({
+      outcomes: ['I can order food'],
+      topics: topics(6),
+    })
+    const midTopics = reversed.indexOf('Present tense')
+    const partial = extractPartialTopics(reversed.slice(0, midTopics))
+    expect(partial.topics).toEqual([topic('Noun genders')])
+    expect(partial.complete).toBe(false)
+
+    expect(extractPartialTopics(reversed).complete).toBe(true)
+  })
+
+  it('does not call the topics complete when one of a closed array is malformed', () => {
+    const broken = JSON.stringify({
+      topics: [...topics(5), { label: 'No origin' }, topic('Asking questions')],
+      outcomes: ['I can order food'],
+    })
+    expect(extractPartialTopics(broken).complete).toBe(false)
+  })
+
+  /**
+   * A closed array is not the whole test: the finished call is validated
+   * against `choicesOutputSchema`, which wants 6–14, so releasing four would
+   * fill step 4 with chips the same call is about to have repaired or fail on.
+   */
+  it('does not release a closed array the output schema would reject', () => {
+    expect(extractPartialTopics(document(4)).complete).toBe(false)
+    expect(extractPartialTopics(document(4)).topics).toHaveLength(4)
+    expect(extractPartialTopics(document(6)).complete).toBe(true)
+  })
+
+  it('does not call an empty topics array complete', () => {
+    expect(extractPartialTopics(JSON.stringify({ topics: [], outcomes: [] }))).toEqual({
+      topics: [],
+      complete: false,
     })
   })
 })

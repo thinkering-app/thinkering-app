@@ -18,6 +18,8 @@ type TextFieldProps = {
   keyboardType?: TextInputProps['keyboardType']
   autoCapitalize?: TextInputProps['autoCapitalize']
   autoComplete?: TextInputProps['autoComplete']
+  /** Off for anything that isn't prose — a pasted code should stay as typed. */
+  autoCorrect?: boolean
   /** Stable handle for the Maestro flows (docs/10 Tier 6). */
   testID?: string
 }
@@ -38,6 +40,7 @@ export function TextField({
   keyboardType,
   autoCapitalize,
   autoComplete,
+  autoCorrect,
   testID,
 }: TextFieldProps) {
   const [contentHeight, setContentHeight] = useState(0)
@@ -56,6 +59,7 @@ export function TextField({
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
         autoComplete={autoComplete}
+        autoCorrect={autoCorrect}
         submitBehavior={multiline ? 'newline' : 'blurAndSubmit'}
         returnKeyType={multiline ? 'default' : 'done'}
         onSubmitEditing={onSubmitEditing}

@@ -3,12 +3,12 @@ import activityQuestion from '../../fixtures/prompt-inputs/activity.question.jso
 import activityReview from '../../fixtures/prompt-inputs/activity.review.json'
 import intakeApproach from '../../fixtures/prompt-inputs/intake.approach.json'
 import intakePath from '../../fixtures/prompt-inputs/intake.path.json'
-import intakeSuccess from '../../fixtures/prompt-inputs/intake.success.json'
-import intakeTopics from '../../fixtures/prompt-inputs/intake.topics.json'
+import intakeChoices from '../../fixtures/prompt-inputs/intake.choices.json'
 import pathSuggestGoals from '../../fixtures/prompt-inputs/path.suggestGoals.json'
 import reflectOpen from '../../fixtures/prompt-inputs/reflect.open.json'
 import reflectUpdate from '../../fixtures/prompt-inputs/reflect.update.json'
 import resourceDescribe from '../../fixtures/prompt-inputs/resource.describe.json'
+import resourcesMore from '../../fixtures/prompt-inputs/resources.more.json'
 import resourcesSearch from '../../fixtures/prompt-inputs/resources.search.json'
 import routineCustomize from '../../fixtures/prompt-inputs/routine.customize.json'
 import todayPlan from '../../fixtures/prompt-inputs/today.plan.json'
@@ -23,8 +23,7 @@ import type { RenderedPrompt } from './types'
  */
 export const PROMPT_INPUTS: Record<ImplementedKind, unknown> = {
   'intake.approach': intakeApproach,
-  'intake.topics': intakeTopics,
-  'intake.success': intakeSuccess,
+  'intake.choices': intakeChoices,
   'intake.path': intakePath,
   'today.plan': todayPlan,
   'activity.generate': activityGenerate,
@@ -35,6 +34,7 @@ export const PROMPT_INPUTS: Record<ImplementedKind, unknown> = {
   'reflect.open': reflectOpen,
   'reflect.update': reflectUpdate,
   'resources.search': resourcesSearch,
+  'resources.more': resourcesMore,
   'resource.describe': resourceDescribe,
 }
 

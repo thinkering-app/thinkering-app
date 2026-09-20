@@ -7,6 +7,7 @@ import {
   acceptAddition,
   acceptProposal,
   addOwnGoal,
+  pathSignature,
   dismissAddition,
   dismissProposal,
   draftChanges,
@@ -24,15 +25,20 @@ import {
 } from '@thinkering/core'
 import {
   applyReflection,
+  getCachedUnexpiring,
   getInterest,
   listGoals,
+  listHistory,
   listTopics,
+  putCached,
   uuidv7,
+  type Goal,
+  type Interest,
   type ReflectionEntry,
 } from '@thinkering/db'
 
 import { callAi, describeAiError, useGeneration } from '@/ai'
-import { interestContext } from '@/ai/context'
+import { interestContext, RECENT_HISTORY } from '@/ai/context'
 import { Button } from '@/components/button'
 import { GenerationError } from '@/components/generation-error'
 import { Generating } from '@/components/generating'
@@ -50,8 +56,31 @@ import { colors } from '@/theme/tokens'
  * hoping for still holds, how their learning feels, then G8's proposed path
  * edits, which they accept, dismiss or override. G8a goes out as the flow
  * opens and gates nothing: its outcomes join step 1 and its recap step 2 when
- * they arrive. Nothing is written until they update the path.
+ * they arrive, and it is cached, so only the first open of an unchanged path
+ * pays for it. Nothing is written until they update the path.
  */
+
+const CACHE_KIND = 'reflect_open'
+
+/**
+ * What would make G8a's recap or its outcomes different: the path and its
+ * statuses, the outcomes they already hold, and the recent history the recap
+ * is written from. Nothing else in the context block reaches either, so
+ * browsing into the flow and back out reads the cache rather than generating
+ * again.
+ *
+ * History is the same window the context block carries, ratings included: a
+ * completed activity can be reopened from History and rated again, which
+ * changes what G8a is told without changing which activity is newest.
+ */
+function reflectScope(interest: Interest, goals: readonly Goal[]): string {
+  const recent = listHistory(db, { interestId: interest.id, limit: RECENT_HISTORY })
+  return pathSignature([
+    ...goals.map((g) => ({ id: g.id, title: `${g.title}|${g.status}` })),
+    { id: '\u0000outcomes', title: (interest.successOutcomes ?? []).join('|') },
+    ...recent.map((a) => ({ id: `\u0000history:${a.id}`, title: String(a.rating ?? '') })),
+  ])
+}
 
 type Step = 'hoping' | 'writing' | 'generating' | 'reviewing' | 'error'
 
@@ -95,7 +124,15 @@ export default function ReflectScreen() {
   // What they hoped for when the flow opened sits first, already selected.
   const [held] = useState(() => interest?.successOutcomes ?? [])
   const [outcomes, setOutcomes] = useState<ChipPick>({ custom: held, selected: held })
-  const opening = useGeneration<ReflectOpenOutput>()
+  // Read once, on entry: the flow is one interest and one mount. A hit means
+  // step 1's chips are there immediately and G8a never goes out.
+  const [scope] = useState(() => (interest ? reflectScope(interest, pathGoals) : ''))
+  const [cached] = useState(() =>
+    scope ? getCachedUnexpiring<ReflectOpenOutput>(db, CACHE_KIND, scope) : undefined,
+  )
+  const opening = useGeneration<ReflectOpenOutput>(
+    cached && interest ? { key: interest.id, value: cached } : undefined,
+  )
   const suggested = opening.state.status === 'ready' ? opening.state.value.outcomes : []
   const hopedFor = currentPicks(outcomes, suggested)
 
@@ -115,7 +152,10 @@ export default function ReflectScreen() {
           'reflect.open',
           { context: interestContext(interest), topics },
           { signal, interestId: interest.id },
-        ).then((r) => r.output),
+        ).then((r) => {
+          putCached(db, repoContext, { kind: CACHE_KIND, scopeKey: scope, payload: r.output })
+          return r.output
+        }),
       )
       .catch(() => {})
     // Once per flow: the key is the interest, and the flow is one interest.
