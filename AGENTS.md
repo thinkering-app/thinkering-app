@@ -15,7 +15,7 @@ The app is feature-complete for a first beta and heading to TestFlight; what's l
 ## Repo map
 
 - `apps/mobile` — Expo app (expo-router, TypeScript strict, NativeWind). Routes in `src/app`, shared components in `src/components`, the activity player in `src/features`, the AI client and mode settings in `src/ai`, tokens in `src/theme/tokens.ts`.
-- `apps/web` — Next.js landing page and the `/api` routes (AI proxy, device auth, metering, feedback). Server code in `lib/server`, Supabase schema in `supabase/schema.sql`.
+- `apps/web` — Next.js landing page, the `/api` routes (AI proxy, device auth, metering, feedback), and the password-gated reference pages at `/internal` (prompts, activity library — `docs/02` §Internal pages). Server code in `lib/server`, Supabase schema in `supabase/schema.sql`.
 - `packages/core` — pure TS, no React: domain types, Zod schemas (`src/schemas`), prompt templates (`src/prompts`), scheduler (`src/scheduler`), library definitions (`src/library`). Recorded and malformed model output in `fixtures/`.
 - `packages/db` — Drizzle schema (`src/schema.ts`), migrations, repositories (`src/repos`), export and sync (`src/backup`).
 - `packages/config` — shared Tailwind preset (the design tokens), tsconfig, eslint.

@@ -1,4 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import {
+  areaOf,
+  cookieFor,
+  INTERNAL_AREAS,
+  verifySessionToken,
+  type InternalArea,
+} from './lib/server/internal-auth'
 
 /**
  * CORS for the device-facing API routes (docs/02 §Clients). The Expo web export
@@ -30,7 +37,44 @@ function isAllowed(origin: string): boolean {
   return process.env.NODE_ENV !== 'production' && LOCALHOST.test(origin)
 }
 
-export function middleware(req: NextRequest): NextResponse {
+export const LOGIN_PATH = '/internal/login'
+
+function unlocked(req: NextRequest, area: InternalArea): Promise<boolean> {
+  return verifySessionToken(area, req.cookies.get(cookieFor(area))?.value, Date.now())
+}
+
+/**
+ * The gate for the internal pages (docs/02 §Internal pages). It runs before a
+ * page is rendered at all, so an unauthenticated visitor never reaches the
+ * server component — every page also re-checks, so neither layer is the only
+ * thing standing between a password and the content.
+ *
+ * Each page is its own area with its own password. The index is a signpost
+ * rather than content, so any one unlocked area is enough to see it.
+ */
+async function internal(req: NextRequest): Promise<NextResponse> {
+  const { pathname } = req.nextUrl
+  if (pathname === LOGIN_PATH) return NextResponse.next()
+
+  const area = areaOf(pathname)
+  const allowed = area
+    ? await unlocked(req, area)
+    : (await Promise.all(INTERNAL_AREAS.map((a) => unlocked(req, a)))).some(Boolean)
+  if (allowed) return NextResponse.next()
+
+  const login = new URL(LOGIN_PATH, req.url)
+  login.searchParams.set('next', pathname)
+  const res = NextResponse.redirect(login)
+  // A stale or tampered cookie is worth clearing so the next request is clean.
+  for (const a of INTERNAL_AREAS) {
+    if (req.cookies.has(cookieFor(a)) && !(await unlocked(req, a))) res.cookies.delete(cookieFor(a))
+  }
+  return res
+}
+
+export async function middleware(req: NextRequest): Promise<NextResponse> {
+  if (req.nextUrl.pathname.startsWith('/internal')) return internal(req)
+
   const origin = req.headers.get('origin')
 
   if (!origin || !isAllowed(origin)) {
@@ -54,4 +98,4 @@ export function middleware(req: NextRequest): NextResponse {
   return res
 }
 
-export const config = { matcher: '/api/:path*' }
+export const config = { matcher: ['/api/:path*', '/internal/:path*'] }

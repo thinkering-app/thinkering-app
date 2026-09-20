@@ -1,31 +1,20 @@
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { renderPromptFixture } from './inputs'
 import { SHARED_PREAMBLE } from './preamble'
 import { PROMPTS, type ImplementedKind } from './registry'
 import { MODEL_IDS } from './types'
 
-const fixtureDir = join(__dirname, '../../fixtures/prompt-inputs')
 const kinds = Object.keys(PROMPTS) as ImplementedKind[]
-
-function renderFixture(kind: ImplementedKind) {
-  const template = PROMPTS[kind]
-  const params = template.paramsSchema.parse(
-    JSON.parse(readFileSync(join(fixtureDir, `${kind}.json`), 'utf8')),
-  )
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- params validated by the template's own schema
-  return template.render(params as any)
-}
 
 describe('prompt templates', () => {
   // Prompts are the artifact, so string snapshots are correct here — the diff
   // is the review (docs/10 Tier 1). Bump the template version when one changes.
   it.each(kinds)('%s renders stably (snapshot)', (kind) => {
-    expect(renderFixture(kind)).toMatchSnapshot()
+    expect(renderPromptFixture(kind)).toMatchSnapshot()
   })
 
   it.each(kinds)('%s: cache breakpoint sits after the shared preamble', (kind) => {
-    const rendered = renderFixture(kind)
+    const rendered = renderPromptFixture(kind)
     // A moved breakpoint silently doubles cost: block 0 must be the preamble,
     // byte-identical across kinds, and cache-marked.
     expect(rendered.system[0]?.text).toBe(SHARED_PREAMBLE)
@@ -36,7 +25,9 @@ describe('prompt templates', () => {
   })
 
   it.each(kinds)('%s: rendering twice is byte-identical (cache safety)', (kind) => {
-    expect(JSON.stringify(renderFixture(kind))).toBe(JSON.stringify(renderFixture(kind)))
+    expect(JSON.stringify(renderPromptFixture(kind))).toBe(
+      JSON.stringify(renderPromptFixture(kind)),
+    )
   })
 
   it('every template has a version, a model with an id, and sane limits', () => {

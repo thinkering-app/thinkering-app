@@ -16,25 +16,23 @@ function request(method: string, origin?: string): NextRequest {
  * the whole app offline — silently, and only in the browser.
  */
 describe('CORS middleware', () => {
-  it('answers a preflight from the web app without hitting the route', () => {
-    const res = middleware(request('OPTIONS', APP))
+  it('answers a preflight from the web app without hitting the route', async () => {
+    const res = await middleware(request('OPTIONS', APP))
     expect(res.status).toBe(204)
     expect(res.headers.get('access-control-allow-origin')).toBe(APP)
     expect(res.headers.get('access-control-allow-headers')).toContain('x-signature')
   })
 
-  it('allows the web app origin on the real request', () => {
-    const res = middleware(request('POST', APP))
+  it('allows the web app origin on the real request', async () => {
+    const res = await middleware(request('POST', APP))
     expect(res.headers.get('access-control-allow-origin')).toBe(APP)
     expect(res.headers.get('vary')).toBe('Origin')
   })
 
-  it('stays silent for an unknown origin and for same-origin calls', () => {
-    expect(
-      middleware(request('POST', 'https://evil.example')).headers.get(
-        'access-control-allow-origin',
-      ),
-    ).toBeNull()
-    expect(middleware(request('POST')).headers.get('access-control-allow-origin')).toBeNull()
+  it('stays silent for an unknown origin and for same-origin calls', async () => {
+    const unknown = await middleware(request('POST', 'https://evil.example'))
+    expect(unknown.headers.get('access-control-allow-origin')).toBeNull()
+    const sameOrigin = await middleware(request('POST'))
+    expect(sameOrigin.headers.get('access-control-allow-origin')).toBeNull()
   })
 })
