@@ -75,6 +75,7 @@ export {
   isGenerationKind,
   type ImplementedKind,
 } from './prompts/registry'
+export { PROMPT_INPUTS, renderPromptFixture } from './prompts/inputs'
 export { SHARED_PREAMBLE, ACTIVITY_DOC_FORMAT, libraryReference } from './prompts/preamble'
 export {
   buildInterestContext,
