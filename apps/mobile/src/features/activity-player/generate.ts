@@ -294,12 +294,27 @@ let queue: Activity[] = []
 /** Streams written ahead at once: enough for a couple of interests in view, without flooding the meter. */
 const WRITERS = 2
 let writers = 0
-let writingIds: ReadonlySet<string> = new Set()
+/** The writes under way, as Today reads them (`useWritingDocs`). */
+export interface WritingDocs {
+  /** Queued or streaming: a document is on its way, so the card must not offer Write. */
+  ids: ReadonlySet<string>
+  /** Streaming with page 1 in hand: openable now, so the card shows its time, not Writing. */
+  ready: ReadonlySet<string>
+}
+
+let writingDocs: WritingDocs = { ids: new Set(), ready: new Set() }
 const watchers = new Set<() => void>()
 
 function publish() {
-  writingIds = new Set([...inFlight.keys(), ...queue.map((a) => a.id)])
+  writingDocs = {
+    ids: new Set([...inFlight.keys(), ...queue.map((a) => a.id)]),
+    ready: new Set([...inFlight].filter(([, write]) => hasFirstPage(write)).map(([id]) => id)),
+  }
   for (const watcher of watchers) watcher()
+}
+
+function hasFirstPage(write: Write): boolean {
+  return (write.latest?.pages.length ?? 0) > 0
 }
 
 /**
@@ -316,7 +331,10 @@ export function writeActivityDoc(
     failed.delete(activity.id)
     created.promise = generateActivityDoc(activity, {
       onPartial: (partial) => {
+        const wasWaiting = !hasFirstPage(created)
         created.latest = partial
+        // Page 1 landing changes what the card on Today offers.
+        if (wasWaiting && hasFirstPage(created)) publish()
         for (const listener of created.listeners) listener(partial)
       },
     })
@@ -376,9 +394,9 @@ async function drain() {
   }
 }
 
-/** The ids of cards whose documents are queued or being written — "Writing" on Today. */
-export function useWritingDocs(): ReadonlySet<string> {
-  return useSyncExternalStore(subscribeWriting, () => writingIds)
+/** The cards whose documents are queued or being written — "Writing" on Today. */
+export function useWritingDocs(): WritingDocs {
+  return useSyncExternalStore(subscribeWriting, () => writingDocs)
 }
 
 function subscribeWriting(watcher: () => void) {

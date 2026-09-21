@@ -41,6 +41,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- A card being written on Today shows how long it will take as soon as its
+  first page is ready, rather than Writing. Tap it and you can start reading
+  while the rest arrives.
 - A new interest starts with two suggested resources — one to watch and one to
   read — rather than a list to work through. Each points at a single video or
   article you can open, not a channel or a home page.
