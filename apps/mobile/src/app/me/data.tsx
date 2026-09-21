@@ -27,8 +27,9 @@ import { colors } from '@/theme/tokens'
  * Me → Settings → Account and data (docs/01 §7): a file you keep, and — off by
  * default — a synced copy in your own account. Turning sync off deletes the
  * server copy, and Delete all data deletes the learning itself. The
- * anonymous-analytics opt-in (D9) and the separate session replay opt-in are
- * here too: they are about what leaves the device, not about the model.
+ * anonymous-usage toggle (on by default, D9) and the separate session replay
+ * opt-in are here too: they are about what leaves the device, not about the
+ * model.
  */
 
 export default function DataScreen() {
@@ -192,7 +193,6 @@ export default function DataScreen() {
           <Switch
             value={optedIn}
             onValueChange={(next) => {
-              // A yes here flushes the pre-consent buffer; a no deletes it (docs/08).
               setAnalyticsConsent(next)
               setOptedIn(next)
               if (next) track('settings_changed', { key: 'analytics_opt_in' })

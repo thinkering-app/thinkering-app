@@ -291,8 +291,10 @@ export const llmCalls = sqliteTable('llm_calls', {
   createdAt: createdAt(),
 })
 
-// ── analytics_buffer — local only (D9 pre-consent buffer) ───────────────────
-// Capped (~7 days / ~300 events). Never synced.
+// ── analytics_buffer — local only, unused ───────────────────────────────────
+// Held events until the learner answered an opt-in ask. Analytics are on by
+// default now (D9), so nothing writes here; the table stays because
+// migrations don't drop tables. Never synced.
 
 export const analyticsBuffer = sqliteTable('analytics_buffer', {
   id: id(),

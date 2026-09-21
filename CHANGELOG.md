@@ -18,11 +18,11 @@ build; internal refactors and docs don't appear here. The conventions are in
   daily amount from then on.
 - A page written in answer to something you asked now shows your question at
   the top of it, so it still reads as a reply when you come back to it.
-- Anonymous, opt-in usage analytics — off until you say yes, asked once on the
-  welcome screen, and never carrying anything you write.
-- Share session replays with the developers, if you choose — asked after
-  the usage question on the welcome screen, and a separate setting in Account
-  and data. Off unless you turn it on.
+- Anonymous usage analytics, which never carry any personal content or data. They're on
+  unless you turn them off in Account and data.
+- Share session replays with the developers, if you choose — asked on the
+  welcome screen, and a separate setting in Account and data. Off unless you
+  turn it on.
 - Delete your backup account from inside the app.
 - Sign in to your account from the welcome screen, and your learning comes
   back with it. Restoring from a backup file is right beside it.

@@ -1,6 +1,6 @@
-# THROWAWAY (gitignored .context): verifies the opt-in path end to end against
-# the real PostHog project — the ask appears on the welcome screen, "Share"
-# is accepted, and later events go straight out. The committed flow declines.
+# THROWAWAY: verifies the default-on path end to end against the real PostHog
+# project — the replay ask is declined, and usage events go straight out
+# without anything being asked.
 appId: ${APP_ID}
 name: optin
 ---
@@ -12,11 +12,9 @@ name: optin
     visible:
       id: 'intake-start'
     timeout: 120000
-# Accept, rather than the committed flow's decline.
-- assertVisible: 'Share anonymous usage data?'
-- assertVisible: 'thinkering is new and still changing.*'
-- tapOn: 'Share'
-- assertNotVisible: 'Share anonymous usage data?'
+# Nothing is asked about usage; it's on.
+- tapOn: 'No thanks'
+- assertNotVisible: 'Share session replays?'
 - tapOn:
     id: 'intake-start'
 
