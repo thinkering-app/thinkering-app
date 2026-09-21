@@ -2,7 +2,8 @@ import { router, useLocalSearchParams } from 'expo-router'
 import { useEffect } from 'react'
 
 import { DEV_TOOLS } from '@/ai/settings'
-import { reopenAt, resetLocalData } from '@/dev/data'
+import { resetLocalData } from '@/dev/data'
+import { reopenAt } from '@/reopen'
 import { useLocalToday } from '@/time'
 
 /**

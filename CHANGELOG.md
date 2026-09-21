@@ -8,6 +8,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Added
 
+- Delete all data, in Account and data: your interests, path and history go
+  from this device — and from our server, if you're signed in — for good.
 - Have a code? In Me → Settings → AI, a code we've given you adds to your
   daily amount from then on.
 - A page written in answer to something you asked now shows your question at
