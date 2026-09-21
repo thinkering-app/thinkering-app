@@ -22,10 +22,10 @@ function backToLogin(next: string, error: string): never {
 }
 
 /**
- * One password field unlocks every area that password opens — one when the two
- * pages have separate passwords, both when they share one. A password that
- * opens some other page than the one you asked for is still not a way in to
- * this one: you are sent to what it did unlock.
+ * One password field unlocks every area that password opens — one page for
+ * that page's own password, both for the master. A password that opens some
+ * other page than the one you asked for is still not a way in to this one:
+ * you are sent to what it did unlock.
  */
 export async function signIn(form: FormData): Promise<void> {
   const next = safeNext(form.get('next'))
@@ -33,12 +33,13 @@ export async function signIn(form: FormData): Promise<void> {
   const ip = ((await headers()).get('x-forwarded-for') ?? 'unknown').split(',')[0]!.trim()
   if (tooManyAttempts(ip, Date.now())) backToLogin(next, 'rate')
 
-  const granted = await areasFor(String(form.get('password') ?? ''))
+  const candidate = String(form.get('password') ?? '')
+  const granted = await areasFor(candidate)
   if (granted.length === 0) backToLogin(next, 'wrong')
 
   const jar = await cookies()
   for (const area of granted) {
-    const token = await createSessionToken(area, Date.now())
+    const token = await createSessionToken(area, candidate, Date.now())
     if (!token) continue
     jar.set(cookieFor(area), token, {
       httpOnly: true,
