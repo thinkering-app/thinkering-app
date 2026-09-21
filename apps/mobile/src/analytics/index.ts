@@ -1,7 +1,7 @@
 export { useAppOpened } from './app-opened'
-export { AnalyticsAskCard } from './ask'
+export { ReplayAskCard } from './ask'
 export { isAnalyticsConfigured } from './client'
-export { getConsent, isAnalyticsOptedIn, isConsentUndecided, type ConsentState } from './consent'
+export { isAnalyticsOptedIn, setAnalyticsConsent } from './consent'
 export {
   isReplayAvailable,
   isReplayOptedIn,
@@ -11,4 +11,4 @@ export {
   setReplayConsent,
   useSessionReplay,
 } from './replay'
-export { installedAt, setAnalyticsConsent, track } from './track'
+export { installedAt, track } from './track'

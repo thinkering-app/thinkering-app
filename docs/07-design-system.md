@@ -52,6 +52,10 @@ Semantic mappings:
 - Components with a `testID` prop (`Button`, `ChoiceChip`, `TextField`, `ActivityCard`, `NavRow`) carry it for the Maestro flows (`10` Tier 6), not for styling.
 - Header icon actions sit in the right of the header, `ink-soft` at 22px with `hitSlop={10}`: Path's resources and settings, Interests' **+**, and the **⚙** to Me's settings (`SettingsButton`), which every tab carries in its top-right, last in the row where a tab has actions of its own. A tab that has settings puts them behind the ⚙ rather than in the scroll (`01` §7); `SubScreen` renders the pushed screen they open.
 
+## Web
+
+The app is laid out for a phone, and the web build keeps it that way. In a window wider than 580px it sits centred in a 580px column on paper, with a hairline at each edge (`AppFrame`, `components/app-frame.web.tsx`) — about 70 characters of body text to a line. The width is about the narrowest desktop Safari lets a window get. It is not a desktop layout: no sidebar, no grid, nothing that would give the web a second set of screens to keep in step. Modals render outside the frame, so `Sheet` and `InfoDialog` take the column's width themselves (`columnStyle`). The native `app-frame.tsx` is a pass-through, so none of this reaches the phone builds; a phone's browser is narrower than the column and gets the app exactly as it would without it. The tab bar is 60px tall on web: with no bottom inset to lend it room, the default height clipped the labels.
+
 ## Voice
 
 Short, warm, plain, adult. Sentence case everywhere. No exclamation-point cheerleading, no "help text" paragraphs — if a screen needs explanation, redesign it. Praise only when specific and earned. Never patronize or assume: activity in the app is not the sum of what someone knows — write "you've covered X in thinkering", never "you haven't learned X yet" (mirrors the generated-content tone rules in `04`).

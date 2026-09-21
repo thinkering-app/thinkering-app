@@ -5,26 +5,20 @@ import {
   type AnalyticsValue,
   type NoProperties,
 } from '@thinkering/core'
-import {
-  bufferAnalyticsEvent,
-  clearAnalyticsBuffer,
-  getSetting,
-  listBufferedEvents,
-  setSetting,
-} from '@thinkering/db'
+import { getSetting, setSetting } from '@thinkering/db'
 import { db, repoContext } from '@/db'
 import { analyticsClient, isAnalyticsConfigured } from './client'
-import { getConsent, writeConsent } from './consent'
+import { isAnalyticsOptedIn } from './consent'
 
 /**
  * The one way the app emits telemetry (docs/08). Its type *is* the event
  * schema, so a stray `posthog.capture` is the only way to send something
  * undeclared — and there aren't any. Properties are sanitized against the
- * schema's allowlist before they go anywhere, including into the buffer.
+ * schema's allowlist before they go anywhere.
  *
- * Consent decides the destination: granted → PostHog, undecided → the local
- * pre-consent buffer, denied → dropped. Nothing here throws: analytics must
- * never be the reason a screen fails.
+ * On by default (D9): sent to PostHog unless the learner turned it off, in
+ * which case it's dropped. Nothing here throws: analytics must never be the
+ * reason a screen fails.
  */
 
 /** Events with no properties may be tracked with one argument. */
@@ -35,20 +29,9 @@ type TrackArgs<N extends AnalyticsEventName> =
 
 export function track<N extends AnalyticsEventName>(event: N, ...args: TrackArgs<N>): void {
   try {
-    // A build with no PostHog key has nowhere to send anything and never asks
-    // for consent, so it doesn't buffer either.
-    if (!isAnalyticsConfigured()) return
+    if (!isAnalyticsConfigured() || !isAnalyticsOptedIn()) return
     const properties = sanitizeAnalyticsProperties(event, args[0] ?? {})
-    switch (getConsent()) {
-      case 'granted':
-        analyticsClient()?.capture(event, withoutIp(properties))
-        return
-      case 'undecided':
-        bufferAnalyticsEvent(db, repoContext, { event, properties })
-        return
-      case 'denied':
-        return
-    }
+    analyticsClient()?.capture(event, withoutIp(properties))
   } catch {
     // Telemetry is never worth an exception on a user's screen.
   }
@@ -74,36 +57,4 @@ export function installedAt(): number {
   const now = repoContext.now()
   setSetting(db, INSTALLED_AT_KEY, now)
   return now
-}
-
-/**
- * Records the learner's answer to the analytics ask and acts on it: a yes
- * flushes the buffered events with their original timestamps, a no deletes
- * them. Either way buffering stops.
- */
-export function setAnalyticsConsent(granted: boolean): void {
-  writeConsent(granted)
-  try {
-    if (!granted) {
-      clearAnalyticsBuffer(db)
-      return
-    }
-    flushBuffer()
-  } catch {
-    // A failed flush costs a handful of early events, not the opt-in.
-  }
-}
-
-function flushBuffer(): void {
-  const buffered = listBufferedEvents(db)
-  // Clear first: a duplicate send is worse than a lost one, and the rows are
-  // only useful until they reach PostHog.
-  clearAnalyticsBuffer(db)
-  if (!isAnalyticsConfigured()) return
-  const client = analyticsClient()
-  if (!client) return
-  for (const row of buffered) {
-    client.capture(row.event, withoutIp(row.properties), { timestamp: new Date(row.createdAt) })
-  }
-  void client.flush().catch(() => {})
 }

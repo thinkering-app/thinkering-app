@@ -6,11 +6,11 @@ import { db } from '@/db'
 import { releaseChannel } from './release-channel'
 
 /**
- * The PostHog client (docs/08). Constructed lazily and only after consent —
- * to anonymous usage or to session replay — so before that the SDK never has a
- * chance to send anything. Autocapture, lifecycle events, surveys, feature
- * flags and GeoIP enrichment are all off: the only events that exist are the
- * ones the typed `track()` wrapper sends. Session replay is off at
+ * The PostHog client (docs/08). Constructed lazily, on the first event or
+ * recording — so a learner who has turned both off never has one.
+ * Autocapture, lifecycle events, surveys, feature flags and GeoIP enrichment
+ * are all off: the only events that exist are the ones the typed `track()`
+ * wrapper sends. Session replay is off at
  * construction too; `./replay` starts it only for a learner who opted in.
  *
  * `identify()` is never called. The distinct_id is the SDK's own locally

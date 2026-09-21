@@ -31,7 +31,7 @@ export function isReplayOptedIn(): boolean {
   return getSetting<boolean>(db, REPLAY_KEY) ?? false
 }
 
-/** Whether the welcome ask's second step still has to happen. */
+/** Whether the welcome screen's replay ask still has to happen. */
 export function isReplayUndecided(): boolean {
   return !(getSetting<boolean>(db, DECIDED_KEY) ?? false)
 }

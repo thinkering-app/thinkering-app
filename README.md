@@ -2,7 +2,7 @@
 
 A mobile app for adults' personal learning. You tell thinkering what you want to learn and why; it builds a pedagogically sound path of well-scoped goals and generates short, interactive activities each day — introduce something new, strengthen what you know, and put it to use.
 
-**Status: feature-complete for a first beta (M9).** Intake, Today, the activity player, Path, History, Me, backup and sync, the landing site, and opt-in analytics are all built; what's left before TestFlight is in [RELEASING.md](RELEASING.md). Progress and deviations are recorded milestone by milestone in `docs/09-roadmap.md`.
+**Status: feature-complete for a first beta (M9).** Intake, Today, the activity player, Path, History, Me, backup and sync, the landing site, and anonymous analytics are all built; what's left before TestFlight is in [RELEASING.md](RELEASING.md). Progress and deviations are recorded milestone by milestone in `docs/09-roadmap.md`.
 
 ## Getting started
 
@@ -46,7 +46,7 @@ Deploys (Vercel, manual for now): `apps/web` is a standard Next.js project; the 
 
 ## Stack
 
-pnpm monorepo · Expo (iOS-first, Android + web capable) · expo-router · TypeScript strict · expo-sqlite + Drizzle ORM · Next.js on Vercel (landing + API proxy) · Claude API · Supabase (optional backup/sync, usage metering) · Featurebase (community feedback) · Resend (private feedback) · PostHog (anonymous, opt-in) · NativeWind + shared Tailwind tokens.
+pnpm monorepo · Expo (iOS-first, Android + web capable) · expo-router · TypeScript strict · expo-sqlite + Drizzle ORM · Next.js on Vercel (landing + API proxy) · Claude API · Supabase (optional backup/sync, usage metering) · Featurebase (community feedback) · Resend (private feedback) · PostHog (anonymous, on by default, off with one toggle) · NativeWind + shared Tailwind tokens.
 
 ## License
 

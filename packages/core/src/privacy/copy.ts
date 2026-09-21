@@ -10,7 +10,7 @@
 export const PRIVACY_CONTACT_EMAIL = 'hello@thinkering.app'
 
 export const PRIVACY_INTRO =
-  'The short version: your learning is yours. thinkering is local-first, and every way data can leave your device is opt-in and listed here.'
+  'The short version: your learning is yours. thinkering is local-first, and every way data can leave your device is listed here, along with how to turn it off.'
 
 export interface PrivacySection {
   title: string
@@ -39,10 +39,10 @@ export const PRIVACY_SECTIONS: PrivacySection[] = [
     ],
   },
   {
-    title: 'Analytics are optional and anonymous',
+    title: 'Analytics are anonymous, and you can turn them off',
     paragraphs: [
-      'Usage analytics are off by default. We ask once, after your first completed activity, and you can change the answer any time in the app under AI usage. Until you say yes, events are held on your device and nothing is transmitted; if you say no, they are deleted.',
-      'If you opt in, we collect a fixed list of content-free events — things like “an activity was completed” with its type, a duration bucket, and your rating. Never interest names, goal titles, activity content, your text, URLs, or your email. Durations are rounded into buckets rather than sent as exact timings.',
+      'Anonymous usage analytics are on by default. You can turn them off at any time in the app under Me → Settings → Account and data; from then on nothing is sent.',
+      'We collect a fixed list of content-free events — things like “an activity was completed” with its type, a duration bucket, and your rating. Never interest names, goal titles, activity content, your text, URLs, or your email. Durations are rounded into buckets rather than sent as exact timings.',
       'Analytics are processed by PostHog on their US servers. The analytics identity is a random ID generated on your device that is never linked to your backup account or your email. We tell PostHog not to record your IP address and not to look up your location, and there is no automatic click tracking — the only events that exist are the ones on that fixed list.',
     ],
   },

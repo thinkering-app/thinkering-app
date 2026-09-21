@@ -107,11 +107,11 @@ Pruned to last ~200 calls. Never synced.
 
 ## analytics_buffer — local only
 
-`id, event, properties json, created_at` — schema-conformant events buffered pre-consent (D9): flushed to PostHog on opt-in **with their original timestamps**, deleted on decline. The cap is a week from the first buffered event, or 300 events, whichever comes first; once it closes the buffer keeps what it has and refuses more, because the early events are the ones worth keeping. Never synced.
+`id, event, properties json, created_at` — **unused.** It held events until the learner answered an opt-in ask; since analytics became on by default (D9) nothing writes to it. It stays because migrations don't drop tables, and `clearAllData` still empties it. Never synced.
 
 ## settings — local key/value
 
-`key pk, value json` — device_id + secret ref, `backup_enabled` (default false), `sync_state` (`{lastPullAt, lastPushAt, lastSyncedAt}` — cursors stayed here rather than becoming their own table: two numbers and a timestamp, none of it synced), `ai_mode`, `posthog_opt_in` (default false) + `posthog_consent_decided` (the two together give the three-valued consent of `08`: undecided buffers, granted sends, denied drops), `installed_at` (first launch, for the `days_since_install` bucket — never sent raw), `posthog_storage.*` (PostHog's own key/value store, kept here so the SDK adds no file of its own), byok flag (key itself in SecureStore), last_seen_version, `intake_draft` (the one unfinished intake, docs/01 §1: answers, current step and each finished G1/G2/G3 output with the key it was made from; parsed through `intakeDraftSchema` on read and cleared if it no longer fits, and cleared when the interest is saved — never synced or exported).
+`key pk, value json` — device_id + secret ref, `backup_enabled` (default false), `sync_state` (`{lastPullAt, lastPushAt, lastSyncedAt}` — cursors stayed here rather than becoming their own table: two numbers and a timestamp, none of it synced), `ai_mode`, `posthog_opt_in` (absent means on — only a no is written, `08`; `posthog_consent_decided` is left over from the opt-in ask and no longer read), `installed_at` (first launch, for the `days_since_install` bucket — never sent raw), `posthog_storage.*` (PostHog's own key/value store, kept here so the SDK adds no file of its own), byok flag (key itself in SecureStore), last_seen_version, `intake_draft` (the one unfinished intake, docs/01 §1: answers, current step and each finished G1/G2/G3 output with the key it was made from; parsed through `intakeDraftSchema` on read and cleared if it no longer fits, and cleared when the interest is saved — never synced or exported).
 
 ## Supabase (server) tables
 
