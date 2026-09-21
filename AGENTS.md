@@ -22,7 +22,7 @@ The app is feature-complete for a first beta and heading to TestFlight; what's l
 
 ## Hard rules
 
-- **Local-first**: user learning data is written to local SQLite only. Nothing user-generated leaves the device except (a) LLM calls through the proxy, (b) opt-in Supabase backup, (c) opt-in anonymous PostHog events per the schema in `docs/08`, (d) explicitly user-shared activity reports (`docs/08`).
+- **Local-first**: user learning data is written to local SQLite only. Nothing user-generated leaves the device except (a) LLM calls through the proxy, (b) opt-in Supabase backup, (c) anonymous PostHog events per the schema in `docs/08` (on by default, off with one toggle), (d) explicitly user-shared activity reports (`docs/08`).
 - **No secrets in the client.** The Anthropic key lives only in `apps/web` API routes. The only client-side key is a user's own BYO Anthropic key in SecureStore.
 - **All LLM output crosses a Zod boundary.** Never render or store unvalidated model output. Schemas live in `packages/core`.
 - **Prompts are code.** Every prompt is a versioned template in `packages/core/src/prompts` with a `kind` id; every call is logged to the local `llm_calls` table so the AI Inspector can show it. No inline ad-hoc prompts.

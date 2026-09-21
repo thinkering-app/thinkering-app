@@ -54,7 +54,7 @@ Phase 2 — **Supabase backup/sync**:
 - Server mirror: one generic `sync_rows(user_id, table_name, id, updated_at, deleted_at, schema_version, data jsonb)` table with RLS `user_id = auth.uid()`, rather than a mirror table per local table. Nothing server-side reads inside `data`, so there is nothing to query for — and a local migration is then never a server migration, which is what D17 asks of the mirror.
 - Protocol: row-level last-write-wins. Every synced row has client-generated UUIDv7 `id`, `updated_at` (epoch ms), `deleted_at` tombstone. Sync = pull server rows with `updated_at > last_pull`, merge, then push local rows with `updated_at > last_push`; newer `updated_at` wins per row, and a tombstone wins an exact tie. Cursors live in the local `settings` table. Runs on app foreground + debounced after significant writes — read off SQLite's own change hook for the ⟳ tables rather than called from each repository. The resolver itself is pure (`packages/core/src/sync`).
 - Turning backup **off** deletes server-side rows (confirmed destructive action), local data untouched. "Delete all data" (`01` §7) deletes both copies. Either one holds sync still while it runs — scheduled runs cancelled, anything in flight awaited — so a pull can't restore what was just cleared and a push can't refill the server copy.
-- Not synced: `llm_calls` (debug), `gen_cache`, `analytics_buffer`, device settings/keys.
+- Not synced: `llm_calls` (debug), `gen_cache`, `analytics_buffer` (unused), device settings/keys.
 - Rejected for v1: PowerSync/ElectricSQL (extra service + protocol dependency; LWW suffices for single-user data). Revisit if real multi-device concurrency becomes a need.
 
 ### Schema evolution & compatibility (D17)
@@ -94,7 +94,7 @@ Both email routes store only operational rate-limit counters and never store or 
 
 ## Analytics
 
-PostHog via `posthog-react-native`, US cloud, anonymous random distinct_id generated locally, explicit opt-in (default off). The event schema is a typed union in `packages/core/src/analytics`; `apps/mobile/src/analytics/track.ts` is the only thing that captures, and it buffers to the local `analytics_buffer` table until the learner answers. Configured by `EXPO_PUBLIC_POSTHOG_KEY` / `EXPO_PUBLIC_POSTHOG_HOST`; with no key nothing is captured or buffered. Session replay is a separate opt-in (D22), started by hand from `apps/mobile/src/analytics/replay.tsx` only for someone who turned it on: the native recorder, `@posthog/react-native-plugin`, on iOS and Android, and posthog-js — loaded as its own chunk, for recordings only — on web. Event schema and privacy rules in `08-analytics-and-privacy.md`.
+PostHog via `posthog-react-native`, US cloud, anonymous random distinct_id generated locally, on by default with a toggle to turn it off (D9). The event schema is a typed union in `packages/core/src/analytics`; `apps/mobile/src/analytics/track.ts` is the only thing that captures. Configured by `EXPO_PUBLIC_POSTHOG_KEY` / `EXPO_PUBLIC_POSTHOG_HOST`; with no key nothing is captured. Session replay is a separate opt-in (D22), started by hand from `apps/mobile/src/analytics/replay.tsx` only for someone who turned it on: the native recorder, `@posthog/react-native-plugin`, on iOS and Android, and posthog-js — loaded as its own chunk, for recordings only — on web. Event schema and privacy rules in `08-analytics-and-privacy.md`.
 
 The client's PostHog key/value store is backed by our own `settings` table (`customStorage`), so the SDK adds no file of its own — and with no key the SDK is never constructed at all.
 
