@@ -14,6 +14,7 @@ import { useAppOpened, useSessionReplay } from '@/analytics'
 import { AppFrame } from '@/components/app-frame'
 import { Button } from '@/components/button'
 import { PaperGrain } from '@/components/texture'
+import { useDevLink } from '@/dev/dev-link'
 import { useSyncLifecycle } from '@/sync/schedule'
 
 SplashScreen.preventAutoHideAsync()
@@ -53,6 +54,8 @@ export default function RootLayout() {
   // These wait for the schema: their effects run before the first render that
   // does, and on a fresh install the tables they read don't exist yet.
   useSyncLifecycle(migrations.success)
+  // Before `useAppOpened`: a `?dev` link turns analytics off ahead of the first event.
+  useDevLink(migrations.success)
   useAppOpened(migrations.success)
   useSessionReplay(migrations.success)
 

@@ -73,6 +73,11 @@ export function toggleInspectorEnabled(): boolean {
   return next
 }
 
+/** Turns the stored flag on, as the `?dev` web link does (`@/dev/dev-link`). */
+export function enableInspector(): void {
+  setSetting(db, INSPECTOR_KEY, true)
+}
+
 /**
  * The API host, canonical form. `thinkering.app` 308-redirects to `www` — fine
  * for a native client, fatal in a browser, where a redirected CORS preflight is
