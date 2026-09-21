@@ -6,7 +6,7 @@ import { links } from './links'
 
 const optionStyle = 'rounded-pill px-5 py-3 text-center font-medium transition-colors'
 
-/** "Join the beta": asks whether to try the web app now or wait for mobile. */
+/** "Join the beta": offers the web app, the iOS TestFlight, or the mobile waiting list. */
 export function BetaButton({ className }: { className?: string }) {
   const dialog = useRef<HTMLDialogElement>(null)
   const close = () => dialog.current?.close()
@@ -49,6 +49,15 @@ export function BetaButton({ className }: { className?: string }) {
               className={`${optionStyle} bg-cornflower text-white hover:bg-cornflower-deep`}
             >
               Try it out on web
+            </a>
+            <a
+              href={links.testFlight}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={close}
+              className={`${optionStyle} border border-hairline bg-surface text-ink hover:border-cornflower`}
+            >
+              Join the TestFlight (iOS app)
             </a>
             <a
               href={links.betaForm}
