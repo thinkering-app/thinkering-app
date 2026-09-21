@@ -7,6 +7,7 @@ import type { HistoryRow } from '@thinkering/db'
 
 import { EmptyState } from '@/components/empty-state'
 import { FeedbackButton } from '@/components/feedback-button'
+import { SettingsButton } from '@/components/settings-button'
 import { dayLabel } from '@/history/day-label'
 import { useHistory } from '@/history/use-history'
 import { useInterestSelection } from '@/interests/selection'
@@ -39,7 +40,10 @@ export default function HistoryScreen() {
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right']}>
       <View className="gap-4 px-5 pt-4">
-        <Text className="font-heading-bold text-display text-ink">History</Text>
+        <View className="flex-row items-center gap-3">
+          <Text className="flex-1 font-heading-bold text-display text-ink">History</Text>
+          <SettingsButton />
+        </View>
         <InterestSelector />
       </View>
 

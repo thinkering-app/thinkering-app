@@ -8,6 +8,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Added
 
+- Settings are one tap away from anywhere: the ⚙ now sits in the top-right of
+  Today, Path and History as well as Me.
 - Delete all data, in Account and data: your interests, path and history go
   from this device — and from our server, if you're signed in — for good.
 - Me → Settings → AI says why there's a daily limit, and where to write to us
@@ -43,6 +45,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- Tapping a day on the Me calendar lists what you did under the calendar
+  instead of opening a sheet over it. Tap the day again to close the list.
 - A card being written on Today shows how long it will take as soon as its
   first page is ready, rather than Writing. Tap it and you can start reading
   while the rest arrives.
