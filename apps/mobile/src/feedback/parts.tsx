@@ -26,7 +26,7 @@ export function FeedbackChooser({
         <Option
           icon="chatbubbles-outline"
           label="Post to a feedback board"
-          caption="Feature requests, discussion and bugs — posts can be public."
+          caption="Feature requests, discussion, and bugs — post or upvote with an account or anonymously."
           onPress={feedback.openPortal}
         />
       ) : null}

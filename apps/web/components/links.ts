@@ -2,6 +2,7 @@
 export const links = {
   betaForm: 'https://forms.gle/nbahBWqt4JXb1XKb9',
   webApp: 'https://web.thinkering.app',
+  testFlight: 'https://testflight.apple.com/join/87AtjPx5',
   featurebase: 'https://thinkering.featurebase.app/',
   featurebaseLibraryThread:
     'https://thinkering.featurebase.app/p/science-of-learning-library-discussion-thread-2026',
