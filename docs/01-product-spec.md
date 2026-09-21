@@ -77,7 +77,7 @@ Sheet with one line on what the section is for, then that section's library item
 
 ### Configure learning routine (bottom button)
 
-Sheet opening with a line that the daily counts aren't configurable yet, linking to the "customize learning routine" post on the feedback board. Below it, the routine — **Next** (1 a day), **Strengthen** (1 a day), **Go further** (optional), each with a one-line description — then a single free-text question: **"What would you like more or less of?"** → **G11** interprets it into library activations/preference notes and confirms the change in one line.
+Sheet opening with a line that the daily counts aren't configurable yet, linking to the "customize learning routine" post on the feedback board. Below it, the routine — **Next** (1 a day), **Strengthen** (optional), **Go further** (optional), each with a one-line description — then a single free-text question: **"What would you like more or less of?"** → **G11** interprets it into library activations/preference notes and confirms the change in one line.
 
 ## 4. Activities
 

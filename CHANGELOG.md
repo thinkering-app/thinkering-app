@@ -46,6 +46,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 - A card being written on Today shows how long it will take as soon as its
   first page is ready, rather than Writing. Tap it and you can start reading
   while the rest arrives.
+- Add a link and Find more sit at the top of Resources, where a long list
+  can't push them out of sight.
+- Strengthen is optional in your learning routine, like Go further.
 - A new interest starts with two suggested resources — one to watch and one to
   read — rather than a list to work through. Each points at a single video or
   article you can open, not a channel or a home page.
