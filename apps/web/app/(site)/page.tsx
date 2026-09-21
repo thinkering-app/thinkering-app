@@ -206,7 +206,7 @@ const WHY: { title: string; body: React.ReactNode; accent: string }[] = [
   },
   {
     title: 'Motivation is more than gamification',
-    body: 'Genuine progress, the right amount of challenge, relevance to your life, and reflecting on your learning — no streaks or points required.',
+    body: 'Genuine progress, the right amount of challenge, relevance to your life, reflecting on your learning, and real consideration of your preferences and learning so far — no XP required.',
     accent: 'bg-leaf',
   },
   {
