@@ -15,6 +15,7 @@ import { GenerationError } from '@/components/generation-error'
 import { Generating } from '@/components/generating'
 import { PressScale } from '@/components/press-scale'
 import { SECTION_LABELS, SectionHeader } from '@/components/section-header'
+import { SettingsButton } from '@/components/settings-button'
 import { Toast } from '@/components/toast'
 import { db } from '@/db'
 import { writeActivityDoc } from '@/features/activity-player/generate'
@@ -99,7 +100,10 @@ export default function TodayScreen() {
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right']}>
       <View className="gap-4 px-5 pt-4">
-        <Text className="font-heading-bold text-display text-ink">Today</Text>
+        <View className="flex-row items-center gap-3">
+          <Text className="flex-1 font-heading-bold text-display text-ink">Today</Text>
+          <SettingsButton />
+        </View>
         <InterestSelector />
       </View>
 

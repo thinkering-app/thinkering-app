@@ -8,6 +8,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Added
 
+- Settings are one tap away from anywhere: the ⚙ now sits in the top-right of
+  Today, Path and History as well as Me.
 - Have a code? In Me → Settings → AI, a code we've given you adds to your
   daily amount from then on.
 - A page written in answer to something you asked now shows your question at

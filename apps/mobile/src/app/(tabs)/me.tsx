@@ -1,7 +1,6 @@
-import Ionicons from '@expo/vector-icons/Ionicons'
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useMemo, useReducer, useState } from 'react'
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { monthLabel, type LocalDate } from '@thinkering/core'
 import { listInterests } from '@thinkering/db'
@@ -9,12 +8,12 @@ import { listInterests } from '@thinkering/db'
 import { CalendarMonth } from '@/components/calendar-month'
 import { FeedbackButton } from '@/components/feedback-button'
 import { NavRow } from '@/components/nav-row'
+import { SettingsButton } from '@/components/settings-button'
 import { db } from '@/db'
 import { dayLabel } from '@/history/day-label'
 import { DaySheet } from '@/me/day-sheet'
 import { useCalendar } from '@/me/use-calendar'
 import { useLocalToday } from '@/time'
-import { colors } from '@/theme/tokens'
 
 /**
  * Me (docs/01 §7): the interests you manage and a month of what you've done.
@@ -39,15 +38,7 @@ export default function MeScreen() {
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right']}>
       <View className="flex-row items-center gap-3 px-5 pt-4">
         <Text className="flex-1 font-heading-bold text-display text-ink">Me</Text>
-        <Pressable
-          testID="me-settings"
-          accessibilityRole="button"
-          accessibilityLabel="Settings"
-          onPress={() => router.push('/me/settings')}
-          hitSlop={10}
-        >
-          <Ionicons name="settings-outline" size={22} color={colors.ink.soft} />
-        </Pressable>
+        <SettingsButton testID="me-settings" />
       </View>
 
       <ScrollView className="flex-1" contentContainerClassName="gap-6 px-5 py-6">
