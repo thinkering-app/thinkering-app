@@ -11,6 +11,7 @@ import '../global.css'
 import { useDbMigrations, type DbUnavailableReason } from '../db'
 import { forgetWebByokKey } from '@/ai/secure-store'
 import { useAppOpened, useSessionReplay } from '@/analytics'
+import { AppFrame } from '@/components/app-frame'
 import { Button } from '@/components/button'
 import { PaperGrain } from '@/components/texture'
 import { useSyncLifecycle } from '@/sync/schedule'
@@ -80,7 +81,9 @@ export default function RootLayout() {
   return (
     <View className="flex-1">
       <StatusBar style="dark" />
-      <Stack screenOptions={{ headerShown: false }} />
+      <AppFrame>
+        <Stack screenOptions={{ headerShown: false }} />
+      </AppFrame>
       {/* The paper grain sits over every screen and under every sheet (docs/07). */}
       <PaperGrain />
     </View>

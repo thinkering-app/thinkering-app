@@ -14,6 +14,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { columnStyle } from './app-frame'
 import { colors } from '@/theme/tokens'
 
 type SheetProps = {
@@ -100,17 +101,20 @@ export function Sheet({ visible, onClose, title, children, footer }: SheetProps)
           <Animated.View
             className="max-h-[85%]"
             onLayout={(event) => setPanelHeight(event.nativeEvent.layout.height)}
-            style={{
-              opacity: panelHeight === 0 ? 0 : 1,
-              transform: [
-                {
-                  translateY: panelProgress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [panelHeight, 0],
-                  }),
-                },
-              ],
-            }}
+            style={[
+              columnStyle,
+              {
+                opacity: panelHeight === 0 ? 0 : 1,
+                transform: [
+                  {
+                    translateY: panelProgress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [panelHeight, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
           >
             <SafeAreaView edges={['bottom']} className="shrink rounded-t-card bg-paper">
               <View className="flex-row items-center justify-between px-5 pb-2 pt-5">
@@ -154,7 +158,7 @@ export function InfoDialog({
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
       <Pressable className="flex-1 items-center justify-center bg-ink/30 px-8" onPress={onClose}>
-        <View className="w-full gap-3 rounded-card bg-surface p-5 shadow-card">
+        <View className="w-full gap-3 rounded-card bg-surface p-5 shadow-card" style={columnStyle}>
           <Text className="font-heading text-heading text-ink">{title}</Text>
           <Text className="font-sans text-body text-ink-soft">{body}</Text>
         </View>

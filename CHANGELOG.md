@@ -45,6 +45,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- On a computer's browser, thinkering sits in a column down the middle of
+  the window instead of stretching across it.
 - Tapping a day on the Me calendar lists what you did under the calendar
   instead of opening a sheet over it. Tap the day again to close the list.
 - A card being written on Today shows how long it will take as soon as its
