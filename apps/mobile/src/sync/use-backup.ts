@@ -6,7 +6,7 @@ import { track } from '@/analytics'
 import { db } from '@/db'
 import { currentAccount, onAccountChange, type Account } from './account'
 import { deleteRemoteData, syncNow, type SyncOutcome } from './engine'
-import { cancelScheduledSync } from './schedule'
+import { withSyncPaused } from './schedule'
 import { backupConfigured } from './supabase'
 
 /** Me → Backup's read model: who is signed in, whether sync is on, how it went. */
@@ -70,17 +70,23 @@ export function useBackup() {
     await runSync()
   }, [runSync])
 
-  /** Off deletes the server copy (docs/02); the screen confirms before calling. */
+  /**
+   * Off deletes the server copy (docs/02); the screen confirms before calling.
+   * The delete and the setting that stops the next sync go together inside the
+   * pause, so a push already in flight can't put the copy back.
+   */
   const turnOff = useCallback(async () => {
     setSyncing(true)
     try {
-      const deleted = await deleteRemoteData()
+      const deleted = await withSyncPaused(async () => {
+        if (!(await deleteRemoteData())) return false
+        setBackupEnabled(db, false)
+        return true
+      })
       if (!deleted) {
         setError("We couldn't delete the backup from the server. Nothing has changed.")
         return false
       }
-      cancelScheduledSync()
-      setBackupEnabled(db, false)
       setEnabled(false)
       track('backup_disabled')
       setLastSyncedAt(null)

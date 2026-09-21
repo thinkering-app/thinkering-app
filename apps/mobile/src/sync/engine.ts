@@ -28,13 +28,34 @@ export type SyncOutcome =
   | { ok: false; reason: 'off' | 'signed_out' | 'newer_schema' | 'failed'; message?: string }
 
 let inFlight: Promise<SyncOutcome> | null = null
+let paused = false
 
 /** Runs one round-trip; concurrent callers share the one in flight. */
 export function syncNow(): Promise<SyncOutcome> {
+  if (paused) return Promise.resolve({ ok: false, reason: 'off' })
   inFlight ??= runSync().finally(() => {
     inFlight = null
   })
   return inFlight
+}
+
+/**
+ * Held still while something deletes both copies of the learner's data (see
+ * `withSyncPaused`). The flag goes up before the caller waits on `syncSettled`,
+ * which is what closes the window: no round-trip can get past its checks and
+ * then land a pull, or a push, on top of the delete.
+ */
+export function pauseSync(): void {
+  paused = true
+}
+
+export function resumeSync(): void {
+  paused = false
+}
+
+/** Resolves once nothing is in flight. */
+export function syncSettled(): Promise<unknown> {
+  return inFlight ?? Promise.resolve()
 }
 
 async function runSync(): Promise<SyncOutcome> {

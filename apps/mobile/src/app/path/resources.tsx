@@ -103,6 +103,18 @@ export default function ResourcesScreen() {
       </View>
 
       <ScrollView className="flex-1" contentContainerClassName="gap-3 px-5 py-6">
+        {/* Above the list: it gets long, and adding is what people come here to do. */}
+        {searching ? (
+          <Generating label="Looking for resources" />
+        ) : (
+          <View className="flex-row gap-2">
+            <Button label="Add a link" onPress={() => setAdding(true)} />
+            <Button label="Find more" variant="quiet" onPress={findMore} />
+          </View>
+        )}
+        {searchError ? (
+          <Text className="px-1 font-sans text-secondary text-ink-soft">{searchError}</Text>
+        ) : null}
         {resources.length === 0 ? (
           <EmptyState color="peach" message="Nothing saved yet. Find more, or paste a link." />
         ) : (
@@ -142,17 +154,6 @@ export default function ResourcesScreen() {
             </Pressable>
           ))
         )}
-        {searching ? (
-          <Generating label="Looking for resources" />
-        ) : (
-          <View className="gap-2 pt-2">
-            <Button label="Add a link" onPress={() => setAdding(true)} />
-            <Button label="Find more" variant="quiet" onPress={findMore} />
-          </View>
-        )}
-        {searchError ? (
-          <Text className="px-1 font-sans text-secondary text-ink-soft">{searchError}</Text>
-        ) : null}
       </ScrollView>
 
       <AddLinkSheet

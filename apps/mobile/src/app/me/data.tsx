@@ -17,6 +17,8 @@ import { Button } from '@/components/button'
 import { confirmDestructive } from '@/components/confirm'
 import { SubScreen } from '@/components/sub-screen'
 import { Toast } from '@/components/toast'
+import { deleteAllData } from '@/me/delete-all'
+import { reopenAt } from '@/reopen'
 import { signOutAndForget } from '@/sync/engine'
 import { useBackup } from '@/sync/use-backup'
 import { colors } from '@/theme/tokens'
@@ -24,18 +26,19 @@ import { colors } from '@/theme/tokens'
 /**
  * Me → Settings → Account and data (docs/01 §7): a file you keep, and — off by
  * default — a synced copy in your own account. Turning sync off deletes the
- * server copy. The anonymous-analytics opt-in (D9) and the separate session
- * replay opt-in are here too: they are about what leaves the device, not about
- * the model.
+ * server copy, and Delete all data deletes the learning itself. The
+ * anonymous-analytics opt-in (D9) and the separate session replay opt-in are
+ * here too: they are about what leaves the device, not about the model.
  */
 
 export default function DataScreen() {
   const backup = useBackup()
   const [optedIn, setOptedIn] = useState(() => isAnalyticsOptedIn())
   const [replayOptedIn, setReplayOptedIn] = useState(() => isReplayOptedIn())
-  const [busy, setBusy] = useState<'export' | 'import' | null>(null)
+  const [busy, setBusy] = useState<'export' | 'import' | 'delete' | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [fileError, setFileError] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const runExport = async () => {
     setBusy('export')
@@ -63,6 +66,26 @@ export default function DataScreen() {
       const outcome = await importFromFile()
       if (outcome.ok) setToast('Backup restored')
       else if (outcome.reason !== 'cancelled') setFileError(refusalMessage(outcome.reason))
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const runDelete = async () => {
+    setDeleteError(null)
+    const confirmed = await confirmDestructive({
+      title: 'Delete all data?',
+      message: backup.account
+        ? "Your interests, path and history go from this device and from our server. This can't be undone."
+        : "Your interests, path and history go from this device. This can't be undone.",
+      confirmLabel: 'Delete everything',
+    })
+    if (!confirmed) return
+
+    setBusy('delete')
+    try {
+      if (await deleteAllData()) reopenAt('/intake/welcome')
+      else setDeleteError("We couldn't delete the copy on our server, so nothing has changed.")
     } finally {
       setBusy(null)
     }
@@ -204,6 +227,23 @@ export default function DataScreen() {
           <Text className="font-sans text-caption text-ink-soft">{REPLAY_EXPLAINER}</Text>
         </View>
       ) : null}
+
+      <View className="gap-2 border-t border-hairline pt-6">
+        <Button
+          testID="delete-all-data"
+          label={busy === 'delete' ? 'Deleting…' : 'Delete all data'}
+          variant="quiet"
+          onPress={() => void runDelete()}
+          disabled={busy !== null}
+        />
+        <Text className="font-sans text-caption text-ink-soft">
+          Deletes your interests, path and history for good. Export first if you want to keep a
+          copy.
+        </Text>
+        {deleteError ? (
+          <Text className="font-sans text-secondary text-peach">{deleteError}</Text>
+        ) : null}
+      </View>
 
       <Toast message={toast} onHide={() => setToast(null)} />
     </SubScreen>
