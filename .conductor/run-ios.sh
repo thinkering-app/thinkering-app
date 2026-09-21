@@ -3,11 +3,12 @@
 #
 # The native binary is a development client: it contains no app JavaScript, so
 # one build serves every Conductor workspace — the workspace's Metro server
-# supplies the bundle. The build is cached outside the worktree, compiled once
-# and reinstalled in seconds afterwards.
+# supplies the bundle. The build is cached outside the worktree under the
+# project's Expo fingerprint — a hash of everything native: dependencies,
+# config plugins, the native fields of app.config.ts. A native change gets a
+# fresh build on its own; anything else reinstalls a cached one in seconds.
 #
-# Rebuild only when native dependencies change (a new Expo module, an SDK bump,
-# an app.config.ts native field): .conductor/run-ios.sh --rebuild
+# --rebuild forces a fresh build even when the fingerprint matches.
 #
 # Env: THINKERING_SIM (simulator name, default "iPhone 17")
 #      METRO_PORT     (default 8081; Conductor passes $CONDUCTOR_PORT + 2)
@@ -24,7 +25,6 @@ mobile="$root/apps/mobile"
 port="${METRO_PORT:-8081}"
 sim_name="${THINKERING_SIM:-iPhone 17}"
 cache="${THINKERING_DEV_CLIENT:-$HOME/Library/Caches/thinkering/dev-client}"
-app="$cache/thinkering.app"
 
 rebuild=0
 [ "${1:-}" = "--rebuild" ] && rebuild=1
@@ -49,14 +49,27 @@ for ui in "/Applications/Xcode.app/Contents/Applications/DeviceHub.app" "$(xcode
 done
 
 # --- dev client -----------------------------------------------------------
+# Stop the app before reinstalling: installing over a live process swaps the
+# bundle underneath it. The restart is wanted anyway — another workspace may
+# have left the app pointed at its own Metro, and this re-aims it at ours.
+xcrun simctl terminate "$udid" app.thinkering >/dev/null 2>&1 || true
+
+echo "==> fingerprinting the native project"
+fingerprint="$(cd "$mobile" && npx --no-install @expo/fingerprint fingerprint:generate --platform ios |
+  node -pe 'JSON.parse(require("fs").readFileSync(0, "utf8")).hash')"
+build="$cache/$fingerprint"
+app="$build/thinkering.app"
+
 if [ ! -d "$app" ] || [ "$rebuild" = 1 ]; then
-  echo "==> building the dev client (once; ~10 minutes)"
+  echo "==> building the dev client for fingerprint ${fingerprint:0:12} (~10 minutes)"
   cd "$mobile"
-  mkdir -p "$cache"
-  rm -rf "$app"
-  # --output drops the binary straight into the shared cache; expo prebuilds and
-  # runs pod install first if apps/mobile/ios isn't there yet.
-  npx expo run:ios --no-bundler --device "$udid" --output "$cache"
+  rm -rf "$build"
+  mkdir -p "$build"
+  # expo run:ios reuses an existing ios/ as is, which may predate the native
+  # change that brought us here, so generate it afresh (pod install included).
+  npx expo prebuild --platform ios --clean
+  # --output drops the binary straight into the cache.
+  npx expo run:ios --no-bundler --device "$udid" --output "$build"
   if [ ! -d "$app" ]; then
     built="$(ls -dt "$HOME"/Library/Developer/Xcode/DerivedData/thinkering-*/Build/Products/Debug-iphonesimulator/thinkering.app 2>/dev/null | head -1)"
     if [ -z "$built" ]; then
@@ -68,13 +81,16 @@ if [ ! -d "$app" ] || [ "$rebuild" = 1 ]; then
   xcrun simctl install "$udid" "$app"
   echo "==> cached $app"
 else
-  echo "==> installing cached dev client (--rebuild to compile a fresh one)"
+  echo "==> installing the cached dev client for fingerprint ${fingerprint:0:12}"
   xcrun simctl install "$udid" "$app"
 fi
 
-# Another workspace may have left the app pointed at its own Metro; a restart is
-# what re-aims it at this one.
-xcrun simctl terminate "$udid" app.thinkering >/dev/null 2>&1 || true
+# Workspaces on different branches can need different builds, so keep the three
+# most recently used and drop the rest (and the unversioned build from before
+# fingerprinting).
+touch "$build"
+rm -rf "$cache/thinkering.app"
+ls -dt "$cache"/*/ 2>/dev/null | tail -n +4 | while read -r old; do rm -rf "$old"; done
 
 # --- metro ----------------------------------------------------------------
 cd "$mobile"
@@ -106,7 +122,12 @@ open_app() {
     running && return
     echo "==> opening the app against http://localhost:$port"
     xcrun simctl openurl "$udid" "thinkering://expo-development-client/?url=http%3A%2F%2Flocalhost%3A$port" || true
-    sleep 5
+    # Give it time to come up before asking again — a second openurl at a
+    # launch that was already on its way only reloads the app.
+    for _ in $(seq 1 15); do
+      running && return
+      sleep 1
+    done
   done
   running || echo "The app didn't come up. Open it by hand from the simulator's home screen — the dev launcher remembers this URL." >&2
 }
