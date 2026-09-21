@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { Tabs } from 'expo-router'
+import { Platform } from 'react-native'
 
 import { InterestSelectionProvider } from '@/interests/selection'
 import { colors, fonts } from '@/theme/tokens'
@@ -15,6 +16,9 @@ export default function TabsLayout() {
           tabBarStyle: {
             backgroundColor: colors.surface,
             borderTopColor: colors.hairline,
+            // The browser has no bottom inset to lend the bar room, and at the
+            // default height the label below the icon is cut off.
+            ...(Platform.OS === 'web' ? { height: 60 } : null),
           },
           tabBarLabelStyle: {
             fontFamily: fonts.sansMedium,
