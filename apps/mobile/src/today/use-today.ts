@@ -14,7 +14,7 @@ import { listGoals } from '@thinkering/db'
 import { describeAiError } from '@/ai'
 import { db } from '@/db'
 import { deviceTimeZone } from '@/time'
-import { useWritingDocs, writeAhead } from '@/features/activity-player/generate'
+import { useWritingDocs, writeAhead, type WritingDocs } from '@/features/activity-player/generate'
 import { ensureDailyPlan, needsCards, suggestedInterests, todaysCards } from './plan'
 
 /**
@@ -51,8 +51,8 @@ export interface TodayView {
   /** No goals yet in any selected interest — nothing to plan. */
   empty: boolean
   generating: boolean
-  /** Cards whose documents are queued or being written. */
-  writing: ReadonlySet<string>
+  /** Cards whose documents are queued or being written, and which of them can be opened. */
+  writing: WritingDocs
   error: string | null
   retry: () => void
   refresh: () => void
@@ -135,8 +135,8 @@ export function useToday(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, today, version, opts.suggestOnly])
 
-  // A finished write changes what a card offers (Write → its time), so a
-  // change in `writing` re-reads too.
+  // A write changes what a card offers as it goes (Write → Writing → its
+  // time), so a change in `writing` re-reads too.
   const sections = useMemo(
     () => readSections(shown, today, timeZone),
     // eslint-disable-next-line react-hooks/exhaustive-deps

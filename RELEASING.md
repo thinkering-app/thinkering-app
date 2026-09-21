@@ -73,8 +73,9 @@ Server secrets (`ANTHROPIC_API_KEY`, `RESEND_API_KEY`, `SUPABASE_SECRET_KEY`)
 belong to `apps/web` on Vercel and never reach a build. The `/internal`
 reference pages join them if you want them reachable in production:
 `INTERNAL_PASSWORD_PROMPTS` and `INTERNAL_PASSWORD_LIBRARY` for a password
-each, or `INTERNAL_PASSWORD` alone to open both with one. A page with neither
-set stays closed.
+each, and `INTERNAL_PASSWORD` for a master that opens both — set alongside
+them, or on its own as the single password for everything. A page with no
+password either way stays closed.
 
 ## Before the first submission
 

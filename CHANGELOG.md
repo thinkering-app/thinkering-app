@@ -10,6 +10,10 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 - Settings are one tap away from anywhere: the ⚙ now sits in the top-right of
   Today, Path and History as well as Me.
+- Delete all data, in Account and data: your interests, path and history go
+  from this device — and from our server, if you're signed in — for good.
+- Me → Settings → AI says why there's a daily limit, and where to write to us
+  if you keep running into it or need more.
 - Have a code? In Me → Settings → AI, a code we've given you adds to your
   daily amount from then on.
 - A page written in answer to something you asked now shows your question at
@@ -41,6 +45,12 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- A card being written on Today shows how long it will take as soon as its
+  first page is ready, rather than Writing. Tap it and you can start reading
+  while the rest arrives.
+- Add a link and Find more sit at the top of Resources, where a long list
+  can't push them out of sight.
+- Strengthen is optional in your learning routine, like Go further.
 - A new interest starts with two suggested resources — one to watch and one to
   read — rather than a list to work through. Each points at a single video or
   article you can open, not a channel or a home page.

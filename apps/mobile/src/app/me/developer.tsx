@@ -11,7 +11,8 @@ import { Pill } from '@/components/pill'
 import { SubScreen } from '@/components/sub-screen'
 import { Toast } from '@/components/toast'
 import { db, repoContext } from '@/db'
-import { reopenAt, resetLocalData } from '@/dev/data'
+import { resetLocalData } from '@/dev/data'
+import { reopenAt } from '@/reopen'
 import { useLocalToday } from '@/time'
 
 /**
