@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { NextRequest } from 'next/server'
 import {
   areasFor,
-  areaPassword,
+  areaPasswords,
   cookieFor,
   createSessionToken,
   safeNext,
@@ -17,10 +17,13 @@ import { middleware } from '@/middleware'
  * quietly open them are the ones worth pinning: nothing configured, a forged
  * or expired cookie, a cookie minted under the previous password — and, now
  * that each page has its own password, one page's cookie opening the other.
+ * The master password is the other side of that: it has to open both pages
+ * without weakening any of the above.
  */
 
 const PROMPTS_PW = 'correct horse battery staple'
 const LIBRARY_PW = 'a different password entirely'
+const MASTER_PW = 'the one that opens everything'
 const NOW = 1_800_000_000_000
 
 function page(path: string, cookies: Partial<Record<string, string>> = {}): NextRequest {
@@ -50,41 +53,50 @@ describe('per-area passwords', () => {
     expect(await areasFor('neither')).toEqual([])
   })
 
-  it('opens both when one password is shared between them', async () => {
+  it('opens both when it is the only password set', async () => {
     delete process.env.INTERNAL_PASSWORD_PROMPTS
     delete process.env.INTERNAL_PASSWORD_LIBRARY
-    process.env.INTERNAL_PASSWORD = 'shared'
-    expect(await areasFor('shared')).toEqual(['prompts', 'library'])
+    process.env.INTERNAL_PASSWORD = MASTER_PW
+    expect(await areasFor(MASTER_PW)).toEqual(['prompts', 'library'])
   })
 
-  it("prefers an area's own password over the shared fallback", async () => {
-    process.env.INTERNAL_PASSWORD = 'shared'
-    delete process.env.INTERNAL_PASSWORD_LIBRARY
-    expect(areaPassword('prompts')).toBe(PROMPTS_PW)
-    expect(areaPassword('library')).toBe('shared')
-    // The fallback does not also open an area that has overridden it.
-    expect(await areasFor('shared')).toEqual(['library'])
+  it('opens both alongside the passwords the pages set for themselves', async () => {
+    process.env.INTERNAL_PASSWORD = MASTER_PW
+    expect(areaPasswords('prompts')).toEqual([PROMPTS_PW, MASTER_PW])
+    // Each page keeps its own password, and the master opens them all.
+    expect(await areasFor(PROMPTS_PW)).toEqual(['prompts'])
+    expect(await areasFor(LIBRARY_PW)).toEqual(['library'])
+    expect(await areasFor(MASTER_PW)).toEqual(['prompts', 'library'])
+  })
+
+  it('is one key, not two, for a page whose own password is the master', async () => {
+    process.env.INTERNAL_PASSWORD = PROMPTS_PW
+    expect(areaPasswords('prompts')).toEqual([PROMPTS_PW])
   })
 
   it('stays closed when nothing is configured', async () => {
     delete process.env.INTERNAL_PASSWORD_PROMPTS
     delete process.env.INTERNAL_PASSWORD_LIBRARY
-    expect(areaPassword('prompts')).toBeUndefined()
-    expect(await createSessionToken('prompts', NOW)).toBeUndefined()
+    expect(areaPasswords('prompts')).toEqual([])
+    expect(await createSessionToken('prompts', PROMPTS_PW, NOW)).toBeUndefined()
     expect(await areasFor('')).toEqual([])
     expect(await verifySessionToken('prompts', 'anything', NOW)).toBe(false)
+  })
+
+  it('will not mint a token for a password that does not open the area', async () => {
+    expect(await createSessionToken('prompts', LIBRARY_PW, NOW)).toBeUndefined()
   })
 })
 
 describe('internal session tokens', () => {
   it('accepts a token it just minted and rejects one that has expired', async () => {
-    const token = await createSessionToken('prompts', NOW)
+    const token = await createSessionToken('prompts', PROMPTS_PW, NOW)
     expect(await verifySessionToken('prompts', token, NOW)).toBe(true)
     expect(await verifySessionToken('prompts', token, NOW + SESSION_TTL_MS + 1)).toBe(false)
   })
 
   it('rejects a tampered expiry or signature', async () => {
-    const token = (await createSessionToken('prompts', NOW))!
+    const token = (await createSessionToken('prompts', PROMPTS_PW, NOW))!
     const [expiresAt, signature] = token.split('.')
     expect(
       await verifySessionToken('prompts', `${Number(expiresAt) + 1_000}.${signature}`, NOW),
@@ -95,17 +107,35 @@ describe('internal session tokens', () => {
 
   it('will not accept one area’s token for the other, even on a shared password', async () => {
     process.env.INTERNAL_PASSWORD_LIBRARY = PROMPTS_PW
-    const token = await createSessionToken('prompts', NOW)
+    const token = await createSessionToken('prompts', PROMPTS_PW, NOW)
     expect(await verifySessionToken('prompts', token, NOW)).toBe(true)
     expect(await verifySessionToken('library', token, NOW)).toBe(false)
   })
 
   it('rotating one password leaves the other area signed in', async () => {
-    const prompts = await createSessionToken('prompts', NOW)
-    const library = await createSessionToken('library', NOW)
+    const prompts = await createSessionToken('prompts', PROMPTS_PW, NOW)
+    const library = await createSessionToken('library', LIBRARY_PW, NOW)
     process.env.INTERNAL_PASSWORD_PROMPTS = 'rotated'
     expect(await verifySessionToken('prompts', prompts, NOW)).toBe(false)
     expect(await verifySessionToken('library', library, NOW)).toBe(true)
+  })
+
+  it('signs out only the password that was rotated, not the other one', async () => {
+    process.env.INTERNAL_PASSWORD = MASTER_PW
+    const onOwn = await createSessionToken('prompts', PROMPTS_PW, NOW)
+    const onMaster = await createSessionToken('prompts', MASTER_PW, NOW)
+    expect(await verifySessionToken('prompts', onOwn, NOW)).toBe(true)
+    expect(await verifySessionToken('prompts', onMaster, NOW)).toBe(true)
+    // Rotating the master is for master-holders; it is not a lockout of the page.
+    process.env.INTERNAL_PASSWORD = 'rotated'
+    expect(await verifySessionToken('prompts', onMaster, NOW)).toBe(false)
+    expect(await verifySessionToken('prompts', onOwn, NOW)).toBe(true)
+  })
+
+  it('will not accept one area’s master cookie for the other', async () => {
+    process.env.INTERNAL_PASSWORD = MASTER_PW
+    const token = await createSessionToken('prompts', MASTER_PW, NOW)
+    expect(await verifySessionToken('library', token, NOW)).toBe(false)
   })
 })
 
@@ -119,7 +149,7 @@ describe('internal middleware gate', () => {
   })
 
   it('lets each area through only on its own cookie', async () => {
-    const token = (await createSessionToken('prompts', Date.now()))!
+    const token = (await createSessionToken('prompts', PROMPTS_PW, Date.now()))!
     const jar = { [cookieFor('prompts')]: token }
     expect((await middleware(page('/internal/prompts', jar))).headers.get('location')).toBeNull()
     // The same cookie is no help on the page it does not cover.
