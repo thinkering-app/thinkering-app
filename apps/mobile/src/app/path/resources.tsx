@@ -26,7 +26,7 @@ import {
   normalizeUrl,
   type ResourceDraft,
 } from '@/resources/link'
-import { findMoreResources } from '@/resources/seed'
+import { FIND_MORE_ENABLED, findMoreResources } from '@/resources/seed'
 import { colors } from '@/theme/tokens'
 
 /**
@@ -54,7 +54,7 @@ export default function ResourcesScreen() {
    * a failure is shown — they asked for this one.
    */
   const findMore = () => {
-    if (!interestId) return
+    if (!interestId || !FIND_MORE_ENABLED) return
     setSearching(true)
     setSearchError('')
     findMoreResources(interestId)
@@ -109,14 +109,26 @@ export default function ResourcesScreen() {
         ) : (
           <View className="flex-row gap-2">
             <Button label="Add a link" onPress={() => setAdding(true)} />
-            <Button label="Find more" variant="quiet" onPress={findMore} />
+            <Button
+              label={FIND_MORE_ENABLED ? 'Find more' : 'Find more · soon'}
+              variant="quiet"
+              onPress={findMore}
+              disabled={!FIND_MORE_ENABLED}
+            />
           </View>
         )}
         {searchError ? (
           <Text className="px-1 font-sans text-secondary text-ink-soft">{searchError}</Text>
         ) : null}
         {resources.length === 0 ? (
-          <EmptyState color="peach" message="Nothing saved yet. Find more, or paste a link." />
+          <EmptyState
+            color="peach"
+            message={
+              FIND_MORE_ENABLED
+                ? 'Nothing saved yet. Find more, or paste a link.'
+                : 'Nothing saved yet. Paste a link.'
+            }
+          />
         ) : (
           resources.map((resource) => (
             <Pressable
