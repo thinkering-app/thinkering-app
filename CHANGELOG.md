@@ -10,6 +10,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 - Delete all data, in Account and data: your interests, path and history go
   from this device — and from our server, if you're signed in — for good.
+- Me → Settings → AI says why there's a daily limit, and where to write to us
+  if you keep running into it or need more.
 - Have a code? In Me → Settings → AI, a code we've given you adds to your
   daily amount from then on.
 - A page written in answer to something you asked now shows your question at
