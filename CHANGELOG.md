@@ -45,6 +45,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- Tapping a day on the Me calendar lists what you did under the calendar
+  instead of opening a sheet over it. Tap the day again to close the list.
 - A card being written on Today shows how long it will take as soon as its
   first page is ready, rather than Writing. Tap it and you can start reading
   while the rest arrives.

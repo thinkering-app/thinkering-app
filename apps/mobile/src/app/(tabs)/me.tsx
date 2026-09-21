@@ -11,7 +11,7 @@ import { NavRow } from '@/components/nav-row'
 import { SettingsButton } from '@/components/settings-button'
 import { db } from '@/db'
 import { dayLabel } from '@/history/day-label'
-import { DaySheet } from '@/me/day-sheet'
+import { DayActivities } from '@/me/day-activities'
 import { useCalendar } from '@/me/use-calendar'
 import { useLocalToday } from '@/time'
 
@@ -24,6 +24,7 @@ import { useLocalToday } from '@/time'
 export default function MeScreen() {
   const today = useLocalToday()
   const { month, marked, changeMonth, dayActivities } = useCalendar(today)
+  // The selected day's activities sit under the calendar; tapping it again closes them.
   const [selectedDay, setSelectedDay] = useState<LocalDate | null>(null)
   const [version, reload] = useReducer((n: number) => n + 1, 0)
   // Interests are managed on a pushed screen, and Developer can seed them.
@@ -50,18 +51,21 @@ export default function MeScreen() {
           marked={marked}
           today={today}
           selected={selectedDay}
-          onSelect={setSelectedDay}
-          onMonthChange={changeMonth}
+          onSelect={(date) => setSelectedDay((current) => (current === date ? null : date))}
+          onMonthChange={(delta) => {
+            setSelectedDay(null)
+            changeMonth(delta)
+          }}
         />
-      </ScrollView>
 
-      <DaySheet
-        visible={selectedDay !== null}
-        onClose={() => setSelectedDay(null)}
-        title={selectedDay ? dayLabel(selectedDay, today) : ''}
-        rows={selectedDay ? dayActivities(selectedDay) : []}
-        interestNames={interestNames}
-      />
+        {selectedDay ? (
+          <DayActivities
+            title={dayLabel(selectedDay, today)}
+            rows={dayActivities(selectedDay)}
+            interestNames={interestNames}
+          />
+        ) : null}
+      </ScrollView>
       <FeedbackButton />
     </SafeAreaView>
   )
