@@ -44,8 +44,13 @@ export const BURST_LIMITS: Record<string, number> = {
   'intake.choices': 10,
   'intake.path': 15,
   'resources.search': 10,
-  /** Asked for by hand, one tap at a time, and each one is minutes of web search. */
-  'resources.more': 10,
+  /**
+   * Find more, off for now: each call is minutes of web search, too much of
+   * the shared budget for the beta. Zero refuses every call, and a grant can't
+   * scale it up. The app disables the button to match (FIND_MORE_ENABLED);
+   * restore to 10 to turn it back on.
+   */
+  'resources.more': 0,
   'activity.generate': 80,
   'today.plan': 60,
   'reflect.open': 15,

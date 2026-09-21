@@ -40,8 +40,8 @@ export default function DirectionStep() {
     // Today plans the day and writes its cards ahead on arrival. G4 searches
     // for resources from here, fully in the background: nobody is waiting on
     // it, so a failure is silent and the resources simply don't appear. On the
-    // web it doesn't run at all — Find more in the resources panel is how you
-    // get them there (AUTO_SEED_RESOURCES).
+    // web it doesn't run at all; there, resources are the links the learner
+    // adds (AUTO_SEED_RESOURCES, FIND_MORE_ENABLED).
     if (AUTO_SEED_RESOURCES) {
       seedResources(interestId).catch((e: unknown) => {
         if (__DEV__) console.warn('[resources] seeding failed', e)

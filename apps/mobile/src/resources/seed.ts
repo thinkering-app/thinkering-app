@@ -30,10 +30,19 @@ import { sameResourceKey } from '@/resources/link'
  * Native builds do; the web build doesn't. The search is the app's most
  * expensive call per unit of value — minutes of web search against a budget
  * shared by every device — and the web build is where a visitor tries the app
- * once without meaning to keep it. Find more in the resources panel is on both
- * platforms, so nothing is unreachable on the web; it just has to be asked for.
+ * once without meaning to keep it. While Find more is off (FIND_MORE_ENABLED),
+ * a web learner's resources are only the links they add.
  */
 export const AUTO_SEED_RESOURCES: boolean = Platform.OS !== 'web'
+
+/**
+ * Whether Find more in the resources panel runs G12. Off for now: each tap is
+ * minutes of web search, too much of the shared budget for the beta. The
+ * button stays, disabled, so people can see it's coming. The proxy refuses
+ * the kind as well (`BURST_LIMITS` in apps/web), so a build that predates this
+ * flag can't spend it either. Turn both back on together.
+ */
+export const FIND_MORE_ENABLED = false
 
 /** Saved URLs, so a search doesn't spend itself returning what they have. */
 function savedUrls(interestId: string): string[] {
