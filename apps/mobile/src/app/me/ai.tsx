@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Text, View } from 'react-native'
+import { Linking, Text, View } from 'react-native'
 
 import { BYOK_AVAILABLE, getAiMode, setAiMode, type AiMode } from '@/ai/settings'
 import { KEYS, secureDelete, secureGet, secureSet } from '@/ai/secure-store'
@@ -9,6 +9,7 @@ import { Button } from '@/components/button'
 import { Meter } from '@/components/meter'
 import { SubScreen } from '@/components/sub-screen'
 import { TextField } from '@/components/text-field'
+import { FEEDBACK_CONTACT } from '@/feedback/use-feedback'
 
 /**
  * Me → Settings → AI (docs/01 §7): today's usage against the included daily
@@ -98,18 +99,34 @@ export default function AiScreen() {
         <Text className="font-sans text-body text-ink-soft">
           Fixture mode is replaying recorded responses. Nothing is metered.
         </Text>
-      ) : usage ? (
-        <Meter
-          label="Used today"
-          fraction={usage.used / usage.limit}
-          caption={`Resets ${resetLabel(usage.resetAt)}`}
-        />
-      ) : usageError ? (
-        <Text className="font-sans text-body text-ink-soft">
-          We couldn&apos;t reach the usage meter.
-        </Text>
       ) : (
-        <Text className="font-sans text-body text-ink-soft">Checking today&apos;s usage…</Text>
+        <View className="gap-3">
+          {usage ? (
+            <Meter
+              label="Used today"
+              fraction={usage.used / usage.limit}
+              caption={`Resets ${resetLabel(usage.resetAt)}`}
+            />
+          ) : usageError ? (
+            <Text className="font-sans text-body text-ink-soft">
+              We couldn&apos;t reach the usage meter.
+            </Text>
+          ) : (
+            <Text className="font-sans text-body text-ink-soft">Checking today&apos;s usage…</Text>
+          )}
+          <Text className="font-sans text-secondary leading-relaxed text-ink-soft">
+            Daily limit to keep costs sustainable. If you&apos;re running into the limit often,
+            think there are issues, or need any more, don&apos;t hesitate to reach out to{' '}
+            <Text
+              className="text-cornflower-deep"
+              accessibilityRole="link"
+              onPress={() => void Linking.openURL(`mailto:${FEEDBACK_CONTACT}`)}
+            >
+              {FEEDBACK_CONTACT}
+            </Text>
+            .
+          </Text>
+        </View>
       )}
 
       {mode === 'proxy' ? (

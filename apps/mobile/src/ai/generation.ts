@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 
-import { AiBudgetError, AiOutputError, isSearchFailure } from './client'
+import { AiBudgetError, AiOutdatedClientError, AiOutputError, isSearchFailure } from './client'
 
 /**
  * One background generation's lifecycle (docs/04 §Failure handling). The AI
@@ -112,6 +112,8 @@ export function useGeneration<T>(restored?: Settled<T>): GenerationRunner<T> {
 /** Calm, plain failure copy (docs/07 voice) — no error codes in front of the user. */
 export function describeAiError(error: unknown): string {
   if (error instanceof AiBudgetError) return "You've used today's included generation."
+  // Nothing retrying can fix, so it asks for the one thing that helps.
+  if (error instanceof AiOutdatedClientError) return 'Update thinkering to keep going.'
   // Before the shape check: a searching kind that came back unusable failed at
   // the search, and saying so is both truer and more actionable than blaming
   // the shape of something the learner never sees.

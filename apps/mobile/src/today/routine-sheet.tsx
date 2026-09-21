@@ -37,7 +37,7 @@ const ROUTINE_FEEDBACK_URL = 'https://thinkering.featurebase.app/p/customize-lea
 
 const ROUTINE: { section: Section; what: string; cadence: string }[] = [
   { section: 'next', what: 'Learn something new', cadence: '1 a day' },
-  { section: 'strengthen', what: 'Review and deepen what you’ve learned', cadence: '1 a day' },
+  { section: 'strengthen', what: 'Review and deepen what you’ve learned', cadence: 'Optional' },
   {
     section: 'go_further',
     what: 'Put your learning to use, or take it further',

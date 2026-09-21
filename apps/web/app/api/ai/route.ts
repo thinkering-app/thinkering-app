@@ -79,7 +79,9 @@ function toolFailure(code: string): Error {
 }
 
 const bodySchema = z.object({
-  kind: z.string().min(1),
+  // Bounded because an unknown kind gets logged: every real kind is well under
+  // this, and it keeps a client from writing arbitrary length into our logs.
+  kind: z.string().min(1).max(64),
   params: z.unknown(),
   stream: z.boolean().optional().default(true),
   /** One repair round-trip (docs/04 §Failure handling): the client sends back
@@ -119,6 +121,10 @@ export async function POST(req: Request): Promise<Response> {
   const auth = await verifyDeviceAuth(req, bodyText, store, now())
   if (!auth.ok) return Response.json({ error: auth.message }, { status: auth.status })
 
+  // Client-supplied and unsigned, so it's a diagnostic rather than a claim:
+  // nothing branches on it. Builds older than the header report 'unknown'.
+  const appVersion = (req.headers.get('x-app-version') ?? 'unknown').slice(0, 32)
+
   let json: unknown
   try {
     json = JSON.parse(bodyText)
@@ -131,7 +137,22 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   const template = getPromptTemplate(body.data.kind)
-  if (!template) return Response.json({ error: 'unknown_kind' }, { status: 400 })
+  if (!template) {
+    // Logged because it is otherwise invisible: this returns before the
+    // reservation, so a kind we've dropped leaves no row in device_usage and
+    // an install too old to know better fails with nothing to debug from
+    // (docs/04 §Retired kinds). The kind is client-supplied — bounded by
+    // `bodySchema` above, and JSON-encoded by `logAiCall`, so it stays one
+    // field rather than becoming a log line of its own.
+    logAiCall({
+      kind: body.data.kind,
+      model: 'none',
+      status: 'error',
+      errorType: 'unknown_kind',
+      appVersion,
+    })
+    return Response.json({ error: 'unknown_kind' }, { status: 400 })
+  }
 
   // The text being repaired is the model's own earlier output, so it can't be
   // longer than a response of this kind; anything past that isn't a repair.
@@ -220,6 +241,7 @@ export async function POST(req: Request): Promise<Response> {
       inputTokens,
       outputTokens: charged,
       latencyMs: now() - started,
+      appVersion,
       ...(opts.error ? { errorType: (opts.error as Error).name } : {}),
     })
     try {
@@ -237,6 +259,7 @@ export async function POST(req: Request): Promise<Response> {
         model,
         status: 'error',
         errorType: `settle:${(err as Error).name}`,
+        appVersion,
       })
     }
   }

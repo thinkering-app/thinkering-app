@@ -18,6 +18,7 @@ import { Button } from '@/components/button'
 import { EmptyState } from '@/components/empty-state'
 import { FeedbackButton } from '@/components/feedback-button'
 import { GenerationError } from '@/components/generation-error'
+import { SettingsButton } from '@/components/settings-button'
 import { Generating } from '@/components/generating'
 import { repoContext, db } from '@/db'
 import { useAddInterest } from '@/intake/add-interest'
@@ -87,6 +88,7 @@ export default function PathScreen() {
                 <Ionicons name="options-outline" size={22} color={colors.ink.soft} />
               </Pressable>
             ) : null}
+            <SettingsButton />
           </View>
         </View>
         <InterestSelector allowAll={false} />

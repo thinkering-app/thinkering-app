@@ -15,9 +15,10 @@ import { GenerationError } from '@/components/generation-error'
 import { Generating } from '@/components/generating'
 import { PressScale } from '@/components/press-scale'
 import { SECTION_LABELS, SectionHeader } from '@/components/section-header'
+import { SettingsButton } from '@/components/settings-button'
 import { Toast } from '@/components/toast'
 import { db } from '@/db'
-import { writeActivityDoc } from '@/features/activity-player/generate'
+import { writeActivityDoc, type WritingDocs } from '@/features/activity-player/generate'
 import { useAddInterest } from '@/intake/add-interest'
 import { InterestSelector } from '@/interests/selector'
 import { ReflectCard } from '@/path/reflect-card'
@@ -99,7 +100,10 @@ export default function TodayScreen() {
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right']}>
       <View className="gap-4 px-5 pt-4">
-        <Text className="font-heading-bold text-display text-ink">Today</Text>
+        <View className="flex-row items-center gap-3">
+          <Text className="flex-1 font-heading-bold text-display text-ink">Today</Text>
+          <SettingsButton />
+        </View>
         <InterestSelector />
       </View>
 
@@ -201,8 +205,8 @@ function SectionRow({
   /** Another interest selected: the heading's check appears without popping. */
   interestKey: string
   generating: boolean
-  /** Cards whose documents are still being written. */
-  writing: ReadonlySet<string>
+  /** Cards whose documents are still being written, and which of them can be opened. */
+  writing: WritingDocs
   drafts: Draft[]
   onWriteFailed: (e: unknown) => void
   onConfigure?: () => void
@@ -211,7 +215,7 @@ function SectionRow({
   const unwritten = (card: TodaySectionView['cards'][number]) =>
     card.activity.status === 'planned' &&
     card.activity.doc === null &&
-    !writing.has(card.activity.id)
+    !writing.ids.has(card.activity.id)
   return (
     <View className="gap-3">
       <View className="px-3">
@@ -245,7 +249,9 @@ function SectionRow({
               section={view.section}
               completed={card.activity.status === 'completed'}
               inProgress={card.activity.status === 'in_progress'}
-              writing={writing.has(card.activity.id)}
+              // Page 1 in hand is enough to open: the card offers its time,
+              // and the player picks the stream up from there.
+              writing={writing.ids.has(card.activity.id) && !writing.ready.has(card.activity.id)}
               unwritten={unwritten(card)}
               interestName={card.interestName}
               onPress={() =>

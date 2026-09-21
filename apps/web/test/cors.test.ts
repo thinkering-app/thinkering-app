@@ -23,6 +23,25 @@ describe('CORS middleware', () => {
     expect(res.headers.get('access-control-allow-headers')).toContain('x-signature')
   })
 
+  it('allows every header signedHeaders sends', async () => {
+    // A header the client sends and this list omits fails the preflight, and
+    // the web app goes offline with no error the server ever sees. Keep in
+    // step with signedHeaders() in apps/mobile/src/ai/device.ts.
+    const res = await middleware(request('OPTIONS', APP))
+    const allowed = (res.headers.get('access-control-allow-headers') ?? '')
+      .split(',')
+      .map((h) => h.trim())
+    expect(allowed).toEqual(
+      expect.arrayContaining([
+        'content-type',
+        'x-device-id',
+        'x-timestamp',
+        'x-signature',
+        'x-app-version',
+      ]),
+    )
+  })
+
   it('allows the web app origin on the real request', async () => {
     const res = await middleware(request('POST', APP))
     expect(res.headers.get('access-control-allow-origin')).toBe(APP)

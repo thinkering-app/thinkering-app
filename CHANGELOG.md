@@ -8,6 +8,12 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Added
 
+- Settings are one tap away from anywhere: the ⚙ now sits in the top-right of
+  Today, Path and History as well as Me.
+- Delete all data, in Account and data: your interests, path and history go
+  from this device — and from our server, if you're signed in — for good.
+- Me → Settings → AI says why there's a daily limit, and where to write to us
+  if you keep running into it or need more.
 - Have a code? In Me → Settings → AI, a code we've given you adds to your
   daily amount from then on.
 - A page written in answer to something you asked now shows your question at
@@ -39,6 +45,14 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- Tapping a day on the Me calendar lists what you did under the calendar
+  instead of opening a sheet over it. Tap the day again to close the list.
+- A card being written on Today shows how long it will take as soon as its
+  first page is ready, rather than Writing. Tap it and you can start reading
+  while the rest arrives.
+- Add a link and Find more sit at the top of Resources, where a long list
+  can't push them out of sight.
+- Strengthen is optional in your learning routine, like Go further.
 - A new interest starts with two suggested resources — one to watch and one to
   read — rather than a list to work through. Each points at a single video or
   article you can open, not a channel or a home page.
@@ -93,6 +107,10 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Fixed
 
+- Starting a new interest works again on a version of the app installed before
+  the last update. It failed straight away, with nothing to say why; if an
+  update is what's needed, the app now says so.
+- Deleting your backup account no longer fails.
 - Leaving a screen while something was being written no longer counts the
   whole generation against your daily amount, so you reach the cap far less
   often.
