@@ -35,14 +35,18 @@ so stop the fixture one first.
 
 ## Run: app (iOS simulator)
 
-First run compiles a development client and caches it at
-`~/Library/Caches/thinkering/dev-client/thinkering.app` — about ten minutes, once
-per machine. The binary holds no app JavaScript, so every workspace afterwards
-reuses it: install (seconds), start Metro on `$CONDUCTOR_PORT + 2`, deep-link the
-dev client at that port. Hot reload works.
+First run compiles a development client and caches it under
+`~/Library/Caches/thinkering/dev-client/<fingerprint>/` — about ten minutes. The
+binary holds no app JavaScript, so every workspace afterwards reuses it: install
+(seconds), start Metro on `$CONDUCTOR_PORT + 2`, deep-link the dev client at that
+port. Hot reload works.
 
-Rebuild only when the native side changes — a new Expo module, an SDK bump, a
-native field in `app.config.ts`:
+The fingerprint is Expo's hash of the native project (`@expo/fingerprint`):
+dependencies with native code, config plugins, the native fields of
+`app.config.ts`. When a branch changes any of those, the script builds a new
+client on its own, starting from a clean `expo prebuild`. It keeps the three most
+recently used builds, so switching between branches doesn't rebuild each time. To
+force a fresh build anyway:
 
 ```sh
 bash .conductor/run-ios.sh --rebuild
