@@ -233,6 +233,7 @@ export {
   type NoProperties,
   type SettingsKey,
 } from './analytics/events'
+export { isAutomatedClient } from './analytics/automation'
 export {
   PRIVACY_CONTACT_EMAIL,
   PRIVACY_INTRO,
