@@ -6,11 +6,23 @@ This file is read by Codex directly and by Claude Code through `CLAUDE.md`. Edit
 
 ## Start here
 
-1. Read `docs/00-overview.md` for vocabulary and the decision log. Use the canonical vocabulary (Interest, Goal, Activity, Section, Library item, "Put to use") in code and copy.
-2. Your task is a GitHub issue (`gh issue view <n>`) or the prompt you were given. `docs/09-roadmap.md` is the build history: M0–M9 are done, with deviations recorded, and its "Later" list is the backlog. It holds no open work packages.
-3. The relevant deep-dive doc is authoritative: `03` data model, `04` AI pipeline, `05` activity format, `06` library, `07` design system, `08` analytics and privacy. If you must deviate, update the doc in the same PR and say why.
+1. Read `docs/00-overview.md` for vocabulary and the decisions (D1–D22). Use the canonical vocabulary (Interest, Goal, Activity, Section, Library item, "Put to use") in code and copy.
+2. Your task is a GitHub issue (`gh issue view <n>`) or the prompt you were given.
+3. The doc for the area you're touching is authoritative. If you must deviate, update the doc in the same PR and say why.
 
-The app is feature-complete for a first beta and heading to TestFlight; what's left is in `RELEASING.md`.
+| Area                                        | Doc  |
+| ------------------------------------------- | ---- |
+| What a screen or flow does                  | `01` |
+| Stack, platforms, sync, AI access, security | `02` |
+| Tables and invariants                       | `03` |
+| Model calls, prompts, metering              | `04` |
+| The Activity Document and its blocks        | `05` |
+| Library items                               | `06` |
+| Tokens, components, voice                   | `07` |
+| Analytics, privacy, what leaves the device  | `08` |
+| Tests                                       | `10` |
+
+Code comments cite docs by section — `docs/01 §3`, `docs/04 §Usage metering`, `docs/10 Tier 6`. Don't rename or renumber a cited heading without updating what cites it (`git grep`).
 
 ## Repo map
 
@@ -57,15 +69,14 @@ Don't run `pnpm e2e` while iterating. The Maestro flows are a pre-release check 
 
 **Database.** Edit `packages/db/src/schema.ts`, run `generate`, then `snapshot`, and commit the SQL, the `meta/` files, `migrations.js` and the new snapshot together. Migrations are additive-first; a test fails on any drop, rename or retype that isn't in its commented allowlist. Never edit an applied migration. Every synced table carries `updated_at` and `deleted_at`: soft-delete, never hard-delete synced rows. IDs are UUIDv7 generated client-side. Timestamps are epoch ms UTC, and day boundaries use the device's local timezone.
 
-**Prompts.** One template per kind in `src/prompts/kinds/`, registered in `registry.ts`. Request fields (model, limits, thinking, tools) come only from `modelRequestFields` — never build them at a call site. A Sonnet kind states its `effort` and leaves `maxTokens` room for thinking plus output (`docs/04` §Thinking). On any change:
+**Prompts.** One template per kind in `packages/core/src/prompts/kinds/`, registered in `registry.ts`. Request fields (model, limits, thinking, tools) come only from `modelRequestFields` — never build them at a call site. A Sonnet kind states its `effort` and leaves `maxTokens` room for thinking plus output (`docs/04` §Thinking). On any change:
 
 - Bump the template's `version`.
-- Review the prompt snapshot diff and update it with vitest `-u`. The diff is the review.
-- Run `pnpm prompt:check <kind>`, then eyeball the output in the AI Inspector. Quality judgment stays human.
+- Review the prompt snapshot diff and update it with vitest `-u`. The diff is the review: it shows exactly what the model will now be sent.
+- Run `pnpm prompt:check <kind>`, then run the app in proxy mode, trigger that kind, and read each call's prompt, response, tokens and cost in Me → Settings → Developer → AI Inspector. Quality judgment stays human.
+- Write the Inspector verdict — what you checked, what's good, what's still off — in the PR description.
 
-How a person reviews a prompt change: the snapshot diff in the PR shows exactly what the model will now be sent. Then run the app in proxy mode, trigger that kind, and open Me → Settings → Developer → AI Inspector to read each call's full prompt, response, tokens and cost.
-
-Write the Inspector verdict — what you checked, what's good, what's still off — in the PR description. Re-record `fixtures/recorded/<kind>` only deliberately. A new kind needs a recording, added to `src/fixtures/recorded.ts`, which also enrolls it in the malformed-output checks (`src/fixtures/recorded.test.ts`).
+Re-record `fixtures/recorded/<kind>` only deliberately. A new kind needs a recording, added to `src/fixtures/recorded.ts`, which also enrolls it in the malformed-output checks (`src/fixtures/recorded.test.ts`).
 
 **UI.** Match the existing patterns in `apps/mobile/src/components` before adding a component. Design tokens only — no hardcoded colors or font sizes.
 
@@ -80,11 +91,17 @@ The full strategy is in `docs/10-testing.md`; read it before writing tests.
 - The LLM boundary is tested with recorded fixtures, never live calls.
 - Don't over-produce tests. Skip tests that restate a schema, assert a mock was called, or re-cover a branch that's already covered.
 
+## Done means
+
+- `pnpm verify` passes.
+- Docs that reality has drifted from are updated in the same PR.
+- A change a learner would notice has a line under `## Unreleased` in `CHANGELOG.md`, in the product's plain voice. Refactors, tests and docs don't (`RELEASING.md`).
+- A prompt change has its Inspector verdict in the PR description.
+- The PR closes its issue (`Closes #12`).
+
 ## Commits and pull requests
 
-- Commit messages use `type(scope): summary`, imperative and lowercase — e.g. `fix(db): keep tombstones out of history`. Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`. Scopes: `mobile`, `web`, `core`, `db`, `config`, `ci`. Drop the scope when a change spans several.
-- A PR closes its issue (`Closes #12`), passes `pnpm verify`, and updates any doc that reality has drifted from.
-- A change a learner would notice gets a line under `## Unreleased` in `CHANGELOG.md`, in the product's plain voice. Refactors, tests and docs don't (`RELEASING.md`).
+Commit messages use `type(scope): summary`, imperative and lowercase — e.g. `fix(db): keep tombstones out of history`. Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`. Scopes: `mobile`, `web`, `core`, `db`, `config`, `ci`. Drop the scope when a change spans several.
 
 ### Rebasing a branch that predates the formatting commit
 

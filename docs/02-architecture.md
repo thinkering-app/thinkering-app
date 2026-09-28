@@ -2,134 +2,126 @@
 
 ## Monorepo
 
-pnpm workspaces (+ Turborepo for task orchestration once useful).
+pnpm workspaces.
 
 ```
 apps/
-  mobile/          # Expo app — iOS primary; Android + web (mobile & desktop) capable
-    app/           # expo-router routes: (tabs)/today, path, history, me; intake/; activity/[id]
-    src/
-      components/  # design-system components (tokens only, no raw colors)
-      features/    # feature modules: intake, today, activity-player, path, history, me
-      db/          # drizzle client init, useMigrations, queries
-      ai/          # client for /api/ai, BYO-key direct client, fixture mode, llm_calls logging
-      theme/
-  web/             # Next.js (App Router) on Vercel
-    app/           # landing page, /privacy
-    app/api/       # ai proxy, feedback/activity-report, device register, usage
+  mobile/      # Expo app: iOS first, Android and web capable
+    src/app/   # expo-router routes
+    src/       # components, activity player (features/), AI client (ai/), db client, sync, theme
+  web/         # Next.js on Vercel: landing page, /api routes, /internal pages
+    lib/server/  # server-only code
+    supabase/    # Supabase schema
 packages/
-  core/            # pure TS, no React: domain types, Zod schemas, prompt templates,
-                   # library definitions, scheduler, context assembly
-  db/              # drizzle schema + migrations (shared by app + export/import + sync)
-  config/          # tailwind preset (design tokens), tsconfig base, eslint config
+  core/        # pure TS, no React: domain types, Zod schemas, prompts, scheduler, library, sync resolver
+  db/          # Drizzle schema, migrations, repositories, export/import
+  config/      # Tailwind preset (design tokens), tsconfig, eslint
+patches/       # pnpm patches for expo and expo-sqlite (see §Platform strategy)
 docs/
 ```
 
-`packages/core` is the heart: everything testable and platform-independent lives there so the mobile app stays a thin UI over core + db.
+`packages/core` is the heart: everything testable and platform-independent lives there, so the mobile app stays a thin UI over core and db.
 
 ## Platform strategy
 
-- **iOS first** via Expo dev builds + EAS. Not Expo Go (we need expo-sqlite, SecureStore, fonts, later share extension).
-- **Web (mobile + desktop)**: same Expo app exported with `npx expo export -p web`, deployed to Vercel at `web.thinkering.app`. expo-sqlite's web support (sqlite wasm + OPFS) requires cross-origin isolation headers (`Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Embedder-Policy: require-corp`) — set in Vercel config. Web is a capable secondary target, not the design driver. Because it lives on its own origin, every call it makes to the API routes is cross-origin: `apps/web/middleware.ts` answers the preflight for an allowlist of app origins (`WEB_APP_ORIGINS` adds to it), and `EXPO_PUBLIC_API_URL` must name the host that answers directly — a redirected preflight, as the apex→www hop is, fails outright. Isolation and OPFS bring five constraints worth knowing before touching the web build:
-  - Metro starts the SQLite worker from a blob URL whenever the page is isolated, and Expo revokes that URL before WebKit has finished fetching the script. `patches/expo@57.0.22.patch` holds the revoke until the worker's first event; without it the database never opens in Safari and the app sits on a blank screen.
-  - OPFS lends the database file to one browsing context at a time, so a second tab can't open it. `useDbMigrations` names that case and retries when the tab is brought forward.
-  - A synchronous query blocks the page's main thread while the worker answers it, and WebKit won't service the worker's OPFS file work meanwhile — so the first synchronous write, the one that opens a rollback journal file, hangs. The web build runs `PRAGMA journal_mode = MEMORY` to avoid the journal file entirely. That trades crash-atomicity for a working browser: a tab killed mid-transaction can leave the file inconsistent, so backup carries more weight on web than on device. Making `packages/db` asynchronous removes the trade, and is the real fix whenever web stops being a secondary target.
-  - The same synchronous query gives the worker a fixed budget to answer in, and expo-sqlite counts that budget in spins of a busy loop — about a million `Atomics.pause`es, which is tens of milliseconds of an idle machine's CPU and can pass without the worker being scheduled at all on a busy one. It then throws `Sync operation timeout`, every screen that read the database dies, and the person sees the error boundary. `patches/expo-sqlite@57.0.3.patch` waits by the clock instead — 2s, against a measured median of 0.2ms and a worst single wait of 131ms on a CI runner in WebKit — so a loaded machine waits longer rather than failing sooner; the same patch fixes a sync result of 256 bytes or more coming back truncated. A slow answer is normal and an unanswered one is fatal either way — the async `packages/db` above is what removes the wait.
-  - There is no in-memory fallback to offer where OPFS is missing: expo-sqlite's worker builds its OPFS VFS before it looks at the database path, so a context without it — private browsing — fails at open, and the root layout says so rather than pretending to persist.
-- **Android**: keep it compiling (CI), polish later.
+- **iOS first**, via Expo dev builds and EAS. Not Expo Go: the app needs expo-sqlite, SecureStore and custom fonts.
+- **Web (mobile and desktop)**: the same Expo app as a static export at `web.thinkering.app`; a capable secondary target, not the design driver. expo-sqlite on web (sqlite wasm + OPFS) needs cross-origin isolation headers (COOP `same-origin`, COEP `require-corp`), set in Vercel config. On its own origin, every API call is cross-origin: `apps/web/middleware.ts` answers the preflight for an allowlist of app origins (`WEB_APP_ORIGINS` adds to it), and `EXPO_PUBLIC_API_URL` must name the host that answers directly, since a redirected preflight (such as apex → www) fails. Isolation and OPFS bring five constraints worth knowing before touching the web build:
+  - Expo revokes the SQLite worker's blob URL before WebKit has fetched it, so Safari never opens the database and shows a blank screen. `patches/expo@57.0.24.patch` holds the revoke until the worker's first event.
+  - OPFS lends the database file to one browsing context at a time, so a second tab can't open it. `useDbMigrations` names that case and retries when the tab comes forward.
+  - While a synchronous query blocks the main thread, WebKit won't service the worker's OPFS file work, so the first write that opens a rollback journal hangs. The web build runs `PRAGMA journal_mode = MEMORY` to avoid the journal file. That trades crash-atomicity for a working browser: a tab killed mid-transaction can leave the file inconsistent, so backup matters more on web.
+  - expo-sqlite gives a synchronous query a busy-loop spin budget, which a loaded machine can exhaust before the worker is even scheduled; it then throws `Sync operation timeout` and the screen falls to the error boundary. `patches/expo-sqlite@57.0.3.patch` waits by the clock instead (2s), and also fixes sync results of 256 bytes or more coming back truncated.
+  - There is no in-memory fallback where OPFS is missing (private browsing): expo-sqlite's worker builds its OPFS VFS before it looks at the path, so it fails at open, and the root layout says so rather than pretending to persist.
+
+  Making `packages/db` asynchronous removes both the journal trade and the timeout wait, and is the real fix whenever web stops being a secondary target.
+
+- **Android**: kept compiling; polish later.
 
 ## Local-first data
 
-- **expo-sqlite + Drizzle ORM**, schema in `packages/db` (see `03-data-model.md`). Migrations generated by drizzle-kit, bundled, applied on startup with `useMigrations`.
-- All reads/writes local and synchronous-fast; the app is fully usable offline except for generating new content.
-- Query layer: small typed repository functions in `apps/mobile/src/db` + live queries (`useLiveQuery` or invalidation via a lightweight store) — avoid sprinkling raw drizzle through components.
+- **expo-sqlite + Drizzle ORM**, schema in `packages/db` (see `03-data-model.md`). Migrations are generated by drizzle-kit, bundled, and applied on startup.
+- The app works fully offline except for generating new content.
+- Components go through the typed repository functions in `packages/db/src/repos`, not raw Drizzle.
 
 ## Backup & sync (optional, off by default)
 
-Phase 1 — **Export/Import**: serialize the ⟳ tables to a versioned JSON file (share sheet / file picker). This is the safety net and ships before sync. The envelope carries `formatVersion` (the envelope's own shape) and `schemaVersion` (the device's applied-migration count); row validators are derived from the drizzle tables, so a column added later is optional on read and an older file migrates forward on its defaults. Code in `packages/db/src/backup`.
+Phase 1 — **Export/Import**: serialize the ⟳ tables to a versioned JSON file (share sheet / file picker). The envelope carries `formatVersion` (its own shape) and `schemaVersion` (the device's applied-migration count). Row validators derive from the Drizzle tables, so an older file migrates forward on column defaults. Code in `packages/db/src/backup`.
 
 Phase 2 — **Supabase backup/sync**:
 
-- Auth: Supabase email/password (Sign in with Apple later if required). Enabling backup creates/links the account. The client talks to Supabase directly with the publishable key — RLS is the boundary, and no user learning data passes through our API routes.
-- Server mirror: one generic `sync_rows(user_id, table_name, id, updated_at, deleted_at, schema_version, data jsonb)` table with RLS `user_id = auth.uid()`, rather than a mirror table per local table. Nothing server-side reads inside `data`, so there is nothing to query for — and a local migration is then never a server migration, which is what D17 asks of the mirror.
-- Protocol: row-level last-write-wins. Every synced row has client-generated UUIDv7 `id`, `updated_at` (epoch ms), `deleted_at` tombstone. Sync = pull server rows with `updated_at > last_pull`, merge, then push local rows with `updated_at > last_push`; newer `updated_at` wins per row, and a tombstone wins an exact tie. Cursors live in the local `settings` table. Runs on app foreground + debounced after significant writes — read off SQLite's own change hook for the ⟳ tables rather than called from each repository. The resolver itself is pure (`packages/core/src/sync`).
-- Turning backup **off** deletes server-side rows (confirmed destructive action), local data untouched. "Delete all data" (`01` §7) deletes both copies. Either one holds sync still while it runs — scheduled runs cancelled, anything in flight awaited — so a pull can't restore what was just cleared and a push can't refill the server copy.
-- Not synced: `llm_calls` (debug), `gen_cache`, `analytics_buffer` (unused), device settings/keys.
-- Rejected for v1: PowerSync/ElectricSQL (extra service + protocol dependency; LWW suffices for single-user data). Revisit if real multi-device concurrency becomes a need.
+- Auth: Supabase email/password; enabling backup creates or links the account. The client talks to Supabase directly with the publishable key. RLS is the boundary, and no user learning data passes through our API routes.
+- Server mirror: one `sync_rows(user_id, table_name, id, updated_at, deleted_at, schema_version, data jsonb)` table with RLS `user_id = auth.uid()`, not a table per local table. Nothing server-side reads inside `data`, so a local migration is never a server migration (D17).
+- Protocol: row-level last-write-wins. Every synced row has a client-generated UUIDv7 `id`, `updated_at` (epoch ms) and a `deleted_at` tombstone. Sync pulls server rows with `updated_at > last_pull`, merges, then pushes local rows with `updated_at > last_push`; the newer `updated_at` wins per row, and a tombstone wins an exact tie. Cursors live in the local `settings` table. Sync runs on app foreground and, debounced, after writes to the ⟳ tables, read off SQLite's own change hook rather than called from each repository. The resolver is pure (`packages/core/src/sync`).
+- Turning backup **off** deletes the server rows (a confirmed destructive action) and leaves local data alone. "Delete all data" (`01` §7) deletes both copies. Both hold sync still while they run, so a pull can't restore what was just cleared and a push can't refill the server copy.
+- Not synced: `llm_calls`, `gen_cache`, `analytics_buffer`, device settings and keys.
+- Rejected for v1: PowerSync/ElectricSQL (an extra service and protocol dependency; LWW suffices for single-user data). Revisit if real multi-device concurrency becomes a need.
 
 ### Schema evolution & compatibility (D17)
 
-How table changes avoid breaking someone on an older build:
-
-- **Local DB**: migrations only run on the build that ships them, so a device's app code and local schema always match — an old build never sees new columns. Migrations are **additive-first**: add columns (nullable or defaulted) and tables; never rename/retype in place; drop only after a deprecation window. Destructive rewrites get a copy-migrate-swap migration with a test.
-- **Versioned payloads**: `ActivityDoc.version`, export files, and any JSON column payload carry a version; readers handle known versions and fail visibly (not silently) on unknown ones. Unknown block kinds render as an "update the app" placeholder (`05`).
-- **Sync**: every pushed row carries the client's `schema_version` (= latest applied migration) alongside its JSON. The floor is enforced in the `sync_rows` RLS `with check`, so an out-of-date build fails its writes rather than putting rows a newer device can't reconcile into the mirror; on the way down, a client that sees a row from a newer schema refuses the whole batch and says "update the app to keep syncing" instead of dropping the fields it doesn't know. Server mirror schema changes are additive-only — and with a JSON mirror there are none to make.
-- **Export/import**: import validates the file's version and migrates it forward through the same migration chain before inserting; importing a file _newer_ than the app is refused with an update prompt.
+- **Local DB**: a device's code and schema always match, since migrations run only on the build that ships them. Migrations are **additive-first**: add nullable or defaulted columns and tables; never rename or retype in place; drop only after a deprecation window. Destructive rewrites get a copy-migrate-swap migration with a test.
+- **Versioned payloads**: `ActivityDoc.version`, export files and any JSON column payload carry a version; readers handle known versions and fail visibly on unknown ones. Unknown block kinds render as an "update the app" placeholder (`05`).
+- **Sync**: every pushed row carries the client's `schema_version` (its latest applied migration). The `sync_rows` RLS `with check` enforces a floor, so an out-of-date build fails its writes rather than putting rows a newer device can't reconcile into the mirror. A client pulling a row from a newer schema refuses the whole batch and says "update the app to keep syncing" rather than drop fields it doesn't know. Server mirror changes are additive-only, and with a JSON mirror there are none to make.
+- **Export/import**: import validates the file's version and migrates it forward through the same chain before inserting; a file _newer_ than the app is refused with an update prompt.
 
 ## AI access
 
 Three modes, same prompt code (`packages/core/src/prompts`):
 
-1. **Metered proxy** (the release default): `apps/web/app/api/ai/*` holds the Anthropic key. The client sends a call `kind` + structured params (not raw prompts); the server assembles the prompt from the same `packages/core` templates, calls Anthropic with streaming SSE passthrough, and meters usage. This keeps the key safe and prevents the proxy being a generic Anthropic relay.
-2. **BYO key**: user's Anthropic key in SecureStore (Keychain); client assembles the same prompts and calls Anthropic directly. Unmetered by us. Native only (`BYOK_AVAILABLE`): a browser has no keychain, so the key would sit in localStorage readable by any script on the page. Web hides the option, reads a stored `byok` mode as proxy, and deletes any key an earlier web build saved.
-3. **Fixture** (the dev default; CI and E2E): serves recorded responses from `fixtures/recorded/<kind>/` with simulated streaming and latency — no network, no key, deterministic. A first-class mode, not a test shim: it's how the whole app runs at zero token cost and how someone new runs it without an API key. See `10-testing.md`.
+1. **Metered proxy** (the release default): `apps/web/app/api/ai` holds the Anthropic key. The client sends a call `kind` and structured params, not raw prompts; the server assembles the prompt from the same `packages/core` templates, streams Anthropic's response through, and meters usage. So the key stays safe and the proxy is no generic Anthropic relay.
+2. **BYO key**: the user's Anthropic key in SecureStore (Keychain); the client assembles the same prompts and calls Anthropic directly, unmetered. Native only (`BYOK_AVAILABLE`): a browser has no keychain, so the key would sit in localStorage readable by any script on the page. Web hides the option, reads a stored `byok` mode as proxy, and deletes any key an earlier web build saved.
+3. **Fixture** (the dev default; CI and E2E): serves recorded responses from `fixtures/recorded/<kind>/` with simulated streaming and latency: no network, no key, deterministic. A first-class mode, not a test shim: it's how anyone runs the app with no key and no token cost (`10-testing.md`).
 
-The mode is a setting (Me → Developer, with dev tools), starting from the build's mode: `EXPO_PUBLIC_AI_MODE` if set, otherwise fixture in a dev build and proxy in a release build — so a fresh checkout never spends tokens and a store build never serves fixtures. The Conductor run scripts set it (`AI_MODE=proxy` for real calls), and the e2e EAS profile sets `fixture` for the Maestro flows (`10`). A mode picked in Me persists until the data is cleared.
+The mode starts from `EXPO_PUBLIC_AI_MODE` if set, otherwise fixture in a dev build and proxy in a release build, so a fresh checkout never spends tokens and a store build never serves fixtures. Dev tools can switch it; the choice persists until the data is cleared.
 
 ### Device identity & metering (D10)
 
-- First launch: `POST /api/device/register` → `{device_id, secret}` stored in SecureStore. Requests carry `device_id` + HMAC signature (timestamped, replay-window). Server keeps a `devices` + `device_usage` table in Supabase (reached with the secret key, i.e. the `service_role` Postgres role — operational data, not user learning data).
-- Budgets are **token-based per day per device**, with per-kind weights (see `04-ai-pipeline.md`). 429 + reset time when exhausted; the app shows the meter in Me → AI usage and degrades gracefully (existing content still works).
-- Every device is a fresh budget, so registration is where abuse would start: it's capped at 20 per IP address per UTC day (`ip_actions`, keyed by an HMAC of the day and the address, never the address). And because no per-device limit bounds many devices, a **proxy-wide daily cap** (`usage_totals`, `AI_DAILY_LIMIT_WEIGHTED`) sits behind them all; the Anthropic Console spend limit is the backstop beyond that (`RELEASING.md`).
-- Hardening later: iOS App Attest to sign registration, key rotation.
+- First launch: `POST /api/device/register` returns `{device_id, secret}`, stored in SecureStore. Requests carry `device_id` and a timestamped HMAC signature with a replay window. The server keeps `devices` and `device_usage` tables in Supabase, reached with the secret key (the `service_role` role): operational data, not user learning data.
+- Budgets are **token-based per day per device**, with per-kind weights (`04-ai-pipeline.md`). An exhausted budget returns 429 with the reset time; the app shows the meter in Me → AI usage and degrades gracefully, since existing content still works.
+- Every device is a fresh budget, so registration is capped at 20 per IP per UTC day (`ip_actions`, keyed by an HMAC of the day and the address, never the address). A **proxy-wide daily cap** (`usage_totals`, `AI_DAILY_LIMIT_WEIGHTED`) sits behind them all, and the Anthropic Console spend limit is the backstop beyond that (`RELEASING.md`).
+- Later: iOS App Attest to sign registration, key rotation.
 
 ## Feedback
 
-- **Community**: `EXPO_PUBLIC_FEATUREBASE_PORTAL_URL` configures the public Featurebase portal — the organisation's own public page (`https://thinkering.featurebase.app/`); the Featurebase app id is only needed for the JavaScript widget and SSO, neither of which the client uses. Native follows Featurebase's [mobile embedding guidance](https://help.featurebase.app/articles/1131771-embed-featurebase-into-mobile-app) and renders that URL in the app's existing WebView stack; Expo web opens it in a new tab. Add only allowlisted [URL metadata](https://help.featurebase.app/articles/7002056-metadata-for-posts) (`screen`, `platform`, `appVersion`) — a `metaData` query parameter of stringified JSON, alongside `hideLogo=true`. There is no Featurebase secret, SSO data, or JavaScript SDK in the client; Featurebase's compact JavaScript widget is web-only.
-- **Private email**: signed `POST /api/feedback` accepts `{message, replyEmail?, context?}` and forwards it through Resend to `feedback@thinkering.app`. `message` is capped at 4,000 characters; `replyEmail` becomes Reply-To and is used only to respond; omit `context` entirely when the user disables app details. Apply a persistent limit of 20 messages per device per UTC day.
-- **Landing page contact form**: unsigned `POST /api/contact` accepts `{name, email, message}` and forwards it through Resend to `contact@thinkering.app`, with the sender's address as Reply-To. Unsigned because the sender is a website visitor with no registered device, so abuse control is a honeypot field plus a best-effort in-memory cap of five submissions per IP per UTC day — a durable counter would need a table keyed by something other than a device.
-- **Activity quality reports**: signed `POST /api/activity-report` retains the explicit per-activity response opt-in described in `08`. Validate the structured payload, cap it at 80 KB, and apply a persistent limit of five reports per device per UTC day before forwarding through Resend.
+- **Community**: `EXPO_PUBLIC_FEATUREBASE_PORTAL_URL` is the public Featurebase portal. It opens in a WebView on native and a new tab on web, carrying only `hideLogo=true` and allowlisted metadata (`screen`, `platform`, `appVersion`) in `metaData`; no Featurebase secret, SSO or SDK is in the client.
+- **Private email**: signed `POST /api/feedback` accepts `{message, replyEmail?, context?}` and forwards it through Resend to `feedback@thinkering.app`. `message` is capped at 4,000 characters; `replyEmail` becomes Reply-To and is used only to respond; `context` is omitted entirely when the user turns off app details. Limit: 20 per device per UTC day.
+- **Landing page contact form**: unsigned `POST /api/contact` accepts `{name, email, message}` and forwards it through Resend to `contact@thinkering.app`, with the sender as Reply-To. A visitor has no registered device, so abuse control is a honeypot field plus a best-effort in-memory cap of five per IP per UTC day.
+- **Activity quality reports**: signed `POST /api/activity-report`, sent only on the explicit per-activity opt-in described in `08`. The payload is validated, capped at 80 KB and limited to five per device per UTC day before forwarding through Resend.
 
-Both email routes store only operational rate-limit counters and never store or log message/report contents. `RESEND_API_KEY` remains server-side.
+These routes store only rate-limit counters and never store or log message or report contents. `RESEND_API_KEY` stays server-side.
 
 ## Analytics
 
-PostHog via `posthog-react-native`, US cloud, anonymous random distinct_id generated locally, on by default with a toggle to turn it off (D9). The event schema is a typed union in `packages/core/src/analytics`; `apps/mobile/src/analytics/track.ts` is the only thing that captures. Configured by `EXPO_PUBLIC_POSTHOG_KEY` / `EXPO_PUBLIC_POSTHOG_HOST`; with no key nothing is captured. Session replay is a separate opt-in (D22), started by hand from `apps/mobile/src/analytics/replay.tsx` only for someone who turned it on: the native recorder, `@posthog/react-native-plugin`, on iOS and Android, and posthog-js — loaded as its own chunk, for recordings only — on web. Event schema and privacy rules in `08-analytics-and-privacy.md`.
-
-The client's PostHog key/value store is backed by our own `settings` table (`customStorage`), so the SDK adds no file of its own — and with no key the SDK is never constructed at all.
+PostHog, US cloud, with an anonymous random distinct_id generated locally; on by default with one toggle to turn it off (D9). The event schema is a typed union in `packages/core/src/analytics`, and `apps/mobile/src/analytics/track.ts` is the only thing that captures. Configured by `EXPO_PUBLIC_POSTHOG_KEY` / `EXPO_PUBLIC_POSTHOG_HOST`; with no key the SDK is never constructed. Session replay is a separate opt-in (D22), started from `apps/mobile/src/analytics/replay.tsx` only for someone who turned it on. Event schema and privacy rules in `08-analytics-and-privacy.md`.
 
 ## Account deletion
 
-`POST /api/account/delete` is device-signed like the other routes and additionally carries the user's Supabase access token as a bearer. The server resolves that token to a user with the secret key and deletes exactly that account; `sync_rows` follows by `on delete cascade`. Apple requires this whenever an app offers account creation (Review Guideline 5.1.1(v)) — the backup off-switch deletes the data, this deletes the account.
+`POST /api/account/delete` is device-signed like the other routes and also carries the user's Supabase access token as a bearer. The server resolves that token to a user with the secret key and deletes exactly that account; `sync_rows` follows by `on delete cascade`. Apple requires it (Guideline 5.1.1(v)): the backup off-switch deletes the data, this deletes the account.
 
 ## Internal pages
 
-`apps/web/app/internal` holds reference views of things that live in code, for the maintainers rather than for learners: `/internal/prompts` lists every generation kind at its current version — model, effort, token limit, and the prompt rendered against its default fixture from `packages/core/fixtures/prompt-inputs` — under a schematic of the order the kinds are called in and what each hands the next, directly or through the interest (`app/internal/prompts/flow.tsx`, kept by hand against docs/04 §Generation map; a new kind doesn't typecheck until it has a place there), and `/internal/library` lists the activity library by section with each item's pedagogy. Both read from `packages/core` at request time, so they cannot drift from what ships. They are reference, not review: the snapshot diff in a PR is still how a prompt change is reviewed, and the in-app AI Inspector is still where live calls are read.
+`apps/web/app/internal` holds reference views for maintainers. `/internal/prompts` shows every generation kind at its current version, with its prompt rendered against its default fixture and a schematic of how the kinds feed each other (`flow.tsx`, kept by hand against `04` §Generation map). `/internal/library` lists the activity library by section with each item's pedagogy. Both read from `packages/core` at request time, so they can't drift from what ships.
 
-Nothing links to them, they are `noindex` and `Disallow`ed in `robots.txt`, and they sit outside the `(site)` route group so they get none of the landing page's chrome.
+Nothing links to them, and they are `noindex` and disallowed in `robots`.
 
-Each page is its own **area** with its own password — `INTERNAL_PASSWORD_PROMPTS`, `INTERNAL_PASSWORD_LIBRARY` — so access to one can be handed out without the other. `INTERNAL_PASSWORD` is the **master**: it opens every area, alongside whatever password that area sets for itself, so one password can be handed to someone who should see everything. Set only the master and it is the single password for both; set only the per-page ones and there is no master. An area with neither is closed, not open.
+- Each page is an **area** with its own password (`INTERNAL_PASSWORD_PROMPTS`, `INTERNAL_PASSWORD_LIBRARY`), so access to one can be given without the other.
+- `INTERNAL_PASSWORD` is the **master**: it opens every area alongside the area's own password. An area with neither set is closed, not open.
+- A session cookie is signed with a key derived from the area and the password it was let in on, so one page's cookie never opens the other, and rotating a password signs out exactly the people who used it.
+- `middleware.ts` checks the area's cookie before a page renders, and each page calls `requireArea()` as well, so a matcher that stops matching isn't the only guard.
 
-- A correct password mints `<expiresAt>.<hmac>` per area it opens, signed with a key derived from **the password it was let in on** and the area's name, set as an HttpOnly, SameSite=Lax cookie scoped to `/internal` and good for 12 hours. The area in the key derivation is what stops one page's cookie opening the other when two passwords happen to be the same — including the master's own cookies for the two pages. A session verifies against every password that still opens the area, so rotating one signs out exactly the people who used it: rotating the master does not disturb anyone holding a page's own password, and rotating a page's password does not turn away the master.
-- The login form is a single password field: it grants every area the submitted password opens, which is one page for that page's own password and both for the master.
-- `middleware.ts` maps the path to its area and verifies that area's cookie before a page renders; each page calls `requireArea()` as well — a matcher that stops matching should not be the one thing between a password and the content. The `/internal` index is a signpost rather than content, so any one unlocked area is enough to see it; it lists only the areas this visitor has unlocked, so it never advertises what else is there.
-- Sign-in attempts are capped per IP in memory, best-effort for the same reason the contact form's cap is.
-
-Nothing here reads user data: both pages are rendered from code that is already public in the repo. The password keeps the prompt library from being trivially scrapeable, not secrets — there are none on these pages.
+The pages hold no user data or secrets; the password only keeps them from being trivially scraped.
 
 ## Security summary
 
-- Secrets server-side: Anthropic key, Resend key, Supabase **secret key** (`SUPABASE_SECRET_KEY`). Client env: Supabase URL + **publishable key** (`EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`), PostHog key (public by design), API base URL, and the public Featurebase portal URL.
-- **API key format**: the new `sb_publishable_…` / `sb_secret_…` keys, not the legacy `anon` / `service_role` JWTs. The publishable key is no less exposed than `anon` was — both ship in the client and both rely on RLS — but a secret key is opaque, individually revocable, and rotatable (create new → deploy → revoke old) without invalidating the access tokens the project has already issued, which rotating the JWT secret would. supabase-js sends new-format keys only in the `apikey` header, never as a Bearer token. Nothing in our code inspects a key, so the format is a configuration concern, not a code one.
+- Server-side secrets: Anthropic key, Resend key, Supabase **secret key** (`SUPABASE_SECRET_KEY`). Client env: Supabase URL and **publishable key** (`EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`), PostHog key (public by design), API base URL, Featurebase portal URL.
+- Supabase keys use the `sb_publishable_…` / `sb_secret_…` format, not the legacy JWTs, so a secret key can be rotated without invalidating issued access tokens.
 - BYO Anthropic key: SecureStore on native; not offered on web.
-- All API routes validate input with Zod, sign-check device tokens, and rate-limit.
-- The internal pages at `/internal` are gated per page by `INTERNAL_PASSWORD_PROMPTS` / `INTERNAL_PASSWORD_LIBRARY`, with `INTERNAL_PASSWORD` as a master opening both, checked in middleware and again in each page; unset means closed.
-- Supabase RLS on all user-data tables; the secret key (`service_role`, which bypasses RLS) is confined to metering and operational rate-limit counters and never touches `sync_rows`.
+- All API routes validate input with Zod, check device signatures, and rate-limit.
+- `/internal` is password-gated per page (§Internal pages); unset means closed.
+- Supabase RLS on all user-data tables. The secret key (which bypasses RLS) is confined to metering and rate-limit counters and never touches `sync_rows`.
 
 ## Dev experience
 
-- **AI Inspector** (in-app, with dev tools + hidden toggle in production builds): reads local `llm_calls` — full rendered prompt, response, model, token counts, latency, per-call cost estimate. This is the primary tool for iterating on prompts.
-- **Dev tools** (`DEV_TOOLS` in `apps/mobile/src/ai/settings.ts`: dev builds, fixture-mode builds, and `EXPO_PUBLIC_DEV_TOOLS=true`, which the run scripts set; never a store build): Me → Developer switches AI mode, loads the fixture interest, and starts over empty or with only the fixture interest. The same resets are links — `dev/seed`, `dev/reset`, `dev/reset?seed=1` — driven by `pnpm seed:sim [--fresh]` and `pnpm reset:sim` on the simulator, or opened as URLs on web. A reset clears SQLite only (settings included, so backup switches off and the server copy is untouched); SecureStore keeps the device token, BYO key and backup sign-in.
-- **`?dev` link** (web, any build including production): adding `?dev` to any app URL turns anonymous analytics and session replay off and switches on Me → Settings → Developer with the AI Inspector — the same settings a learner can change by hand, so it needs no gate. It sticks like those toggles do, and `dev/reset?dev` puts it back after the reset clears settings. For team browsers, so testing stays out of PostHog.
-- Seed script: `pnpm seed` writes the same fixture interest to `packages/db/.data/seed.db` for poking at in node; fixture activity documents for renderer development.
-- CI (GitHub Actions): `pnpm verify` (typecheck, lint, vitest on core/db/web routes), `expo export` smoke build for web, EAS build on release tags. Strategy and boundaries in `10-testing.md`.
+Commands and running the app are in `AGENTS.md`; CI and test strategy in `10-testing.md`.
+
+- **AI Inspector**: reads the local `llm_calls` table and shows each call's full rendered prompt, response, model, tokens, latency and cost estimate. It's the main tool for iterating on prompts. Dev tools show it; in a production build a hidden toggle (long-press the version in About) reveals it.
+- **Dev tools** (`DEV_TOOLS` in `apps/mobile/src/ai/settings.ts`: dev builds, fixture-mode builds, and `EXPO_PUBLIC_DEV_TOOLS=true`; never a store build): Me → Settings → Developer switches AI mode, opens the AI Inspector, loads the fixture interest, and resets. A reset clears SQLite only, settings included, so backup switches off and the server copy is untouched; SecureStore keeps the device token, BYO key and backup sign-in.
+- **`?dev` link** (web, any build including production): adding `?dev` to an app URL turns analytics and session replay off and shows Me → Settings → Developer with the AI Inspector. Those are settings a learner can change anyway, so it needs no gate. It sticks, and `dev/reset?dev` restores it after a reset. It keeps team testing out of PostHog.
