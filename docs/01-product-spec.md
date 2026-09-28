@@ -6,8 +6,8 @@ Authoritative description of user-facing behavior. Vocabulary per `00-overview.m
 
 Runs for a brand-new user (after a brief welcome screen) and every time an existing user adds a new interest. One question per screen, progress dots, back navigation allowed. Answers are editable later in Path settings.
 
-**Step 1 — What do you want to learn?**
-Free text. Below the field, a few subtle example chips (rotate from a pool; show ~4, tappable to fill): _Understand LLMs and AI · Improve my approach to personal finance · Product management skills · More about climate and sustainability · Learn how to draw · Get back into Spanish · Get conversational in German · Improve my chess skills_.
+**Step 1 — What's one thing you want to learn?**
+Free text, placeholder _"Anything you're curious about"_. Everything typed here becomes one interest with one path, so the question asks for one thing; on a first interest, a line under the field says **You can add more later.** Below that, a few subtle example chips (rotate from a pool; show ~4, tappable to fill): _Understand LLMs and AI · Improve my approach to personal finance · Product management skills · More about climate and sustainability · Learn how to draw · Get back into Spanish · Get conversational in German · Improve my chess skills_.
 
 **Step 2 — Why do you want to learn it?**
 Single select: **For my career / For a personal goal / For fun**, plus an open free-text follow-up, marked optional: _"What do you want to be able to do, and why?"_ The field grows as they write.
