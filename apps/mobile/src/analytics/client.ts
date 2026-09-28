@@ -1,6 +1,7 @@
 import Constants from 'expo-constants'
 import { Platform } from 'react-native'
 import { PostHog } from 'posthog-react-native'
+import { isAutomatedClient } from '@thinkering/core'
 import { getSetting, setSetting } from '@thinkering/db'
 import { db } from '@/db'
 import { releaseChannel } from './release-channel'
@@ -70,10 +71,16 @@ function createClient(): PostHog {
       $os_name: Platform.OS,
     },
   })
-  // The one super property (docs/08 §Release channel). The SDK queues it ahead
-  // of any capture, so the first event already carries it.
-  void posthog.register({ release_channel: releaseChannel() })
+  // The two super properties (docs/08 §Release channel, §Automated visits).
+  // The SDK queues them ahead of any capture, so the first event carries both.
+  void posthog.register({ release_channel: releaseChannel(), automated: isAutomatedBrowser() })
   return posthog
+}
+
+/** A crawler or test runner opening the web app, rather than a learner (docs/08). */
+function isAutomatedBrowser(): boolean {
+  if (Platform.OS !== 'web' || typeof navigator === 'undefined') return false
+  return isAutomatedClient({ userAgent: navigator.userAgent, webdriver: navigator.webdriver })
 }
 
 export function appVersion(): string {

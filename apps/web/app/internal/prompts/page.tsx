@@ -12,6 +12,7 @@ import {
 import { renderPromptFixture } from '@thinkering/core/prompt-inputs'
 
 import { requireArea } from '@/lib/server/internal-session'
+import { PromptFlow } from './flow'
 
 /**
  * Every prompt template at its current version, rendered against its default
@@ -32,6 +33,11 @@ function templateFor(kind: ImplementedKind): AnyPromptTemplate {
 /** Block 0 is the shared preamble on every kind, so it is shown once up top. */
 function ownSystemBlocks(rendered: RenderedPrompt) {
   return rendered.system.filter((block) => block.text !== SHARED_PREAMBLE)
+}
+
+/** The context block's own heading, so this can't disagree with what is sent. */
+function readsContext(rendered: RenderedPrompt): boolean {
+  return rendered.messages.some((m) => m.content.includes('## Learner context'))
 }
 
 function renderedText(rendered: RenderedPrompt): string {
@@ -98,6 +104,8 @@ export default async function InternalPrompts() {
           </tbody>
         </table>
       </div>
+
+      <PromptFlow readsContext={new Set(KINDS.filter((kind) => readsContext(rendered[kind])))} />
 
       <details className="mt-8 rounded-card border border-hairline bg-surface p-5">
         <summary className="cursor-pointer font-heading text-heading text-ink">

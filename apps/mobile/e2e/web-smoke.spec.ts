@@ -38,7 +38,7 @@ test('fresh browser starts, writes local data, and keeps it', async ({ page, bro
   await expect(page.getByRole('button', { name: 'Web persistence' })).toBeVisible()
   await page.getByRole('button', { name: 'Add an interest' }).click()
   await expect(page).toHaveURL(/\/intake\/learn$/)
-  await expect(page.getByText('What do you want to learn?')).toBeVisible()
+  await expect(page.getByText("What's one thing you want to learn?")).toBeVisible()
 
   // Re-enter through the root route. The persisted Interest must now send this
   // browser to Today instead of treating it as a fresh install again.
