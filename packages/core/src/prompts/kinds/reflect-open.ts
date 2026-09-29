@@ -30,9 +30,7 @@ Return JSON: { "recap": string, "outcomes": string[] }
 
 export const reflectOpenTemplate: PromptTemplate<ReflectOpenParams, ReflectOpenOutput> = {
   kind: 'reflect.open',
-  // v2: saved resources in the context arrive inside <resource_notes> tags,
-  // named as material, not instructions — their notes were drafted from web pages.
-  version: 2,
+  version: 1,
   model: 'haiku',
   maxTokens: 600,
   temperature: 0.3,

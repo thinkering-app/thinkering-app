@@ -47,9 +47,7 @@ export const activityReviewTemplate: PromptTemplate<ActivityReviewParams, Review
   // v3: one paragraph under 45 words — v2 still read as a lesson on device.
   //     The Activity Document format left with it: the page is prose now, and
   //     listing every block kind was an invitation to use them.
-  // v4: saved resources in the context arrive inside <resource_notes> tags,
-  // named as material, not instructions — their notes were drafted from web pages.
-  version: 4,
+  version: 3,
   model: 'haiku',
   maxTokens: 1200,
   temperature: 0.6,

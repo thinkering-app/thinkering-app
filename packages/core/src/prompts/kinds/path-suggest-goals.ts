@@ -40,9 +40,7 @@ export const pathSuggestGoalsTemplate: PromptTemplate<
   SuggestedGoalsOutput
 > = {
   kind: 'path.suggestGoals',
-  // v3: saved resources in the context arrive inside <resource_notes> tags,
-  // named as material, not instructions — their notes were drafted from web pages.
-  version: 3,
+  version: 2,
   model: 'haiku',
   maxTokens: 1200,
   temperature: 0.7,

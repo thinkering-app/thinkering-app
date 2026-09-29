@@ -100,8 +100,7 @@ export const activityGenerateTemplate: PromptTemplate<ActivityGenerateParams, Ac
   // the shared block format, so G7's prompt is unchanged.
   // v10: the resource's summary and how-to-use arrive inside <resource_notes>
   // tags, named as material rather than instructions — they were drafted from
-  // a web page, and a page's text shouldn't steer the activity. So do the
-  // saved resources in the context.
+  // a web page, and a page's text shouldn't steer the activity.
   version: 10,
   model: 'sonnet',
   // Thinking plus the document: a 10-minute activity ran ~5.6k at high effort,
