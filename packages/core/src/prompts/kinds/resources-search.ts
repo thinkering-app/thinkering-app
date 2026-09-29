@@ -3,7 +3,7 @@ import { cappedText, trimmedText } from '../../limits'
 import { resourcesSearchOutputSchema, type ResourcesSearchOutput } from '../../schemas/generations'
 import { buildInterestContext, interestContextInputSchema } from '../context-assembly'
 import { SHARED_PREAMBLE } from '../preamble'
-import { excludeUrlLines, RESOURCE_JSON, RESOURCE_RULES } from '../resource-rules'
+import { excludeUrlLines, RESOURCE_JSON, RESOURCE_RULES, searchBudgetRule } from '../resource-rules'
 import type { PromptTemplate } from '../types'
 
 /**
@@ -31,6 +31,8 @@ export const resourcesSearchParamsSchema = z.object({
 })
 export type ResourcesSearchParams = z.infer<typeof resourcesSearchParamsSchema>
 
+const MAX_SEARCHES = 2
+
 const INSTRUCTIONS = `Task: find the two resources this learner should start with, using web search.
 
 ${RESOURCE_JSON}
@@ -39,17 +41,21 @@ Rules:
 - Exactly two resources: one thing to watch, one thing to read. Not one, not three.
 - A starting point, not a reading list. They can ask for more whenever they want, so pick the two that earn their place now rather than covering the path.
 - The pair has to be usable immediately: early activities are built around one specific video or one specific article, so aim them at the goals the learner reaches first.
-${RESOURCE_RULES}`
+${RESOURCE_RULES}
+${searchBudgetRule(MAX_SEARCHES)}`
 
 export const resourcesSearchTemplate: PromptTemplate<ResourcesSearchParams, ResourcesSearchOutput> =
   {
     kind: 'resources.search',
     // v6: search results are named as material, never instructions (RESOURCE_RULES).
-    version: 6,
+    // v7: told its search budget (searchBudgetRule), and low effort: output —
+    // mostly thinking — is the cost, and a failing search at medium ran 13
+    // minutes into a used-up tool.
+    version: 7,
     model: 'sonnet',
     maxTokens: 16000,
-    effort: 'medium',
-    tools: { webSearch: { maxUses: 2 } },
+    effort: 'low',
+    tools: { webSearch: { maxUses: MAX_SEARCHES } },
     paramsSchema: resourcesSearchParamsSchema,
     outputSchema: resourcesSearchOutputSchema,
     render: (params) => ({

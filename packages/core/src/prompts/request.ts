@@ -48,7 +48,7 @@ export function modelRequestFields(template: AnyPromptTemplate): ModelRequestFie
  * server gives up, and one recorded run spent 13 minutes and 36k output
  * tokens producing nothing. Under the proxy's 300-second `maxDuration`, so
  * the proxy stops the call and settles it rather than being killed mid-stream;
- * a good G4 search has taken about three minutes.
+ * at low effort a good search has taken under a minute and a half.
  */
 export const SEARCH_DEADLINE_MS = 240_000
 

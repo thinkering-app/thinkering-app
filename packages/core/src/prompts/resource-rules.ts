@@ -30,6 +30,16 @@ export const RESOURCE_RULES = `- Search before answering.
 - Match their level and their session length: something that takes an hour is fine as a resource, but say so in how-to-use.
 - Copy goal titles exactly. A resource that fits no single goal gets an empty list rather than a wrong one.`
 
+/**
+ * The search budget, told to the model from the same `maxUses` the request
+ * sends, so the two can't drift. Without it the model doesn't know it has
+ * one: a search past the limit fails, and it kept searching into that failure
+ * until the server gave up (docs/04 §Usage metering).
+ */
+export function searchBudgetRule(maxUses: number): string {
+  return `- You have ${maxUses} searches, no more. Plan them before the first. Once they're used, or if one fails, stop searching and answer from what you found — fewer resources than asked for is fine, a guessed URL is not.`
+}
+
 /** The saved URLs a search must not hand back, as message lines. */
 export function excludeUrlLines(urls: readonly string[] | undefined): string[] {
   if (!urls || urls.length === 0) return []

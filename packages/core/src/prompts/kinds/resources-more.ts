@@ -3,7 +3,7 @@ import { cappedText, trimmedText } from '../../limits'
 import { resourcesSearchOutputSchema, type ResourcesSearchOutput } from '../../schemas/generations'
 import { buildInterestContext, interestContextInputSchema } from '../context-assembly'
 import { SHARED_PREAMBLE } from '../preamble'
-import { excludeUrlLines, RESOURCE_JSON, RESOURCE_RULES } from '../resource-rules'
+import { excludeUrlLines, RESOURCE_JSON, RESOURCE_RULES, searchBudgetRule } from '../resource-rules'
 import type { PromptTemplate } from '../types'
 
 /**
@@ -30,6 +30,8 @@ export const resourcesMoreParamsSchema = z.object({
 })
 export type ResourcesMoreParams = z.infer<typeof resourcesMoreParamsSchema>
 
+const MAX_SEARCHES = 4
+
 const INSTRUCTIONS = `Task: find more resources for a learner who has some already and asked for others, using web search.
 
 ${RESOURCE_JSON}
@@ -38,16 +40,18 @@ Rules:
 - Two to four resources, across the whole path — not only the goals they start with. Later goals are usually the ones still missing something.
 - They asked for more, so bring them somewhere they haven't been. A resource from a site they already have, covering ground they already have, is not more.
 - Vary what they are and where they come from. Never two from the same site, and not all of one kind.
-${RESOURCE_RULES}`
+${RESOURCE_RULES}
+${searchBudgetRule(MAX_SEARCHES)}`
 
 export const resourcesMoreTemplate: PromptTemplate<ResourcesMoreParams, ResourcesSearchOutput> = {
   kind: 'resources.more',
   // v2: search results are named as material, never instructions (RESOURCE_RULES).
-  version: 2,
+  // v3: told its search budget (searchBudgetRule), and low effort, as G4 v7.
+  version: 3,
   model: 'sonnet',
   maxTokens: 16000,
-  effort: 'medium',
-  tools: { webSearch: { maxUses: 4 } },
+  effort: 'low',
+  tools: { webSearch: { maxUses: MAX_SEARCHES } },
   paramsSchema: resourcesMoreParamsSchema,
   outputSchema: resourcesSearchOutputSchema,
   render: (params) => ({
