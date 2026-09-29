@@ -6,6 +6,7 @@ export const links = {
   featurebase: 'https://thinkering.featurebase.app/',
   featurebaseLibraryThread:
     'https://thinkering.featurebase.app/p/science-of-learning-library-discussion-thread-2026',
+  featurebaseRoutinePost: 'https://thinkering.featurebase.app/p/customize-learning-routine',
   assemblyCode: 'https://www.assemblycode.org/',
   linkedin: 'https://www.linkedin.com/in/rebeccalhao',
   github: 'https://github.com/thinkering-app/thinkering-app',
@@ -19,6 +20,7 @@ export const overviewSections = [
 ] as const
 
 export const sitePages = [
+  { href: '/approach', label: 'Approach' },
   { href: '/about', label: 'About' },
   { href: '/contribute', label: 'Contribute' },
   { href: '/contact', label: 'Contact' },

@@ -26,6 +26,10 @@ the ones that are empty.
 
 The App Store "What's New" text is that section, verbatim.
 
+## Deploys
+
+Vercel, manual for now. `apps/web` is a standard Next.js project. The Expo web export deploys from `apps/mobile` to `web.thinkering.app`; `vercel.json` there sets the COOP/COEP headers expo-sqlite's wasm build needs (`docs/02` §Platform strategy), and clean URLs with an app-shell fallback so a reload on any screen doesn't 404.
+
 ## Cutting a build
 
 ```sh

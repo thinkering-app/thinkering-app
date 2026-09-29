@@ -235,6 +235,12 @@ function WhyItWorks() {
             </div>
           ))}
         </div>
+        <Link
+          href="/approach"
+          className="mt-10 inline-block text-secondary text-cornflower-deep underline-offset-4 hover:underline"
+        >
+          More on the approach
+        </Link>
       </div>
     </section>
   )

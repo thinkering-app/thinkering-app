@@ -47,6 +47,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- Adding an interest asks for one thing you want to learn. The first time,
+  it says you can add more later.
 - On a computer's browser, thinkering sits in a column down the middle of
   the window instead of stretching across it.
 - Tapping a day on the Me calendar lists what you did under the calendar
