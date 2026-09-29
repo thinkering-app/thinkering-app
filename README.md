@@ -48,5 +48,3 @@ pnpm monorepo · Expo (iOS-first, Android + web capable) · expo-router · TypeS
 ## License
 
 The code is licensed under AGPL-3.0 (see `LICENSE`).
-
-The thinkering name and logo aren't covered by that license. You're welcome to fork the code under the AGPL; please give your version its own name and icon.

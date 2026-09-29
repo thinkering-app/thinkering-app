@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Fragment } from 'react'
 import { libraryItemsForSection, type Section } from '@thinkering/core'
 
 import { BetaButton } from '../../../components/beta-button'
@@ -133,7 +134,12 @@ const JOBS: {
     name: 'Go further',
     job: 'Put it to use',
     body: 'Knowing something and using it are different skills. Go further takes an idea into your own projects, conversations and surroundings, or deeper into its exceptions and connections. It’s there for days you have a little more time.',
-    research: ['Transfer', 'Learning by teaching', 'Refining mental models'],
+    research: [
+      'Transfer',
+      'Learning by teaching',
+      'Refining mental models',
+      'Communities of practice',
+    ],
     example: {
       interest: 'Drawing',
       activity: 'Put It to Work',
@@ -327,7 +333,7 @@ const CONTROLS = [
   },
   {
     title: 'How you practice',
-    body: 'Turn activity types on or off.',
+    body: 'Turn activity types on or off. Figure out how you want to be learning each day.',
   },
   {
     title: 'More of this, less of that',
@@ -384,7 +390,7 @@ function InCharge() {
           <div>
             <h3 className="font-heading-bold text-heading font-bold text-ink">Still to come</h3>
             <p className="mt-1 text-secondary text-ink-soft">
-              Choosing how many of each activity you get a day.{' '}
+              More configuration options for your learning routine.{' '}
               <a
                 href={links.featurebaseRoutinePost}
                 target="_blank"
@@ -412,7 +418,7 @@ function InCharge() {
 const OPEN = [
   {
     title: 'The methods are well tested. thinkering isn’t, yet.',
-    body: 'The research is about the techniques. Whether this app applies them well is what the beta is for.',
+    body: 'The research is about the techniques. How to ensure this app applies them well and in the right context is what the beta and ongoing development are for.',
   },
   {
     title: 'What keeps you coming back',
@@ -448,51 +454,64 @@ function StillWorkingOut() {
   )
 }
 
-const READING = [
+const READING: { links: { label: string; href: string }[]; what: string }[] = [
   {
-    title: 'Spacing and retrieval practice',
+    links: [
+      {
+        label: 'Spacing and retrieval practice',
+        href: 'https://www.nature.com/articles/s44159-022-00089-1',
+      },
+    ],
     what: 'Why recalling beats rereading, and spreading it out beats cramming.',
-    href: 'https://www.nature.com/articles/s44159-022-00089-1',
   },
   {
-    title: 'Evidence-based learning strategies',
-    what: 'A review of which study techniques hold up, across subjects and ages.',
-    href: 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10368606/',
+    links: [
+      {
+        label: 'Evidence-based learning strategies',
+        href: 'https://doi.org/10.1177/1529100612453266',
+      },
+    ],
+    what: 'Dunlosky and colleagues rate ten common study techniques across subjects and ages, and find which ones hold up.',
   },
   {
-    title: 'Deliberate practice',
-    what: 'How focused practice on a weak spot, with feedback, builds skill.',
-    href: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC6824411/',
+    links: [
+      { label: 'Deliberate practice', href: 'https://doi.org/10.1037/0033-295X.100.3.363' },
+      { label: 'feedback', href: 'https://doi.org/10.3102/003465430298487' },
+    ],
+    what: 'Ericsson on focused practice on a weak spot, and Hattie and Timperley on the feedback that makes it work.',
   },
   {
-    title: 'Perceptual learning',
-    what: 'How many quick, checked judgments build an expert’s eye.',
-    href: 'https://onlinelibrary.wiley.com/doi/full/10.1111/j.1756-8765.2009.01053.x',
+    links: [{ label: 'Perceptual learning', href: 'https://doi.org/10.1016/j.plrev.2008.12.001' }],
+    what: 'Kellman and Garrigan on how many quick, checked judgments build an expert’s eye.',
   },
   {
-    title: 'Questions in videos',
-    what: 'Why pausing to answer questions beats watching straight through.',
-    href: 'https://journals.aps.org/prper/abstract/10.1103/PhysRevPhysEducRes.18.010148',
+    links: [{ label: 'Questions in videos', href: 'https://doi.org/10.1073/pnas.1221764110' }],
+    what: 'Why stopping for short quizzes keeps attention on the lecture and improves learning.',
   },
   {
-    title: 'Designing instructional video',
+    links: [
+      {
+        label: 'Designing instructional video',
+        href: 'https://www.sciencedirect.com/science/article/abs/pii/S2211368121000231',
+      },
+    ],
     what: 'What makes a video easier to learn from.',
-    href: 'https://www.sciencedirect.com/science/article/abs/pii/S2211368121000231',
   },
   {
-    title: 'Autonomy and motivation',
+    links: [
+      { label: 'Autonomy and motivation', href: 'https://doi.org/10.1037/0003-066X.55.1.68' },
+    ],
     what: 'Ryan and Deci on how choice, growing competence and connection keep people motivated.',
-    href: 'https://doi.org/10.1037/0003-066X.55.1.68',
   },
   {
-    title: 'Self-regulated learning',
+    links: [
+      { label: 'Self-regulated learning', href: 'https://doi.org/10.1207/s15430421tip4102_2' },
+    ],
     what: 'Zimmerman on how learners plan, monitor and adjust their own learning.',
-    href: 'https://doi.org/10.1207/s15430421tip4102_2',
   },
   {
-    title: 'Language acquisition',
-    what: 'Krashen on learning a language through input you can understand.',
-    href: 'https://sdkrashen.com/content/books/principles_and_practice.pdf',
+    links: [{ label: 'Language acquisition', href: 'https://doi.org/10.2167/illt039.0' }],
+    what: 'Nation on balancing understandable input, speaking and writing, focused language study, and fluency practice.',
   },
 ]
 
@@ -504,15 +523,22 @@ function FurtherReading() {
           <h2 className="font-heading-bold text-display-md font-bold text-ink">Further reading</h2>
           <ul className="mt-8 flex flex-col gap-5">
             {READING.map((r) => (
-              <li key={r.href}>
-                <a
-                  href={r.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-body text-cornflower-deep hover:underline"
-                >
-                  {r.title}
-                </a>
+              <li key={r.what}>
+                <p className="font-medium text-body text-ink">
+                  {r.links.map((link, i) => (
+                    <Fragment key={link.href}>
+                      {i > 0 && ' and '}
+                      <a
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-cornflower-deep hover:underline"
+                      >
+                        {link.label}
+                      </a>
+                    </Fragment>
+                  ))}
+                </p>
                 <p className="text-secondary text-ink-soft">{r.what}</p>
               </li>
             ))}
