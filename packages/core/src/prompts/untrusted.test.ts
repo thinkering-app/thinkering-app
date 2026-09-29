@@ -10,8 +10,11 @@ describe('wrapUntrusted', () => {
   })
 
   it("keeps a resource's page-drafted notes inside their tag in activity.generate", () => {
+    const input = PROMPT_INPUTS['activity.generate'] as { context: object }
     const params = activityGenerateTemplate.paramsSchema.parse({
-      ...(PROMPT_INPUTS['activity.generate'] as object),
+      ...input,
+      // Only the resource being built around: saved resources carry their own fence.
+      context: { ...input.context, resources: [] },
       resource: {
         id: 'r1',
         url: 'https://example.com/nicos-weg',

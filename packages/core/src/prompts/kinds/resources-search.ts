@@ -44,7 +44,8 @@ ${RESOURCE_RULES}`
 export const resourcesSearchTemplate: PromptTemplate<ResourcesSearchParams, ResourcesSearchOutput> =
   {
     kind: 'resources.search',
-    // v6: search results are named as material, never instructions (RESOURCE_RULES).
+    // v6: search results are named as material, never instructions (RESOURCE_RULES), and
+    // saved resources in the context arrive inside <resource_notes> tags.
     version: 6,
     model: 'sonnet',
     maxTokens: 16000,

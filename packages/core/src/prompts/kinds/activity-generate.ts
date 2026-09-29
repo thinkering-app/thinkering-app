@@ -96,7 +96,8 @@ export const activityGenerateTemplate: PromptTemplate<ActivityGenerateParams, Ac
   // the rating.
   // v9: the resource's summary and how-to-use arrive inside <resource_notes>
   // tags, named as material rather than instructions — they were drafted from
-  // a web page, and a page's text shouldn't steer the activity.
+  // a web page, and a page's text shouldn't steer the activity. So do the
+  // saved resources in the context.
   version: 9,
   model: 'sonnet',
   // Thinking plus the document: a 10-minute activity ran ~5.6k at high effort,

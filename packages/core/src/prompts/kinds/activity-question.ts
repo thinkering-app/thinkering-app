@@ -34,7 +34,9 @@ Rules:
 
 export const activityQuestionTemplate: PromptTemplate<ActivityQuestionParams, QuestionOutput> = {
   kind: 'activity.question',
-  version: 3,
+  // v4: saved resources in the context arrive inside <resource_notes> tags,
+  // named as material, not instructions — their notes were drafted from web pages.
+  version: 4,
   model: 'sonnet',
   maxTokens: 8000,
   effort: 'low',

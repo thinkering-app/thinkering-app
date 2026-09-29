@@ -71,7 +71,9 @@ export const todayPlanTemplate: PromptTemplate<
   kind: 'today.plan',
   // v2: a pick can carry the learner's own request, from the + card; one that
   // names a way of learning gets the matching item.
-  version: 2,
+  // v3: saved resources in the context arrive inside <resource_notes> tags,
+  // named as material, not instructions — their notes were drafted from web pages.
+  version: 3,
   model: 'haiku',
   maxTokens: 1500,
   temperature: 0.7,
