@@ -142,7 +142,7 @@ For the selected interest, Explore → All, or one exploring interest: completed
 
 ## 8. Landing page (`apps/web`)
 
-Marketing site at thinkering.app, per `07`: `/`, `/about`, `/contribute`, `/contact` (posts to `POST /api/contact`) and `/privacy` (per `08`).
+Marketing site at thinkering.app, per `07`: `/`, `/approach` (the learning science and the learner's control; its activity lists read from `packages/core`), `/about`, `/contribute`, `/contact` (posts to `POST /api/contact`) and `/privacy` (per `08`).
 
 - The primary CTA is beta signup until an App Store link exists.
 - `hello@thinkering.app` is assembled client-side, never in served HTML.
