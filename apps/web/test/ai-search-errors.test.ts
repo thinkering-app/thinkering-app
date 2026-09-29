@@ -1,4 +1,7 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import type Anthropic from '@anthropic-ai/sdk'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { SEARCH_DEADLINE_MS } from '@thinkering/core'
+import { PROMPT_INPUTS } from '@thinkering/core/prompt-inputs'
 import { POST as aiPost } from '@/app/api/ai/route'
 import { resetReplayCacheForTests } from '@/lib/server/auth'
 import { APPROACH_BODY, fakeAnthropic, registerDevice, setupDeps, signedRequest } from './helpers'
@@ -52,9 +55,53 @@ describe('a failed server tool', () => {
     expect(text).not.toContain('event: done')
   })
 
+  it('ends a stream at the first failed search, charging only what streamed', async () => {
+    const body = JSON.stringify({ ...JSON.parse(APPROACH_BODY), stream: true })
+    const { res, logged } = await callAi(body, [SEARCH_ERROR])
+    const text = await res.text()
+    // The model's narration after the error never reaches the client.
+    expect(text).not.toContain('text_delta')
+    expect(logged.at(-1)).toMatchObject({
+      status: 'error',
+      errorType: 'search:max_uses_exceeded',
+      outputTokens: 0,
+    })
+  })
+
   it('leaves an ordinary turn alone', async () => {
     const { res, logged } = await callAi(APPROACH_BODY, [])
     expect(res.status).toBe(200)
     expect(logged.at(-1)).toMatchObject({ status: 'ok' })
+  })
+})
+
+describe('a search past its deadline', () => {
+  afterEach(() => vi.useRealTimers())
+
+  it('is stopped and answered search_unavailable, not left to run', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    // A search that never finishes: one event, then nothing until aborted.
+    const hanging = {
+      messages: {
+        create: async (_params: unknown, opts: { signal: AbortSignal }) =>
+          (async function* () {
+            yield { type: 'message_start', message: { usage: { input_tokens: 800 } } }
+            await new Promise((resolve) => opts.signal.addEventListener('abort', resolve))
+          })(),
+      },
+    } as unknown as Anthropic
+    const setup = setupDeps({ anthropic: () => hanging })
+    const creds = await registerDevice(setup.store)
+    const body = JSON.stringify({
+      kind: 'resources.search',
+      params: PROMPT_INPUTS['resources.search'],
+      stream: true,
+    })
+    const res = await aiPost(signedRequest('http://x/api/ai', creds, { body }))
+
+    const text = res.text()
+    await vi.advanceTimersByTimeAsync(SEARCH_DEADLINE_MS)
+    expect(await text).toContain('search_unavailable')
+    expect(setup.logged.at(-1)).toMatchObject({ status: 'error', errorType: 'search:deadline' })
   })
 })

@@ -77,7 +77,12 @@ export {
   type ResourceMedia,
 } from './activity/resources'
 export * from './prompts/types'
-export { modelRequestFields, type ModelRequestFields } from './prompts/request'
+export {
+  modelRequestFields,
+  SEARCH_DEADLINE_MS,
+  serverToolError,
+  type ModelRequestFields,
+} from './prompts/request'
 export {
   PROMPTS,
   getPromptTemplate,
