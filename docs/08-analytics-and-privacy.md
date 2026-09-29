@@ -88,7 +88,7 @@ What App Privacy on App Store Connect should say, and why. **"Do you use data to
 Also before submission:
 
 - **The embedded Featurebase WebView** shows user-generated content from other people, so App Review Guideline 1.2 applies: the portal must have moderation, reporting, blocking and a contact path, and the checklist in `10-testing.md` §Tier 6 is the pre-TestFlight pass for it. If end-user reporting can't be provided, iOS opens the portal in the system browser instead of the WebView.
-- **Account deletion** (Guideline 5.1.1(v)): because the app offers account creation, it must offer in-app deletion of the account itself — not only the sign-out and the backup off-switch that deletes the server copy. Built in WP9.3 as a signed `POST /api/account/delete`.
+- **Account deletion** (Guideline 5.1.1(v)): because the app offers account creation, it must offer in-app deletion of the account itself — not only the sign-out and the backup off-switch that deletes the server copy. It's a signed `POST /api/account/delete` (`02` §Account deletion).
 - **Encryption**: `ITSAppUsesNonExemptEncryption = false` — HTTPS only, no custom cryptography. (The device-signing HMAC is exempt as standard authentication.)
 
 ## Privacy page (landing `/privacy` + Me → Privacy)
