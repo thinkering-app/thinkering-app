@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { webUrlSchema } from './url'
 
 /**
  * Activity Document block types, v1 (docs/05-activity-format.md).
@@ -39,7 +40,7 @@ export const stepsBlockSchema = z.object({
 export const resourceEmbedBlockSchema = z.object({
   kind: z.literal('resourceEmbed'),
   resourceId: z.string().optional(),
-  url: z.string().min(1),
+  url: webUrlSchema,
   media: z.enum(['video', 'article']),
   title: z.string().min(1),
   startSec: z.number().int().nonnegative().optional(),

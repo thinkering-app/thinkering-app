@@ -1,4 +1,15 @@
-import type { ConceptKind, ContextKind, GoalStatus, Section } from '../domain'
+import { z } from 'zod'
+import {
+  CONCEPT_KINDS,
+  CONTEXT_KINDS,
+  GOAL_STATUSES,
+  SECTIONS,
+  type ConceptKind,
+  type ContextKind,
+  type GoalStatus,
+  type Section,
+} from '../domain'
+import { cappedText } from '../limits'
 
 /**
  * Deterministic per-interest context block used by G3/G5/G6/G7/G8 (docs/04
@@ -40,6 +51,66 @@ export interface InterestContextInput {
   }[]
   routineNotes?: string[]
 }
+
+/**
+ * The context as a params field. It arrives from the client, so every string
+ * is bounded: the budget below drops whole trailing lines, but the profile
+ * lines are always kept, and one of those could otherwise carry any length.
+ */
+export const interestContextInputSchema: z.ZodType<InterestContextInput> = z.object({
+  interest: z.object({
+    name: cappedText('line'),
+    wantToLearn: cappedText('wantToLearn'),
+    whyChoice: cappedText('line'),
+    whyText: cappedText('note').nullish(),
+    experienceChoice: cappedText('line'),
+    experienceText: cappedText('note').nullish(),
+    successOutcomes: z.array(cappedText('line')).nullish(),
+    frequency: cappedText('line'),
+    sessionMinutes: z.number(),
+    approachNotes: cappedText('note').nullish(),
+  }),
+  goals: z.array(
+    z.object({
+      title: cappedText('line'),
+      status: z.enum(GOAL_STATUSES),
+      concepts: z.array(z.object({ label: cappedText('line'), kind: z.enum(CONCEPT_KINDS) })),
+    }),
+  ),
+  recentHistory: z
+    .array(
+      z.object({
+        title: cappedText('line'),
+        goalTitle: cappedText('line'),
+        tier: cappedText('line'),
+        rating: cappedText('line').nullish(),
+      }),
+    )
+    .optional(),
+  activeLibraryItems: z
+    .array(z.object({ section: z.enum(SECTIONS), id: cappedText('line') }))
+    .optional(),
+  contexts: z
+    .array(
+      z.object({
+        kind: z.enum(CONTEXT_KINDS),
+        label: cappedText('line'),
+        notes: cappedText('note').nullish(),
+      }),
+    )
+    .optional(),
+  resources: z
+    .array(
+      z.object({
+        title: cappedText('line'),
+        description: cappedText('note').nullish(),
+        howToUse: cappedText('note').nullish(),
+        goalTitles: z.array(cappedText('line')).optional(),
+      }),
+    )
+    .optional(),
+  routineNotes: z.array(cappedText('note')).optional(),
+})
 
 export interface ContextAssemblyOptions {
   /** ~4 chars/token heuristic; whole trailing lines are dropped past the budget. */

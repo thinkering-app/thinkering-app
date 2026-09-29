@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
-import { CONTEXT_KINDS, type ContextKind } from '@thinkering/core'
+import { CONTEXT_KINDS, isOverLimit, type ContextKind } from '@thinkering/core'
 import type { Context } from '@thinkering/db'
 
 import { Button } from '@/components/button'
@@ -54,7 +54,15 @@ export function ContextSheet({ visible, onClose, context, onSave, onDelete }: Co
       visible={visible}
       onClose={onClose}
       title={context ? 'Edit context' : 'Add a context'}
-      footer={<Button label="Save" onPress={save} disabled={label.trim().length === 0} />}
+      footer={
+        <Button
+          label="Save"
+          onPress={save}
+          disabled={
+            label.trim().length === 0 || isOverLimit(label, 'line') || isOverLimit(notes, 'note')
+          }
+        />
+      }
     >
       <View className="flex-row flex-wrap gap-2">
         {CONTEXT_KINDS.map((option) => (
@@ -71,6 +79,7 @@ export function ContextSheet({ visible, onClose, context, onSave, onDelete }: Co
         onChangeText={setLabel}
         placeholder={kind === 'person' ? 'Who' : 'What'}
         accessibilityLabel="Context name"
+        limit="line"
       />
       <TextField
         value={notes}
@@ -78,6 +87,7 @@ export function ContextSheet({ visible, onClose, context, onSave, onDelete }: Co
         placeholder="Anything worth knowing about it"
         multiline
         accessibilityLabel="Context notes"
+        limit="note"
       />
       {onDelete ? (
         <Pressable

@@ -1,5 +1,7 @@
 import { z } from 'zod'
-import { approachOutputSchema, choicesOutputSchema } from '../../schemas/generations'
+import { cappedText } from '../../limits'
+import { approachParamSchema } from './intake-approach'
+import { choicesOutputSchema } from '../../schemas/generations'
 import { SHARED_PREAMBLE } from '../preamble'
 import type { PromptTemplate } from '../types'
 
@@ -15,12 +17,12 @@ import type { PromptTemplate } from '../types'
  */
 
 export const intakeChoicesParamsSchema = z.object({
-  wantToLearn: z.string().min(1),
+  wantToLearn: cappedText('wantToLearn', { min: 1 }),
   whyChoice: z.enum(['career', 'personal_goal', 'fun']),
-  whyText: z.string().optional(),
+  whyText: cappedText('note').optional(),
   experienceChoice: z.enum(['getting_started', 'explored', 'in_middle', 'experienced']),
-  experienceText: z.string().optional(),
-  approach: approachOutputSchema,
+  experienceText: cappedText('note').optional(),
+  approach: approachParamSchema,
 })
 export type IntakeChoicesParams = z.infer<typeof intakeChoicesParamsSchema>
 

@@ -1,6 +1,7 @@
 import { z } from 'zod'
+import { cappedText, trimmedText } from '../../limits'
 import { questionOutputSchema, type QuestionOutput } from '../../schemas/generations'
-import { buildInterestContext, type InterestContextInput } from '../context-assembly'
+import { buildInterestContext, interestContextInputSchema } from '../context-assembly'
 import { ACTIVITY_DOC_FORMAT, SHARED_PREAMBLE } from '../preamble'
 import type { PromptTemplate } from '../types'
 
@@ -10,12 +11,12 @@ import type { PromptTemplate } from '../types'
  */
 
 export const activityQuestionParamsSchema = z.object({
-  context: z.custom<InterestContextInput>((v) => typeof v === 'object' && v !== null),
-  activityTitle: z.string(),
-  goal: z.object({ title: z.string(), description: z.string() }),
+  context: interestContextInputSchema,
+  activityTitle: cappedText('line'),
+  goal: z.object({ title: cappedText('line'), description: cappedText('note') }),
   /** Plain-text rendering of the page they asked from, so the answer lands in context. */
-  currentPageText: z.string(),
-  question: z.string().min(1),
+  currentPageText: trimmedText(20_000),
+  question: cappedText('note', { min: 1 }),
 })
 export type ActivityQuestionParams = z.infer<typeof activityQuestionParamsSchema>
 

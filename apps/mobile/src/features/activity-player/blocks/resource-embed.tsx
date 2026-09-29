@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { youtubeVideoId } from '@thinkering/core'
-import { Linking, Pressable, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 
+import { openResource } from '@/resources/open'
 import { colors } from '@/theme/tokens'
 import { Markdown } from '../markdown'
 import { VideoEmbed } from './video-embed'
@@ -29,7 +30,7 @@ export function ResourceEmbedBlock({ block }: { block: BlockOf<'resourceEmbed'> 
         <Pressable
           accessibilityRole="link"
           accessibilityLabel={block.title}
-          onPress={() => void Linking.openURL(block.url)}
+          onPress={() => openResource(block.url)}
           className="flex-row items-center gap-3 rounded-card border border-hairline bg-surface p-4 active:bg-cornflower-tint"
         >
           <Ionicons name="document-text-outline" size={20} color={colors.cornflower.deep} />

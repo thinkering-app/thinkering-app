@@ -1,6 +1,7 @@
 import { z } from 'zod'
+import { cappedText } from '../../limits'
 import { reviewOutputSchema, type ReviewOutput } from '../../schemas/generations'
-import { buildInterestContext, type InterestContextInput } from '../context-assembly'
+import { buildInterestContext, interestContextInputSchema } from '../context-assembly'
 import { SHARED_PREAMBLE } from '../preamble'
 import type { PromptTemplate } from '../types'
 
@@ -11,15 +12,15 @@ import type { PromptTemplate } from '../types'
  */
 
 export const activityReviewParamsSchema = z.object({
-  context: z.custom<InterestContextInput>((v) => typeof v === 'object' && v !== null),
-  activityTitle: z.string(),
+  context: interestContextInputSchema,
+  activityTitle: cappedText('line'),
   tier: z.enum(['introduce', 'strengthen', 'apply']),
-  goal: z.object({ title: z.string(), description: z.string() }),
-  conceptLabels: z.array(z.string()),
+  goal: z.object({ title: cappedText('line'), description: cappedText('note') }),
+  conceptLabels: z.array(cappedText('line')),
   /** One line per answered block, in reading order (see describeResponse). */
-  responses: z.array(z.string()),
+  responses: z.array(cappedText('long')),
   /** The concept the learner struggled with most, when the sparse-response fallback applies. */
-  trickiestConcept: z.string().optional(),
+  trickiestConcept: cappedText('line').optional(),
 })
 export type ActivityReviewParams = z.infer<typeof activityReviewParamsSchema>
 

@@ -19,6 +19,11 @@ for (const fixture of loadFixtures(template.kind, only)) {
   )
   const result = await runLive(template, fixture.params)
 
+  if (result.stopped) {
+    console.log(`${fixture.name}: STOPPED (${result.stopped}) · ${result.latencyMs}ms`)
+    continue
+  }
+
   let outputOk = false
   try {
     const parsed = template.outputSchema.safeParse(JSON.parse(extractJsonText(result.text)))

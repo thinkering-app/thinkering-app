@@ -20,7 +20,7 @@ import {
   Sunlight,
   useReduceMotion,
 } from './celebration'
-import { ResponsesProvider, type ResponseSink } from './responses'
+import { ResponsesProvider, usePageTooLong, type ResponseSink } from './responses'
 import { SummaryFooter, SummaryHeader } from './summary'
 import { WaitCover } from './wait-cover'
 
@@ -129,38 +129,39 @@ export function ActivityPlayer({
 
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right', 'bottom']}>
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <View className="flex-row items-center gap-3 px-5 pt-2">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Close"
-            onPress={onClose}
-            hitSlop={12}
-          >
-            <Ionicons name="close" size={22} color={colors.ink.soft} />
-          </Pressable>
-          <View className="flex-1">
-            <ProgressBar
-              total={doc.pages.length}
-              current={index}
-              celebrateMs={celebration === 'bar' ? CELEBRATION_MS.bar : undefined}
-            />
+      {/* Around the navigation too: Continue reads the page's answers. */}
+      <ResponsesProvider sink={sink}>
+        <KeyboardAvoidingView
+          className="flex-1"
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <View className="flex-row items-center gap-3 px-5 pt-2">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+              onPress={onClose}
+              hitSlop={12}
+            >
+              <Ionicons name="close" size={22} color={colors.ink.soft} />
+            </Pressable>
+            <View className="flex-1">
+              <ProgressBar
+                total={doc.pages.length}
+                current={index}
+                celebrateMs={celebration === 'bar' ? CELEBRATION_MS.bar : undefined}
+              />
+            </View>
           </View>
-        </View>
 
-        {/* The summary is the one page that gets washes, at its edges (docs/07),
+          {/* The summary is the one page that gets washes, at its edges (docs/07),
             and the one that celebrates arriving. */}
-        {/* Held until Reduce Motion is known, so a bloom never starts as a still. */}
-        {isSummary && reduceMotion !== null ? (
-          <SummaryWashes bloom={celebration === 'bloom'} />
-        ) : null}
-        {celebration === 'bar' ? <Sunlight /> : null}
-        {celebration === 'dots' ? <RisingDots /> : null}
+          {/* Held until Reduce Motion is known, so a bloom never starts as a still. */}
+          {isSummary && reduceMotion !== null ? (
+            <SummaryWashes bloom={celebration === 'bloom'} />
+          ) : null}
+          {celebration === 'bar' ? <Sunlight /> : null}
+          {celebration === 'dots' ? <RisingDots /> : null}
 
-        <ResponsesProvider sink={sink}>
           <AskProvider value={onAsk ?? null}>
             <ScrollView
               ref={scroller}
@@ -182,49 +183,74 @@ export function ActivityPlayer({
               ) : null}
             </ScrollView>
           </AskProvider>
-        </ResponsesProvider>
 
-        <View className="flex-row items-center gap-3 px-5 pb-2 pt-2">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Back"
-            disabled={index === 0}
-            onPress={() => go(index - 1)}
-            className={`h-11 w-11 items-center justify-center rounded-pill border border-hairline ${
-              index === 0 ? 'opacity-30' : 'active:bg-cornflower-tint'
-            }`}
-          >
-            <Ionicons name="chevron-back" size={20} color={colors.ink.DEFAULT} />
-          </Pressable>
-          <View className="flex-1">
-            {isSummary ? (
-              <Button testID="player-done" label="Done" onPress={onDone} />
-            ) : (
-              <Button
-                testID="player-continue"
-                label={
-                  page && streaming && atEnd ? `Writing page ${doc.pages.length + 1}…` : 'Continue'
-                }
-                disabled={streaming && atEnd}
-                onPress={() => go(index + 1)}
-              />
-            )}
-          </View>
-          {/* Ask sits with the navigation, in reach of a thumb — it's available
-              on every page, not a header affordance (docs/05). */}
-          {onAsk ? (
+          <View className="flex-row items-center gap-3 px-5 pb-2 pt-2">
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Ask"
-              onPress={onAsk}
-              className="h-11 w-11 items-center justify-center rounded-pill border border-hairline active:bg-cornflower-tint"
+              accessibilityLabel="Back"
+              disabled={index === 0}
+              onPress={() => go(index - 1)}
+              className={`h-11 w-11 items-center justify-center rounded-pill border border-hairline ${
+                index === 0 ? 'opacity-30' : 'active:bg-cornflower-tint'
+              }`}
             >
-              <Ionicons name="chatbubble-outline" size={22} color={colors.cornflower.deep} />
+              <Ionicons name="chevron-back" size={20} color={colors.ink.DEFAULT} />
             </Pressable>
-          ) : null}
-        </View>
-      </KeyboardAvoidingView>
+            <View className="flex-1">
+              {isSummary ? (
+                <Button testID="player-done" label="Done" onPress={onDone} />
+              ) : (
+                <ContinueButton
+                  page={page}
+                  label={
+                    page && streaming && atEnd
+                      ? `Writing page ${doc.pages.length + 1}…`
+                      : 'Continue'
+                  }
+                  disabled={streaming && atEnd}
+                  onPress={() => go(index + 1)}
+                />
+              )}
+            </View>
+            {/* Ask sits with the navigation, in reach of a thumb — it's available
+              on every page, not a header affordance (docs/05). */}
+            {onAsk ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Ask"
+                onPress={onAsk}
+                className="h-11 w-11 items-center justify-center rounded-pill border border-hairline active:bg-cornflower-tint"
+              >
+                <Ionicons name="chatbubble-outline" size={22} color={colors.cornflower.deep} />
+              </Pressable>
+            ) : null}
+          </View>
+        </KeyboardAvoidingView>
+      </ResponsesProvider>
       {overlay}
     </SafeAreaView>
+  )
+}
+
+/** Held while an answer on the page is too long to send to the review. */
+function ContinueButton({
+  page,
+  label,
+  disabled,
+  onPress,
+}: {
+  page: Page | undefined
+  label: string
+  disabled: boolean
+  onPress: () => void
+}) {
+  const tooLong = usePageTooLong(page)
+  return (
+    <Button
+      testID="player-continue"
+      label={label}
+      disabled={disabled || tooLong}
+      onPress={onPress}
+    />
   )
 }

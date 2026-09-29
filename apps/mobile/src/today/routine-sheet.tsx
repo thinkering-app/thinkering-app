@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Linking, Text, View } from 'react-native'
 import {
+  isOverLimit,
   libraryPrefsForSection,
   SECTIONS,
   type RoutineOutput,
@@ -125,7 +126,9 @@ export function RoutineSheet({
           <Button
             label="Save"
             onPress={() => void submit()}
-            disabled={request.trim().length === 0 || status === 'pending'}
+            disabled={
+              request.trim().length === 0 || isOverLimit(request, 'note') || status === 'pending'
+            }
           />
         )
       }
@@ -169,6 +172,7 @@ export function RoutineSheet({
             onChangeText={setRequest}
             multiline
             placeholder="More speaking practice, less grammar"
+            limit="note"
           />
         </View>
       ) : (

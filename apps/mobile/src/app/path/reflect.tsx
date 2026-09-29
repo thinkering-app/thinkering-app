@@ -16,6 +16,7 @@ import {
   planReflection,
   toggleRemoved,
   type DraftGoal,
+  isOverLimit,
   type ReflectionGoal,
   type ReflectionPlan,
   type ReflectOpenOutput,
@@ -316,11 +317,12 @@ export default function ReflectScreen() {
               onChangeText={setFeelingText}
               multiline
               accessibilityLabel="How your learning is going"
+              limit="long"
             />
             <Button
               label="Continue"
               onPress={() => void generate()}
-              disabled={feelingText.trim().length === 0}
+              disabled={feelingText.trim().length === 0 || isOverLimit(feelingText, 'long')}
             />
           </>
         ) : step === 'generating' ? (
@@ -370,12 +372,13 @@ export default function ReflectScreen() {
                   onChangeText={setOwnGoal}
                   placeholder="Add a goal of your own"
                   accessibilityLabel="Add a goal of your own"
+                  limit="line"
                 />
               </View>
               <Button
                 label="Add"
                 variant="quiet"
-                disabled={ownGoal.trim().length === 0}
+                disabled={ownGoal.trim().length === 0 || isOverLimit(ownGoal, 'line')}
                 onPress={() => {
                   setPlan(addOwnGoal(plan, ownGoal.trim(), uuidv7()))
                   setOwnGoal('')

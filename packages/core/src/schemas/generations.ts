@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { SECTIONS } from '../domain'
 import { blockSchema } from './blocks'
+import { webUrlSchema } from './url'
 
 /**
  * Output contracts for the generation kinds (docs/04 §Contracts). Every LLM
@@ -112,7 +113,7 @@ export type SuggestedGoalsOutput = z.infer<typeof suggestedGoalsOutputSchema>
  * app-suggested resources the learner can delete (docs/01 §5).
  */
 export const resourceDraftSchema = z.object({
-  url: z.string().url(),
+  url: webUrlSchema,
   title: z.string().min(1).max(160),
   description: z.string().min(1).max(400),
   /** How this could be used in their learning — the field the UI shows. */

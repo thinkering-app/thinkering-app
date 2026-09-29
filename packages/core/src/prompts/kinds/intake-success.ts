@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { cappedText } from '../../limits'
 import { successOutputSchema } from '../../schemas/generations'
 import { SHARED_PREAMBLE } from '../preamble'
 import type { PromptTemplate } from '../types'
@@ -12,11 +13,11 @@ import type { PromptTemplate } from '../types'
  */
 
 export const intakeSuccessParamsSchema = z.object({
-  wantToLearn: z.string().min(1),
+  wantToLearn: cappedText('wantToLearn', { min: 1 }),
   whyChoice: z.enum(['career', 'personal_goal', 'fun']),
-  whyText: z.string().optional(),
+  whyText: cappedText('note').optional(),
   experienceChoice: z.enum(['getting_started', 'explored', 'in_middle', 'experienced']),
-  experienceText: z.string().optional(),
+  experienceText: cappedText('note').optional(),
 })
 export type IntakeSuccessParams = z.infer<typeof intakeSuccessParamsSchema>
 

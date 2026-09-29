@@ -52,6 +52,7 @@ Shared components live in `apps/mobile/src/components`; reuse one before adding 
 - Activity blocks each have a component mapping 1:1 to the block kinds in `05`. Interactions animate gently (spring, 200–300ms): feedback through motion and color, not confetti.
 - **Summary celebrations** (`features/activity-player/celebration.tsx`): arriving at a summary gets one palette-only moment by section, over 2½–3½ seconds — Next: the progress bar's segments light `sun` in turn; Strengthen: palette dots drift up and fade; Go further: washes bloom and settle back to their tint. Each plays once per arrival, and none plays with Reduce Motion on.
 - Motion uses React Native's `Animated` (`PressScale`, `FadeIn`, `Sheet`); nothing needs Reanimated. Create a shared `Animated.Value` with `useState(() => …)`, not `useRef` — reading a ref during render is a lint error under the React Compiler rules.
+- `TextField` takes a `limit` for any field whose text reaches a prompt: a quiet count near the limit, a peach border past it, and the screen holds back sending rather than cutting the text (`04` §Untrusted text).
 - A `testID` prop exists for the Maestro flows (`10` Tier 6), not for styling.
 - Header icon actions sit on the right, `ink-soft` at 22px with `hitSlop={10}`. Every tab carries the **⚙** to settings (`SettingsButton`) last in its top-right row; a tab's settings live behind the ⚙, not in its scroll (`01` §7).
 

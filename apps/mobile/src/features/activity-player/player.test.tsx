@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react-native'
 import { useState } from 'react'
-import { FIXTURE_DOC_INTRODUCE, type ActivityDoc } from '@thinkering/core'
+import { FIXTURE_DOC_INTRODUCE, TEXT_LIMITS, type ActivityDoc } from '@thinkering/core'
 
 import { ActivityPlayer } from './player'
 
@@ -78,6 +78,33 @@ describe('activity player', () => {
     const reviewIndex = FIXTURE_DOC_INTRODUCE.pages.findIndex((p) => p.kind === 'review')
     await renderPlayer({ startPage: reviewIndex })
     expect(screen.getByLabelText('One more look at your answers')).toBeTruthy()
+  })
+
+  it('holds Continue while a written answer is too long to send, keeping the text', async () => {
+    const [first, ...rest] = FIXTURE_DOC_INTRODUCE.pages
+    const doc: ActivityDoc = {
+      ...FIXTURE_DOC_INTRODUCE,
+      pages: [
+        {
+          ...first!,
+          blocks: [
+            ...(first!.blocks ?? []),
+            { kind: 'freeText', id: 'explain', prompt: 'Say it in your own words' },
+          ],
+        },
+        ...rest,
+      ],
+    }
+    await renderPlayer({ doc })
+    const field = screen.getByLabelText('Say it in your own words')
+    const continueButton = () => screen.getByTestId('player-continue')
+
+    await fireEvent.changeText(field, 'x'.repeat(TEXT_LIMITS.long + 1))
+    expect(continueButton()).toBeDisabled()
+    expect(screen.getByText(/too long to send/)).toBeTruthy()
+
+    await fireEvent.changeText(field, 'x'.repeat(TEXT_LIMITS.long))
+    expect(continueButton()).toBeEnabled()
   })
 
   it('offers Done on the summary page, with the rating row appended', async () => {
