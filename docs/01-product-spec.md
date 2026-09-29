@@ -6,7 +6,7 @@ Authoritative description of user-facing behavior. Vocabulary per `00-overview.m
 
 Runs for a new user (after a welcome screen) and whenever an interest is added. One question per screen; answers stay editable in Path settings.
 
-1. **What do you want to learn?** Free text, with a few tappable example chips.
+1. **What's one thing you want to learn?** Free text, with a few tappable example chips. It becomes one interest with one path, so it asks for one thing; on a first interest, a line under the field says **You can add more later.**
 2. **Why?** **For my career / For a personal goal / For fun**, plus an optional follow-up. → On advance, fire **G1** (approach notes).
 3. **How much experience?** **Just getting started / Explored a bit / In the middle / Have a lot of experience**, plus an optional follow-up. → On advance, fire **G2** (topics and outcomes; waits on G1). It streams topics first, so step 4 doesn't wait on step 5's half.
 4. **Which topics feel most relevant?** Multi-select from G2's ~10 topics, plus add-your-own. None is allowed.
