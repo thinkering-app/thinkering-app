@@ -64,6 +64,12 @@ export const freeTextBlockSchema = z.object({
   prompt: md,
   placeholder: z.string().optional(),
   minimal: z.boolean().optional(),
+  /**
+   * A way into the answer, shown when the learner asks for it — never the
+   * answer itself. Blank is allowed: without one there's just no pill, which
+   * isn't worth a repair round-trip. `checkActivityDoc` flags it instead.
+   */
+  consider: z.string().optional(),
 })
 
 export const fillBlankBlockSchema = z.object({
