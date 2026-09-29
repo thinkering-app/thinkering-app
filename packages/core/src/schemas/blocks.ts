@@ -64,6 +64,8 @@ export const freeTextBlockSchema = z.object({
   prompt: md,
   placeholder: z.string().optional(),
   minimal: z.boolean().optional(),
+  /** A way into the answer, shown when the learner asks for it — never the answer itself. */
+  consider: md.optional(),
 })
 
 export const fillBlankBlockSchema = z.object({
