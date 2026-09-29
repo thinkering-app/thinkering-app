@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useMemo, useState } from 'react'
-import { Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native'
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   createResource,
@@ -27,6 +27,7 @@ import {
   type ResourceDraft,
 } from '@/resources/link'
 import { FIND_MORE_ENABLED, findMoreResources } from '@/resources/seed'
+import { openResource } from '@/resources/open'
 import { colors } from '@/theme/tokens'
 
 /**
@@ -135,7 +136,7 @@ export default function ResourcesScreen() {
               key={resource.id}
               accessibilityRole="link"
               accessibilityLabel={`Open ${resource.title}`}
-              onPress={() => void Linking.openURL(resource.url)}
+              onPress={() => openResource(resource.url)}
               onLongPress={() => remove(resource)}
               className="gap-1 rounded-card border border-hairline bg-surface p-4"
             >

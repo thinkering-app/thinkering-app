@@ -1,6 +1,7 @@
 export type { CoreContext } from './context'
 export * from './domain'
 export * from './schemas/blocks'
+export { isWebUrl, webUrlSchema } from './schemas/url'
 export * from './schemas/activity-doc'
 export type { LibraryItem } from './library/types'
 export { LIBRARY_ITEMS, getLibraryItem, libraryItemsForSection } from './library/items'
