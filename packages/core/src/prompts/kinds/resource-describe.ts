@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { cappedText, trimmedText } from '../../limits'
 import {
   resourceDescribeOutputSchema,
   type ResourceDescribeOutput,
@@ -13,14 +14,14 @@ import type { PromptTemplate } from '../types'
  */
 
 export const resourceDescribeParamsSchema = z.object({
-  url: z.string().url(),
+  url: z.string().url().max(2_000),
   /** The page's own title, when the fetch found one. */
-  pageTitle: z.string().optional(),
+  pageTitle: cappedText('line').optional(),
   /** Readable page text, already truncated by the fetch. */
-  pageText: z.string().min(1),
-  interestName: z.string(),
-  wantToLearn: z.string(),
-  goalTitles: z.array(z.string()),
+  pageText: trimmedText(10_000, { min: 1 }),
+  interestName: cappedText('line'),
+  wantToLearn: cappedText('wantToLearn'),
+  goalTitles: z.array(cappedText('line')),
 })
 export type ResourceDescribeParams = z.infer<typeof resourceDescribeParamsSchema>
 

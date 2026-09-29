@@ -8,6 +8,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Added
 
+- Long answers and notes show how much room is left as you near the limit.
+  Past it, nothing you wrote is cut: sending waits until it fits.
 - Settings are one tap away from anywhere: the ⚙ now sits in the top-right of
   Today, Path and History as well as Me.
 - Delete all data, in Account and data: your interests, path and history go

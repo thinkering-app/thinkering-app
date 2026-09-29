@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   EXPERIENCE_CHOICES,
   FREQUENCIES,
+  isOverLimit,
   WHY_CHOICES,
   type ExperienceChoice,
   type Frequency,
@@ -123,6 +124,14 @@ export default function PathSettingsScreen() {
     )
   }
 
+  const tooLong =
+    isOverLimit(name, 'line') ||
+    isOverLimit(wantToLearn, 'wantToLearn') ||
+    isOverLimit(whyText, 'note') ||
+    isOverLimit(experienceText, 'note') ||
+    isOverLimit(approachNotes, 'note') ||
+    outcomes.some((o) => isOverLimit(o.text, 'line'))
+
   const save = () => {
     const successOutcomes = cleanOutcomes(outcomes)
     updateInterest(db, repoContext, interest.id, {
@@ -151,7 +160,7 @@ export default function PathSettingsScreen() {
 
   const addTopic = () => {
     const label = newTopic.trim()
-    if (label.length === 0) return
+    if (label.length === 0 || isOverLimit(label, 'line')) return
     createTopic(db, repoContext, {
       interestId: interest.id,
       label,
@@ -183,7 +192,12 @@ export default function PathSettingsScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Field label="Interest name">
-          <TextField value={name} onChangeText={setName} accessibilityLabel="Interest name" />
+          <TextField
+            value={name}
+            onChangeText={setName}
+            accessibilityLabel="Interest name"
+            limit="line"
+          />
         </Field>
 
         <Field label="What you want to learn">
@@ -192,6 +206,7 @@ export default function PathSettingsScreen() {
             onChangeText={setWantToLearn}
             multiline
             accessibilityLabel="What you want to learn"
+            limit="wantToLearn"
           />
         </Field>
 
@@ -208,6 +223,7 @@ export default function PathSettingsScreen() {
             placeholder="Anything more"
             multiline
             accessibilityLabel="Why, in your words"
+            limit="note"
           />
         </Field>
 
@@ -224,6 +240,7 @@ export default function PathSettingsScreen() {
             placeholder="Anything more"
             multiline
             accessibilityLabel="Experience, in your words"
+            limit="note"
           />
         </Field>
 
@@ -242,6 +259,7 @@ export default function PathSettingsScreen() {
                   autoFocus={outcome.text === ''}
                   placeholder="An outcome"
                   accessibilityLabel="Outcome"
+                  limit="line"
                 />
               </View>
               <Pressable
@@ -320,9 +338,15 @@ export default function PathSettingsScreen() {
                 placeholder="Add a topic"
                 accessibilityLabel="Add a topic"
                 onSubmitEditing={addTopic}
+                limit="line"
               />
             </View>
-            <Button label="Add" variant="quiet" onPress={addTopic} />
+            <Button
+              label="Add"
+              variant="quiet"
+              onPress={addTopic}
+              disabled={isOverLimit(newTopic, 'line')}
+            />
           </View>
         </Field>
 
@@ -332,6 +356,7 @@ export default function PathSettingsScreen() {
             onChangeText={setApproachNotes}
             multiline
             accessibilityLabel="Approach notes"
+            limit="note"
           />
         </Field>
 
@@ -365,7 +390,7 @@ export default function PathSettingsScreen() {
           />
         </Field>
 
-        <Button label="Save" onPress={save} />
+        <Button label="Save" onPress={save} disabled={tooLong} />
       </ScrollView>
 
       <ContextSheet

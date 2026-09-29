@@ -1,6 +1,7 @@
 import { z } from 'zod'
+import { cappedText, trimmedText } from '../../limits'
 import { resourcesSearchOutputSchema, type ResourcesSearchOutput } from '../../schemas/generations'
-import { buildInterestContext, type InterestContextInput } from '../context-assembly'
+import { buildInterestContext, interestContextInputSchema } from '../context-assembly'
 import { SHARED_PREAMBLE } from '../preamble'
 import { excludeUrlLines, RESOURCE_JSON, RESOURCE_RULES } from '../resource-rules'
 import type { PromptTemplate } from '../types'
@@ -21,12 +22,12 @@ import type { PromptTemplate } from '../types'
  */
 
 export const resourcesSearchParamsSchema = z.object({
-  context: z.custom<InterestContextInput>((v) => typeof v === 'object' && v !== null),
+  context: interestContextInputSchema,
   /** Exact goal titles — matches must come back as one of these. */
-  goalTitles: z.array(z.string()).min(1),
-  topics: z.array(z.string()).optional(),
+  goalTitles: z.array(cappedText('line')).min(1),
+  topics: z.array(cappedText('line')).optional(),
   /** Saved resource URLs, so a re-run doesn't hand back what they have. */
-  excludeUrls: z.array(z.string()).optional(),
+  excludeUrls: z.array(trimmedText(2_000)).optional(),
 })
 export type ResourcesSearchParams = z.infer<typeof resourcesSearchParamsSchema>
 

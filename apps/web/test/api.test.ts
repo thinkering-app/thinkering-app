@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Anthropic from '@anthropic-ai/sdk'
 import { FIXTURE_DOC_INTRODUCE, getPromptTemplate } from '@thinkering/core'
-import { POST as aiPost } from '@/app/api/ai/route'
+import { POST as aiPost, MAX_BODY_CHARS } from '@/app/api/ai/route'
 import { POST as registerPost, REGISTRATIONS_PER_IP_PER_DAY } from '@/app/api/device/register/route'
 import { POST as redeemPost, REDEMPTIONS_PER_DEVICE_PER_DAY } from '@/app/api/device/redeem/route'
 import { POST as contactPost, resetContactLimitForTests } from '@/app/api/contact/route'
@@ -130,6 +130,18 @@ describe('POST /api/ai — validation and behavior', () => {
     expect(
       (await aiPost(signedRequest('http://x/api/ai', creds, { body: badParams }))).status,
     ).toBe(400)
+  })
+
+  it('refuses a body past the size cap before touching the budget', async () => {
+    const { store } = setupDeps()
+    const creds = await registerDevice(store)
+    const huge = JSON.stringify({
+      kind: 'intake.approach',
+      params: { wantToLearn: 'x'.repeat(MAX_BODY_CHARS), whyChoice: 'fun' },
+    })
+    const res = await aiPost(signedRequest('http://x/api/ai', creds, { body: huge }))
+    expect(res.status).toBe(413)
+    expect((await store.getUsage(creds.deviceId, '2026-09-15')).calls).toBe(0)
   })
 
   it('returns the response with budget headers and meters usage (non-stream)', async () => {

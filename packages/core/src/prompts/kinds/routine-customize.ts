@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { cappedText } from '../../limits'
 import { routineOutputSchema, type RoutineOutput } from '../../schemas/generations'
 import { SECTIONS } from '../../domain'
 import { libraryReference, SHARED_PREAMBLE } from '../preamble'
@@ -11,21 +12,21 @@ import type { PromptTemplate } from '../types'
  */
 
 export const routineCustomizeParamsSchema = z.object({
-  interestName: z.string(),
-  wantToLearn: z.string(),
-  domain: z.string().optional(),
-  request: z.string().min(1),
+  interestName: cappedText('line'),
+  wantToLearn: cappedText('wantToLearn'),
+  domain: cappedText('line').optional(),
+  request: cappedText('note', { min: 1 }),
   /** Current activation state, per section, of every item offered there. */
   current: z.array(
     z.object({
       section: z.enum(SECTIONS),
-      libraryItemId: z.string(),
-      name: z.string(),
+      libraryItemId: cappedText('line'),
+      name: cappedText('line'),
       active: z.boolean(),
     }),
   ),
   /** Notes already saved, so a new request refines rather than contradicts. */
-  existingNotes: z.array(z.string()).optional(),
+  existingNotes: z.array(cappedText('note')).optional(),
 })
 export type RoutineCustomizeParams = z.infer<typeof routineCustomizeParamsSchema>
 

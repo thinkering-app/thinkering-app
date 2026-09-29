@@ -27,6 +27,13 @@ export const maxDuration = 300
 const MAX_CHARS_PER_TOKEN = 6
 
 /**
+ * Refused before it is hashed or parsed. Params are bounded field by field
+ * (packages/core/src/limits.ts), but lists aren't, and a learner with every
+ * resource they've saved in the context sends a few hundred KB at most.
+ */
+export const MAX_BODY_CHARS = 1_000_000
+
+/**
  * Charging a cancelled stream (docs/04 §Usage metering). The real output count
  * arrives only in `message_delta`, at the end, so a call the client walked away
  * from has to be charged from what actually reached us. Deliberately low —
@@ -118,6 +125,9 @@ export async function POST(req: Request): Promise<Response> {
   const { store, anthropic, now, logAiCall } = getDeps()
 
   const bodyText = await req.text()
+  if (bodyText.length > MAX_BODY_CHARS) {
+    return Response.json({ error: 'too_large' }, { status: 413 })
+  }
   const auth = await verifyDeviceAuth(req, bodyText, store, now())
   if (!auth.ok) return Response.json({ error: auth.message }, { status: auth.status })
 

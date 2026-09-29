@@ -1,7 +1,8 @@
 import { z } from 'zod'
+import { cappedText, trimmedText } from '../../limits'
 import { activityDocSchema, type ActivityDoc } from '../../schemas/activity-doc'
 import { resourceMediaOf } from '../../activity/resources'
-import { buildInterestContext, type InterestContextInput } from '../context-assembly'
+import { buildInterestContext, interestContextInputSchema } from '../context-assembly'
 import { ACTIVITY_DOC_FORMAT, libraryReference, SHARED_PREAMBLE } from '../preamble'
 import type { PromptTemplate } from '../types'
 
@@ -12,32 +13,36 @@ import type { PromptTemplate } from '../types'
  */
 
 export const activityGenerateParamsSchema = z.object({
-  context: z.custom<InterestContextInput>((v) => typeof v === 'object' && v !== null),
+  context: interestContextInputSchema,
   goal: z.object({
-    id: z.string(),
-    title: z.string(),
-    description: z.string(),
-    status: z.string(),
+    id: cappedText('line'),
+    title: cappedText('line'),
+    description: cappedText('note'),
+    status: cappedText('line'),
     concepts: z.array(
-      z.object({ id: z.string(), label: z.string(), kind: z.enum(['concept', 'skill']) }),
+      z.object({
+        id: cappedText('line'),
+        label: cappedText('line'),
+        kind: z.enum(['concept', 'skill']),
+      }),
     ),
   }),
   tier: z.enum(['introduce', 'strengthen', 'apply']),
-  libraryItemId: z.string(),
-  title: z.string(),
+  libraryItemId: cappedText('line'),
+  title: cappedText('line'),
   estMinutes: z.number().int().positive(),
   /** For usesResources items: the matched resource. */
   resource: z
     .object({
-      id: z.string(),
-      url: z.string(),
-      title: z.string(),
-      summary: z.string().nullable().optional(),
-      howToUse: z.string().nullable().optional(),
+      id: cappedText('line'),
+      url: trimmedText(2_000),
+      title: cappedText('line'),
+      summary: cappedText('note').nullable().optional(),
+      howToUse: cappedText('note').nullable().optional(),
     })
     .optional(),
   /** What the learner asked this activity to focus on, or how they want to learn it (the + card). */
-  focus: z.string().optional(),
+  focus: cappedText('note').optional(),
   /** Prerequisite-fallback cards carry a topic instead of a goal elsewhere; here goal is always present. */
 })
 export type ActivityGenerateParams = z.infer<typeof activityGenerateParamsSchema>

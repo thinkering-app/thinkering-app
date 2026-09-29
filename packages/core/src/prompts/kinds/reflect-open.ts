@@ -1,6 +1,7 @@
 import { z } from 'zod'
+import { cappedText } from '../../limits'
 import { reflectOpenOutputSchema, type ReflectOpenOutput } from '../../schemas/generations'
-import { buildInterestContext, type InterestContextInput } from '../context-assembly'
+import { buildInterestContext, interestContextInputSchema } from '../context-assembly'
 import { SHARED_PREAMBLE } from '../preamble'
 import type { PromptTemplate } from '../types'
 
@@ -11,8 +12,8 @@ import type { PromptTemplate } from '../types'
  */
 
 export const reflectOpenParamsSchema = z.object({
-  context: z.custom<InterestContextInput>((v) => typeof v === 'object' && v !== null),
-  topics: z.array(z.string()).optional(),
+  context: interestContextInputSchema,
+  topics: z.array(cappedText('line')).optional(),
 })
 export type ReflectOpenParams = z.infer<typeof reflectOpenParamsSchema>
 

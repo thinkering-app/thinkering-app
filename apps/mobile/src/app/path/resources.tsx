@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { router, useLocalSearchParams } from 'expo-router'
+import { isOverLimit } from '@thinkering/core'
 import { useMemo, useState } from 'react'
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -26,8 +27,8 @@ import {
   normalizeUrl,
   type ResourceDraft,
 } from '@/resources/link'
-import { FIND_MORE_ENABLED, findMoreResources } from '@/resources/seed'
 import { openResource } from '@/resources/open'
+import { FIND_MORE_ENABLED, findMoreResources } from '@/resources/seed'
 import { colors } from '@/theme/tokens'
 
 /**
@@ -244,7 +245,15 @@ function AddLinkSheet({
       title="Add a link"
       footer={
         status === 'draft' ? (
-          <Button label="Save" onPress={save} />
+          <Button
+            label="Save"
+            onPress={save}
+            disabled={
+              isOverLimit(title, 'line') ||
+              isOverLimit(description, 'note') ||
+              isOverLimit(howToUse, 'note')
+            }
+          />
         ) : status === 'fetching' ? null : (
           <Button
             label="Look it up"
@@ -259,12 +268,18 @@ function AddLinkSheet({
       ) : status === 'draft' ? (
         <>
           <Text className="font-sans text-caption text-ink-soft">{hostOf(draft?.url ?? '')}</Text>
-          <TextField value={title} onChangeText={setTitle} accessibilityLabel="Resource title" />
+          <TextField
+            value={title}
+            onChangeText={setTitle}
+            accessibilityLabel="Resource title"
+            limit="line"
+          />
           <TextField
             value={description}
             onChangeText={setDescription}
             multiline
             accessibilityLabel="What it is"
+            limit="note"
           />
           <TextField
             value={howToUse}
@@ -272,6 +287,7 @@ function AddLinkSheet({
             multiline
             placeholder="How this could be used"
             accessibilityLabel="How this could be used"
+            limit="note"
           />
         </>
       ) : (

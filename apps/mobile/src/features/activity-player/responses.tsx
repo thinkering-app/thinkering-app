@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
-import type { ResponsePayload } from '@thinkering/core'
+import { isOverLimit, type Page, type ResponsePayload } from '@thinkering/core'
 
 /**
  * Where an interaction goes (docs/05: responses save immediately, no submit
@@ -45,4 +45,19 @@ export function useResponse<T extends ResponsePayload>(
   if (!ctx) throw new Error('activity blocks must render inside <ResponsesProvider>')
   const answer = ctx.answers[blockId] as T | undefined
   return [answer, (payload: T) => ctx.respond(pageId, blockId, payload)]
+}
+
+/**
+ * Whether a written answer on this page is past its limit. Answers save as they
+ * type, so there is no submit to hold back; the player holds Continue instead,
+ * since moving on is what sends them to the review (G6).
+ */
+export function usePageTooLong(page: Page | undefined): boolean {
+  const ctx = useContext(ResponsesContext)
+  if (!ctx || !page?.blocks) return false
+  return page.blocks.some((block) => {
+    if (block.kind !== 'freeText') return false
+    const answer = ctx.answers[block.id]
+    return answer?.kind === 'freeText' && isOverLimit(answer.text, 'long')
+  })
 }

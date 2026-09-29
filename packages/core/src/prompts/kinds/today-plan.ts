@@ -1,6 +1,7 @@
 import { z } from 'zod'
+import { cappedText } from '../../limits'
 import { dailyPlanOutputSchema } from '../../schemas/generations'
-import { buildInterestContext, type InterestContextInput } from '../context-assembly'
+import { buildInterestContext, interestContextInputSchema } from '../context-assembly'
 import { libraryReference, SHARED_PREAMBLE } from '../preamble'
 import type { PromptTemplate } from '../types'
 
@@ -15,14 +16,14 @@ const pickSchema = z.object({
    * Null for the strengthen prerequisite fallback — invent a prerequisite
    * topic — or for a learner's request that names no goal.
    */
-  goalId: z.string().nullable(),
-  goalTitle: z.string().nullable(),
+  goalId: cappedText('line').nullable(),
+  goalTitle: cappedText('line').nullable(),
   /** What the learner asked this card to focus on, or how they want to learn it (the + card). */
-  focus: z.string().optional(),
+  focus: cappedText('note').optional(),
 })
 
 export const todayPlanParamsSchema = z.object({
-  context: z.custom<InterestContextInput>((v) => typeof v === 'object' && v !== null),
+  context: interestContextInputSchema,
   sessionMinutes: z.number().int().positive(),
   picks: z.object({
     next: z.array(pickSchema),
@@ -31,14 +32,18 @@ export const todayPlanParamsSchema = z.object({
   }),
   /** Active item ids per section — choose only from these. */
   activeItems: z.object({
-    next: z.array(z.string()),
-    strengthen: z.array(z.string()),
-    goFurther: z.array(z.string()),
+    next: z.array(cappedText('line')),
+    strengthen: z.array(cappedText('line')),
+    goFurther: z.array(cappedText('line')),
   }),
   /** Library items used yesterday per goal id — avoid repeating for the same goal. */
-  yesterdayItems: z.array(z.object({ goalId: z.string(), libraryItemId: z.string() })).optional(),
+  yesterdayItems: z
+    .array(z.object({ goalId: cappedText('line'), libraryItemId: cappedText('line') }))
+    .optional(),
   /** Titles of resources well-matched per goal id, to prefer usesResources items. */
-  matchedResources: z.array(z.object({ goalId: z.string(), resourceTitle: z.string() })).optional(),
+  matchedResources: z
+    .array(z.object({ goalId: cappedText('line'), resourceTitle: cappedText('line') }))
+    .optional(),
 })
 export type TodayPlanParams = z.infer<typeof todayPlanParamsSchema>
 

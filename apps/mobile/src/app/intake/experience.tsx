@@ -1,6 +1,6 @@
 import { router } from 'expo-router'
 import { View } from 'react-native'
-import type { ExperienceChoice } from '@thinkering/core'
+import { isOverLimit, type ExperienceChoice } from '@thinkering/core'
 
 import { ChoiceChip } from '@/components/choice-chip'
 import { useIntake } from '@/intake/context'
@@ -25,7 +25,7 @@ export default function ExperienceStep() {
     <StepScreen
       step={3}
       question="How much experience do you have?"
-      continueDisabled={!answers.experienceChoice}
+      continueDisabled={!answers.experienceChoice || isOverLimit(answers.experienceText, 'note')}
       onContinue={() => {
         startChoices()
         router.push('/intake/topics')

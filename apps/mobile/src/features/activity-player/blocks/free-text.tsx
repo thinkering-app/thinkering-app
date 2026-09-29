@@ -18,6 +18,7 @@ export function FreeTextBlock({ pageId, block }: { pageId: string; block: BlockO
         placeholder={block.placeholder}
         accessibilityLabel={block.prompt}
         multiline={block.minimal !== true}
+        limit="long"
       />
     </View>
   )

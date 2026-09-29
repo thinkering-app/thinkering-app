@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Text, View } from 'react-native'
-import type { LocalDate, Section } from '@thinkering/core'
+import { isOverLimit, type LocalDate, type Section } from '@thinkering/core'
 import { listGoals } from '@thinkering/db'
 
 import { Button } from '@/components/button'
@@ -49,7 +49,8 @@ export function RequestSheet({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [interestId, section, today, visible],
   )
-  const ready = goalId !== null || focus.trim().length > 0 || hasDefault
+  const ready =
+    (goalId !== null || focus.trim().length > 0 || hasDefault) && !isOverLimit(focus, 'note')
 
   const close = () => {
     setGoalId(null)
@@ -90,6 +91,7 @@ export function RequestSheet({
         placeholder="Anything to focus on, or how you'd like to learn it"
         multiline
         testID="request-focus"
+        limit="note"
       />
     </Sheet>
   )
