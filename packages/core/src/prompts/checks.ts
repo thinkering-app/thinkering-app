@@ -61,6 +61,9 @@ export const REVIEW_MAX_WORDS = 65
 export const REVIEW_WORDS_ASKED = 45
 export const SUMMARY_MAX_WORDS = 70
 export const SUMMARY_WORDS_ASKED = 50
+/** A freeText's "consider": asked for under 25; well past it, it's the answer. */
+export const CONSIDER_MAX_WORDS = 40
+export const CONSIDER_WORDS_ASKED = 25
 
 /** What the recap may be made of: one paragraph, or a bullet per idea (docs/05). */
 const SUMMARY_BLOCK_KINDS: readonly string[] = ['paragraph', 'list']
@@ -113,7 +116,8 @@ export function pageCountRange(estMinutes: number): { min: number; max: number }
  * Structural checks for a G5b Activity Document beyond what the Zod schema
  * enforces: page-count range for the session length, the reserved (empty)
  * review page second-to-last, declared concepts resolving to real goal
- * concepts, the summary recap's word budget, and tone lints.
+ * concepts, every freeText's "consider", the summary recap's word budget, and
+ * tone lints.
  */
 export function checkActivityDoc(
   doc: ActivityDoc,
@@ -173,6 +177,26 @@ export function checkActivityDoc(
       check: 'library-item',
       message: `doc says ${doc.libraryItemId}, card said ${opts.libraryItemId}`,
     })
+  }
+
+  // G5b is asked for a consider on every freeText; the schema leaves it
+  // optional for G7 pages and older documents, so a skipped one only shows here.
+  for (const page of doc.pages) {
+    for (const block of page.blocks ?? []) {
+      if (block.kind !== 'freeText') continue
+      const words = block.consider?.split(/\s+/).filter(Boolean).length ?? 0
+      if (words === 0) {
+        issues.push({
+          check: 'consider',
+          message: `freeText "${block.id}" on page "${page.id}" has no consider`,
+        })
+      } else if (words > CONSIDER_MAX_WORDS) {
+        issues.push({
+          check: 'consider',
+          message: `freeText "${block.id}" consider is ${words} words (prompt asks ${CONSIDER_WORDS_ASKED}, flagged over ${CONSIDER_MAX_WORDS})`,
+        })
+      }
+    }
   }
 
   const summary = doc.pages.at(-1)
