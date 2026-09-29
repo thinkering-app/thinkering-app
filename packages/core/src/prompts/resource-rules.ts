@@ -37,7 +37,7 @@ export const RESOURCE_RULES = `- Search before answering.
  * until the server gave up (docs/04 §Usage metering).
  */
 export function searchBudgetRule(maxUses: number): string {
-  return `- You have ${maxUses} searches, no more. Plan them before the first. Once they're used, or if one fails, stop searching and answer from what you found — fewer resources than asked for is fine, a guessed URL is not.`
+  return `- You have ${maxUses} searches, no more. Plan them before the first. Once they're used, or if one fails, stop searching and answer from what you found.`
 }
 
 /** The saved URLs a search must not hand back, as message lines. */
