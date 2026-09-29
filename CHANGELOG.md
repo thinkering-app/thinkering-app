@@ -10,6 +10,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 - Long answers and notes show how much room is left as you near the limit.
   Past it, nothing you wrote is cut: sending waits until it fits.
+- Under each written answer in an activity: "Think about…", for a
+  way in when you're stuck, and "Ask a question". The Ask button is a speech
+  bubble now.
 - Settings are one tap away from anywhere: the ⚙ now sits in the top-right of
   Today, Path and History as well as Me.
 - Delete all data, in Account and data: your interests, path and history go

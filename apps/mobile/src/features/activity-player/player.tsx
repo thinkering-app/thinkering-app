@@ -9,6 +9,7 @@ import { FadeIn } from '@/components/fade-in'
 import { Generating } from '@/components/generating'
 import { ProgressBar } from '@/components/progress-bar'
 import { colors } from '@/theme/tokens'
+import { AskProvider } from './ask'
 import { AskedHeader } from './asked-header'
 import { BlockView } from './blocks'
 import {
@@ -161,25 +162,27 @@ export function ActivityPlayer({
           {celebration === 'bar' ? <Sunlight /> : null}
           {celebration === 'dots' ? <RisingDots /> : null}
 
-          <ScrollView
-            ref={scroller}
-            className="flex-1"
-            contentContainerClassName="grow gap-5 px-5 pb-8 pt-6"
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="interactive"
-          >
-            <FadeIn key={page?.id ?? index}>{content}</FadeIn>
-            {isSummary ? (
-              <SummaryFooter
-                doc={doc}
-                rating={rating}
-                ratingText={ratingText}
-                onRate={onRate}
-                onShare={onShare}
-                shareState={shareState}
-              />
-            ) : null}
-          </ScrollView>
+          <AskProvider value={onAsk ?? null}>
+            <ScrollView
+              ref={scroller}
+              className="flex-1"
+              contentContainerClassName="grow gap-5 px-5 pb-8 pt-6"
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="interactive"
+            >
+              <FadeIn key={page?.id ?? index}>{content}</FadeIn>
+              {isSummary ? (
+                <SummaryFooter
+                  doc={doc}
+                  rating={rating}
+                  ratingText={ratingText}
+                  onRate={onRate}
+                  onShare={onShare}
+                  shareState={shareState}
+                />
+              ) : null}
+            </ScrollView>
+          </AskProvider>
 
           <View className="flex-row items-center gap-3 px-5 pb-2 pt-2">
             <Pressable
@@ -218,7 +221,7 @@ export function ActivityPlayer({
                 onPress={onAsk}
                 className="h-11 w-11 items-center justify-center rounded-pill border border-hairline active:bg-cornflower-tint"
               >
-                <Ionicons name="help-circle-outline" size={22} color={colors.cornflower.deep} />
+                <Ionicons name="chatbubble-outline" size={22} color={colors.cornflower.deep} />
               </Pressable>
             ) : null}
           </View>

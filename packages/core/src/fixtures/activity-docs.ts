@@ -259,6 +259,7 @@ export const FIXTURE_DOC_APPLY: ActivityDoc = {
           id: 'wild-notice',
           prompt: 'In one sentence: what did you find?',
           placeholder: 'Models are best at the start and end of the context…',
+          consider: 'Where in the document was the detail it missed?',
         },
       ],
     },
@@ -321,6 +322,8 @@ export const FIXTURE_DOC_APPLY: ActivityDoc = {
           id: 'takeaway',
           prompt:
             "Your takeaway: name one real document you work with and how you'd trim it before asking a model about it.",
+          consider:
+            'Think of the last long thing you pasted in. Which parts did the question actually need?',
         },
         {
           kind: 'selfRate',
