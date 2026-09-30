@@ -1,6 +1,6 @@
 import { router } from 'expo-router'
 import { View } from 'react-native'
-import type { WhyChoice } from '@thinkering/core'
+import { isOverLimit, type WhyChoice } from '@thinkering/core'
 
 import { ChoiceChip } from '@/components/choice-chip'
 import { useIntake } from '@/intake/context'
@@ -21,7 +21,7 @@ export default function WhyStep() {
     <StepScreen
       step={2}
       question="Why do you want to learn it?"
-      continueDisabled={!answers.whyChoice}
+      continueDisabled={!answers.whyChoice || isOverLimit(answers.whyText, 'note')}
       onContinue={() => {
         startApproach()
         router.push('/intake/experience')

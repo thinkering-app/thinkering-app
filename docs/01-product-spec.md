@@ -4,56 +4,46 @@ Authoritative description of user-facing behavior. Vocabulary per `00-overview.m
 
 ## 1. Intake flow
 
-Runs for a brand-new user (after a brief welcome screen) and every time an existing user adds a new interest. One question per screen, progress dots, back navigation allowed. Answers are editable later in Path settings.
+Runs for a new user (after a welcome screen) and whenever an interest is added. One question per screen; answers stay editable in Path settings.
 
-**Step 1 — What's one thing you want to learn?**
-Free text, placeholder _"Anything you're curious about"_. Everything typed here becomes one interest with one path, so the question asks for one thing; on a first interest, a line under the field says **You can add more later.** Below that, a few subtle example chips (rotate from a pool; show ~4, tappable to fill): _Understand LLMs and AI · Improve my approach to personal finance · Product management skills · More about climate and sustainability · Learn how to draw · Get back into Spanish · Get conversational in German · Improve my chess skills_.
+1. **What's one thing you want to learn?** Free text, with a few tappable example chips. It becomes one interest with one path, so it asks for one thing; on a first interest, a line under the field says **You can add more later.**
+2. **Why?** **For my career / For a personal goal / For fun**, plus an optional follow-up. → On advance, fire **G1** (approach notes).
+3. **How much experience?** **Just getting started / Explored a bit / In the middle / Have a lot of experience**, plus an optional follow-up. → On advance, fire **G2** (topics and outcomes; waits on G1). It streams topics first, so step 4 doesn't wait on step 5's half.
+4. **Which topics feel most relevant?** Multi-select from G2's ~10 topics, plus add-your-own. None is allowed.
+5. **What are you hoping for?** Multi-select from G2's 3–5 first-person outcomes, plus add-your-own. None is allowed, as is moving on if G2 failed. → On advance, fire **G3** (interest name + 5–8 sequenced goals).
+6. **How much time?** Frequency (**Daily / Several times a week / When I can**) and session length (**5 / 10 / 15 min / Custom**).
+7. **Here's a direction we can start with.** The interest name and goals, streaming if G3 is still going. → On completion, fire **G4** (resource search) and **G5-prefetch** (today's Next).
 
-**Step 2 — Why do you want to learn it?**
-Single select: **For my career / For a personal goal / For fun**, plus an open free-text follow-up, marked optional: _"What do you want to be able to do, and why?"_ The field grows as they write.
-→ On advance, fire **G1** (approach & pedagogy notes) in the background.
+**Mode placement (D15)**: step 7 shows where the interest landed — **In focus** if frequency is daily or several times a week, or the why is career or personal goal; **Exploring** for for-fun + when-I-can. One tap toggles it.
 
-**Step 3 — How much experience do you have?**
-Single select: **Just getting started / Explored a bit / In the middle / Have a lot of experience**, plus the same optional, growing follow-up: _"What have you tried before, and how did it go?"_
-→ On advance, fire **G2** (topic candidates and what success could look like, in one call; waits on G1) in the background. It streams topics first, so step 4 doesn't wait on step 5's half.
+**Unfinished intake**:
 
-**Step 4 — Which topics feel most relevant?**
-Multi-select chips from G2's ~10 topics (mix of motivation-aligned, foundational/prerequisite, and adjacent-but-interesting; the mix is invisible to the user). A small field with a **+** above the chips adds their own topic, selected straight away. Selecting none is allowed. If G2 hasn't finished, a brief, branded generating state shows below the field.
-
-**Step 5 — What are you hoping for?**
-Multi-select chips from G2's 3–5 short, varied, first-person outcomes (_"I can follow a dinner conversation"_, _"I understand when to use du or Sie"_), with the same add-your-own field. Selecting none is allowed, and so is moving on if G2 failed. (The prompt still frames these as what success would feel like; the learner-facing question is softer on purpose.)
-→ On advance, fire **G3** (initial path: short interest name + 5–8 sequenced goals, shaped by the topics and outcomes they picked).
-
-**Step 6 — How much time do you want to spend?**
-Two choices on one screen: frequency (**Daily / Several times a week / When I can**) and session length (**5 / 10 / 15 min / Custom**).
-This screen buys time for G3, which is why it comes after topics and outcomes: G3 doesn't need the answer, and firing it earlier takes most of its wait off the last step.
-
-**Step 7 — "Here's a direction we can start with."**
-Show the generated interest name and the goal list (title + one-line description each), streaming in if G3 is still going. Single reassuring line: _"We'll keep evolving this as you go."_ Primary button starts the first activity or goes to Today.
-→ On completion, fire **G4** (background web search for resources) and **G5-prefetch** (today's Next activity).
-
-**Unfinished intake**: until the interest is saved, the answers, the step they're on and every generation that has come back are kept on the device as a draft (local settings, never synced — `03`). Leaving partway, closing the app or reloading the page loses nothing: the draft picks up at the step they left, with no generation made twice. There is one draft at a time. An existing user can leave from any step with the **×** beside the progress dots (back from step 1 does the same, returning them to the screen they started it from); once they've written what they want to learn, a sheet asks **Finish this later?** — **Save for later** or **Discard**, and closing the sheet stays put. A first interest has no ×: there is nothing to leave to. Back from step 1 goes to the welcome screen instead — including on a run picked up from a draft, which has no history behind it, so the first question is never a dead end. **Add an interest** with a draft waiting asks first, in a sheet showing what they wanted to learn: **Keep going** or **Start something new** (which drops the draft). A first-run user reopening the app goes straight back into it, and Manage Interests lists it under **Unfinished** (§7).
-
-**Mode placement (D15)**: this step also shows, subtly, where the interest landed, together with the reassuring line above the name and goals, and a one-line hint for the current mode — **In focus** if frequency is daily/several-times-a-week or the why is career/personal-goal; **Exploring** for for-fun + when-I-can. One tap toggles it; changeable anytime in Manage Interests.
+- Until the interest is saved, answers, step and returned generations are kept as a local draft (never synced — `03`). Leaving or reloading loses nothing: it resumes at the same step, and no generation is made twice. One draft at a time.
+- An existing user leaves with the **×** beside the dots, or back from step 1 (returning where they started). Once step 1 has an answer, a sheet asks **Finish this later?** — **Save for later** or **Discard**; closing it stays put.
+- A first interest has no ×; back from step 1 goes to the welcome screen, even on a resumed draft, so the first question is never a dead end.
+- **Add an interest** with a draft waiting asks **Keep going** or **Start something new** (dropping the draft).
+- A first-run user reopening the app goes straight back into the draft. Manage Interests lists it under **Unfinished** (§7).
 
 ## 2. App shell
 
 Four tabs: **Today, Path, History, Me**.
 
-**Interest selector** (top toolbar on Today, Path, History): one pill per in-focus interest, plus an **Explore** pill when any exploring interests exist. Selecting Explore reveals a second pill row: **All** (default) + one pill per exploring interest. Path is the exception: it has no "All" — it defaults to the first interest. The row shows even with a single interest, because it also carries a **+** button — placed right after the last pill, or pinned to the right once the pills overflow — that starts intake for the next one (skipping the welcome screen, which is only for a brand-new user). On finishing, Today opens on the interest just added.
+**Interest selector** (Today, Path, History): one pill per in-focus interest, plus **Explore** when exploring interests exist, which reveals **All** (default) + one per exploring interest. Path has no "All"; it defaults to the first interest. The row always shows, since it carries the **+** that starts intake (skipping the welcome screen); Today then opens on the new interest.
 
-**Feedback button**: small, unobtrusive (e.g. a corner icon on every screen). Opens a compact chooser:
+**Feedback button** (every screen) opens a chooser:
 
-- **Post to a feedback board** — community feedback hosted by Featurebase; feature/general posts may be public. Native opens a dedicated portal WebView and Expo web opens the portal in a new tab. The portal exposes Feature requests, General feedback and discussions, and Bugs and issues, with loading, offline/retry, close/back handling, and external links handed to the system browser. Only coarse screen, platform, and app version metadata may be attached; never app identity, email, raw routes/URLs, activity IDs, hardware/device IDs, interests, goals, or learning content.
-- **Send privately by email** — a native form with required feedback (maximum 4,000 characters), optional validated follow-up email (never persisted locally), and an **Include app details** toggle that defaults on. Its visible preview is limited to coarse screen, platform, and app version. Send uses the signed `POST /api/feedback` route; success closes the form and briefly confirms, while failure preserves the text for retry.
+- **Post to a feedback board** — the Featurebase portal; posts may be public. Only coarse screen, platform and app version may be attached — never app identity, email, raw routes or URLs, activity IDs, device IDs, interests, goals or learning content.
+- **Send privately by email** — required feedback (max 4,000 characters), an optional follow-up email (never stored locally) and **Include app details** (default on; coarse screen, platform and app version only). Sends via signed `POST /api/feedback`; failure keeps the text.
 
-Keep `hello@thinkering.app` visible for questions or privacy concerns.
+`hello@thinkering.app` stays visible for questions or privacy concerns.
 
 ## 3. Today
 
-Per selected interest (or aggregated across interests for Explore→All), three sections, each with a heading, a small configure (⚙) button, and swipeable cards. Cards show: activity title, the goal it targets, and a time estimate — or **Writing** while the activity is being generated and has no page to read yet. Once page 1 of the stream lands the card goes back to its time estimate: from there it opens onto something readable and the rest streams in behind it. (A card still saying **Writing** can be opened too; it opens onto the wait.) At the bottom, a subtle centered **"Configure learning routine"** button.
+Per selected interest (or aggregated for Explore → All): **Next**, **Strengthen** and **Go further**, each with a ⚙ and swipeable cards. A card shows title, goal and time estimate, or **Writing** until page 1 has streamed in (it can still be opened).
 
-Each section offers **one open card at a time**. When the learner finishes it, that section gets its next card straight away, picked by the same rules and skipping goals the section has already had today — so finishing Next moves on to the next unstarted goal. A new day clears the finished cards; unfinished ones stay, and on opening Today only the sections left with nothing open get a new card — so nothing is generated until it's needed. **Explore → All** suggests rather than prepares: it shows cards from at most **2** of the exploring interests — never-practiced first, then least recently practiced (judged on days before today, so the pair holds for the day and rotates across days). Their cards get titles (G5a) but no content: each says **Write**, and tapping it writes that one in place (then **Writing**, then its time; a tap then opens it). Selecting a single interest is what fills its missing sections and writes its cards ahead. A card whose background write failed also shows **Write**.
+Each section has **one open card at a time**. Finishing it brings the next straight away, skipping goals the section already had today. A new day clears finished cards; unfinished ones stay, and only empty sections get a new card. Nothing is generated until needed.
+
+**Explore → All** suggests rather than prepares: cards from at most **2** exploring interests — never-practiced first, then least recently practiced (judged on days before today, so the pair holds for the day). They get titles (G5a) but no content; each says **Write**, and tapping writes it in place. Selecting a single interest fills its sections and writes ahead. A failed background write also shows **Write**.
 
 ### Card selection rules (deterministic — `packages/core/scheduler`)
 
@@ -61,84 +51,100 @@ Each section offers **one open card at a time**. When the learner finishes it, t
 - **Strengthen** (1 card): _strengthen_-tier activities. Goal choice priority: (1) `introduced` but not yet `strengthened`; (2) already `strengthened` (spaced review — prefer least-recently-strengthened); (3) a prerequisite topic to their goals (early-days fallback).
 - **Go further** (1 card): _apply_-tier activities (both flavors: apply and extend — see `06`). Priority: (1) `strengthened` but not yet `applied`; (2) already `applied`; (3) merely `introduced` (or the first goal for brand-new users). Once every goal is excluded for the day the section rests until tomorrow.
 
-Card metadata (title, estimate, library item) comes from the cheap daily-plan call **G5a** when a section needs a card; full activity content (**G5b**) is written ahead in the background, one card at a time with Next first, so a new interest has all three ready shortly after intake. Opening a card that's still being written joins that stream.
+Card metadata (title, estimate, library item) comes from the cheap **G5a** when a section needs a card. Content (**G5b**) is written ahead in the background, one card at a time, Next first. Opening a card still being written joins that stream.
 
 ### Adding an activity (+)
 
-Each section's row ends in a **+** card (single interest in view). It opens a sheet, **"Create a new [section] activity"**, with the interest's goals as optional chips (for Next, only goals not yet started) and one optional field — _"Anything to focus on, or how you'd like to learn it"_. Create plans one card in that section through G5a (the request shapes the item and title) and writes it straight away through G5b (the request is passed along). With a goal chosen, the card targets that goal and completes at the section's tier as usual. With only a focus, the card has no goal — its topic is a short name for the request and it moves no goal status. With neither, it lands on the section's own next pick. While G5a runs, a placeholder card shows **Writing** in that section.
+With one interest in view, each section ends in a **+** card: optional goal chips (for Next, only unstarted goals) and an optional focus field. Create plans the card through G5a and writes it through G5b, both given the request; a placeholder shows **Writing** meanwhile.
+
+- With a goal: targets it and completes at the section's tier.
+- With only a focus: no goal — its topic names the request, and it moves no goal status.
+- With neither: the section's own next pick.
 
 ### Completion states
 
-When the user completes an activity in a section, that section's heading gets a sun-yellow check and a small count ("2 today"), and the finished card takes the section's tint with a yellow "Done today" chip. What's done is what shows; there's no separate "done for the day" state. The intended rhythm: each day, in an interest, do at least one Next and one Strengthen; Go further when it suits. Remaining cards stay available — completion celebrates, it doesn't lock.
+Completing an activity marks the section heading with a check and count ("2 today") and the card with "Done today". Remaining cards stay available — completion celebrates, it doesn't lock.
 
 ### Configure (⚙ per section)
 
-Sheet with one line on what the section is for, then that section's library items as a two-column grid of small cards with checkboxes (active/inactive for this user + interest + section). Tapping a card opens a short overview dialog of the strategy. At least one item must remain active per section.
+Toggles the section's library items for this user + interest + section. At least one must stay active.
 
-### Configure learning routine (bottom button)
+### Configure learning routine
 
-Sheet opening with a line that the daily counts aren't configurable yet, linking to the "customize learning routine" post on the feedback board. Below it, the routine — **Next** (1 a day), **Strengthen** (optional), **Go further** (optional), each with a one-line description — then a single free-text question: **"What would you like more or less of?"** → **G11** interprets it into library activations/preference notes and confirms the change in one line.
+Notes that daily counts aren't configurable yet (linking to the feedback board post), shows the routine, and asks **"What would you like more or less of?"** → **G11** turns the answer into library activations and preference notes and confirms in one line.
 
 ## 4. Activities
 
-Multi-page, rendered from an Activity Document (`05-activity-format.md`). Top progress bar segmented by page; forward/back navigation always available. Every page has interactive elements per its library item.
+Multi-page, rendered from an Activity Document (`05`); forward and back are always available.
 
-- **Response review page** (reserved near the end, counted in the page total): while the user works, **G6** analyzes their responses and fills this page with the highest-value response — addressing a misconception, deepening a good answer, or answering an implicit question.
-- **Summary page** (last): a short celebration line, the concept recap, concept/skill chips for what was introduced/strengthened/put to use, and at the foot of the page a usefulness rating (👎 / 👍👎 mixed / 👍), an optional note, and a Send button that shares the activity, rating and note with the developers — not the learner's answers (explicit, per-activity — see `08`, D18).
-- **Ask button** (always visible): free-text question → **G7** inserts a new page immediately after the current one and jumps to it, answering the question, with an interaction included when asked for or clearly valuable. Inserted pages extend the progress bar.
-- Completing the activity advances the goal's status (introduce → `introduced`, etc.), records history, and updates section completion state.
-- Leaving mid-activity keeps it resumable from Today for the rest of the day; unfinished activities don't advance goal status.
+- **Response review page** (near the end): **G6** analyzes responses as the user works and fills it with the highest-value response — a misconception, a good answer deepened, or an implicit question answered.
+- **Summary page** (last): concept recap, chips for what was introduced, strengthened or put to use, and a rating (👎 / mixed / 👍) with optional note and **Send**, which shares the activity, rating and note — not the learner's answers — with the developers (`08`, D18).
+- **Ask** (always visible): **G7** inserts a page answering the question right after the current one and jumps to it.
+- Completing advances the goal's status, records history and updates section completion. An unfinished activity stays resumable from Today for the day and advances nothing.
 
 ## 5. Path
 
-For the selected single interest:
+For one selected interest:
 
-- **Goal list**, in path order. Status shown by color treatment, not pills: `not_started` = plain white card, `introduced` = light cornflower wash, `strengthened` = solid cornflower (light text), `applied` ("Put to use") = a distinct warm celebratory treatment (peach edge/glow — a delighter, since going further is optional). Long-press a goal to turn on reorder mode — each card grows up/down controls and the header a Done button (a drag gesture was not worth a reanimated gesture handler for a 5–8 item list). Tap a goal to expand it; the pencil opens its title/description for editing, or removes it. **Add a goal** under the list opens the same sheet empty: a title and optional description, added at the end of the path. It has no concepts until one is generated for it (a later option), so it shows no coverage when expanded.
-- **Expandable goals (D16)**: tapping a goal expands it to show the concepts and skills beneath it, with subtle coverage indicators for those already targeted by completed activities. Activities highlight these same concept/skill labels (summary chips, in-page emphasis) so the user can see what they're building.
-- **Reflection card** ("Reflect on progress and update path"): opens the Reflection flow, three steps with progress dots. **G8a** goes out as it opens and gates nothing — its parts appear when ready, and are simply absent if it fails. (1) **"Is this still what you're hoping for?"** — their saved outcomes as selected chips, the same add-your-own field as intake, and 2–3 more outcomes from G8a, unselected. Deselecting one means it no longer applies. (2) G8a's 1–2 sentence recap of what and how they've been learning lately, a collapsed **Your path** (the Path goal cards, read-only) and the question on how their learning feels and what they want to focus on next (free text). (3) Their current goal list with the ability to remove/reorder, a field to add their own goal, and **G8**-generated suggestions based on the reflection, the outcomes from step 1, their interests and adjacent topics. Nothing is written until **Update path**, which saves the path and the outcomes together (dropped outcomes leave the interest; the reflection records before and after).
-- **3 suggested goals** always at the bottom (from **G9**, cached, regenerated when the path changes) — one tap to add.
+- **Goal list** in path order. Status is a color treatment, not pills (`07`). Long-press to reorder; tap to expand; the pencil edits or removes. **Add a goal** appends a title and optional description, with no concepts.
+- **Expandable goals (D16)**: an expanded goal shows its concepts and skills, marking those covered by completed activities.
+- **Reflection**: three steps. **G8a** fires on open and gates nothing; its parts appear when ready, or not at all if it fails.
+  1. **"Is this still what you're hoping for?"** — saved outcomes selected, add-your-own, and 2–3 unselected from G8a. Deselecting drops one.
+  2. G8a's short recap, a read-only **Your path**, and a free-text question on what to focus on next.
+  3. The goals to remove or reorder, add-your-own, and **G8** suggestions from the reflection, outcomes and adjacent topics.
 
-### Resources (book icon on Path)
+  Nothing is written until **Update path**, which saves path and outcomes together; the reflection records before and after.
 
-List of resources for the interest. Each has: title, link, short description, "how this could be used" (user-entered, or generated if blank, or empty), and a longer summary stored for generation purposes but not shown.
+- **3 suggested goals** at the bottom (**G9**, cached, regenerated when the path changes), one tap to add.
 
-- **Add by link**: paste URL → the proxy fetches the page and **G10** drafts title/description/how-to-use/summary; user can edit before saving. In fixture AI mode the fetch is served from a canned page, so the flow runs offline.
-- **Initial seeding**: after intake, **G4** web-searches for reputable, goal-specific YouTube videos and articles and saves them (marked as app-suggested; user can delete).
-- Resources are considered by activity generation (follow-along worked examples, things to study/notice, material for In-the-Wild activities).
+### Resources
 
-### Path settings (⚙ icon on Path)
+Title, link, description, "how this could be used" (user-entered, generated if blank, or empty) and a hidden summary used for generation. Activity generation draws on them.
 
-Reached from the ⚙ in the Path header. Text fields and outcomes commit with **Save**; the lists (topics, contexts) act as they are tapped. Editable fields, all from intake: short interest name · what they want to learn · why (selection) · why (text) · experience (selection) · experience (text) · what they're hoping for (outcomes; add/edit/remove) · frequency · session length · topics of interest (add/delete; considered when suggesting goals) · approach notes (from G1, editable) · **Contexts**: projects, environments, and people related to this interest (add/edit/delete) — considered when generating Go further activities, included only when they genuinely add value.
+- **Add by link**: the proxy fetches the page and **G10** drafts the fields for the user to edit. Fixture mode serves a canned page.
+- **Initial seeding**: after intake, **G4** finds goal-specific videos and articles, marked app-suggested and deletable.
+
+### Path settings
+
+Every intake answer, editable, plus topics (considered when suggesting goals), approach notes (from G1), and **Contexts** — projects, environments and people, used in Go further activities only when they genuinely help. Text and outcomes commit with **Save**; lists act as tapped.
 
 ## 6. History
 
-For the selected focused interest, all-explore, or an individual explore interest: completed activities grouped by date, newest day first. Each row: activity title + outcome line — _Introduced [goal] / Strengthened [goal]_, or for Go further the library item's `outcomeLabel`: _Put to use [goal]_ (apply items), _Went deeper on [goal]_ / _Branched out from [goal]_ (extend items). Load ~5 most recent active days, infinite scroll for more.
+For the selected interest, Explore → All, or one exploring interest: completed activities by date, newest first. Each row: title + outcome — _Introduced [goal]_, _Strengthened [goal]_, or for Go further the library item's `outcomeLabel` (_Put to use_, _Went deeper on_, _Branched out from_). Loads ~5 active days, then scrolls for more.
 
 ## 7. Me
 
-- **Manage Interests** (top): reorder interests; set each to **In focus / Exploring / Archived**; unarchive freely. A **+** in the header starts intake for a new one, the same as the selector's. An unfinished intake (§1) sits above them under **Unfinished**: tap to keep going, or discard it after a confirm.
-- **Calendar**: current month, days with completed activities highlighted; tapping a day lists that day's activities chronologically, grouped by interest, under the calendar rather than in a sheet — tapping the day again closes the list, as does moving to another month. Swipe/navigate to load other months.
-- **Settings**: reached from the **⚙** in the header — an index of categories, each its own pushed screen. Nothing on the tab itself is a setting, so Me stays the interests and the calendar. The same ⚙ sits in the top-right of Today, Path and History too, so settings are one tap away from wherever you are; on Path it follows that tab's own resources and per-interest settings icons.
-  - **Account and data** — default off. Three things that share one question, _what leaves this device_: a **file you keep** (export to a versioned JSON file through the share sheet; import replaces everything on the device after a confirm); **synced backup** — create/sign in to a Supabase email/password account, change password, sign out, delete the account, toggle sync, back up now (turning the toggle off deletes the server-side copy after confirmation; local data is untouched), with the sync half hiding itself in a build with no Supabase project configured; the **PostHog toggle** ("Share anonymous usage to improve thinkering" — default on, not linked to identity, D9); and, under its own heading, **Session replays** ("Share session replays with developers" — opt-in, default off, separate from the usage toggle, with one line saying recordings show your activities and what you type, D22). Anonymous usage isn't asked or announced: it's on, the Privacy page describes it, and the toggle is here. Session replays are asked, once, in a card at the top of the same screen, clear of **Get started**: one line about what a recording shows, a note that it can be changed later in Me → Settings, a link to Privacy, and **Share** and **No thanks** weighted the same, so no one is nudged into being recorded. It doesn't block: someone can start intake without answering, and it stays undecided until it's answered or its toggle is used. Once answered it never appears again. The card doesn't appear in a build with no PostHog key. **Delete all data** keeps a no to anonymous usage, so it doesn't quietly turn back on. The way back in also sits on the intake welcome screen, quietly: a fresh install is when you need it most and is the one moment Me isn't reachable. **I already have an account or a backup file** opens **Welcome back** with two choices: **Sign in to your account**, which turns backup on and waits for the first sync, then opens Today, or goes on into intake when the account has nothing yet; and **Restore from a backup file**, which needs no confirm because there's nothing on the device yet. A keychain that outlived a reinstall may still hold a session, so sign-in offers **Continue** as that account, or **Use a different account**. Creating an account stays in Me → Account: one is worth making once there's something to keep. A build with no Supabase project keeps the old **Restore from a backup** link, which goes straight to the file. Last on the screen, under a rule, **Delete all data**: it confirms first — what goes, and that it can't be undone — then deletes the learner's data from this device and, when an account is signed in, the copy on the server with it, so nothing comes back on the next sync, and reopens the app at the intake welcome. The account itself stays; deleting that is Me → Account.
-  - **AI** — today's usage vs. the daily included cap (meter), with a line under it saying the limit is there to keep costs sustainable and pointing at `hello@thinkering.app` for anyone running into it often or needing more; **Have a code?**, which redeems a code we hand out for a bigger daily allowance (`04` §Usage metering — one device, once, and the meter simply reads against a higher limit afterwards, with no arithmetic on the client); and the option to add their own Anthropic API key (stored in SecureStore/Keychain; unmetered, calls go direct), which is native only, the web app having no keychain. The code field is hidden when a BYO key or fixture mode is in use: there is no meter to raise.
-  - **Privacy** — the landing page's `/privacy` copy, rendered from the same source in `packages/core` so the two can't drift.
-  - **Feedback** — the same community/private chooser as the global feedback button, but pushed like everything else under the ⚙ rather than raised as a sheet, with `hello@thinkering.app` visible for questions or privacy concerns. Both entry points are built from one hook so the two channels can't drift apart.
-  - **About** — an early-stage project, actively in development, built by Rebecca Hao with the support of Assembly Code; an invitation to be in touch about the user's experience with thinkering, personal learning, the science of learning, and AI, with `hello@thinkering.app`. The version line lives here, and is also the hidden long-press (`02`) that reveals **Developer**.
-  - **Developer** — absent unless the Inspector is enabled: always in a dev build, and in production only after the long-press on About. Holds the **AI Inspector**, plus — dev builds only — the **AI mode** switch (proxy · byok · fixture) and fixture-data seeding. Switching mode changes only which way the _next_ generation is made; it never touches what is already stored, and because the choice is a local setting it outlives any change to `EXPO_PUBLIC_AI_MODE`, which is only the default before one is chosen.
+- **Manage Interests**: reorder, set **In focus / Exploring / Archived**, unarchive, **+** to add. An unfinished intake (§1) sits above under **Unfinished**: continue, or discard after a confirm.
+- **Calendar**: active days highlighted; tapping one lists its activities by interest.
+- **Settings**: the **⚙** on Me, Today, Path and History opens an index of screens.
+
+**Account and data** — what leaves this device:
+
+- **Backup file**: export versioned JSON through the share sheet. Import replaces everything after a confirm.
+- **Synced backup** (off by default): Supabase email/password account — create, sign in, change password, sign out, delete, toggle sync, back up now. Turning sync off deletes the server copy after a confirm; local data stays. Hidden without a Supabase project.
+- **Anonymous usage**: on by default, not linked to identity (D9), not asked — the Privacy page describes it.
+- **Session replays**: opt-in, off by default, separate from usage (D22). Asked once, in a card on the intake welcome screen clear of **Get started**, with **Share** and **No thanks** weighted equally. Doesn't block intake; undecided until answered or toggled. Absent without a PostHog key.
+- **Getting back in**: on the welcome screen, **I already have an account or a backup file**. **Sign in** turns backup on, waits for the first sync, then opens Today (or intake if the account is empty); a session surviving reinstall offers **Continue** or **Use a different account**. **Restore from a backup file** needs no confirm. Without Supabase, only the file restore shows.
+- **Delete all data**: confirms, then deletes the learner's data on the device and, when signed in, on the server, then reopens at the welcome screen. It keeps a "no" to anonymous usage, and keeps the account (deleted in Me → Account).
+
+**AI**:
+
+- A meter of today's usage against the daily cap, pointing to `hello@thinkering.app` for more.
+- **Have a code?** raises the allowance (`04` §Usage metering — one device, once). Hidden with a BYO key or in fixture mode.
+- A BYO Anthropic key (SecureStore; unmetered, calls go direct). Native only.
+
+**Other settings**:
+
+- **Privacy** — the landing page's `/privacy` copy, from the same source in `packages/core`.
+- **Feedback** — the same two channels as the global button, from one shared hook.
+- **About** — who makes thinkering and how to reach us. Long-pressing the version line (`02`) reveals **Developer**.
+- **Developer** — absent unless the Inspector is enabled: always in a dev build, in production only after the long-press. Holds the **AI Inspector**, plus — dev builds only — the **AI mode** switch (proxy · byok · fixture) and fixture seeding. Switching affects only the _next_ generation, never what's stored. The choice is a local setting that outlives `EXPO_PUBLIC_AI_MODE`, which is only the default.
 
 ## 8. Landing page (`apps/web`)
 
-Small marketing site at thinkering.app, designed per `07-design-system.md` (same tokens/fonts as the app; landing-only display sizes live in `apps/web/tailwind.config.cjs`). Pages, under a shared header (overview with hover section-jump, about, contribute, contact, join-the-beta CTA) and dark footer:
+Marketing site at thinkering.app, per `07`: `/`, `/approach` (the learning science and the learner's control; its activity lists read from `packages/core`), `/about`, `/contribute`, `/contact` (posts to `POST /api/contact`) and `/privacy` (per `08`).
 
-- **`/` overview** — hero (promise + "grow as a learner" beat, join-the-beta CTA), how it works (add an interest → path → daily activities → routine, with a typed-interests mock and a switchable 3-interest sample path), why it works, principles (dark section, 4 cards), the project (Reb/Assembly Code card).
-- **`/about`** — the project's goal + the five principles, full versions.
-- **`/contribute`** — three tinted cards: library discussion thread, beta + feedback/roadmap, GitHub.
-- **`/contact`** — a message form (name, email, message) posting to `POST /api/contact`, plus email + LinkedIn.
-- **`/privacy`** — plain-language policy per `08`.
-
-The primary CTA is the beta signup form (Google Form) until an App Store link exists. Feedback/roadmap links go to the Featurebase portal. `hello@thinkering.app` is assembled client-side so it never appears in served HTML. All external URLs live in `apps/web/components/links.ts`. Also hosts the API routes.
-
-## 9. Later (explicitly out of v1 scope)
-
-- iOS Share Extension: share a link from any app into thinkering → becomes a resource (and can seed activities).
-- Android polish pass, push/local reminders aligned to their chosen frequency, App Attest hardening, widgets.
+- The primary CTA is beta signup until an App Store link exists.
+- `hello@thinkering.app` is assembled client-side, never in served HTML.
+- External URLs live in `apps/web/components/links.ts`.
+- It also hosts the API routes.

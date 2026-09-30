@@ -84,7 +84,7 @@ describe('interactive blocks', () => {
     expect(last()?.payload).toEqual({ kind: 'mcq', selectedId: wrong.id, correct: false })
   })
 
-  it('freeText records what was typed', async () => {
+  it('freeText records what was typed and opens its consider on request', async () => {
     const { block, last } = await renderBlock('freeText')
     if (block.kind !== 'freeText') throw new Error('wrong block')
     await fireEvent.changeText(
@@ -95,6 +95,12 @@ describe('interactive blocks', () => {
       kind: 'freeText',
       text: 'Because the model imitates the pattern.',
     })
+
+    // The way in stays hidden until they ask for it.
+    const consider = block.consider!
+    expect(screen.queryByText(consider)).toBeNull()
+    await fireEvent.press(screen.getByText('Think about…'))
+    expect(screen.getByText(consider)).toBeTruthy()
   })
 
   it('fillBlank records each blank and grades forgivingly', async () => {

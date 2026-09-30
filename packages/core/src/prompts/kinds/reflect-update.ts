@@ -1,7 +1,8 @@
 import { z } from 'zod'
+import { cappedText } from '../../limits'
 import { reflectUpdateOutputSchema, type ReflectUpdateOutput } from '../../schemas/generations'
 import { GOAL_STATUSES } from '../../domain'
-import { buildInterestContext, type InterestContextInput } from '../context-assembly'
+import { buildInterestContext, interestContextInputSchema } from '../context-assembly'
 import { SHARED_PREAMBLE } from '../preamble'
 import type { PromptTemplate } from '../types'
 
@@ -13,20 +14,20 @@ import type { PromptTemplate } from '../types'
  */
 
 export const reflectUpdateParamsSchema = z.object({
-  context: z.custom<InterestContextInput>((v) => typeof v === 'object' && v !== null),
+  context: interestContextInputSchema,
   sessionMinutes: z.number().int().positive(),
   /** What they wrote in step 1 of the flow. */
-  feelingText: z.string().min(1),
+  feelingText: cappedText('long', { min: 1 }),
   /** The path, with the short refs the response must use. */
   goals: z.array(
     z.object({
-      ref: z.string().min(1),
-      title: z.string(),
-      description: z.string(),
+      ref: cappedText('line', { min: 1 }),
+      title: cappedText('line'),
+      description: cappedText('note'),
       status: z.enum(GOAL_STATUSES),
     }),
   ),
-  topics: z.array(z.string()).optional(),
+  topics: z.array(cappedText('line')).optional(),
 })
 export type ReflectUpdateParams = z.infer<typeof reflectUpdateParamsSchema>
 

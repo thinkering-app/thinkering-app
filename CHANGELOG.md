@@ -8,6 +8,11 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Added
 
+- Long answers and notes show how much room is left as you near the limit.
+  Past it, nothing you wrote is cut: sending waits until it fits.
+- Under each written answer in an activity: "Think about…", for a
+  way in when you're stuck, and "Ask a question". The Ask button is a speech
+  bubble now.
 - Settings are one tap away from anywhere: the ⚙ now sits in the top-right of
   Today, Path and History as well as Me.
 - Delete all data, in Account and data: your interests, path and history go
@@ -110,6 +115,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Fixed
 
+- When the web search behind finding resources stops working, it gives up
+  as soon as it knows, and never runs past four minutes, instead of leaving
+  you waiting.
 - Starting a new interest works again on a version of the app installed before
   the last update. It failed straight away, with nothing to say why; if an
   update is what's needed, the app now says so.

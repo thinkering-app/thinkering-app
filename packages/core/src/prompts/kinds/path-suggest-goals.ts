@@ -1,6 +1,7 @@
 import { z } from 'zod'
+import { cappedText } from '../../limits'
 import { suggestedGoalsOutputSchema, type SuggestedGoalsOutput } from '../../schemas/generations'
-import { buildInterestContext, type InterestContextInput } from '../context-assembly'
+import { buildInterestContext, interestContextInputSchema } from '../context-assembly'
 import { SHARED_PREAMBLE } from '../preamble'
 import type { PromptTemplate } from '../types'
 
@@ -11,10 +12,10 @@ import type { PromptTemplate } from '../types'
  */
 
 export const pathSuggestGoalsParamsSchema = z.object({
-  context: z.custom<InterestContextInput>((v) => typeof v === 'object' && v !== null),
+  context: interestContextInputSchema,
   sessionMinutes: z.number().int().positive(),
   /** Topics they picked at intake (and added since) — adjacent ground worth mining. */
-  topics: z.array(z.string()).optional(),
+  topics: z.array(cappedText('line')).optional(),
 })
 export type PathSuggestGoalsParams = z.infer<typeof pathSuggestGoalsParamsSchema>
 

@@ -89,6 +89,17 @@ describe('parseActivityDoc', () => {
     expect(result.ok).toBe(false)
   })
 
+  it('rejects a resource link that is not a web page', () => {
+    const embed = (url: string) => {
+      const doc = validDoc()
+      doc.pages[0]!.blocks!.push({ kind: 'resourceEmbed', url, media: 'article', title: 'A page' })
+      return parseActivityDoc(doc).ok
+    }
+    expect(embed('https://example.com/tokens')).toBe(true)
+    expect(embed('javascript:alert(1)')).toBe(false)
+    expect(embed('data:text/html,<p>hi</p>')).toBe(false)
+  })
+
   it('rejects duplicate page ids', () => {
     const doc = validDoc()
     doc.pages[1]!.id = 'p1'

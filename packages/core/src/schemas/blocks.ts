@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { webUrlSchema } from './url'
 
 /**
  * Activity Document block types, v1 (docs/05-activity-format.md).
@@ -39,7 +40,7 @@ export const stepsBlockSchema = z.object({
 export const resourceEmbedBlockSchema = z.object({
   kind: z.literal('resourceEmbed'),
   resourceId: z.string().optional(),
-  url: z.string().min(1),
+  url: webUrlSchema,
   media: z.enum(['video', 'article']),
   title: z.string().min(1),
   startSec: z.number().int().nonnegative().optional(),
@@ -64,6 +65,12 @@ export const freeTextBlockSchema = z.object({
   prompt: md,
   placeholder: z.string().optional(),
   minimal: z.boolean().optional(),
+  /**
+   * A way into the answer, shown when the learner asks for it — never the
+   * answer itself. Blank is allowed: without one there's just no pill, which
+   * isn't worth a repair round-trip. `checkActivityDoc` flags it instead.
+   */
+  consider: z.string().optional(),
 })
 
 export const fillBlankBlockSchema = z.object({

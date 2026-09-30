@@ -1,3 +1,4 @@
+import { isOverLimit } from '@thinkering/core'
 import { useState } from 'react'
 import { Text } from 'react-native'
 
@@ -40,7 +41,9 @@ export function AskSheet({
         <Button
           testID="ask-submit"
           label="Ask"
-          disabled={question.trim().length === 0 || state === 'pending'}
+          disabled={
+            question.trim().length === 0 || isOverLimit(question, 'note') || state === 'pending'
+          }
           onPress={() => onAsk(question.trim())}
         />
       }
@@ -56,6 +59,7 @@ export function AskSheet({
             accessibilityLabel="Your question"
             autoFocus
             multiline
+            limit="note"
           />
           {state === 'error' && error ? (
             <Text className="font-sans text-secondary text-ink-soft">{error}</Text>

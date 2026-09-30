@@ -1,3 +1,4 @@
+import { isOverLimit } from '@thinkering/core'
 import { router } from 'expo-router'
 import { useState } from 'react'
 import { Text, View } from 'react-native'
@@ -20,7 +21,8 @@ const QUESTION = "What's one thing you want to learn?"
 export default function LearnStep() {
   const { answers, update, hasInterest } = useIntake()
   const [examples] = useState(() => sampleExamples())
-  const ready = answers.wantToLearn.trim().length > 0
+  const ready =
+    answers.wantToLearn.trim().length > 0 && !isOverLimit(answers.wantToLearn, 'wantToLearn')
 
   return (
     <StepScreen
@@ -37,6 +39,7 @@ export default function LearnStep() {
         accessibilityLabel={QUESTION}
         multiline
         autoFocus
+        limit="wantToLearn"
       />
       {hasInterest ? null : (
         <Text className="font-sans text-secondary text-ink-soft">You can add more later.</Text>

@@ -31,10 +31,14 @@ for (const fixture of loadFixtures(template.kind, only)) {
   const issues: CheckIssue[] = []
 
   let output: unknown
-  try {
-    output = JSON.parse(extractJsonText(result.text))
-  } catch (e) {
-    issues.push({ check: 'json', message: `not valid JSON: ${(e as Error).message}` })
+  if (result.stopped) {
+    issues.push({ check: 'stopped', message: result.stopped })
+  } else {
+    try {
+      output = JSON.parse(extractJsonText(result.text))
+    } catch (e) {
+      issues.push({ check: 'json', message: `not valid JSON: ${(e as Error).message}` })
+    }
   }
 
   if (output !== undefined) {
