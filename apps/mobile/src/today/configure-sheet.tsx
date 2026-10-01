@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useMemo, useState } from 'react'
-import { Pressable, Switch, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 import { libraryPrefsForSection, type LibraryItem, type Section } from '@thinkering/core'
 import { listGoals, listLibraryPrefs, setLibraryPref } from '@thinkering/db'
 
@@ -9,6 +9,7 @@ import { librarySituation } from '@/ai/context'
 import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
 import { SECTION_LABELS } from '@/components/section-header'
+import { Toggle } from '@/components/toggle'
 import { colors } from '@/theme/tokens'
 
 /** Under the sheet title: what the section is for, then what the list is. */
@@ -97,13 +98,11 @@ export function ConfigureSheet({
                 <Ionicons name="information-circle-outline" size={20} color={colors.ink.soft} />
               </Pressable>
             </View>
-            <Switch
+            <Toggle
               accessibilityLabel={item.name}
               value={active}
               disabled={active && activeCount <= 1}
               onValueChange={(next) => toggle(item, next)}
-              trackColor={{ false: colors.outline, true: colors.cornflower.DEFAULT }}
-              thumbColor={colors.surface}
             />
           </View>
         ))}
