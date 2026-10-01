@@ -155,7 +155,7 @@ describe('interactive blocks', () => {
     if (block.kind !== 'reveal') throw new Error('wrong block')
     const answerFragment = escapeRegExp(block.md.replace(/[*`_]/g, '').slice(0, 20))
     expect(screen.queryByText(new RegExp(answerFragment))).toBeNull()
-    await fireEvent.press(screen.getByText('Show me'))
+    await fireEvent.press(screen.getByText('Think of your answer, then tap to reveal'))
     expect(last()?.payload).toEqual({ kind: 'reveal', revealed: true })
     expect(screen.getByText(new RegExp(answerFragment))).toBeTruthy()
   })

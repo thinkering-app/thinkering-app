@@ -68,6 +68,8 @@ build; internal refactors and docs don't appear here. The conventions are in
   Reflect now sits at the bottom.
 - In Path settings, Save stays at the bottom of the screen and only works
   once you've changed something.
+- Think-then-reveal questions are a flashcard: the question on the front,
+  a nudge to answer it in your head, then a tap to turn it over.
 - Ordering and matching questions start mixed up, not already in order.
   An ordering is checked when you press Check, not as soon as you move
   something.
