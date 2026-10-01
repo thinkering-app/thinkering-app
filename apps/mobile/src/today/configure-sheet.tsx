@@ -9,19 +9,22 @@ import { librarySituation } from '@/ai/context'
 import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
 import { SECTION_LABELS } from '@/components/section-header'
+import { Toggle } from '@/components/toggle'
 import { colors } from '@/theme/tokens'
 
-/** One line under the sheet title saying what the section is for. */
+/** Under the sheet title: what the section is for, then what the list is. */
 const SECTION_HELP: Record<Section, string> = {
   next: 'Learn something new from the next goal on your path.',
   strengthen: "Improve your memory or understanding of something you've met before.",
   go_further: 'Apply what you learn in the real world, or connect it to other ideas.',
 }
 
+const LIST_HELP = "Activities here are made from these types. Turn off any you'd rather not see."
+
 /**
  * The per-section ⚙ sheet (docs/01 §3): which strategies this interest draws
- * from, as a grid of small cards. Tapping a card explains the strategy; the
- * checkbox turns it on or off. At least one item stays active per section.
+ * from, as a list. The ⓘ explains a strategy; the switch turns it on or off.
+ * At least one item stays active per section.
  */
 export function ConfigureSheet({
   visible,
@@ -70,27 +73,38 @@ export function ConfigureSheet({
   }
 
   return (
-    <Sheet visible={visible} onClose={close} title={SECTION_LABELS[section]}>
-      <Text className="font-sans text-secondary text-ink-soft">{SECTION_HELP[section]}</Text>
-      <View className="flex-row flex-wrap justify-between gap-y-3">
-        {rows.map(({ item, active }) => (
-          <Pressable
+    <Sheet
+      visible={visible}
+      onClose={close}
+      title={`Activity settings: ${SECTION_LABELS[section]}`}
+    >
+      <Text className="font-sans text-secondary text-ink-soft">
+        {SECTION_HELP[section]} {LIST_HELP}
+      </Text>
+      <View>
+        {rows.map(({ item, active }, i) => (
+          <View
             key={item.id}
-            accessibilityRole="button"
-            accessibilityLabel={`About ${item.name}`}
-            onPress={() => setInfo(item)}
-            className="min-h-24 w-[48%] justify-between gap-3 rounded-card bg-surface p-3 shadow-card active:bg-cornflower-tint"
+            className={`flex-row items-center gap-3 py-3 ${i > 0 ? 'border-t border-hairline' : ''}`}
           >
-            <View className="items-end">
-              <Checkbox
-                label={item.name}
-                checked={active}
-                disabled={active && activeCount <= 1}
-                onPress={() => toggle(item, !active)}
-              />
+            <View className="flex-1 flex-row items-center gap-1.5">
+              <Text className="shrink font-sans-medium text-body text-ink">{item.name}</Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`About ${item.name}`}
+                onPress={() => setInfo(item)}
+                hitSlop={10}
+              >
+                <Ionicons name="information-circle-outline" size={20} color={colors.ink.soft} />
+              </Pressable>
             </View>
-            <Text className="font-heading text-body text-ink">{item.name}</Text>
-          </Pressable>
+            <Toggle
+              accessibilityLabel={item.name}
+              value={active}
+              disabled={active && activeCount <= 1}
+              onValueChange={(next) => toggle(item, next)}
+            />
+          </View>
         ))}
       </View>
       <InfoDialog
@@ -102,33 +116,5 @@ export function ConfigureSheet({
         }
       />
     </Sheet>
-  )
-}
-
-function Checkbox({
-  label,
-  checked,
-  disabled,
-  onPress,
-}: {
-  label: string
-  checked: boolean
-  disabled: boolean
-  onPress: () => void
-}) {
-  return (
-    <Pressable
-      accessibilityRole="checkbox"
-      accessibilityLabel={label}
-      accessibilityState={{ checked, disabled }}
-      disabled={disabled}
-      onPress={onPress}
-      hitSlop={10}
-      className={`h-7 w-7 items-center justify-center rounded-lg border ${
-        checked ? 'border-cornflower-deep bg-cornflower' : 'border-hairline bg-surface'
-      } ${disabled ? 'opacity-50' : ''}`}
-    >
-      {checked ? <Ionicons name="checkmark" size={16} color={colors.surface} /> : null}
-    </Pressable>
   )
 }

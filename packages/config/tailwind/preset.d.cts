@@ -10,6 +10,7 @@ interface ThinkeringPreset {
         paper: string
         surface: string
         hairline: string
+        outline: string
         ink: ColorScale
         cornflower: ColorScale
         leaf: ColorScale

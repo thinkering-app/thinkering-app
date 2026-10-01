@@ -65,7 +65,13 @@ export default function ActivityScreen() {
   )
   const [libraryItem] = useState(() => {
     const item = activity ? getLibraryItem(activity.libraryItemId) : undefined
-    return item ? { name: item.name, overview: item.overview } : undefined
+    return item
+      ? {
+          name: item.name,
+          overview: item.overview,
+          about: [item.overview, item.whyItHelps, item.activation].filter(Boolean).join('\n\n'),
+        }
+      : undefined
   })
   const [doc, setDoc] = useState<ActivityDoc | null>(activity?.doc ?? null)
   const [partial, setPartial] = useState<PartialActivityDoc | null>(null)
