@@ -116,6 +116,12 @@ export const activities = sqliteTable(
     topic: text('topic'),
     /** What the learner asked this card to focus on, when they added it with + (docs/01 §3). */
     focus: text('focus'),
+    /**
+     * The saved resource the learner chose for a + card of a resource-shaped
+     * type (docs/01 §3); G5b builds the document around it. No foreign key:
+     * resources are declared below, and a soft-deleted one just falls back.
+     */
+    resourceId: text('resource_id'),
     section: text('section').$type<Section>().notNull(),
     tier: text('tier').$type<Tier>().notNull(),
     libraryItemId: text('library_item_id').notNull(),

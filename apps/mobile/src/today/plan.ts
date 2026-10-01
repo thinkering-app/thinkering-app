@@ -19,6 +19,7 @@ import {
   listHistory,
   listLibraryPrefs,
   listOpenActivities,
+  listResources,
   listPlannedForDate,
   resourcesByGoal,
   schedulerGoals,
@@ -176,6 +177,8 @@ export interface ActivityRequest {
   goalId: string | null
   /** The activity type they chose, if any — one of the section's active items. */
   libraryItemId: string | null
+  /** The saved resource they chose, when that type is built around one. */
+  resourceId: string | null
   /** What to focus on or how they want to learn it; may be empty. */
   focus: string
 }
@@ -226,13 +229,24 @@ export async function requestActivity(
   const only = request.libraryItemId
     ? { section: request.section, libraryItemId: request.libraryItemId }
     : undefined
-  const [card] = await planCards(interest, today, goals, picks, undefined, only)
+  // A chosen resource is the only one G5a hears of, so the title doesn't
+  // name another.
+  const resource = request.resourceId
+    ? listResources(db, interest.id).find((r) => r.id === request.resourceId)
+    : undefined
+  const matched = resource
+    ? request.goalId
+      ? [{ goalId: request.goalId, resourceTitle: resource.title }]
+      : []
+    : undefined
+  const [card] = await planCards(interest, today, goals, picks, undefined, only, matched)
   if (!card) throw new Error('no card came back')
   return createActivity(db, repoContext, {
     ...card,
     interestId: interest.id,
     plannedFor: today,
     focus: focus || null,
+    resourceId: resource?.id ?? null,
   })
 }
 
@@ -240,7 +254,8 @@ export async function requestActivity(
  * G5a for a set of picks, zipped back into cards. Only the sections with
  * picks are asked about — after a finished card that's one section, and asking
  * for the others would duplicate what's on screen. `only` narrows one
- * section's active set to the item the learner chose, if it's in it.
+ * section's active set to the item the learner chose, if it's in it, and
+ * `matched` stands in for the saved resources G5a is told about.
  */
 async function planCards(
   interest: Interest,
@@ -249,6 +264,7 @@ async function planCards(
   picks: TodayPlanParams['picks'],
   signal?: AbortSignal,
   only?: { section: Section; libraryItemId: string },
+  matched?: TodayPlanParams['matchedResources'],
 ) {
   const goalsById = new Map(goals.map((g) => [g.id, g]))
   const prefs = listLibraryPrefs(db, interest.id)
@@ -270,7 +286,7 @@ async function planCards(
     activeItems: activeIds,
     yesterdayItems: yesterdayItems(interest.id, today),
     // Lets G5a prefer a resource-shaped item for a goal that actually has one.
-    matchedResources: resourcesByGoal(db, interest.id),
+    matchedResources: matched ?? resourcesByGoal(db, interest.id),
   }
 
   const { output } = await callAi<DailyPlanOutput>('today.plan', params, {

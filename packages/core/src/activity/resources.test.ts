@@ -26,6 +26,12 @@ describe('pickResource', () => {
     expect(pickResource(getLibraryItem('watch-along'), 'g3', [otherGoal])).toBeUndefined()
   })
 
+  it('keeps the resource the learner chose while it’s still saved', () => {
+    const saved = [video, otherGoal]
+    expect(pickResource(getLibraryItem('watch-along'), 'g1', saved, 'r-other')?.id).toBe('r-other')
+    expect(pickResource(getLibraryItem('watch-along'), 'g1', saved, 'r-gone')?.id).toBe('r-video')
+  })
+
   it('picks nothing for an item that isn’t built around a resource', () => {
     expect(pickResource(getLibraryItem('retrieval-quiz'), 'g1', [video])).toBeUndefined()
   })

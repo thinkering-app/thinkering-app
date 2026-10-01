@@ -4,11 +4,12 @@ import { Pressable, Text, View } from 'react-native'
 import {
   activeLibraryItems,
   isOverLimit,
+  resourceChoices,
   type LibraryItem,
   type LocalDate,
   type Section,
 } from '@thinkering/core'
-import { listGoals, listLibraryPrefs } from '@thinkering/db'
+import { getInterest, listGoals, listLibraryPrefs, listResources } from '@thinkering/db'
 
 import { librarySituation } from '@/ai/context'
 import { Button } from '@/components/button'
@@ -17,13 +18,16 @@ import { SECTION_LABELS } from '@/components/section-header'
 import { InfoDialog, Sheet } from '@/components/sheet'
 import { TextField } from '@/components/text-field'
 import { db } from '@/db'
+import { AddLinkSheet } from '@/resources/add-link-sheet'
+import { hostOf } from '@/resources/link'
 import { colors } from '@/theme/tokens'
 import { defaultRequestPick, type ActivityRequest } from './plan'
 
 /**
  * A section's + card (docs/01 §3): one more activity, optionally for a goal
  * they choose, of a type they choose (Next and Strengthen), and shaped by what
- * they'd like to focus on. With no goal and no focus, it lands where the
+ * they'd like to focus on. A type built around a saved resource needs one
+ * chosen, or added here. With no goal and no focus, it lands where the
  * section would have gone next.
  */
 export function RequestSheet({
@@ -45,6 +49,9 @@ export function RequestSheet({
   const [goalId, setGoalId] = useState<string | null>(null)
   const [typesOpen, setTypesOpen] = useState(false)
   const [libraryItemId, setLibraryItemId] = useState<string | null>(null)
+  const [resourceId, setResourceId] = useState<string | null>(null)
+  const [adding, setAdding] = useState(false)
+  const [resourcesVersion, setResourcesVersion] = useState(0)
   const [info, setInfo] = useState<LibraryItem | null>(null)
   const [focus, setFocus] = useState('')
 
@@ -77,8 +84,23 @@ export function RequestSheet({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [interestId, section, today, visible],
   )
+  const type = types.find((item) => item.id === libraryItemId)
+  const needsResource = type?.usesResources === true
+  const resources = useMemo(
+    () =>
+      type && needsResource ? resourceChoices(type, goalId, listResources(db, interestId)) : [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `resourcesVersion` is the re-read trigger
+    [interestId, type, needsResource, goalId, resourcesVersion],
+  )
+  const interest = useMemo(
+    () => getInterest(db, interestId),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [interestId, visible],
+  )
   const ready =
-    (goalId !== null || focus.trim().length > 0 || hasDefault) && !isOverLimit(focus, 'note')
+    (goalId !== null || focus.trim().length > 0 || hasDefault) &&
+    (!needsResource || resourceId !== null) &&
+    !isOverLimit(focus, 'note')
 
   // Collapsing drops the choice, so a hidden goal or type never shapes the request.
   const toggleGoals = () => {
@@ -86,21 +108,32 @@ export function RequestSheet({
     setGoalsOpen(!goalsOpen)
   }
   const toggleTypes = () => {
-    if (typesOpen) setLibraryItemId(null)
+    if (typesOpen) chooseType(null)
     setTypesOpen(!typesOpen)
+  }
+  // A resource belongs to the type it was chosen for.
+  const chooseType = (id: string | null) => {
+    setLibraryItemId(id)
+    setResourceId(null)
   }
 
   const close = () => {
     setGoalsOpen(false)
     setGoalId(null)
     setTypesOpen(false)
-    setLibraryItemId(null)
+    chooseType(null)
     setFocus('')
     onClose()
   }
 
   const submit = () => {
-    onRequest({ section, goalId, libraryItemId, focus })
+    onRequest({
+      section,
+      goalId,
+      libraryItemId,
+      resourceId: needsResource ? resourceId : null,
+      focus,
+    })
     close()
   }
 
@@ -135,7 +168,7 @@ export function RequestSheet({
                   key={item.id}
                   accessibilityRole="button"
                   accessibilityState={{ selected }}
-                  onPress={() => setLibraryItemId(selected ? null : item.id)}
+                  onPress={() => chooseType(selected ? null : item.id)}
                   className={`flex-row items-center gap-3 py-3 ${i > 0 ? 'border-t border-hairline' : ''}`}
                 >
                   <View className="flex-1 flex-row items-center gap-1.5">
@@ -166,6 +199,53 @@ export function RequestSheet({
           </View>
         </Fold>
       ) : null}
+      {type && needsResource ? (
+        <View className="gap-2">
+          <Text className="font-sans-medium text-secondary text-ink-soft">
+            {type.resourceMedia === 'video' ? 'Video' : 'Reading'}
+          </Text>
+          <View>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setAdding(true)}
+              className="flex-row items-center gap-3 py-3"
+              testID="request-add-resource"
+            >
+              <Ionicons name="add" size={20} color={colors.cornflower.deep} />
+              <Text className="flex-1 font-sans-medium text-body text-cornflower-deep">
+                {type.resourceMedia === 'video' ? 'Add a video' : 'Add a reading'}
+              </Text>
+            </Pressable>
+            {resources.map((resource) => {
+              const selected = resource.id === resourceId
+              return (
+                <Pressable
+                  key={resource.id}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  onPress={() => setResourceId(selected ? null : resource.id)}
+                  className="flex-row items-center gap-3 border-t border-hairline py-3"
+                >
+                  <View className="flex-1">
+                    <Text
+                      className={`font-sans-medium text-body ${selected ? 'text-cornflower-deep' : 'text-ink'}`}
+                      numberOfLines={2}
+                    >
+                      {resource.title}
+                    </Text>
+                    <Text className="font-sans text-caption text-ink-soft">
+                      {hostOf(resource.url)}
+                    </Text>
+                  </View>
+                  {selected ? (
+                    <Ionicons name="checkmark" size={20} color={colors.cornflower.deep} />
+                  ) : null}
+                </Pressable>
+              )
+            })}
+          </View>
+        </View>
+      ) : null}
       <TextField
         value={focus}
         onChangeText={setFocus}
@@ -174,6 +254,19 @@ export function RequestSheet({
         testID="request-focus"
         limit="note"
       />
+      {interest ? (
+        <AddLinkSheet
+          key={adding ? 'open' : 'closed'}
+          visible={adding}
+          onClose={() => setAdding(false)}
+          interest={interest}
+          media={type?.resourceMedia}
+          onSaved={(resource) => {
+            setResourcesVersion((n) => n + 1)
+            setResourceId(resource.id)
+          }}
+        />
+      ) : null}
       <InfoDialog
         visible={info !== null}
         onClose={() => setInfo(null)}

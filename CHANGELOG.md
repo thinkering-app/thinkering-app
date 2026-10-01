@@ -12,6 +12,8 @@ build; internal refactors and docs don't appear here. The conventions are in
   says what it is and why it helps.
 - Creating a Next or Strengthen activity, you can choose its activity type
   too. It starts folded away, and each type has an ⓘ.
+- Choosing Watch Along or Guided Reading for a new activity, you pick the
+  video or reading it's built on, or add a new one right there.
 - Long answers and notes show how much room is left as you near the limit.
   Past it, nothing you wrote is cut: sending waits until it fits.
 - Under each written answer in an activity: "Think about…", for a

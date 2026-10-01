@@ -33,17 +33,21 @@ export function resourceMediaOf(url: string): ResourceMedia {
 }
 
 /**
- * The saved resource G5b builds a `usesResources` item around: one matched to
- * the goal, else one that serves the path generally, preferring the item's
- * media (Watch Along wants a video). Oldest first, so the same data picks the
- * same resource.
+ * The saved resource G5b builds a `usesResources` item around: the one the
+ * learner chose for a + card while it's still saved, else one matched to the
+ * goal, else one that serves the path generally, preferring the item's media
+ * (Watch Along wants a video). Oldest first, so the same data picks the same
+ * resource.
  */
 export function pickResource<T extends SavedResourceRef>(
   item: Pick<LibraryItem, 'usesResources' | 'resourceMedia'> | undefined,
   goalId: string | null | undefined,
   saved: readonly T[],
+  chosenId?: string | null,
 ): T | undefined {
   if (!item?.usesResources) return undefined
+  const chosen = chosenId ? saved.find((r) => r.id === chosenId) : undefined
+  if (chosen) return chosen
   const candidates = [
     ...(goalId ? saved.filter((r) => r.goalIds?.includes(goalId)) : []),
     ...saved.filter((r) => !r.goalIds || r.goalIds.length === 0),
@@ -52,6 +56,24 @@ export function pickResource<T extends SavedResourceRef>(
     ? candidates.find((r) => resourceMediaOf(r.url) === item.resourceMedia)
     : undefined
   return preferred ?? candidates[0]
+}
+
+/**
+ * The saved resources a learner can choose from for a + card of `item`'s type
+ * (docs/01 §3): those of its media, the goal's first, then the path's general
+ * ones, then other goals'. Oldest first within each.
+ */
+export function resourceChoices<T extends SavedResourceRef>(
+  item: Pick<LibraryItem, 'resourceMedia'>,
+  goalId: string | null,
+  saved: readonly T[],
+): T[] {
+  const rank = (r: T) =>
+    goalId && r.goalIds?.includes(goalId) ? 0 : !r.goalIds || r.goalIds.length === 0 ? 1 : 2
+  // sort is stable, so oldest first holds within each rank.
+  return saved
+    .filter((r) => !item.resourceMedia || resourceMediaOf(r.url) === item.resourceMedia)
+    .sort((a, b) => rank(a) - rank(b))
 }
 
 /**
