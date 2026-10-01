@@ -68,6 +68,11 @@ build; internal refactors and docs don't appear here. The conventions are in
   Reflect now sits at the bottom.
 - In Path settings, Save stays at the bottom of the screen and only works
   once you've changed something.
+- Ordering and matching questions start mixed up, not already in order.
+  An ordering is checked when you press Check, not as soon as you move
+  something.
+- Fill-in-the-blank answers are marked more kindly: "the" in front, a full
+  stop, or one typo in a longer word no longer count as wrong.
 - Adding an interest asks for one thing you want to learn. The first time,
   it says you can add more later.
 - On a computer's browser, thinkering sits in a column down the middle of
