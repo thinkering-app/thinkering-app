@@ -41,6 +41,10 @@ export function SummaryHeader({
   )
 }
 
+/** Above Send. It keeps docs/08's promise: the learner's own answers never go. */
+const SHARE_HELP =
+  'Your rating and note are saved on this device. To help the developers judge activity quality, you can send them this activity with your rating and note — not your answers.'
+
 const RATINGS: {
   value: Rating
   icon: 'thumb-down-outline' | 'thumbs-up-down-outline' | 'thumb-up-outline'
@@ -147,17 +151,18 @@ export function SummaryFooter({
               accessibilityLabel="Rating detail"
               multiline
             />
+            <Text className="text-center font-sans text-caption text-ink-soft">{SHARE_HELP}</Text>
             <Button
               label={shareState === 'pending' ? 'Sending…' : 'Send'}
               variant="quiet"
               disabled={!canSend}
               onPress={() => onShare(text)}
             />
-            <Text className="text-center font-sans text-caption text-ink-soft">
-              {shareState === 'error'
-                ? "That didn't send. Try again later."
-                : 'Sends this activity, your rating and your note to the developers. What you wrote stays on your device.'}
-            </Text>
+            {shareState === 'error' ? (
+              <Text className="text-center font-sans text-caption text-ink-soft">
+                That didn&apos;t send. Try again later.
+              </Text>
+            ) : null}
           </>
         )}
       </View>
