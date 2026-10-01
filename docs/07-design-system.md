@@ -13,6 +13,7 @@ Cornflower is the hero; ink is the workhorse text and dark color; leaf, sun and 
 | `paper`           | app background (warm off-white, not gray)            |
 | `surface`         | cards                                                |
 | `hairline`        | borders, dividers                                    |
+| `outline`         | edges of controls that must read as tappable (3:1)   |
 | `ink`             | primary text, dark surfaces (warm dark blue)         |
 | `ink-soft`        | secondary text                                       |
 | `cornflower`      | primary actions, selection, Next accent              |

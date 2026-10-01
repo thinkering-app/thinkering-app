@@ -72,7 +72,7 @@ export function FeedbackEmailFields({ feedback }: { feedback: Feedback }) {
         <Switch
           value={feedback.includeContext}
           onValueChange={feedback.setIncludeContext}
-          trackColor={{ false: colors.hairline, true: colors.cornflower.DEFAULT }}
+          trackColor={{ false: colors.outline, true: colors.cornflower.DEFAULT }}
           thumbColor={colors.surface}
         />
       </View>

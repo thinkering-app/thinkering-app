@@ -8,6 +8,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Added
 
+- The end of each activity names its activity type, with an ⓘ that
+  says what it is and why it helps.
 - Long answers and notes show how much room is left as you near the limit.
   Past it, nothing you wrote is cut: sending waits until it fits.
 - Under each written answer in an activity: "Think about…", for a
@@ -50,6 +52,10 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- A section's ⚙ is now Activity settings: a plain list of the kinds of
+  activity it makes, each with an on/off switch and an ⓘ that says what it
+  is.
+- The + for a new activity and the off switches have a clearer edge.
 - Creating an activity, the goal list starts folded away. Open it to pick
   an existing goal; leave it closed and the activity comes from your focus,
   or where the section would go next.

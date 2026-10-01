@@ -122,7 +122,7 @@ export default function DataScreen() {
                   value={backup.enabled}
                   disabled={backup.syncing}
                   onValueChange={(next) => void toggleSync(next)}
-                  trackColor={{ false: colors.hairline, true: colors.cornflower.DEFAULT }}
+                  trackColor={{ false: colors.outline, true: colors.cornflower.DEFAULT }}
                   thumbColor={colors.surface}
                 />
               </View>
@@ -197,7 +197,7 @@ export default function DataScreen() {
               setOptedIn(next)
               if (next) track('settings_changed', { key: 'analytics_opt_in' })
             }}
-            trackColor={{ false: colors.hairline, true: colors.cornflower.DEFAULT }}
+            trackColor={{ false: colors.outline, true: colors.cornflower.DEFAULT }}
             thumbColor={colors.surface}
           />
         </View>
@@ -220,7 +220,7 @@ export default function DataScreen() {
                 setReplayOptedIn(next)
                 track('settings_changed', { key: 'session_replay_opt_in' })
               }}
-              trackColor={{ false: colors.hairline, true: colors.cornflower.DEFAULT }}
+              trackColor={{ false: colors.outline, true: colors.cornflower.DEFAULT }}
               thumbColor={colors.surface}
             />
           </View>

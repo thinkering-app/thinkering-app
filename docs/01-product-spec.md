@@ -67,7 +67,7 @@ Completing an activity marks the section heading with a check and count ("2 toda
 
 ### Configure (⚙ per section)
 
-Toggles the section's library items for this user + interest + section. At least one must stay active.
+**Activity settings: <section>**. Lists the section's library items for this user + interest + section, each with an ⓘ (what it is and why it helps) and an on/off switch. At least one must stay active.
 
 ### Configure learning routine
 
@@ -78,7 +78,7 @@ Notes that daily counts aren't configurable yet (linking to the feedback board p
 Multi-page, rendered from an Activity Document (`05`); forward and back are always available.
 
 - **Response review page** (near the end): **G6** analyzes responses as the user works and fills it with the highest-value response — a misconception, a good answer deepened, or an implicit question answered.
-- **Summary page** (last): concept recap, chips for what was introduced, strengthened or put to use, and a rating (👎 / mixed / 👍) with optional note and **Send**, which shares the activity, rating and note — not the learner's answers — with the developers (`08`, D18).
+- **Summary page** (last): concept recap, chips for what was introduced, strengthened or put to use, the activity type with an ⓘ (the library item it was made from), and a rating (👎 / mixed / 👍) with optional note and **Send**, which shares the activity, rating and note — not the learner's answers — with the developers (`08`, D18).
 - **Ask** (always visible): **G7** inserts a page answering the question right after the current one and jumps to it.
 - Completing advances the goal's status, records history and updates section completion. An unfinished activity stays resumable from Today for the day and advances nothing.
 

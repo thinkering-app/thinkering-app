@@ -1,9 +1,11 @@
+import Ionicons from '@expo/vector-icons/Ionicons'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import { useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import type { ActivityDoc, Rating, Tier } from '@thinkering/core'
 
 import { Button } from '@/components/button'
+import { InfoDialog } from '@/components/sheet'
 import { TextField } from '@/components/text-field'
 import { colors } from '@/theme/tokens'
 import { celebrationFor, GOAL_VERB } from './summary-copy'
@@ -12,7 +14,7 @@ import { celebrationFor, GOAL_VERB } from './summary-copy'
  * What the renderer adds to the summary page (docs/05): a heading to mark the
  * finish and a line naming the goal above G5b's concept recap (the words are in
  * `summary-copy.ts`), and below it the concept chips, the rating
- * row, and an optional note that can be sent to the developers (D18).
+ * row with the activity type above it, and an optional note that can be sent to the developers (D18).
  */
 
 export function SummaryHeader({
@@ -51,6 +53,7 @@ const RATINGS: {
 
 export function SummaryFooter({
   doc,
+  libraryItem,
   rating,
   ratingText,
   onRate,
@@ -58,6 +61,8 @@ export function SummaryFooter({
   shareState,
 }: {
   doc: ActivityDoc
+  /** The library item it was made from, so the rating reads as a verdict on that type. */
+  libraryItem?: { name: string; about: string }
   rating: Rating | null
   ratingText: string
   onRate: (rating: Rating, text: string) => void
@@ -65,6 +70,7 @@ export function SummaryFooter({
   shareState: 'idle' | 'pending' | 'done' | 'error'
 }) {
   const [text, setText] = useState(ratingText)
+  const [aboutOpen, setAboutOpen] = useState(false)
   const canSend = (rating !== null || text.trim() !== '') && shareState !== 'pending'
 
   return (
@@ -81,6 +87,21 @@ export function SummaryFooter({
 
       {/* Pushed to the bottom of the page when the recap is short. */}
       <View className="mt-auto gap-3">
+        {libraryItem ? (
+          <View className="flex-row items-center justify-center gap-1.5">
+            <Text className="font-sans text-secondary text-ink-soft">
+              Activity type: <Text className="font-sans-medium text-ink">{libraryItem.name}</Text>
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`About ${libraryItem.name}`}
+              onPress={() => setAboutOpen(true)}
+              hitSlop={10}
+            >
+              <Ionicons name="information-circle-outline" size={18} color={colors.ink.soft} />
+            </Pressable>
+          </View>
+        ) : null}
         <Text className="text-center font-sans-medium text-body text-ink">Was this useful?</Text>
         <View className="flex-row justify-center gap-4">
           {RATINGS.map((option) => {
@@ -138,6 +159,14 @@ export function SummaryFooter({
           </>
         )}
       </View>
+      {libraryItem ? (
+        <InfoDialog
+          visible={aboutOpen}
+          onClose={() => setAboutOpen(false)}
+          title={libraryItem.name}
+          body={libraryItem.about}
+        />
+      ) : null}
     </View>
   )
 }
