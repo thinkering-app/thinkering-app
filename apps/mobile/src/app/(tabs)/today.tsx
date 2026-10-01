@@ -289,7 +289,7 @@ function AddCard({ section, onPress }: { section: Section; onPress: () => void }
       accessibilityLabel={`Create a new ${SECTION_LABELS[section]} activity`}
       onPress={onPress}
       wrapperClassName="w-20 min-h-36"
-      className="items-center justify-center rounded-card border border-outline/50"
+      className="items-center justify-center rounded-card border border-dashed border-outline/50"
     >
       <Ionicons name="add" size={26} color={colors.ink.soft} />
     </PressScale>
