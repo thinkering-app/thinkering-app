@@ -50,6 +50,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- Creating an activity, the goal list starts folded away. Open it to pick
+  an existing goal; leave it closed and the activity comes from your focus,
+  or where the section would go next.
 - Adding an interest asks for one thing you want to learn. The first time,
   it says you can add more later.
 - On a computer's browser, thinkering sits in a column down the middle of

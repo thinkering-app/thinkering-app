@@ -55,7 +55,7 @@ Card metadata (title, estimate, library item) comes from the cheap **G5a** when 
 
 ### Adding an activity (+)
 
-With one interest in view, each section ends in a **+** card: optional goal chips (for Next, only unstarted goals) and an optional focus field. Create plans the card through G5a and writes it through G5b, both given the request; a placeholder shows **Writing** meanwhile.
+With one interest in view, each section ends in a **+** card: optional goal chips, collapsed until opened (for Next, only unstarted goals) and an optional focus field. Create plans the card through G5a and writes it through G5b, both given the request; a placeholder shows **Writing** meanwhile.
 
 - With a goal: targets it and completes at the section's tier.
 - With only a focus: no goal — its topic names the request, and it moves no goal status.
