@@ -106,7 +106,7 @@ Title, link, description, "how this could be used" (user-entered, generated if b
 
 ### Path settings
 
-Every intake answer, editable, plus topics (considered when suggesting goals), approach notes (from G1), and **Contexts** — projects, environments and people, used in Go further activities only when they genuinely help. Text and outcomes commit with **Save**; lists act as tapped.
+Opened, like **Resources**, from the icons beside the ⚙ on Today, Path and History when one interest is selected. Every intake answer, editable, plus topics (considered when suggesting goals), approach notes (from G1), and **Contexts** — projects, environments and people, used in Go further activities only when they genuinely help. Text and outcomes commit with **Save**; lists act as tapped.
 
 ## 6. History
 

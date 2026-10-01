@@ -1,5 +1,3 @@
-import Ionicons from '@expo/vector-icons/Ionicons'
-import { router } from 'expo-router'
 import { useState } from 'react'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -25,10 +23,10 @@ import { useAddInterest } from '@/intake/add-interest'
 import { InterestSelector } from '@/interests/selector'
 import { GoalCard } from '@/path/goal-card'
 import { GoalSheet } from '@/path/goal-sheet'
+import { PathButtons } from '@/path/path-buttons'
 import { ReflectCard } from '@/path/reflect-card'
 import { useSuggestions } from '@/path/suggestions'
 import { usePath, usePathInterest } from '@/path/use-path'
-import { colors } from '@/theme/tokens'
 
 /**
  * Path (docs/01 §5): the interest's goals in path order with their status as a
@@ -69,26 +67,7 @@ export default function PathScreen() {
                 <Text className="font-sans-medium text-body text-cornflower-deep">Done</Text>
               </Pressable>
             ) : null}
-            {interest ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Resources"
-                onPress={() => router.push(`/path/resources?interestId=${interest.id}`)}
-                hitSlop={10}
-              >
-                <Ionicons name="book-outline" size={22} color={colors.ink.soft} />
-              </Pressable>
-            ) : null}
-            {interest ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Path settings"
-                onPress={() => router.push(`/path/settings?interestId=${interest.id}`)}
-                hitSlop={10}
-              >
-                <Ionicons name="options-outline" size={22} color={colors.ink.soft} />
-              </Pressable>
-            ) : null}
+            {interest ? <PathButtons interestId={interest.id} /> : null}
             <SettingsButton />
           </View>
         </View>

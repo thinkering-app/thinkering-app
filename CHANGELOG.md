@@ -19,6 +19,8 @@ build; internal refactors and docs don't appear here. The conventions are in
   bubble now.
 - Settings are one tap away from anywhere: the ⚙ now sits in the top-right of
   Today, Path and History as well as Me.
+- Resources and Path settings for the selected interest are now in the
+  top-right of Today and History too, not only Path.
 - Delete all data, in Account and data: your interests, path and history go
   from this device — and from our server, if you're signed in — for good.
 - Me → Settings → AI says why there's a daily limit, and where to write to us
