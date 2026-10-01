@@ -95,7 +95,7 @@ For one selected interest:
 
   Nothing is written until **Update path**, which saves path and outcomes together; the reflection records before and after.
 
-- **3 suggested goals** at the bottom (**G9**, cached, regenerated when the path changes), one tap to add.
+- **3 suggested goals** below the path (**G9**, cached, regenerated when the path changes), collapsed to their titles — tap to read one — and one tap to add. The way into a reflection sits last.
 
 ### Resources
 
