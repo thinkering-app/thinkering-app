@@ -44,6 +44,10 @@ describe('grading', () => {
     expect(gradeBlank(blank('an apple'), 'the apple')).toBe(false)
     expect(gradeBlank(blank('effect'), 'affect')).toBe(false)
     expect(gradeBlank(blank('19140000'), '19150000')).toBe(false)
+    expect(gradeBlank(blank('the cell'), 'the tell')).toBe(false)
+    expect(gradeBlank(blank('10000'), '10,000')).toBe(true)
+    expect(gradeBlank(blank('3.14'), '3,14')).toBe(false)
+    expect(gradeBlank(blank('mitochondria'), 'mitochondri4')).toBe(false)
     expect(gradeBlank(blank('the'), '')).toBe(false)
   })
 

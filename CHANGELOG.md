@@ -74,7 +74,8 @@ build; internal refactors and docs don't appear here. The conventions are in
   An ordering is checked when you press Check, not as soon as you move
   something.
 - Fill-in-the-blank answers are marked more kindly: "the" in front, a full
-  stop, or one typo in a longer word no longer count as wrong.
+  stop, a comma in a number like 10,000, or one typo in a longer word no
+  longer count as wrong.
 - Adding an interest asks for one thing you want to learn. The first time,
   it says you can add more later.
 - On a computer's browser, thinkering sits in a column down the middle of
