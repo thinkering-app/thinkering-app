@@ -10,6 +10,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 - The end of each activity names its activity type, with an ⓘ that
   says what it is and why it helps.
+- Creating a Next or Strengthen activity, you can choose its activity type
+  too. It starts folded away, and each type has an ⓘ.
 - Long answers and notes show how much room is left as you near the limit.
   Past it, nothing you wrote is cut: sending waits until it fits.
 - Under each written answer in an activity: "Think about…", for a
