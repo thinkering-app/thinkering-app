@@ -13,8 +13,8 @@ import { celebrationFor, GOAL_VERB } from './summary-copy'
 /**
  * What the renderer adds to the summary page (docs/05): a heading to mark the
  * finish and a line naming the goal above G5b's concept recap (the words are in
- * `summary-copy.ts`), and below it the concept chips, the rating
- * row with the activity type above it, and an optional note that can be sent to the developers (D18).
+ * `summary-copy.ts`), and below it the concept chips, the activity type, the
+ * rating row, and an optional note that can be sent to the developers (D18).
  */
 
 export function SummaryHeader({
@@ -61,7 +61,7 @@ export function SummaryFooter({
   shareState,
 }: {
   doc: ActivityDoc
-  /** The library item it was made from, so the rating reads as a verdict on that type. */
+  /** The library item it was made from, named under the concepts. */
   libraryItem?: { name: string; about: string }
   rating: Rating | null
   ratingText: string
@@ -75,20 +75,18 @@ export function SummaryFooter({
 
   return (
     <View className="flex-1 gap-8">
-      <View className="flex-row flex-wrap gap-2">
-        {doc.concepts.map((concept) => (
-          <View key={concept.label} className="rounded-pill bg-cornflower-tint px-3 py-1.5">
-            <Text className="font-sans-medium text-caption text-cornflower-deep">
-              {concept.label}
-            </Text>
-          </View>
-        ))}
-      </View>
-
-      {/* Pushed to the bottom of the page when the recap is short. */}
-      <View className="mt-auto gap-3">
+      <View className="gap-3">
+        <View className="flex-row flex-wrap gap-2">
+          {doc.concepts.map((concept) => (
+            <View key={concept.label} className="rounded-pill bg-cornflower-tint px-3 py-1.5">
+              <Text className="font-sans-medium text-caption text-cornflower-deep">
+                {concept.label}
+              </Text>
+            </View>
+          ))}
+        </View>
         {libraryItem ? (
-          <View className="flex-row items-center justify-center gap-1.5">
+          <View className="flex-row items-center gap-1.5">
             <Text className="font-sans text-secondary text-ink-soft">
               Activity type: <Text className="font-sans-medium text-ink">{libraryItem.name}</Text>
             </Text>
@@ -102,6 +100,10 @@ export function SummaryFooter({
             </Pressable>
           </View>
         ) : null}
+      </View>
+
+      {/* Pushed to the bottom of the page when the recap is short. */}
+      <View className="mt-auto gap-3">
         <Text className="text-center font-sans-medium text-body text-ink">Was this useful?</Text>
         <View className="flex-row justify-center gap-4">
           {RATINGS.map((option) => {
