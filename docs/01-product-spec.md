@@ -125,6 +125,7 @@ For the selected interest, Explore → All, or one exploring interest: completed
 - **Anonymous usage**: on by default, not linked to identity (D9), not asked — the Privacy page describes it.
 - **Session replays**: opt-in, off by default, separate from usage (D22). Asked once, in a card on the intake welcome screen clear of **Get started**, with **Share** and **No thanks** weighted equally. Doesn't block intake; undecided until answered or toggled. Absent without a PostHog key.
 - **Getting back in**: on the welcome screen, **I already have an account or a backup file**. **Sign in** turns backup on, waits for the first sync, then opens Today (or intake if the account is empty); a session surviving reinstall offers **Continue** or **Use a different account**. **Restore from a backup file** needs no confirm. Without Supabase, only the file restore shows.
+- **Language**: under those, the current language named in itself (with a globe), which opens the same choices as Me → Settings → Language (`00` D23). Absent while the app has one language.
 - **Delete all data**: confirms, then deletes the learner's data on the device and, when signed in, on the server, then reopens at the welcome screen. It keeps a "no" to anonymous usage, and keeps the account (deleted in Me → Account).
 
 **AI**:
