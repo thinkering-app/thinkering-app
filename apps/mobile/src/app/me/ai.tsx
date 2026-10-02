@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { Linking, Text, View } from 'react-native'
 
 import { BYOK_AVAILABLE, getAiMode, setAiMode, type AiMode } from '@/ai/settings'
@@ -10,6 +11,7 @@ import { Meter } from '@/components/meter'
 import { SubScreen } from '@/components/sub-screen'
 import { TextField } from '@/components/text-field'
 import { FEEDBACK_CONTACT } from '@/feedback/use-feedback'
+import { currentFormatLocale, t } from '@/i18n'
 
 /**
  * Me → Settings → AI (docs/01 §7): today's usage against the included daily
@@ -19,6 +21,7 @@ import { FEEDBACK_CONTACT } from '@/feedback/use-feedback'
  */
 
 export default function AiScreen() {
+  const { t } = useTranslation()
   const [usage, setUsage] = useState<UsageSnapshot | null>(null)
   const [usageError, setUsageError] = useState(false)
   const [byok, setByok] = useState<boolean | null>(null)
@@ -56,13 +59,13 @@ export default function AiScreen() {
     try {
       await redeemCode(trimmed)
       setCode('')
-      setCodeStatus({ ok: true, message: 'Added. Your daily amount is higher from now on.' })
+      setCodeStatus({ ok: true, message: t('me.ai.codeAdded') })
       // The meter is the proof, so re-read it rather than doing the sum here.
       setUsage(await fetchUsage())
     } catch (e) {
       setCodeStatus({
         ok: false,
-        message: e instanceof CodeError ? e.message : "That code didn't work.",
+        message: e instanceof CodeError ? e.message : t('me.ai.codeRejected'),
       })
     } finally {
       setRedeeming(false)
@@ -90,48 +93,45 @@ export default function AiScreen() {
   }
 
   return (
-    <SubScreen title="AI">
+    <SubScreen title={t('me.ai.title')}>
       {mode === 'byok' ? (
-        <Text className="font-sans text-body text-ink-soft">
-          Your own key is in use, so we don&apos;t meter these calls.
-        </Text>
+        <Text className="font-sans text-body text-ink-soft">{t('me.ai.byokActive')}</Text>
       ) : mode === 'fixture' ? (
-        <Text className="font-sans text-body text-ink-soft">
-          Fixture mode is replaying recorded responses. Nothing is metered.
-        </Text>
+        <Text className="font-sans text-body text-ink-soft">{t('me.ai.fixtureMode')}</Text>
       ) : (
         <View className="gap-3">
           {usage ? (
             <Meter
-              label="Used today"
+              label={t('me.ai.usedToday')}
               fraction={usage.used / usage.limit}
-              caption={`Resets ${resetLabel(usage.resetAt)}`}
+              caption={resetLabel(usage.resetAt)}
             />
           ) : usageError ? (
-            <Text className="font-sans text-body text-ink-soft">
-              We couldn&apos;t reach the usage meter.
-            </Text>
+            <Text className="font-sans text-body text-ink-soft">{t('me.ai.usageUnreachable')}</Text>
           ) : (
-            <Text className="font-sans text-body text-ink-soft">Checking today&apos;s usage…</Text>
+            <Text className="font-sans text-body text-ink-soft">{t('me.ai.checkingUsage')}</Text>
           )}
           <Text className="font-sans text-secondary leading-relaxed text-ink-soft">
-            Daily limit to keep costs sustainable. If you&apos;re running into the limit often,
-            think there are issues, or need any more, don&apos;t hesitate to reach out to{' '}
-            <Text
-              className="text-cornflower-deep"
-              accessibilityRole="link"
-              onPress={() => void Linking.openURL(`mailto:${FEEDBACK_CONTACT}`)}
-            >
-              {FEEDBACK_CONTACT}
-            </Text>
-            .
+            <Trans
+              i18nKey="me.ai.limitNote"
+              values={{ email: FEEDBACK_CONTACT }}
+              components={{
+                a: (
+                  <Text
+                    className="text-cornflower-deep"
+                    accessibilityRole="link"
+                    onPress={() => void Linking.openURL(`mailto:${FEEDBACK_CONTACT}`)}
+                  />
+                ),
+              }}
+            />
           </Text>
         </View>
       )}
 
       {mode === 'proxy' ? (
         <View className="gap-3">
-          <Text className="font-heading-bold text-heading text-ink">Have a code?</Text>
+          <Text className="font-heading-bold text-heading text-ink">{t('me.ai.codeHeading')}</Text>
           <TextField
             value={code}
             onChangeText={(next) => {
@@ -139,12 +139,12 @@ export default function AiScreen() {
               setCodeStatus(null)
             }}
             placeholder="XXXX-XXXX-XXXX"
-            accessibilityLabel="Extra usage code"
+            accessibilityLabel={t('me.ai.codeAccessibilityLabel')}
             autoCapitalize="characters"
             autoCorrect={false}
           />
           <Button
-            label={redeeming ? 'Adding…' : 'Add code'}
+            label={redeeming ? t('me.ai.codeAdding') : t('me.ai.addCode')}
             onPress={() => void applyCode()}
             disabled={code.trim() === '' || redeeming}
           />
@@ -160,13 +160,17 @@ export default function AiScreen() {
 
       {BYOK_AVAILABLE ? (
         <View className="gap-3">
-          <Text className="font-heading-bold text-heading text-ink">Your own Anthropic key</Text>
+          <Text className="font-heading-bold text-heading text-ink">
+            {t('me.ai.ownKeyHeading')}
+          </Text>
           {byok ? (
             <>
-              <Text className="font-sans text-secondary text-ink-soft">
-                A key is saved on this device. Calls go straight to Anthropic.
-              </Text>
-              <Button label="Remove key" variant="quiet" onPress={() => void removeKey()} />
+              <Text className="font-sans text-secondary text-ink-soft">{t('me.ai.keySaved')}</Text>
+              <Button
+                label={t('me.ai.removeKey')}
+                variant="quiet"
+                onPress={() => void removeKey()}
+              />
             </>
           ) : (
             <>
@@ -175,11 +179,11 @@ export default function AiScreen() {
                   value={key}
                   onChangeText={setKey}
                   placeholder="sk-ant-…"
-                  accessibilityLabel="Anthropic API key"
+                  accessibilityLabel={t('me.ai.keyAccessibilityLabel')}
                 />
               </ReplayMask>
               <Button
-                label="Save key"
+                label={t('me.ai.saveKey')}
                 onPress={() => void saveKey()}
                 disabled={key.trim() === ''}
               />
@@ -194,8 +198,10 @@ export default function AiScreen() {
 /** The daily budget resets at UTC midnight; the label says it in local time. */
 function resetLabel(resetAt: string): string {
   const at = Date.parse(resetAt)
-  if (Number.isNaN(at)) return 'daily'
-  return new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(
-    new Date(at),
-  )
+  if (Number.isNaN(at)) return t('me.ai.resetsDaily')
+  const time = new Intl.DateTimeFormat(currentFormatLocale(), {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(at))
+  return t('me.ai.resetsAt', { time })
 }

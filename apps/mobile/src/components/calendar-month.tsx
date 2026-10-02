@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { Pressable, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { monthGrid, WEEKDAY_LABELS, type LocalDate, type YearMonth } from '@thinkering/core'
 
 import { colors } from '@/theme/tokens'
@@ -25,12 +26,13 @@ export function CalendarMonth({
   onSelect,
   onMonthChange,
 }: CalendarMonthProps) {
+  const { t } = useTranslation()
   return (
     <View className="gap-3 rounded-card bg-surface p-4 shadow-card">
       <View className="flex-row items-center justify-between">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Previous month"
+          accessibilityLabel={t('common.calendarMonth.previousMonth')}
           onPress={() => onMonthChange(-1)}
           hitSlop={12}
         >
@@ -39,7 +41,7 @@ export function CalendarMonth({
         <Text className="font-heading-bold text-heading text-ink">{label}</Text>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Next month"
+          accessibilityLabel={t('common.calendarMonth.nextMonth')}
           onPress={() => onMonthChange(1)}
           hitSlop={12}
         >

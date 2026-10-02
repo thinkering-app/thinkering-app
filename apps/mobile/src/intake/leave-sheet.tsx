@@ -1,5 +1,6 @@
 import { router, useNavigation } from 'expo-router'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Text, View } from 'react-native'
 import { isDraftWorthKeeping } from '@thinkering/core'
 
@@ -13,6 +14,7 @@ import { useIntake } from './context'
  * Closing the sheet stays put.
  */
 export function useLeaveIntake() {
+  const { t } = useTranslation()
   const { answers, discard } = useIntake()
   const navigation = useNavigation()
   const [open, setOpen] = useState(false)
@@ -39,13 +41,17 @@ export function useLeaveIntake() {
     <Sheet
       visible={open}
       onClose={() => setOpen(false)}
-      title="Finish this later?"
+      title={t('intake.leave.title')}
       footer={
         <View className="gap-1">
-          <Button testID="intake-leave-keep" label="Save for later" onPress={() => choose(true)} />
+          <Button
+            testID="intake-leave-keep"
+            label={t('intake.leave.saveForLater')}
+            onPress={() => choose(true)}
+          />
           <Button
             testID="intake-leave-discard"
-            label="Discard"
+            label={t('intake.leave.discard')}
             variant="quiet"
             onPress={() => choose(false)}
           />

@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons'
 import { router } from 'expo-router'
 import { useRef, useState } from 'react'
 import { Pressable, ScrollView, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import type { Section } from '@thinkering/core'
 import { getGoal } from '@thinkering/db'
@@ -14,7 +15,7 @@ import { FeedbackButton } from '@/components/feedback-button'
 import { GenerationError } from '@/components/generation-error'
 import { Generating } from '@/components/generating'
 import { PressScale } from '@/components/press-scale'
-import { SECTION_LABELS, SectionHeader } from '@/components/section-header'
+import { SECTION_LABEL_KEY, SectionHeader } from '@/components/section-header'
 import { SettingsButton } from '@/components/settings-button'
 import { Toast } from '@/components/toast'
 import { db } from '@/db'
@@ -45,6 +46,7 @@ interface Draft {
  * question at the bottom.
  */
 export default function TodayScreen() {
+  const { t } = useTranslation()
   const { selected, selection } = useInterestSelection()
   const exploreAll = selection?.kind === 'explore' && selection.interestId === null
   const { today, sections, reflect, empty, generating, writing, error, retry, refresh } = useToday(
@@ -79,7 +81,7 @@ export default function TodayScreen() {
     const draft: Draft = {
       id: ++draftSeq.current,
       section: request.section,
-      title: focus || goal?.title || 'New activity',
+      title: focus || goal?.title || t('today.draft.newActivity'),
       goalLine: focus ? (goal?.title ?? '') : '',
     }
     setDrafts((current) => [...current, draft])
@@ -102,7 +104,7 @@ export default function TodayScreen() {
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right']}>
       <View className="gap-4 px-5 pt-4">
         <View className="flex-row items-center gap-5">
-          <Text className="flex-1 font-heading-bold text-display text-ink">Today</Text>
+          <Text className="flex-1 font-heading-bold text-display text-ink">{t('today.title')}</Text>
           {configurable ? <PathButtons interestId={configurable.id} /> : null}
           <SettingsButton />
         </View>
@@ -156,7 +158,7 @@ export default function TodayScreen() {
             className="items-center self-center rounded-pill px-5 py-3 active:bg-cornflower-tint"
           >
             <Text className="font-sans-medium text-secondary text-ink-soft">
-              Configure learning routine
+              {t('today.routine.configure')}
             </Text>
           </Pressable>
         ) : null}
@@ -214,6 +216,7 @@ function SectionRow({
   onConfigure?: () => void
   onAdd?: () => void
 }) {
+  const { t } = useTranslation()
   const unwritten = (card: TodaySectionView['cards'][number]) =>
     card.activity.status === 'planned' &&
     card.activity.doc === null &&
@@ -229,7 +232,7 @@ function SectionRow({
         />
       </View>
       {view.cards.length === 0 && generating ? (
-        <Generating label="Picking today's activities" />
+        <Generating label={t('today.generating')} />
       ) : (
         <ScrollView
           horizontal
@@ -284,11 +287,14 @@ function SectionRow({
 
 /** The + at the end of a section's row: one more activity, on request. */
 function AddCard({ section, onPress }: { section: Section; onPress: () => void }) {
+  const { t } = useTranslation()
   return (
     <PressScale
       testID={`add-activity-${section}`}
       accessibilityRole="button"
-      accessibilityLabel={`Create a new ${SECTION_LABELS[section]} activity`}
+      accessibilityLabel={t('today.request.createTitle', {
+        section: t(SECTION_LABEL_KEY[section]),
+      })}
       onPress={onPress}
       wrapperClassName="w-20 min-h-36"
       className="items-center justify-center rounded-card border border-dashed border-outline/35"
@@ -299,20 +305,21 @@ function AddCard({ section, onPress }: { section: Section; onPress: () => void }
 }
 
 function Empty({ hasInterest, exploreAll }: { hasInterest: boolean; exploreAll: boolean }) {
+  const { t } = useTranslation()
   const { addInterest, resumeSheet } = useAddInterest()
   return (
     <EmptyState
       message={
         !hasInterest
-          ? 'Add something you want to learn to get started.'
+          ? t('today.empty.noInterest')
           : exploreAll
-            ? 'None of these interests have goals yet.'
-            : 'This interest has no goals yet.'
+            ? t('today.empty.exploreAllNoGoals')
+            : t('today.empty.noGoals')
       }
     >
       {hasInterest ? null : (
         <>
-          <Button label="Add an interest" onPress={addInterest} />
+          <Button label={t('common.addInterest')} onPress={addInterest} />
           {resumeSheet}
         </>
       )}

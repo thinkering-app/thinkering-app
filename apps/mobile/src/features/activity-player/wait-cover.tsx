@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
+import { useTranslation } from 'react-i18next'
 import { Text, View } from 'react-native'
 
 import { Generating } from '@/components/generating'
@@ -19,6 +20,7 @@ export interface WaitCoverProps {
  * was known before the write started, so none of it is waiting on the model.
  */
 export function WaitCover({ title, goalTitle, estMinutes, item, label }: WaitCoverProps) {
+  const { t } = useTranslation()
   return (
     <View className="gap-3">
       <Text className="font-heading-bold text-title text-ink">{title}</Text>
@@ -33,7 +35,9 @@ export function WaitCover({ title, goalTitle, estMinutes, item, label }: WaitCov
         ) : null}
         <View className="flex-row items-center gap-1.5 rounded-pill bg-cornflower-tint px-2.5 py-1">
           <Ionicons name="time-outline" size={13} color={colors.ink.soft} />
-          <Text className="font-sans text-caption text-ink">{estMinutes} min</Text>
+          <Text className="font-sans text-caption text-ink">
+            {t('today.card.minutesShort', { count: estMinutes })}
+          </Text>
         </View>
       </View>
       {item ? <Text className="font-sans text-body text-ink">{item.overview}</Text> : null}

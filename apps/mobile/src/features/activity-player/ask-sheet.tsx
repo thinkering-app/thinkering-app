@@ -1,5 +1,6 @@
 import { isOverLimit } from '@thinkering/core'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Text } from 'react-native'
 
 import { Button } from '@/components/button'
@@ -25,6 +26,7 @@ export function AskSheet({
   state: 'idle' | 'pending' | 'error'
   error?: string
 }) {
+  const { t } = useTranslation()
   const [question, setQuestion] = useState('')
 
   const close = () => {
@@ -36,11 +38,11 @@ export function AskSheet({
     <Sheet
       visible={visible}
       onClose={close}
-      title="Ask"
+      title={t('player.ask.label')}
       footer={
         <Button
           testID="ask-submit"
-          label="Ask"
+          label={t('player.ask.label')}
           disabled={
             question.trim().length === 0 || isOverLimit(question, 'note') || state === 'pending'
           }
@@ -49,14 +51,14 @@ export function AskSheet({
       }
     >
       {state === 'pending' ? (
-        <Generating label="Working out an answer" />
+        <Generating label={t('player.ask.working')} />
       ) : (
         <>
           <TextField
             value={question}
             onChangeText={setQuestion}
-            placeholder="What's on your mind?"
-            accessibilityLabel="Your question"
+            placeholder={t('player.ask.placeholder')}
+            accessibilityLabel={t('player.ask.questionLabel')}
             autoFocus
             multiline
             limit="note"

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Pressable, Text, View } from 'react-native'
 
 import { ReplayMask } from '@/analytics'
@@ -20,6 +21,7 @@ type AccountFormProps = {
  * after a session exists is the caller's.
  */
 export function AccountForm({ mode, onSignedIn }: AccountFormProps) {
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
@@ -45,7 +47,7 @@ export function AccountForm({ mode, onSignedIn }: AccountFormProps) {
 
       if (!(await currentAccount())) {
         // Sign-up with email confirmation on: there is no session until they click.
-        setMessage('Check your email to confirm the account, then sign in.')
+        setMessage(t('me.account.confirmEmailMessage'))
         return
       }
       onSignedIn()
@@ -58,7 +60,7 @@ export function AccountForm({ mode, onSignedIn }: AccountFormProps) {
     setError(null)
     setMessage(null)
     const result = await sendPasswordReset(email)
-    if (result.ok) setMessage('We sent a reset link to that address.')
+    if (result.ok) setMessage(t('me.account.resetLinkSent'))
     else setError(result.message)
   }
 
@@ -70,8 +72,8 @@ export function AccountForm({ mode, onSignedIn }: AccountFormProps) {
             <TextField
               value={email}
               onChangeText={setEmail}
-              placeholder="Email"
-              accessibilityLabel="Email"
+              placeholder={t('me.account.emailLabel')}
+              accessibilityLabel={t('me.account.emailLabel')}
               keyboardType="email-address"
               autoComplete="email"
               autoCapitalize="none"
@@ -79,8 +81,8 @@ export function AccountForm({ mode, onSignedIn }: AccountFormProps) {
             <TextField
               value={password}
               onChangeText={setPassword}
-              placeholder="Password"
-              accessibilityLabel="Password"
+              placeholder={t('me.account.passwordLabel')}
+              accessibilityLabel={t('me.account.passwordLabel')}
               secureTextEntry
               autoComplete={mode === 'create' ? 'new-password' : 'current-password'}
               autoCapitalize="none"
@@ -88,7 +90,13 @@ export function AccountForm({ mode, onSignedIn }: AccountFormProps) {
           </View>
         </ReplayMask>
         <Button
-          label={busy ? 'One moment…' : mode === 'create' ? 'Create account' : 'Sign in'}
+          label={
+            busy
+              ? t('me.account.oneMoment')
+              : mode === 'create'
+                ? t('me.account.createButton')
+                : t('me.account.signInButton')
+          }
           onPress={() => void submit()}
           disabled={busy || email.trim() === '' || password.length < 8}
         />
@@ -97,7 +105,7 @@ export function AccountForm({ mode, onSignedIn }: AccountFormProps) {
       <FormFeedback message={message} error={error} />
 
       {mode === 'sign_in' && email.trim() !== '' ? (
-        <TextLink label="Send me a reset link" onPress={() => void resetPassword()} />
+        <TextLink label={t('me.account.sendResetLink')} onPress={() => void resetPassword()} />
       ) : null}
     </>
   )

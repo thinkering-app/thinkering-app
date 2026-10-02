@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { router } from 'expo-router'
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -15,12 +16,13 @@ type SubScreenProps = {
 
 /** A pushed screen under a tab (Me's settings, Path's settings): back, title, scrolling body. */
 export function SubScreen({ title, children, action }: SubScreenProps) {
+  const { t } = useTranslation()
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right']}>
       <View className="flex-row items-center gap-3 px-5 pt-4">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Back"
+          accessibilityLabel={t('common.back')}
           onPress={() => router.back()}
           hitSlop={10}
         >

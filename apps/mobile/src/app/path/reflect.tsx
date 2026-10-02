@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
@@ -103,6 +104,7 @@ const PREVIOUS_STEP: Record<Step, Step | null> = {
 }
 
 export default function ReflectScreen() {
+  const { t } = useTranslation()
   const { interestId } = useLocalSearchParams<{ interestId: string }>()
   const interest = interestId ? getInterest(db, interestId) : undefined
   // The path as it was when the flow opened: the refs G8 answers with are
@@ -166,7 +168,7 @@ export default function ReflectScreen() {
   if (!interest) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-paper">
-        <Text className="font-sans text-body text-ink-soft">That interest is gone.</Text>
+        <Text className="font-sans text-body text-ink-soft">{t('path.interestGone')}</Text>
       </SafeAreaView>
     )
   }
@@ -248,10 +250,17 @@ export default function ReflectScreen() {
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right']}>
       <View className="flex-row items-center gap-3 px-5 pt-4">
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={back} hitSlop={10}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('path.back')}
+          onPress={back}
+          hitSlop={10}
+        >
           <Ionicons name="chevron-back" size={24} color={colors.ink.DEFAULT} />
         </Pressable>
-        <Text className="flex-1 font-heading-bold text-title text-ink">Reflect</Text>
+        <Text className="flex-1 font-heading-bold text-title text-ink">
+          {t('path.reflect.title')}
+        </Text>
         <ProgressDots current={STEP_NUMBER[step]} total={3} />
       </View>
 
@@ -263,17 +272,19 @@ export default function ReflectScreen() {
         {step === 'hoping' ? (
           <>
             <Text className="font-heading text-heading text-ink">
-              {"Is this still what you're hoping for?"}
+              {t('path.reflect.hopingQuestion')}
             </Text>
             <ChipPicker
-              addLabel="Add your own"
+              addLabel={t('path.reflect.addYourOwn')}
               generated={suggested}
               custom={outcomes.custom}
               selected={outcomes.selected}
               onChange={setOutcomes}
             />
-            {opening.state.status === 'pending' ? <Generating label="Thinking it through" /> : null}
-            <Button label="Continue" onPress={() => setStep('writing')} />
+            {opening.state.status === 'pending' ? (
+              <Generating label={t('path.reflect.thinkingItThrough')} />
+            ) : null}
+            <Button label={t('common.continue')} onPress={() => setStep('writing')} />
           </>
         ) : step === 'writing' ? (
           <>
@@ -287,7 +298,9 @@ export default function ReflectScreen() {
               onPress={() => setPathOpen((open) => !open)}
               className="flex-row items-center gap-2"
             >
-              <Text className="font-sans-medium text-secondary text-ink-soft">Your path</Text>
+              <Text className="font-sans-medium text-secondary text-ink-soft">
+                {t('path.reflect.yourPath')}
+              </Text>
               <Ionicons
                 name={pathOpen ? 'chevron-up' : 'chevron-down'}
                 size={16}
@@ -310,23 +323,23 @@ export default function ReflectScreen() {
             ) : null}
 
             <Text className="pt-2 font-heading text-heading text-ink">
-              How is your learning going, and what do you want to focus on next?
+              {t('path.reflect.feelingQuestion')}
             </Text>
             <TextField
               value={feelingText}
               onChangeText={setFeelingText}
               multiline
-              accessibilityLabel="How your learning is going"
+              accessibilityLabel={t('path.reflect.feelingAccessibilityLabel')}
               limit="long"
             />
             <Button
-              label="Continue"
+              label={t('common.continue')}
               onPress={() => void generate()}
               disabled={feelingText.trim().length === 0 || isOverLimit(feelingText, 'long')}
             />
           </>
         ) : step === 'generating' ? (
-          <Generating label="Looking at your path" />
+          <Generating label={t('path.generatingLabel')} />
         ) : step === 'error' ? (
           <GenerationError message={error} onRetry={() => void generate()} />
         ) : plan ? (
@@ -353,7 +366,9 @@ export default function ReflectScreen() {
 
             {plan.additions.length > 0 ? (
               <View className="gap-3 pt-4">
-                <Text className="font-heading-bold text-heading text-ink">Worth adding</Text>
+                <Text className="font-heading-bold text-heading text-ink">
+                  {t('path.reflect.worthAdding')}
+                </Text>
                 {plan.additions.map((addition) => (
                   <AdditionRow
                     key={addition.key}
@@ -370,13 +385,13 @@ export default function ReflectScreen() {
                 <TextField
                   value={ownGoal}
                   onChangeText={setOwnGoal}
-                  placeholder="Add a goal of your own"
-                  accessibilityLabel="Add a goal of your own"
+                  placeholder={t('path.reflect.addOwnGoalPlaceholder')}
+                  accessibilityLabel={t('path.reflect.addOwnGoalAccessibilityLabel')}
                   limit="line"
                 />
               </View>
               <Button
-                label="Add"
+                label={t('common.add')}
                 variant="quiet"
                 disabled={ownGoal.trim().length === 0 || isOverLimit(ownGoal, 'line')}
                 onPress={() => {
@@ -387,7 +402,7 @@ export default function ReflectScreen() {
             </View>
 
             <View className="pt-4">
-              <Button label="Update path" onPress={apply} />
+              <Button label={t('path.reflect.updatePath')} onPress={apply} />
             </View>
           </>
         ) : null}
@@ -411,6 +426,7 @@ function DraftRow({
   onUp?: () => void
   onDown?: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <View
       className={`gap-2 rounded-card border p-4 ${
@@ -425,15 +441,29 @@ function DraftRow({
             {entry.title}
           </Text>
           {entry.goalId === null ? (
-            <Text className="font-sans text-caption text-cornflower-deep">New</Text>
+            <Text className="font-sans text-caption text-cornflower-deep">
+              {t('path.reflect.new')}
+            </Text>
           ) : null}
         </View>
         <View className="flex-row items-center gap-3">
-          <IconAction name="chevron-up" label={`Move ${entry.title} up`} onPress={onUp} />
-          <IconAction name="chevron-down" label={`Move ${entry.title} down`} onPress={onDown} />
+          <IconAction
+            name="chevron-up"
+            label={t('path.reflect.moveUpAccessibilityLabel', { title: entry.title })}
+            onPress={onUp}
+          />
+          <IconAction
+            name="chevron-down"
+            label={t('path.reflect.moveDownAccessibilityLabel', { title: entry.title })}
+            onPress={onDown}
+          />
           <IconAction
             name={entry.removed ? 'arrow-undo-outline' : 'close'}
-            label={entry.removed ? `Keep ${entry.title}` : `Remove ${entry.title}`}
+            label={
+              entry.removed
+                ? t('path.reflect.keepAccessibilityLabel', { title: entry.title })
+                : t('path.reflect.removeAccessibilityLabel', { title: entry.title })
+            }
             onPress={onToggleRemoved}
           />
         </View>
@@ -443,14 +473,17 @@ function DraftRow({
         <View className="gap-2 rounded-card bg-cornflower-tint p-3">
           <Text className="font-sans text-secondary text-ink">
             {entry.proposal.kind === 'revise'
-              ? `Reword as "${entry.proposal.title}" — ${entry.proposal.reason}`
+              ? t('path.reflect.proposal.revise', {
+                  title: entry.proposal.title,
+                  reason: entry.proposal.reason,
+                })
               : entry.proposal.kind === 'remove'
-                ? `Drop this — ${entry.proposal.reason}`
-                : `Move this — ${entry.proposal.reason}`}
+                ? t('path.reflect.proposal.remove', { reason: entry.proposal.reason })
+                : t('path.reflect.proposal.move', { reason: entry.proposal.reason })}
           </Text>
           <View className="flex-row gap-2">
-            <Button label="Accept" variant="quiet" onPress={onAccept} />
-            <Button label="Leave it" variant="quiet" onPress={onDismiss} />
+            <Button label={t('path.reflect.accept')} variant="quiet" onPress={onAccept} />
+            <Button label={t('path.reflect.leaveIt')} variant="quiet" onPress={onDismiss} />
           </View>
         </View>
       ) : null}
@@ -467,14 +500,15 @@ function AdditionRow({
   onAdd: () => void
   onDismiss: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <View className="gap-2 rounded-card border border-hairline bg-surface p-4">
       <Text className="font-heading text-body text-ink">{addition.title}</Text>
       <Text className="font-sans text-secondary text-ink-soft">{addition.description}</Text>
       <Text className="font-sans text-caption text-ink-soft">{addition.reason}</Text>
       <View className="flex-row gap-2">
-        <Button label="Add" variant="quiet" onPress={onAdd} />
-        <Button label="Not now" variant="quiet" onPress={onDismiss} />
+        <Button label={t('common.add')} variant="quiet" onPress={onAdd} />
+        <Button label={t('path.reflect.notNow')} variant="quiet" onPress={onDismiss} />
       </View>
     </View>
   )

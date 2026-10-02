@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useState } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import { Pill } from '@/components/pill'
 import { useAddInterest } from '@/intake/add-interest'
@@ -23,6 +24,7 @@ type InterestSelectorProps = {
  * when it pins to the right so it stays in reach.
  */
 export function InterestSelector({ allowAll = true }: InterestSelectorProps = {}) {
+  const { t } = useTranslation()
   const { focus, exploring, selection, select } = useInterestSelection()
   const { addInterest, resumeSheet } = useAddInterest()
   const [viewportWidth, setViewportWidth] = useState(0)
@@ -52,7 +54,7 @@ export function InterestSelector({ allowAll = true }: InterestSelectorProps = {}
             ))}
             {exploring.length > 0 ? (
               <Pill
-                label="Explore"
+                label={t('common.interestSelector.explore')}
                 selected={exploreOpen}
                 onPress={() => select({ kind: 'explore', interestId: exploreDefault })}
               />
@@ -67,7 +69,7 @@ export function InterestSelector({ allowAll = true }: InterestSelectorProps = {}
         <Row>
           {allowAll ? (
             <Pill
-              label="All"
+              label={t('common.interestSelector.all')}
               selected={selection.interestId === null}
               onPress={() => select({ kind: 'explore', interestId: null })}
             />
@@ -95,11 +97,12 @@ export function InterestSelector({ allowAll = true }: InterestSelectorProps = {}
  * (docs/01 §1), or back to an unfinished one.
  */
 function AddInterest({ onPress }: { onPress: () => void }) {
+  const { t } = useTranslation()
   return (
     <Pressable
       testID="add-interest"
       accessibilityRole="button"
-      accessibilityLabel="Add an interest"
+      accessibilityLabel={t('common.addInterest')}
       onPress={onPress}
       hitSlop={8}
       className="rounded-pill border border-hairline bg-surface px-3 py-2 active:bg-cornflower-tint"

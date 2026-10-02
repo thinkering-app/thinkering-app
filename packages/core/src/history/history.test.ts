@@ -1,60 +1,67 @@
 import { describe, expect, it } from 'vitest'
 import { groupByLocalDay } from './grouping'
-import { outcomeLine } from './outcome'
+import { outcomeParts } from './outcome'
 import { monthBoundsMs, monthGrid, monthLabel, shiftMonth, yearMonthOf } from './calendar'
 import { localDateOf } from '../scheduler/local-date'
 
-describe('outcomeLine (docs/01 §6, D1)', () => {
-  it('reads the verb from the tier outside Go further', () => {
+describe('outcomeParts (docs/01 §6, D1)', () => {
+  it('picks the tier as the verb outside Go further', () => {
     expect(
-      outcomeLine({
+      outcomeParts({
         section: 'next',
         tier: 'introduce',
         libraryItemId: 'worked-example',
         goalTitle: 'Explain what a token is',
       }),
-    ).toBe('Introduced Explain what a token is')
+    ).toEqual({ verb: { kind: 'tier', tier: 'introduce' }, subject: 'Explain what a token is' })
+  })
+
+  it('picks the library item as the verb in Go further', () => {
     expect(
-      outcomeLine({
-        section: 'strengthen',
-        tier: 'strengthen',
-        libraryItemId: 'retrieval-practice',
-        goalTitle: 'Explain what a token is',
+      outcomeParts({
+        section: 'go_further',
+        tier: 'apply',
+        libraryItemId: 'dig-deeper',
+        goalTitle: 'Prompt clearly',
       }),
-    ).toBe('Strengthened Explain what a token is')
+    ).toEqual({
+      verb: { kind: 'libraryItem', libraryItemId: 'dig-deeper' },
+      subject: 'Prompt clearly',
+    })
   })
 
-  it("uses the Go further item's own label", () => {
-    const goFurther = { section: 'go_further', tier: 'apply', goalTitle: 'Prompt clearly' } as const
-    expect(outcomeLine({ ...goFurther, libraryItemId: 'put-to-work' })).toBe(
-      'Put to use Prompt clearly',
-    )
-    expect(outcomeLine({ ...goFurther, libraryItemId: 'dig-deeper' })).toBe(
-      'Went deeper on Prompt clearly',
-    )
-    expect(outcomeLine({ ...goFurther, libraryItemId: 'connect-ideas' })).toBe(
-      'Branched out from Prompt clearly',
-    )
-  })
-
-  it('falls back to the topic, then to the bare verb', () => {
+  it('falls back to the tier when the Go further item is unknown', () => {
     expect(
-      outcomeLine({
+      outcomeParts({
+        section: 'go_further',
+        tier: 'apply',
+        libraryItemId: 'gone-missing',
+        goalTitle: null,
+      }),
+    ).toEqual({ verb: { kind: 'tier', tier: 'apply' }, subject: null })
+  })
+
+  it('falls back to the topic when there is no goal title', () => {
+    expect(
+      outcomeParts({
         section: 'strengthen',
         tier: 'strengthen',
         libraryItemId: 'retrieval-practice',
         goalTitle: null,
         topic: 'Verb conjugation',
       }),
-    ).toBe('Strengthened Verb conjugation')
+    ).toEqual({ verb: { kind: 'tier', tier: 'strengthen' }, subject: 'Verb conjugation' })
+  })
+
+  it('reports no subject when neither the goal title nor the topic holds one', () => {
     expect(
-      outcomeLine({
-        section: 'next',
-        tier: 'introduce',
-        libraryItemId: 'gone-missing',
+      outcomeParts({
+        section: 'strengthen',
+        tier: 'strengthen',
+        libraryItemId: 'retrieval-practice',
         goalTitle: '  ',
       }),
-    ).toBe('Introduced')
+    ).toEqual({ verb: { kind: 'tier', tier: 'strengthen' }, subject: null })
   })
 })
 

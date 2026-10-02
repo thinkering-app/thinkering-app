@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Pressable, Text, View } from 'react-native'
 import type { ResponsePayloadFor } from '@thinkering/core'
 
@@ -13,6 +14,7 @@ const CARD = 'min-h-48 rounded-card p-5 shadow-card'
  * line asking for an answer in their head before they turn it.
  */
 export function RevealBlock({ pageId, block }: { pageId: string; block: BlockOf<'reveal'> }) {
+  const { t } = useTranslation()
   const [answer, respond] = useResponse<ResponsePayloadFor<'reveal'>>(pageId, block.id)
   const revealed = answer?.revealed === true
 
@@ -30,7 +32,7 @@ export function RevealBlock({ pageId, block }: { pageId: string; block: BlockOf<
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityHint="Shows the answer"
+      accessibilityHint={t('player.reveal.accessibilityHint')}
       onPress={() => respond({ kind: 'reveal', revealed: true })}
       className={`${CARD} justify-between gap-4 bg-surface active:bg-cornflower-tint`}
     >
@@ -41,7 +43,7 @@ export function RevealBlock({ pageId, block }: { pageId: string; block: BlockOf<
         />
       </View>
       <Text className="text-center font-sans text-secondary text-ink-soft">
-        Think of your answer, then tap to reveal
+        {t('player.reveal.hint')}
       </Text>
     </Pressable>
   )
