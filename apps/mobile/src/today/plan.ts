@@ -1,5 +1,6 @@
 import {
   activeLibraryItems,
+  hasResourceFor,
   localDateOf,
   planToday,
   SECTIONS,
@@ -8,7 +9,10 @@ import {
   type CardPick,
   type DailyPlanCard,
   type DailyPlanOutput,
+  type LibraryPref,
+  type LibrarySituation,
   type LocalDate,
+  type SavedResourceRef,
   type Section,
   type TodayPlanParams,
 } from '@thinkering/core'
@@ -19,6 +23,7 @@ import {
   listHistory,
   listLibraryPrefs,
   listOpenActivities,
+  listResources,
   listPlannedForDate,
   resourcesByGoal,
   schedulerGoals,
@@ -92,20 +97,47 @@ export function suggestedInterests(interests: Interest[], today: LocalDate): Int
 /**
  * What each section needs: nothing while it still has an open card, otherwise
  * the scheduler's pick, skipping goals the section already had today so
- * finishing a card moves on rather than repeating it.
+ * finishing a card moves on rather than repeating it. A pick none of the
+ * section's types can serve — only Watch Along on, and no video saved — is
+ * left out, and the section waits on its + card.
  */
 function picksToFill(interestId: string, today: LocalDate): Picks {
   const none: Picks = { next: [], strengthen: [], goFurther: [] }
-  if (listGoals(db, interestId).length === 0) return none
+  const goals = listGoals(db, interestId)
+  if (goals.length === 0) return none
 
+  const prefs = listLibraryPrefs(db, interestId)
+  const situation = librarySituation(goals)
+  const saved = listResources(db, interestId)
   const cards = todaysCards(interestId, today)
   const plan = planToday(schedulerGoals(db, interestId), { exclude: goalsHadToday(cards) })
   const picks = { ...none }
   for (const section of SECTIONS) {
     const open = cards.some((a) => a.section === section && a.status !== 'completed')
-    if (!open) picks[SECTION_KEYS[section]] = plan[SECTION_KEYS[section]]
+    if (open) continue
+    picks[SECTION_KEYS[section]] = plan[SECTION_KEYS[section]].filter(
+      (pick) =>
+        usableItems(section, pick.kind === 'goal' ? pick.goalId : null, prefs, situation, saved)
+          .length > 0,
+    )
   }
   return picks
+}
+
+/**
+ * The section's active items a card toward `goalId` can be made from: one
+ * built around a saved resource only when there's one to build it on.
+ */
+function usableItems(
+  section: Section,
+  goalId: string | null,
+  prefs: LibraryPref[],
+  situation: LibrarySituation,
+  saved: readonly SavedResourceRef[],
+): string[] {
+  return activeLibraryItems(section, prefs, situation)
+    .filter((item) => hasResourceFor(item, goalId, saved))
+    .map((item) => item.id)
 }
 
 function goalsHadToday(cards: readonly Activity[]): Record<Section, string[]> {
@@ -176,6 +208,8 @@ export interface ActivityRequest {
   goalId: string | null
   /** The activity type they chose, if any — one of the section's active items. */
   libraryItemId: string | null
+  /** The saved resource they chose, when that type is built around one. */
+  resourceId: string | null
   /** What to focus on or how they want to learn it; may be empty. */
   focus: string
 }
@@ -226,21 +260,35 @@ export async function requestActivity(
   const only = request.libraryItemId
     ? { section: request.section, libraryItemId: request.libraryItemId }
     : undefined
-  const [card] = await planCards(interest, today, goals, picks, undefined, only)
+  // A chosen resource is the only one G5a hears of, so the title doesn't
+  // name another.
+  const resource = request.resourceId
+    ? listResources(db, interest.id).find((r) => r.id === request.resourceId)
+    : undefined
+  const matched = resource
+    ? request.goalId
+      ? [{ goalId: request.goalId, resourceTitle: resource.title }]
+      : []
+    : undefined
+  const [card] = await planCards(interest, today, goals, picks, undefined, only, matched)
   if (!card) throw new Error('no card came back')
   return createActivity(db, repoContext, {
     ...card,
     interestId: interest.id,
     plannedFor: today,
     focus: focus || null,
+    resourceId: resource?.id ?? null,
   })
 }
 
 /**
  * G5a for a set of picks, zipped back into cards. Only the sections with
  * picks are asked about — after a finished card that's one section, and asking
- * for the others would duplicate what's on screen. `only` narrows one
- * section's active set to the item the learner chose, if it's in it.
+ * for the others would duplicate what's on screen. Each pick is offered only
+ * the items it can be made from (`usableItems`), and a pick with none is
+ * dropped. `only` narrows one section's set to the item the learner chose, if
+ * it's active — its resource, if it needs one, was chosen with it — and
+ * `matched` stands in for the saved resources G5a is told about.
  */
 async function planCards(
   interest: Interest,
@@ -249,28 +297,47 @@ async function planCards(
   picks: TodayPlanParams['picks'],
   signal?: AbortSignal,
   only?: { section: Section; libraryItemId: string },
+  matched?: TodayPlanParams['matchedResources'],
 ) {
   const goalsById = new Map(goals.map((g) => [g.id, g]))
   const prefs = listLibraryPrefs(db, interest.id)
   const situation = librarySituation(goals)
-  const activeIds = {
-    next: activeLibraryItems('next', prefs, situation).map((i) => i.id),
-    strengthen: activeLibraryItems('strengthen', prefs, situation).map((i) => i.id),
-    goFurther: activeLibraryItems('go_further', prefs, situation).map((i) => i.id),
+  const saved = listResources(db, interest.id)
+  const itemsFor = (section: Section, pick: PlanPick) => {
+    const chosen =
+      only?.section === section &&
+      activeLibraryItems(section, prefs, situation).some((i) => i.id === only.libraryItemId)
+    return chosen
+      ? [only.libraryItemId]
+      : usableItems(section, pick.goalId, prefs, situation, saved)
   }
-  if (only) {
-    const key = SECTION_KEYS[only.section]
-    if (activeIds[key].includes(only.libraryItemId)) activeIds[key] = [only.libraryItemId]
+  const usable = { next: [], strengthen: [], goFurther: [] } as Record<PlanKey, string[][]>
+  const asked: TodayPlanParams['picks'] = { next: [], strengthen: [], goFurther: [] }
+  for (const section of SECTIONS) {
+    const key = SECTION_KEYS[section]
+    for (const pick of picks[key]) {
+      const ids = itemsFor(section, pick)
+      if (ids.length === 0) continue
+      usable[key].push(ids)
+      asked[key].push(pick)
+    }
+  }
+  if (SECTIONS.every((section) => asked[SECTION_KEYS[section]].length === 0)) return []
+  // A section's set is what any of its picks can use; each card is held to its own.
+  const activeIds = {
+    next: [...new Set(usable.next.flat())],
+    strengthen: [...new Set(usable.strengthen.flat())],
+    goFurther: [...new Set(usable.goFurther.flat())],
   }
 
   const params: TodayPlanParams = {
     context: interestContext(interest, goals),
     sessionMinutes: interest.sessionMinutes,
-    picks,
+    picks: asked,
     activeItems: activeIds,
     yesterdayItems: yesterdayItems(interest.id, today),
     // Lets G5a prefer a resource-shaped item for a goal that actually has one.
-    matchedResources: resourcesByGoal(db, interest.id),
+    matchedResources: matched ?? resourcesByGoal(db, interest.id),
   }
 
   const { output } = await callAi<DailyPlanOutput>('today.plan', params, {
@@ -280,8 +347,15 @@ async function planCards(
 
   return SECTIONS.flatMap((section) => {
     const key = SECTION_KEYS[section]
-    return picks[key].map((pick, index) =>
-      toCard(section, pick, output[key][index], activeIds[key], goalsById, interest.sessionMinutes),
+    return asked[key].map((pick, index) =>
+      toCard(
+        section,
+        pick,
+        output[key][index],
+        usable[key][index]!,
+        goalsById,
+        interest.sessionMinutes,
+      ),
     )
   })
 }

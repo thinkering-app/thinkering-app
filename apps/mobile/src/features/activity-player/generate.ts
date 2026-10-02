@@ -59,7 +59,12 @@ async function generateActivityDoc(
   if (!interest) throw new Error('interest is gone')
   const goal = activity.goalId ? getGoal(db, activity.goalId) : undefined
   const saved = listResources(db, activity.interestId)
-  const resource = pickResource(getLibraryItem(activity.libraryItemId), activity.goalId, saved)
+  const resource = pickResource(
+    getLibraryItem(activity.libraryItemId),
+    activity.goalId,
+    saved,
+    activity.resourceId,
+  )
 
   const params: ActivityGenerateParams = {
     context: interestContext(interest),

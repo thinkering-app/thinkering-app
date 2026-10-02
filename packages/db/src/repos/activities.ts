@@ -13,6 +13,8 @@ export interface NewActivity {
   topic?: string | null
   /** The learner's own request, for a card added with + (docs/01 §3). */
   focus?: string | null
+  /** The saved resource they chose for it, if its type uses one. */
+  resourceId?: string | null
   section: Section
   tier: Tier
   libraryItemId: string
@@ -30,6 +32,7 @@ export function createActivity(db: Database, ctx: RepoContext, input: NewActivit
     goalId: input.goalId ?? null,
     topic: input.topic ?? null,
     focus: input.focus ?? null,
+    resourceId: input.resourceId ?? null,
     section: input.section,
     tier: input.tier,
     libraryItemId: input.libraryItemId,
