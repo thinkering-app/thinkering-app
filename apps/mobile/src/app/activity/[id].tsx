@@ -1,5 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
@@ -46,6 +47,7 @@ import { ActivityPlayer } from '@/features/activity-player/player'
 import type { ResponseSink } from '@/features/activity-player/responses'
 import { postActivityReport, type ActivityReport } from '@/feedback/client'
 import { useFeedbackContext } from '@/feedback/context'
+import { libraryItemCopy } from '@/i18n/library'
 
 /**
  * Playing one activity (docs/05). The route owns everything durable — the
@@ -57,6 +59,7 @@ import { useFeedbackContext } from '@/feedback/context'
 const REVIEW_PATIENCE_MS = 5_000
 
 export default function ActivityScreen() {
+  const { t } = useTranslation()
   const { id } = useLocalSearchParams<{ id: string }>()
   const [activity] = useState(() => (id ? getActivity(db, id) : undefined))
   // The prerequisite-fallback card has no goal; its topic stands in, as on Today.
@@ -65,13 +68,13 @@ export default function ActivityScreen() {
   )
   const [libraryItem] = useState(() => {
     const item = activity ? getLibraryItem(activity.libraryItemId) : undefined
-    return item
-      ? {
-          name: item.name,
-          overview: item.overview,
-          about: [item.overview, item.whyItHelps, item.activation].filter(Boolean).join('\n\n'),
-        }
-      : undefined
+    if (!item) return undefined
+    const copy = libraryItemCopy(item)
+    return {
+      name: copy.name,
+      overview: copy.overview,
+      about: [copy.overview, copy.whyItHelps, copy.activation].filter(Boolean).join('\n\n'),
+    }
   })
   const [doc, setDoc] = useState<ActivityDoc | null>(activity?.doc ?? null)
   const [partial, setPartial] = useState<PartialActivityDoc | null>(null)
@@ -268,7 +271,7 @@ export default function ActivityScreen() {
     [activity, doc, feedbackContext, rating],
   )
 
-  if (!activity) return <Missing message="This activity is no longer here." />
+  if (!activity) return <Missing message={t('player.missing')} />
   // A document that failed to generate doesn't get to look like one that
   // half-arrived: the partial pages go with it.
   if (genError && !doc) {
@@ -294,7 +297,7 @@ export default function ActivityScreen() {
       streaming={doc === null}
       // Before any text, the model is still working out the activity (docs/04
       // §Thinking); once it writes, the title and pages follow.
-      waitLabel={partial === null ? 'Planning your activity' : 'Writing your activity'}
+      waitLabel={partial === null ? t('player.wait.planning') : t('player.wait.writing')}
       libraryItem={libraryItem}
       sink={sink}
       page={page}
@@ -364,13 +367,14 @@ function provisionalDoc(activity: Activity, partial: PartialActivityDoc | null):
 }
 
 function Missing({ message, children }: { message?: string; children?: React.ReactNode }) {
+  const { t } = useTranslation()
   return (
     <SafeAreaView className="flex-1 bg-paper">
       <View className="flex-1 items-center justify-center gap-4 px-8">
         {message ? (
           <>
             <Text className="text-center font-sans text-body text-ink-soft">{message}</Text>
-            <Button label="Back" variant="quiet" onPress={() => router.back()} />
+            <Button label={t('player.back')} variant="quiet" onPress={() => router.back()} />
           </>
         ) : (
           children

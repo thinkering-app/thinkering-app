@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import {
   completedTodayBySection,
   localDateOf,
@@ -65,6 +67,7 @@ export function useToday(
     suggestOnly: boolean
   },
 ): TodayView {
+  const { t } = useTranslation()
   const timeZone = deviceTimeZone()
   const [version, bump] = useReducer((n: number) => n + 1, 0)
   const [today, setToday] = useState<LocalDate>(() => localDateOf(Date.now(), timeZone))
@@ -138,9 +141,9 @@ export function useToday(
   // A write changes what a card offers as it goes (Write → Writing → its
   // time), so a change in `writing` re-reads too.
   const sections = useMemo(
-    () => readSections(shown, today, timeZone),
+    () => readSections(shown, today, timeZone, t),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [key, today, timeZone, version, writing],
+    [key, today, timeZone, version, writing, t],
   )
 
   const reflect = useMemo(
@@ -178,6 +181,7 @@ function readSections(
   interests: Interest[],
   today: LocalDate,
   timeZone: string,
+  t: TFunction,
 ): TodaySectionView[] {
   const showInterestName = interests.length > 1
   const cards: TodayCardView[] = []
@@ -187,7 +191,7 @@ function readSections(
     for (const activity of todaysCards(interest.id, today)) {
       cards.push({
         activity,
-        goalLine: goalLineFor(activity, goals),
+        goalLine: goalLineFor(activity, goals, t),
         interestName: showInterestName ? interest.name : undefined,
       })
     }
@@ -204,7 +208,7 @@ function readSections(
   }))
 }
 
-function goalLineFor(activity: Activity, goals: Map<string, Goal>): string {
+function goalLineFor(activity: Activity, goals: Map<string, Goal>, t: TFunction): string {
   if (activity.goalId) return goals.get(activity.goalId)?.title ?? ''
-  return activity.topic ?? 'A foundation for your path'
+  return activity.topic ?? t('today.goalLine.foundation')
 }

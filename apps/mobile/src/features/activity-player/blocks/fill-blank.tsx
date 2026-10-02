@@ -1,4 +1,5 @@
 import { Fragment, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Text, TextInput, View } from 'react-native'
 import { gradeBlank, gradeFillBlank, TEXT_LIMITS, type ResponsePayloadFor } from '@thinkering/core'
 
@@ -12,6 +13,7 @@ import type { BlockOf } from './types'
  * marks where each blank goes, in order; anything else renders as text.
  */
 export function FillBlankBlock({ pageId, block }: { pageId: string; block: BlockOf<'fillBlank'> }) {
+  const { t } = useTranslation()
   const [answer, respond] = useResponse<ResponsePayloadFor<'fillBlank'>>(pageId, block.id)
   const answers = answer?.answers ?? {}
   // A blank is graded once the learner leaves it, so typing "1" on the way to
@@ -45,7 +47,7 @@ export function FillBlankBlock({ pageId, block }: { pageId: string; block: Block
               <MarkdownWords md={segment} />
               {blank ? (
                 <BlankInput
-                  label={`Blank ${i + 1}`}
+                  label={t('player.fillBlank.blankLabel', { number: i + 1 })}
                   value={answers[blank.id] ?? ''}
                   correct={verdict(blank.id)}
                   onChangeText={(text) => setBlank(blank.id, text)}
@@ -58,7 +60,8 @@ export function FillBlankBlock({ pageId, block }: { pageId: string; block: Block
       </View>
       {missed.length > 0 ? (
         <Text className="font-sans text-secondary text-ink-soft">
-          {missed.length === 1 ? 'Answer' : 'Answers'}: {missed.map((b) => b.answer).join(' · ')}
+          {t('player.fillBlank.answer', { count: missed.length })}:{' '}
+          {missed.map((b) => b.answer).join(' · ')}
         </Text>
       ) : null}
     </View>

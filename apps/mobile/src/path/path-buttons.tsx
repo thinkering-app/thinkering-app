@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { router } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { Pressable } from 'react-native'
 
 import { colors } from '@/theme/tokens'
@@ -10,11 +11,12 @@ import { colors } from '@/theme/tokens'
  * with a single interest in view.
  */
 export function PathButtons({ interestId }: { interestId: string }) {
+  const { t } = useTranslation()
   return (
     <>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Resources"
+        accessibilityLabel={t('path.resourcesAccessibilityLabel')}
         onPress={() => router.push(`/path/resources?interestId=${interestId}`)}
         hitSlop={10}
       >
@@ -22,7 +24,7 @@ export function PathButtons({ interestId }: { interestId: string }) {
       </Pressable>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Path settings"
+        accessibilityLabel={t('path.settingsAccessibilityLabel')}
         onPress={() => router.push(`/path/settings?interestId=${interestId}`)}
         hitSlop={10}
       >

@@ -1,6 +1,7 @@
 import { router } from 'expo-router'
 import { useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { ReplayAskCard } from '@/analytics'
@@ -11,6 +12,7 @@ import { backupConfigured } from '@/sync/supabase'
 
 /** The brief welcome ahead of the six questions (docs/01 §1). Not a step — no progress dot. */
 export default function WelcomeScreen() {
+  const { t } = useTranslation()
   const [error, setError] = useState<string | null>(null)
 
   // Coming back has to be reachable on a fresh install, which is the one moment
@@ -36,16 +38,16 @@ export default function WelcomeScreen() {
         <ReplayAskCard />
       </View>
       <View className="flex-1 justify-end px-5 pb-2">
-        <Text className="font-sans-medium text-body text-ink-soft">Welcome to</Text>
-        <Text className="mt-1 font-heading-bold text-display text-ink">thinkering</Text>
-        <Text className="mt-3 font-sans text-body text-ink-soft">
-          Pick something you want to learn. We&apos;ll build a path and a few things to do each day.
+        <Text className="font-sans-medium text-body text-ink-soft">
+          {t('intake.welcome.greeting')}
         </Text>
+        <Text className="mt-1 font-heading-bold text-display text-ink">thinkering</Text>
+        <Text className="mt-3 font-sans text-body text-ink-soft">{t('intake.welcome.body')}</Text>
         {error ? <Text className="mt-6 font-sans text-secondary text-peach">{error}</Text> : null}
         <View className="mt-10">
           <PrimaryAction
             testID="intake-start"
-            label="Get started"
+            label={t('intake.welcome.getStarted')}
             onPress={() => router.push('/intake/learn')}
           />
         </View>
@@ -56,8 +58,8 @@ export default function WelcomeScreen() {
         >
           <Text className="font-sans-medium text-secondary text-ink-soft">
             {backupConfigured
-              ? 'I already have an account or a backup file'
-              : 'Restore from a backup'}
+              ? t('intake.welcome.signInOrRestore')
+              : t('intake.welcome.restoreFromBackup')}
           </Text>
         </Pressable>
       </View>

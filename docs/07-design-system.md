@@ -65,7 +65,11 @@ The app is laid out for a phone, and the web build keeps it that way. In a windo
 
 Short, warm, plain, adult. Sentence case everywhere. No exclamation-mark cheerleading, no help-text paragraphs — if a screen needs explanation, redesign it. Praise only when specific and earned. Never patronize or assume: activity in the app is not the sum of what someone knows, so write "you've covered X in thinkering", never "you haven't learned X yet" (the same rule applies to generated content, `04`).
 
+### Copy and translation
+
+Every string the app shows goes through `t()` (react-i18next), with keys in `apps/mobile/src/i18n/locales/en/`, grouped by area of the app. English is the source, and other languages translate it key for key; a missing key falls back to English, and a misspelt one fails typecheck. Write whole sentences with `{{placeholders}}` rather than joining translated pieces, since word order differs between languages, and use `_one`/`_other` keys for plurals. Dates and numbers are formatted with `currentFormatLocale()`. Library item copy comes from the definitions in `packages/core` through `libraryItemCopy()`. Left in English: developer screens, and the privacy copy, which is shared with the website. The chosen language also sets the language the model writes in (`04` §Content language, `00` D23).
+
 ## Implementation
 
-- Fonts via `@expo-google-fonts/arvo` and `@expo-google-fonts/outfit`; the same families are self-hosted on the landing page, whose display sizes live in `apps/web/tailwind.config.cjs`.
+- Fonts via `@expo-google-fonts/arvo` and `@expo-google-fonts/outfit`; the same families are self-hosted on the landing page, whose display sizes live in `apps/web/tailwind.config.cjs`. Neither family has Chinese characters, so Chinese text falls back to the system font (PingFang on iOS).
 - Dark mode is out of scope for now; the tokens are structured so it can be added as a second palette.

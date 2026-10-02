@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
+import { useTranslation } from 'react-i18next'
 import { Pressable, Text, View } from 'react-native'
 import { gradeOrdering, type ResponsePayloadFor } from '@thinkering/core'
 
@@ -12,6 +13,7 @@ import type { BlockOf } from './types'
  * inside a scrolling page, and it's reachable with a screen reader.
  */
 export function OrderingBlock({ pageId, block }: { pageId: string; block: BlockOf<'ordering'> }) {
+  const { t } = useTranslation()
   const [answer, respond] = useResponse<ResponsePayloadFor<'ordering'>>(pageId, block.id)
   const order = answer?.order ?? block.items.map((i) => i.id)
   const settled = answer !== undefined
@@ -46,7 +48,7 @@ export function OrderingBlock({ pageId, block }: { pageId: string; block: BlockO
               <Markdown md={item?.label ?? id} className="flex-1 font-sans text-body text-ink" />
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`Move ${item?.label ?? id} up`}
+                accessibilityLabel={t('player.ordering.moveUp', { label: item?.label ?? id })}
                 onPress={() => move(index, -1)}
                 hitSlop={8}
               >
@@ -54,7 +56,7 @@ export function OrderingBlock({ pageId, block }: { pageId: string; block: BlockO
               </Pressable>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`Move ${item?.label ?? id} down`}
+                accessibilityLabel={t('player.ordering.moveDown', { label: item?.label ?? id })}
                 onPress={() => move(index, 1)}
                 hitSlop={8}
               >

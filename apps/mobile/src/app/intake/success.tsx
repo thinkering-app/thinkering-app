@@ -1,5 +1,6 @@
 import { router } from 'expo-router'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Generating } from '@/components/generating'
 import { useIntake } from '@/intake/context'
@@ -14,6 +15,7 @@ import { StepScreen } from '@/intake/step-screen'
  * failed. On advance, G3 goes out; step 6 covers its wait.
  */
 export default function SuccessStep() {
+  const { t } = useTranslation()
   const { answers, update, success, startChoices, retryChoices, startPath } = useIntake()
 
   useEffect(() => {
@@ -23,7 +25,7 @@ export default function SuccessStep() {
   return (
     <StepScreen
       step={5}
-      question="What are you hoping for?"
+      question={t('intake.success.question')}
       continueDisabled={success.status === 'idle' || success.status === 'pending'}
       onContinue={() => {
         startPath()
@@ -32,7 +34,7 @@ export default function SuccessStep() {
     >
       <ChipPicker
         testID="intake-success"
-        addLabel="Add your own"
+        addLabel={t('intake.chipPicker.addYourOwn')}
         generated={success.status === 'ready' ? success.value.outcomes : []}
         custom={answers.customOutcomes}
         selected={answers.selectedOutcomes}
@@ -43,7 +45,7 @@ export default function SuccessStep() {
       {success.status === 'error' ? (
         <GenerationError message={success.message} onRetry={retryChoices} />
       ) : success.status !== 'ready' ? (
-        <Generating label="Thinking it through" />
+        <Generating label={t('intake.success.generating')} />
       ) : null}
     </StepScreen>
   )

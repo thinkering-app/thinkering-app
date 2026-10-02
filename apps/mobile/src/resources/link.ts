@@ -4,6 +4,7 @@ import { goalIdsForTitles, listGoals, type Interest } from '@thinkering/db'
 
 import { callAi, getAiMode, signedHeaders, API_BASE_URL } from '@/ai'
 import { db } from '@/db'
+import { t } from '@/i18n'
 
 /**
  * Add-by-link (docs/01 §5): the proxy fetches the page — the app has no
@@ -44,10 +45,10 @@ export async function fetchPage(url: string, signal?: AbortSignal): Promise<Page
     const payload = (await res.json().catch(() => ({}))) as { error?: string }
     throw new LinkError(
       payload.error === 'blocked'
-        ? "That link doesn't look like a public page."
+        ? t('path.resources.linkErrors.blocked')
         : payload.error === 'unreadable'
-          ? "We couldn't read that page."
-          : "We couldn't reach that link.",
+          ? t('path.resources.linkErrors.unreadable')
+          : t('path.resources.linkErrors.unreachable'),
     )
   }
   return (await res.json()) as PageFetch

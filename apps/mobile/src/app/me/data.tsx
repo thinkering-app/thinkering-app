@@ -1,5 +1,7 @@
 import { router } from 'expo-router'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import { Text, View } from 'react-native'
 
 import { exportToFile, importFromFile, refusalMessage } from '@/backup/actions'
@@ -7,7 +9,6 @@ import {
   isAnalyticsOptedIn,
   isReplayAvailable,
   isReplayOptedIn,
-  REPLAY_EXPLAINER,
   ReplayMask,
   setAnalyticsConsent,
   setReplayConsent,
@@ -18,6 +19,7 @@ import { confirmDestructive } from '@/components/confirm'
 import { SubScreen } from '@/components/sub-screen'
 import { Toast } from '@/components/toast'
 import { Toggle } from '@/components/toggle'
+import { currentFormatLocale } from '@/i18n'
 import { deleteAllData } from '@/me/delete-all'
 import { reopenAt } from '@/reopen'
 import { signOutAndForget } from '@/sync/engine'
@@ -33,6 +35,7 @@ import { useBackup } from '@/sync/use-backup'
  */
 
 export default function DataScreen() {
+  const { t } = useTranslation()
   const backup = useBackup()
   const [optedIn, setOptedIn] = useState(() => isAnalyticsOptedIn())
   const [replayOptedIn, setReplayOptedIn] = useState(() => isReplayOptedIn())
@@ -47,7 +50,7 @@ export default function DataScreen() {
     try {
       await exportToFile(Date.now())
     } catch {
-      setFileError("We couldn't write the file.")
+      setFileError(t('me.data.writeFileFailed'))
     } finally {
       setBusy(null)
     }
@@ -56,16 +59,16 @@ export default function DataScreen() {
   const runImport = async () => {
     setFileError(null)
     const confirmed = await confirmDestructive({
-      title: 'Replace everything on this device?',
-      message: 'Your interests, path, and history here are replaced by the backup.',
-      confirmLabel: 'Choose a file',
+      title: t('me.data.replaceEverythingTitle'),
+      message: t('me.data.replaceEverythingMessage'),
+      confirmLabel: t('me.data.chooseFile'),
     })
     if (!confirmed) return
 
     setBusy('import')
     try {
       const outcome = await importFromFile()
-      if (outcome.ok) setToast('Backup restored')
+      if (outcome.ok) setToast(t('me.data.backupRestored'))
       else if (outcome.reason !== 'cancelled') setFileError(refusalMessage(outcome.reason))
     } finally {
       setBusy(null)
@@ -75,18 +78,18 @@ export default function DataScreen() {
   const runDelete = async () => {
     setDeleteError(null)
     const confirmed = await confirmDestructive({
-      title: 'Delete all data?',
+      title: t('me.data.deleteAllTitle'),
       message: backup.account
-        ? "Your interests, path and history go from this device and from our server. This can't be undone."
-        : "Your interests, path and history go from this device. This can't be undone.",
-      confirmLabel: 'Delete everything',
+        ? t('me.data.deleteAllMessageWithServer')
+        : t('me.data.deleteAllMessage'),
+      confirmLabel: t('me.data.deleteAllConfirm'),
     })
     if (!confirmed) return
 
     setBusy('delete')
     try {
       if (await deleteAllData()) reopenAt('/intake/welcome')
-      else setDeleteError("We couldn't delete the copy on our server, so nothing has changed.")
+      else setDeleteError(t('me.data.deleteAllFailed'))
     } finally {
       setBusy(null)
     }
@@ -98,18 +101,20 @@ export default function DataScreen() {
       return
     }
     const confirmed = await confirmDestructive({
-      title: 'Turn off backup?',
-      message: 'The copy on our server is deleted. What is on this device stays.',
-      confirmLabel: 'Turn off and delete',
+      title: t('me.data.turnOffTitle'),
+      message: t('me.data.turnOffMessage'),
+      confirmLabel: t('me.data.turnOffConfirm'),
     })
-    if (confirmed && (await backup.turnOff())) setToast('Server copy deleted')
+    if (confirmed && (await backup.turnOff())) setToast(t('me.data.serverCopyDeleted'))
   }
 
   return (
-    <SubScreen title="Account and data">
+    <SubScreen title={t('me.data.title')}>
       {backup.configured ? (
         <View className="gap-3">
-          <Text className="font-heading-bold text-heading text-ink">Synced backup</Text>
+          <Text className="font-heading-bold text-heading text-ink">
+            {t('me.data.syncedBackupHeading')}
+          </Text>
           {backup.account ? (
             <>
               <View className="flex-row items-center gap-4">
@@ -124,30 +129,33 @@ export default function DataScreen() {
                   onValueChange={(next) => void toggleSync(next)}
                 />
               </View>
-              <Text className="font-sans text-caption text-ink-soft">{statusLine(backup)}</Text>
+              <Text className="font-sans text-caption text-ink-soft">{statusLine(backup, t)}</Text>
               {backup.enabled ? (
                 <Button
-                  label={backup.syncing ? 'Backing up…' : 'Back up now'}
+                  label={backup.syncing ? t('me.data.backingUp') : t('me.data.backUpNow')}
                   variant="quiet"
                   onPress={() => void backup.runSync()}
                   disabled={backup.syncing}
                 />
               ) : null}
               <Button
-                label="Change password"
+                label={t('me.account.changePassword')}
                 variant="quiet"
                 onPress={() => router.push('/me/account')}
               />
-              <Button label="Sign out" variant="quiet" onPress={() => void signOutAndForget()} />
+              <Button
+                label={t('me.data.signOut')}
+                variant="quiet"
+                onPress={() => void signOutAndForget()}
+              />
             </>
           ) : (
             <>
               <Text className="font-sans text-secondary text-ink-soft">
-                Off by default. With an account, your learning is kept on our server too, and a new
-                device picks up where this one left off.
+                {t('me.data.offByDefaultExplainer')}
               </Text>
               <Button
-                label="Sign in or create an account"
+                label={t('me.data.signInOrCreate')}
                 onPress={() => router.push('/me/account')}
               />
             </>
@@ -159,20 +167,17 @@ export default function DataScreen() {
       ) : null}
 
       <View className="gap-3">
-        <Text className="font-heading-bold text-heading text-ink">A file you keep</Text>
-        <Text className="font-sans text-secondary text-ink-soft">
-          Everything you&apos;ve made, as one JSON file. Importing replaces what&apos;s on this
-          device.
-        </Text>
+        <Text className="font-heading-bold text-heading text-ink">{t('me.data.fileHeading')}</Text>
+        <Text className="font-sans text-secondary text-ink-soft">{t('me.data.fileExplainer')}</Text>
         <Button
           testID="backup-export"
-          label={busy === 'export' ? 'Exporting…' : 'Export data'}
+          label={busy === 'export' ? t('me.data.exporting') : t('me.data.exportData')}
           onPress={() => void runExport()}
           disabled={busy !== null}
         />
         <Button
           testID="backup-import"
-          label={busy === 'import' ? 'Importing…' : 'Import data'}
+          label={busy === 'import' ? t('me.data.importing') : t('me.data.importData')}
           variant="quiet"
           onPress={() => void runImport()}
           disabled={busy !== null}
@@ -183,10 +188,12 @@ export default function DataScreen() {
       </View>
 
       <View className="gap-3">
-        <Text className="font-heading-bold text-heading text-ink">Anonymous usage</Text>
+        <Text className="font-heading-bold text-heading text-ink">
+          {t('me.data.anonymousUsageHeading')}
+        </Text>
         <View className="flex-row items-center gap-4">
           <Text className="flex-1 font-sans text-body text-ink">
-            Share anonymous usage to improve thinkering
+            {t('me.data.shareAnonymousUsage')}
           </Text>
           <Toggle
             value={optedIn}
@@ -198,16 +205,18 @@ export default function DataScreen() {
           />
         </View>
         <Text className="font-sans text-caption text-ink-soft">
-          Counts and ratings only — never what you write, learn, or look at. Not linked to you.
+          {t('me.data.anonymousUsageCaption')}
         </Text>
       </View>
 
       {isReplayAvailable() ? (
         <View className="gap-3">
-          <Text className="font-heading-bold text-heading text-ink">Session replays</Text>
+          <Text className="font-heading-bold text-heading text-ink">
+            {t('me.data.sessionReplaysHeading')}
+          </Text>
           <View className="flex-row items-center gap-4">
             <Text className="flex-1 font-sans text-body text-ink">
-              Share session replays with developers
+              {t('me.data.shareSessionReplays')}
             </Text>
             <Toggle
               value={replayOptedIn}
@@ -218,21 +227,22 @@ export default function DataScreen() {
               }}
             />
           </View>
-          <Text className="font-sans text-caption text-ink-soft">{REPLAY_EXPLAINER}</Text>
+          <Text className="font-sans text-caption text-ink-soft">
+            {t('me.data.replayExplainer')}
+          </Text>
         </View>
       ) : null}
 
       <View className="gap-2 border-t border-hairline pt-6">
         <Button
           testID="delete-all-data"
-          label={busy === 'delete' ? 'Deleting…' : 'Delete all data'}
+          label={busy === 'delete' ? t('me.data.deleting') : t('me.data.deleteAll')}
           variant="quiet"
           onPress={() => void runDelete()}
           disabled={busy !== null}
         />
         <Text className="font-sans text-caption text-ink-soft">
-          Deletes your interests, path and history for good. Export first if you want to keep a
-          copy.
+          {t('me.data.deleteAllCaption')}
         </Text>
         {deleteError ? (
           <Text className="font-sans text-secondary text-peach">{deleteError}</Text>
@@ -244,23 +254,27 @@ export default function DataScreen() {
   )
 }
 
-function statusLine({
-  enabled,
-  syncing,
-  lastSyncedAt,
-}: {
-  enabled: boolean
-  syncing: boolean
-  lastSyncedAt: number | null
-}): string {
-  if (!enabled) return 'Nothing is on the server.'
-  if (syncing) return 'Backing up…'
-  if (lastSyncedAt === null) return 'Not backed up yet.'
+function statusLine(
+  {
+    enabled,
+    syncing,
+    lastSyncedAt,
+  }: {
+    enabled: boolean
+    syncing: boolean
+    lastSyncedAt: number | null
+  },
+  t: TFunction,
+): string {
+  if (!enabled) return t('me.data.nothingOnServer')
+  if (syncing) return t('me.data.backingUp')
+  if (lastSyncedAt === null) return t('me.data.notBackedUpYet')
   const at = new Date(lastSyncedAt)
   const sameDay = at.toDateString() === new Date().toDateString()
-  return `Last backed up ${new Intl.DateTimeFormat(undefined, {
+  const time = new Intl.DateTimeFormat(currentFormatLocale(), {
     hour: 'numeric',
     minute: '2-digit',
     ...(sameDay ? {} : { month: 'short', day: 'numeric' }),
-  }).format(at)}`
+  }).format(at)
+  return t('me.data.lastBackedUp', { time })
 }

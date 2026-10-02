@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons'
 import { router, useLocalSearchParams } from 'expo-router'
 import { isOverLimit } from '@thinkering/core'
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
@@ -37,6 +38,7 @@ import { colors } from '@/theme/tokens'
  * this screen is also where a bad suggestion gets removed.
  */
 export default function ResourcesScreen() {
+  const { t } = useTranslation()
   const { interestId } = useLocalSearchParams<{ interestId: string }>()
   const interest = interestId ? getInterest(db, interestId) : undefined
   const [version, setVersion] = useState(0)
@@ -62,7 +64,7 @@ export default function ResourcesScreen() {
     findMoreResources(interestId)
       .then((found) => {
         setVersion((n) => n + 1)
-        if (found === 0) setSearchError('Nothing new this time. Worth trying again later.')
+        if (found === 0) setSearchError(t('path.resources.nothingNew'))
       })
       .catch((e: unknown) => setSearchError(describeAiError(e)))
       .finally(() => setSearching(false))
@@ -71,16 +73,16 @@ export default function ResourcesScreen() {
   if (!interest) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-paper">
-        <Text className="font-sans text-body text-ink-soft">That interest is gone.</Text>
+        <Text className="font-sans text-body text-ink-soft">{t('path.interestGone')}</Text>
       </SafeAreaView>
     )
   }
 
   const remove = (resource: Resource) => {
-    Alert.alert('Remove this resource?', resource.title, [
-      { text: 'Keep', style: 'cancel' },
+    Alert.alert(t('path.resources.removeConfirmTitle'), resource.title, [
+      { text: t('path.resources.keep'), style: 'cancel' },
       {
-        text: 'Remove',
+        text: t('path.resources.remove'),
         style: 'destructive',
         onPress: () => {
           softDeleteResource(db, repoContext, resource.id)
@@ -95,24 +97,26 @@ export default function ResourcesScreen() {
       <View className="flex-row items-center gap-3 px-5 pt-4">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Back"
+          accessibilityLabel={t('path.back')}
           onPress={() => router.back()}
           hitSlop={10}
         >
           <Ionicons name="chevron-back" size={24} color={colors.ink.DEFAULT} />
         </Pressable>
-        <Text className="font-heading-bold text-title text-ink">Resources</Text>
+        <Text className="font-heading-bold text-title text-ink">{t('path.resources.title')}</Text>
       </View>
 
       <ScrollView className="flex-1" contentContainerClassName="gap-3 px-5 py-6">
         {/* Above the list: it gets long, and adding is what people come here to do. */}
         {searching ? (
-          <Generating label="Looking for resources" />
+          <Generating label={t('path.resources.searching')} />
         ) : (
           <View className="flex-row gap-2">
-            <Button label="Add a link" onPress={() => setAdding(true)} />
+            <Button label={t('path.resources.addLink')} onPress={() => setAdding(true)} />
             <Button
-              label={FIND_MORE_ENABLED ? 'Find more' : 'Find more · soon'}
+              label={
+                FIND_MORE_ENABLED ? t('path.resources.findMore') : t('path.resources.findMoreSoon')
+              }
               variant="quiet"
               onPress={findMore}
               disabled={!FIND_MORE_ENABLED}
@@ -126,9 +130,7 @@ export default function ResourcesScreen() {
           <EmptyState
             color="peach"
             message={
-              FIND_MORE_ENABLED
-                ? 'Nothing saved yet. Find more, or paste a link.'
-                : 'Nothing saved yet. Paste a link.'
+              FIND_MORE_ENABLED ? t('path.resources.empty') : t('path.resources.emptyNoFind')
             }
           />
         ) : (
@@ -136,7 +138,9 @@ export default function ResourcesScreen() {
             <Pressable
               key={resource.id}
               accessibilityRole="link"
-              accessibilityLabel={`Open ${resource.title}`}
+              accessibilityLabel={t('path.resources.openAccessibilityLabel', {
+                title: resource.title,
+              })}
               onPress={() => openResource(resource.url)}
               onLongPress={() => remove(resource)}
               className="gap-1 rounded-card border border-hairline bg-surface p-4"
@@ -150,7 +154,9 @@ export default function ResourcesScreen() {
                 </View>
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel={`Remove ${resource.title}`}
+                  accessibilityLabel={t('path.resources.removeAccessibilityLabel', {
+                    title: resource.title,
+                  })}
                   onPress={() => remove(resource)}
                   hitSlop={10}
                 >
@@ -192,6 +198,7 @@ function AddLinkSheet({
   interest: NonNullable<ReturnType<typeof getInterest>>
   onSaved: () => void
 }) {
+  const { t } = useTranslation()
   const [url, setUrl] = useState('')
   const [status, setStatus] = useState<'url' | 'fetching' | 'draft' | 'error'>('url')
   const [error, setError] = useState('')
@@ -203,7 +210,7 @@ function AddLinkSheet({
   const fetchDraft = async () => {
     const normalized = normalizeUrl(url)
     if (!normalized) {
-      setError("That doesn't look like a link.")
+      setError(t('path.resources.invalidLink'))
       setStatus('error')
       return
     }
@@ -242,11 +249,11 @@ function AddLinkSheet({
     <Sheet
       visible={visible}
       onClose={onClose}
-      title="Add a link"
+      title={t('path.resources.addLinkSheetTitle')}
       footer={
         status === 'draft' ? (
           <Button
-            label="Save"
+            label={t('common.save')}
             onPress={save}
             disabled={
               isOverLimit(title, 'line') ||
@@ -256,7 +263,7 @@ function AddLinkSheet({
           />
         ) : status === 'fetching' ? null : (
           <Button
-            label="Look it up"
+            label={t('path.resources.lookItUp')}
             onPress={() => void fetchDraft()}
             disabled={url.trim().length === 0}
           />
@@ -264,29 +271,29 @@ function AddLinkSheet({
       }
     >
       {status === 'fetching' ? (
-        <Generating label="Reading the page" />
+        <Generating label={t('path.resources.readingThePage')} />
       ) : status === 'draft' ? (
         <>
           <Text className="font-sans text-caption text-ink-soft">{hostOf(draft?.url ?? '')}</Text>
           <TextField
             value={title}
             onChangeText={setTitle}
-            accessibilityLabel="Resource title"
+            accessibilityLabel={t('path.resources.titleFieldAccessibilityLabel')}
             limit="line"
           />
           <TextField
             value={description}
             onChangeText={setDescription}
             multiline
-            accessibilityLabel="What it is"
+            accessibilityLabel={t('path.resources.whatItIsAccessibilityLabel')}
             limit="note"
           />
           <TextField
             value={howToUse}
             onChangeText={setHowToUse}
             multiline
-            placeholder="How this could be used"
-            accessibilityLabel="How this could be used"
+            placeholder={t('path.resources.howToUsePlaceholder')}
+            accessibilityLabel={t('path.resources.howToUseAccessibilityLabel')}
             limit="note"
           />
         </>
@@ -298,9 +305,9 @@ function AddLinkSheet({
               setUrl(text)
               if (status === 'error') setStatus('url')
             }}
-            placeholder="Paste a link"
+            placeholder={t('path.resources.linkPlaceholder')}
             autoFocus
-            accessibilityLabel="Link to add"
+            accessibilityLabel={t('path.resources.linkAccessibilityLabel')}
             onSubmitEditing={() => void fetchDraft()}
           />
           {status === 'error' ? (

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Text, View } from 'react-native'
 
 /**
@@ -6,9 +7,12 @@ import { Text, View } from 'react-native'
  * Pages inserted before the question was recorded simply don't get one.
  */
 export function AskedHeader({ question }: { question: string }) {
+  const { t } = useTranslation()
   return (
     <View className="gap-1 rounded-card bg-cornflower-tint px-4 py-3">
-      <Text className="font-sans-medium text-caption text-cornflower-deep">You asked</Text>
+      <Text className="font-sans-medium text-caption text-cornflower-deep">
+        {t('player.ask.askedHeading')}
+      </Text>
       <Text className="font-sans text-body text-ink">{question}</Text>
     </View>
   )

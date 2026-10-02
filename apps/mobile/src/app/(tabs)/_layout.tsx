@@ -1,11 +1,13 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { Tabs } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { Platform } from 'react-native'
 
 import { InterestSelectionProvider } from '@/interests/selection'
 import { colors, fonts } from '@/theme/tokens'
 
 export default function TabsLayout() {
+  const { t } = useTranslation()
   return (
     <InterestSelectionProvider>
       <Tabs
@@ -29,7 +31,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="today"
           options={{
-            title: 'Today',
+            title: t('common.tabs.today'),
             tabBarButtonTestID: 'tab-today',
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="sunny-outline" size={size} color={color} />
@@ -39,7 +41,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="path"
           options={{
-            title: 'Path',
+            title: t('common.tabs.path'),
             tabBarButtonTestID: 'tab-path',
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="map-outline" size={size} color={color} />
@@ -49,7 +51,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="history"
           options={{
-            title: 'History',
+            title: t('common.tabs.history'),
             tabBarButtonTestID: 'tab-history',
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="time-outline" size={size} color={color} />
@@ -59,7 +61,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="me"
           options={{
-            title: 'Me',
+            title: t('common.tabs.me'),
             tabBarButtonTestID: 'tab-me',
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="person-outline" size={size} color={color} />
