@@ -105,6 +105,7 @@ Additional rules for this task:
 - Without a provided resource, don't embed a video or send the learner off to find one — no channels, no "search YouTube for". Teach it on the page instead.
 - Give every freeText block a "consider": md — one sentence, under 25 words, that the learner can open if they're stuck. Point to where to look, not what they'll find there: an angle, a kind of example to think of, or what to notice. If they could copy it down as their answer, it says too much.
 - estMinutes and page count must match the requested session length.
+- A reading preference, when given, sets how much prose each page carries, never the page count. less: a few sentences per content page, with more of the work done in interactions. more: fuller explanations, and a further example where it helps.
 - Use the provided card title as the document title unless it's clearly wrong for the content you wrote.
 - If the learner made a request for this activity, honour it: it says what to focus on or how they want to learn it. Stay within the tier and the library item's shape. Take the request's own words over the learner's saved contexts: if they name a situation or person, use that one, and draw on contexts only for what the request leaves open.
 

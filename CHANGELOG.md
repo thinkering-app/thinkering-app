@@ -8,6 +8,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Added
 
+- Choose how much reading goes on each page of an activity: short, medium
+  or long. It's on the time step when you add an interest, and in Path
+  settings.
 - Long answers and notes show how much room is left as you near the limit.
   Past it, nothing you wrote is cut: sending waits until it fits.
 - Under each written answer in an activity: "Think about…", for a

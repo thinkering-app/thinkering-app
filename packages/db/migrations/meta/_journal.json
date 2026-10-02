@@ -29,6 +29,13 @@
       "when": 1789770189169,
       "tag": "0003_add_activity_focus",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1790853600140,
+      "tag": "0004_wandering_ma_gnuci",
+      "breakpoints": true
     }
   ]
 }

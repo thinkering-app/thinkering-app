@@ -1,7 +1,7 @@
 import { router } from 'expo-router'
 import { useState } from 'react'
 import { Text, TextInput, View } from 'react-native'
-import type { Frequency } from '@thinkering/core'
+import type { Frequency, ReadingAmount } from '@thinkering/core'
 
 import { ChoiceChip } from '@/components/choice-chip'
 import { useIntake } from '@/intake/context'
@@ -14,11 +14,18 @@ const FREQUENCIES: { value: Frequency; label: string }[] = [
   { value: 'when_i_can', label: 'When I can' },
 ]
 
+const READING: { value: ReadingAmount; label: string }[] = [
+  { value: 'less', label: 'Short' },
+  { value: 'balanced', label: 'Medium' },
+  { value: 'more', label: 'Long' },
+]
+
 const PRESET_MINUTES = [5, 10, 15]
 
 /**
- * Step 6 (docs/01 §1) — frequency and session length together. This screen is
- * also what buys G3 its time; nothing here waits on a generation.
+ * Step 6 (docs/01 §1) — frequency, session length and reading per page. This
+ * screen is also what buys G3 its time; nothing here waits on a generation.
+ * Reading starts on "Medium", so it never holds up Continue.
  */
 export default function TimeStep() {
   const { answers, update } = useIntake()
@@ -92,6 +99,21 @@ export default function TimeStep() {
               <Text className="font-sans-medium text-body text-cornflower-deep">min</Text>
             </View>
           ) : null}
+        </View>
+      </View>
+
+      <View className="gap-3">
+        <Text className="font-sans text-secondary text-ink-soft">Reading per page</Text>
+        <View className="flex-row flex-wrap gap-2">
+          {READING.map((option) => (
+            <ChoiceChip
+              key={option.value}
+              testID={`intake-reading-${option.value}`}
+              label={option.label}
+              selected={answers.readingAmount === option.value}
+              onPress={() => update({ readingAmount: option.value })}
+            />
+          ))}
         </View>
       </View>
     </StepScreen>
