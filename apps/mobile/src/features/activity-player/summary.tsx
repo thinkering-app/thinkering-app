@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import { useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { Pressable, Text, View } from 'react-native'
 import type { ActivityDoc, Rating, Tier } from '@thinkering/core'
 
@@ -8,7 +9,7 @@ import { Button } from '@/components/button'
 import { InfoDialog } from '@/components/sheet'
 import { TextField } from '@/components/text-field'
 import { colors } from '@/theme/tokens'
-import { celebrationFor, GOAL_VERB } from './summary-copy'
+import { celebrationFor, GOAL_LINE_KEY } from './summary-copy'
 
 /**
  * What the renderer adds to the summary page (docs/05): a heading to mark the
@@ -34,25 +35,26 @@ export function SummaryHeader({
       </Text>
       {goalTitle ? (
         <Text className="font-sans text-body text-ink-soft">
-          {GOAL_VERB[tier]} <Text className="font-sans-medium text-ink">{goalTitle}</Text>.
+          <Trans
+            i18nKey={GOAL_LINE_KEY[tier]}
+            values={{ goal: goalTitle }}
+            components={{ bold: <Text className="font-sans-medium text-ink" /> }}
+          />
         </Text>
       ) : null}
     </View>
   )
 }
 
-/** Above Send. It keeps docs/08's promise: the learner's own answers never go. */
-const SHARE_HELP =
-  'Your rating and note are saved on this device. To help the developers judge activity quality, you can send them this activity with your rating and note — not your answers.'
-
 const RATINGS: {
   value: Rating
   icon: 'thumb-down-outline' | 'thumbs-up-down-outline' | 'thumb-up-outline'
-  label: string
+  labelKey:
+    'player.summary.rating.down' | 'player.summary.rating.mixed' | 'player.summary.rating.up'
 }[] = [
-  { value: 'down', icon: 'thumb-down-outline', label: 'Not useful' },
-  { value: 'mixed', icon: 'thumbs-up-down-outline', label: 'Mixed' },
-  { value: 'up', icon: 'thumb-up-outline', label: 'Useful' },
+  { value: 'down', icon: 'thumb-down-outline', labelKey: 'player.summary.rating.down' },
+  { value: 'mixed', icon: 'thumbs-up-down-outline', labelKey: 'player.summary.rating.mixed' },
+  { value: 'up', icon: 'thumb-up-outline', labelKey: 'player.summary.rating.up' },
 ]
 
 export function SummaryFooter({
@@ -73,6 +75,7 @@ export function SummaryFooter({
   onShare: (comment: string) => void
   shareState: 'idle' | 'pending' | 'done' | 'error'
 }) {
+  const { t } = useTranslation()
   const [text, setText] = useState(ratingText)
   const [aboutOpen, setAboutOpen] = useState(false)
   const canSend = (rating !== null || text.trim() !== '') && shareState !== 'pending'
@@ -92,11 +95,15 @@ export function SummaryFooter({
         {libraryItem ? (
           <View className="flex-row items-center gap-1.5">
             <Text className="font-sans text-secondary text-ink-soft">
-              Activity type: <Text className="font-sans-medium text-ink">{libraryItem.name}</Text>
+              <Trans
+                i18nKey="player.summary.activityType"
+                values={{ name: libraryItem.name }}
+                components={{ bold: <Text className="font-sans-medium text-ink" /> }}
+              />
             </Text>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`About ${libraryItem.name}`}
+              accessibilityLabel={t('player.summary.aboutItem', { name: libraryItem.name })}
               onPress={() => setAboutOpen(true)}
               hitSlop={10}
             >
@@ -108,7 +115,9 @@ export function SummaryFooter({
 
       {/* Pushed to the bottom of the page when the recap is short. */}
       <View className="mt-auto gap-3">
-        <Text className="text-center font-sans-medium text-body text-ink">Was this useful?</Text>
+        <Text className="text-center font-sans-medium text-body text-ink">
+          {t('player.summary.ratingPrompt')}
+        </Text>
         <View className="flex-row justify-center gap-4">
           {RATINGS.map((option) => {
             const chosen = rating === option.value
@@ -116,7 +125,7 @@ export function SummaryFooter({
               <Pressable
                 key={option.value}
                 accessibilityRole="button"
-                accessibilityLabel={option.label}
+                accessibilityLabel={t(option.labelKey)}
                 accessibilityState={{ selected: chosen }}
                 onPress={() => onRate(option.value, text)}
                 className={`h-12 w-12 items-center justify-center rounded-pill border ${
@@ -137,7 +146,7 @@ export function SummaryFooter({
 
         {shareState === 'done' ? (
           <Text className="text-center font-sans text-secondary text-ink-soft">
-            Sent — thank you.
+            {t('player.summary.sent')}
           </Text>
         ) : (
           <>
@@ -147,20 +156,23 @@ export function SummaryFooter({
                 setText(next)
                 if (rating) onRate(rating, next)
               }}
-              placeholder="Anything more? (optional)"
-              accessibilityLabel="Rating detail"
+              placeholder={t('player.summary.notePlaceholder')}
+              accessibilityLabel={t('player.summary.noteLabel')}
               multiline
             />
-            <Text className="text-center font-sans text-caption text-ink-soft">{SHARE_HELP}</Text>
+            {/* Above Send. It keeps docs/08's promise: the learner's own answers never go. */}
+            <Text className="text-center font-sans text-caption text-ink-soft">
+              {t('player.summary.shareHelp')}
+            </Text>
             <Button
-              label={shareState === 'pending' ? 'Sending…' : 'Send'}
+              label={t(shareState === 'pending' ? 'player.summary.sending' : 'player.summary.send')}
               variant="quiet"
               disabled={!canSend}
               onPress={() => onShare(text)}
             />
             {shareState === 'error' ? (
               <Text className="text-center font-sans text-caption text-ink-soft">
-                That didn&apos;t send. Try again later.
+                {t('player.summary.sendError')}
               </Text>
             ) : null}
           </>

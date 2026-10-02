@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import type { Section } from '@thinkering/core'
 
 import { PressScale } from '@/components/press-scale'
@@ -49,21 +50,21 @@ export function ActivityCard({
   onPress,
   testID,
 }: ActivityCardProps) {
+  const { t } = useTranslation()
+  const status = completed
+    ? t('today.card.doneToday')
+    : inProgress
+      ? t('common.continue')
+      : writing
+        ? t('today.card.writing')
+        : unwritten
+          ? t('today.card.write')
+          : t('today.card.minutes', { count: estMinutes })
   return (
     <PressScale
       testID={testID}
       accessibilityRole="button"
-      accessibilityLabel={`${title}. ${goalLine}. ${
-        completed
-          ? 'Done today'
-          : inProgress
-            ? 'Continue'
-            : writing
-              ? 'Writing'
-              : unwritten
-                ? 'Write'
-                : `${estMinutes} minutes`
-      }`}
+      accessibilityLabel={`${title}. ${goalLine}. ${status}`}
       onPress={onPress}
       wrapperClassName="w-72"
       className={`gap-2 rounded-card border p-5 ${
@@ -87,7 +88,9 @@ export function ActivityCard({
           {completed ? (
             <>
               <Ionicons name="checkmark" size={13} color={colors.ink.DEFAULT} />
-              <Text className="font-sans-medium text-caption text-ink">Done today</Text>
+              <Text className="font-sans-medium text-caption text-ink">
+                {t('today.card.doneToday')}
+              </Text>
             </>
           ) : (
             <>
@@ -106,12 +109,12 @@ export function ActivityCard({
               />
               <Text className="font-sans text-caption text-ink">
                 {inProgress
-                  ? 'Continue'
+                  ? t('common.continue')
                   : writing
-                    ? 'Writing'
+                    ? t('today.card.writing')
                     : unwritten
-                      ? 'Write'
-                      : `${estMinutes} min`}
+                      ? t('today.card.write')
+                      : t('today.card.minutesShort', { count: estMinutes })}
               </Text>
             </>
           )}

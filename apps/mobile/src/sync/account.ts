@@ -4,6 +4,7 @@ import { fetch } from 'expo/fetch'
 
 import { signedHeaders } from '@/ai/device'
 import { API_BASE_URL } from '@/ai/settings'
+import { t } from '@/i18n'
 import { backupConfigured, supabase } from './supabase'
 
 /**
@@ -60,25 +61,24 @@ export async function sendPasswordReset(email: string): Promise<AuthResult> {
  * account that token belongs to. The rows go with it (`on delete cascade`).
  */
 export async function deleteAccount(): Promise<AuthResult> {
-  if (!backupConfigured) return { ok: false, message: UNREACHABLE }
+  if (!backupConfigured) return { ok: false, message: UNREACHABLE() }
   try {
     const { data } = await supabase().auth.getSession()
     const token = data.session?.access_token
-    if (!token) return { ok: false, message: 'Sign in again to delete your account.' }
+    if (!token) return { ok: false, message: t('me.account.signInAgainToDelete') }
     const res = await fetch(`${API_BASE_URL}/api/account/delete`, {
       method: 'POST',
       headers: { ...(await signedHeaders('')), authorization: `Bearer ${token}` },
     })
-    if (!res.ok)
-      return { ok: false, message: "We couldn't delete the account. Nothing has changed." }
+    if (!res.ok) return { ok: false, message: t('me.account.deleteFailed') }
     await supabase().auth.signOut()
     return { ok: true }
   } catch {
-    return { ok: false, message: UNREACHABLE }
+    return { ok: false, message: UNREACHABLE() }
   }
 }
 
-const UNREACHABLE = "We couldn't reach the server. Check your connection and try again."
+const UNREACHABLE = () => t('me.account.unreachable')
 
 /**
  * Supabase reports most failures as a returned `error`, but a dead network
@@ -91,7 +91,7 @@ async function attempt(call: () => Promise<{ error: AuthError | null }>): Promis
     const { error } = await call()
     return error ? { ok: false, message: authMessage(error) } : { ok: true }
   } catch {
-    return { ok: false, message: UNREACHABLE }
+    return { ok: false, message: UNREACHABLE() }
   }
 }
 
@@ -106,18 +106,18 @@ function toAccount(session: Session | null): Account | null {
  * into "something went wrong" — a real message is more useful than a polite one.
  */
 function authMessage(error: AuthError): string {
-  if (error.name === 'AuthRetryableFetchError') return UNREACHABLE
+  if (error.name === 'AuthRetryableFetchError') return UNREACHABLE()
   switch (error.code) {
     case 'invalid_credentials':
-      return "That email and password don't match."
+      return t('me.account.invalidCredentials')
     case 'email_not_confirmed':
-      return 'Check your email for the confirmation link, then sign in.'
+      return t('me.account.confirmEmailFirst')
     case 'user_already_exists':
-      return 'There is already an account with that email. Sign in instead.'
+      return t('me.account.alreadyExists')
     case 'weak_password':
-      return 'Use a longer password — at least eight characters.'
+      return t('me.account.weakPassword')
     case 'over_email_send_rate_limit':
-      return 'Too many attempts just now. Try again in a few minutes.'
+      return t('me.account.rateLimited')
     default:
       return error.message
   }

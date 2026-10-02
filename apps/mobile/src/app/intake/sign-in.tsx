@@ -1,5 +1,6 @@
 import { router } from 'expo-router'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Text } from 'react-native'
 
 import { ReplayMask } from '@/analytics'
@@ -17,6 +18,7 @@ import { restoreFromAccount } from '@/sync/restore'
  * something to keep.
  */
 export default function IntakeSignInScreen() {
+  const { t } = useTranslation()
   // The keychain outlives a reinstall, so a fresh install can already be signed in.
   const [account, setAccount] = useState<Account | null>(null)
   const [loaded, setLoaded] = useState(false)
@@ -53,31 +55,34 @@ export default function IntakeSignInScreen() {
     setError(null)
   }
 
-  if (!loaded) return <SubScreen title="Sign in" />
+  if (!loaded) return <SubScreen title={t('intake.signIn.title')} />
 
   if (restoring) {
     return (
-      <SubScreen title="Sign in">
-        <Text className="font-sans text-body text-ink-soft">Bringing back your learning…</Text>
+      <SubScreen title={t('intake.signIn.title')}>
+        <Text className="font-sans text-body text-ink-soft">{t('intake.signIn.restoring')}</Text>
       </SubScreen>
     )
   }
 
   if (account) {
     return (
-      <SubScreen title="Sign in">
+      <SubScreen title={t('intake.signIn.title')}>
         <ReplayMask>
           <Text className="font-sans text-body text-ink">{account.email}</Text>
         </ReplayMask>
-        <Button label={error ? 'Try again' : 'Continue'} onPress={() => void restore()} />
+        <Button
+          label={error ? t('common.tryAgain') : t('common.continue')}
+          onPress={() => void restore()}
+        />
         <FormFeedback message={null} error={error} />
-        <TextLink label="Use a different account" onPress={() => void switchAccount()} />
+        <TextLink label={t('intake.signIn.switchAccount')} onPress={() => void switchAccount()} />
       </SubScreen>
     )
   }
 
   return (
-    <SubScreen title="Sign in">
+    <SubScreen title={t('intake.signIn.title')}>
       <AccountForm mode="sign_in" onSignedIn={() => void signedIn()} />
     </SubScreen>
   )

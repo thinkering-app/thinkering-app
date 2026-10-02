@@ -191,7 +191,12 @@ export {
   type ReflectionPlan,
   type SuggestedAddition,
 } from './path/reflection'
-export { outcomeLine, type OutcomeInput } from './history/outcome'
+export {
+  outcomeParts,
+  type OutcomeInput,
+  type OutcomeParts,
+  type OutcomeVerb,
+} from './history/outcome'
 export { groupByLocalDay, type DayGroup } from './history/grouping'
 export {
   isSameMonth,
@@ -253,3 +258,4 @@ export {
   PRIVACY_SECTIONS,
   type PrivacySection,
 } from './privacy/copy'
+export { LANGUAGES, LANGUAGE_NAMES, languageFromLocaleTag, type Language } from './language'

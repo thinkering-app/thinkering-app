@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import type { GeneratedGoal } from '@thinkering/core'
@@ -35,6 +36,7 @@ import { usePath, usePathInterest } from '@/path/use-path'
  * suggestions, collapsed to their titles, and the way into a reflection.
  */
 export default function PathScreen() {
+  const { t } = useTranslation()
   const interest = usePathInterest()
   const { goals, reload } = usePath(interest)
   const suggestions = useSuggestions(
@@ -56,7 +58,7 @@ export default function PathScreen() {
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right']}>
       <View className="gap-4 px-5 pt-4">
         <View className="flex-row items-center justify-between">
-          <Text className="font-heading-bold text-display text-ink">Path</Text>
+          <Text className="font-heading-bold text-display text-ink">{t('path.title')}</Text>
           <View className="flex-row items-center gap-5">
             {reordering ? (
               <Pressable
@@ -64,7 +66,9 @@ export default function PathScreen() {
                 onPress={() => setReordering(false)}
                 hitSlop={10}
               >
-                <Text className="font-sans-medium text-body text-cornflower-deep">Done</Text>
+                <Text className="font-sans-medium text-body text-cornflower-deep">
+                  {t('common.done')}
+                </Text>
               </Pressable>
             ) : null}
             {interest ? <PathButtons interestId={interest.id} /> : null}
@@ -80,7 +84,7 @@ export default function PathScreen() {
           <Empty />
         ) : (
           <>
-            <Text className="font-heading-bold text-heading text-ink">My goals</Text>
+            <Text className="font-heading-bold text-heading text-ink">{t('path.myGoals')}</Text>
             {goals.map((view, index) => (
               <GoalCard
                 key={view.goal.id}
@@ -101,7 +105,7 @@ export default function PathScreen() {
               />
             ))}
             <Button
-              label="Add a goal"
+              label={t('path.addGoal')}
               variant="quiet"
               onPress={() => {
                 setEditing(null)
@@ -110,11 +114,11 @@ export default function PathScreen() {
             />
 
             <View className="gap-3 pt-6">
-              <Text className="font-heading-bold text-heading text-ink">Suggested goals</Text>
+              <Text className="font-heading-bold text-heading text-ink">{t('path.suggested')}</Text>
               {suggestions.error ? (
                 <GenerationError message={suggestions.error} onRetry={suggestions.retry} />
               ) : suggestions.pending ? (
-                <Generating label="Looking at your path" />
+                <Generating label={t('path.generatingLabel')} />
               ) : (
                 suggestions.suggestions.map((suggestion) => (
                   <SuggestionCard
@@ -191,6 +195,7 @@ function SuggestionCard({
   onToggle: () => void
   onAdd: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <Pressable
       accessibilityRole="button"
@@ -202,9 +207,11 @@ function SuggestionCard({
       <View className="flex-row items-center gap-3">
         <Text className="flex-1 py-2 font-heading text-body text-ink">{suggestion.title}</Text>
         <Button
-          label="Add"
+          label={t('common.add')}
           variant="quiet"
-          accessibilityLabel={`Add ${suggestion.title} to your path`}
+          accessibilityLabel={t('path.suggestionAddAccessibilityLabel', {
+            title: suggestion.title,
+          })}
           onPress={onAdd}
         />
       </View>
@@ -218,10 +225,11 @@ function SuggestionCard({
 }
 
 function Empty() {
+  const { t } = useTranslation()
   const { addInterest, resumeSheet } = useAddInterest()
   return (
-    <EmptyState message="Add something you want to learn to get started.">
-      <Button label="Add an interest" onPress={addInterest} />
+    <EmptyState message={t('path.empty.message')}>
+      <Button label={t('common.addInterest')} onPress={addInterest} />
       {resumeSheet}
     </EmptyState>
   )

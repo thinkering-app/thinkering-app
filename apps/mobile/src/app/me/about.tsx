@@ -1,5 +1,6 @@
 import Constants from 'expo-constants'
 import { useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { Linking, Pressable, Text, View } from 'react-native'
 
 import { toggleInspectorEnabled } from '@/ai/settings'
@@ -16,27 +17,29 @@ import { FEEDBACK_CONTACT } from '@/feedback/use-feedback'
 const ASSEMBLY_CODE_URL = 'https://www.assemblycode.org/'
 
 export default function AboutScreen() {
+  const { t } = useTranslation()
   const [toast, setToast] = useState<string | null>(null)
 
   return (
-    <SubScreen title="About">
+    <SubScreen title={t('me.settings.about')}>
       <Text className="font-sans text-body leading-relaxed text-ink-soft">
-        thinkering is an early-stage project, actively in development. It&apos;s built by Rebecca
-        Hao, with the support of{' '}
-        <Text
-          className="text-cornflower-deep"
-          accessibilityRole="link"
-          onPress={() => void Linking.openURL(ASSEMBLY_CODE_URL)}
-        >
-          Assembly Code
-        </Text>
-        , a non-profit incubator and studio.
+        <Trans
+          i18nKey="me.about.intro"
+          components={{
+            link: (
+              <Text
+                className="text-cornflower-deep"
+                accessibilityRole="link"
+                onPress={() => void Linking.openURL(ASSEMBLY_CODE_URL)}
+              />
+            ),
+          }}
+        />
       </Text>
 
       <View className="gap-2">
         <Text className="font-sans text-body leading-relaxed text-ink-soft">
-          We&apos;d love to be in touch about your experience with thinkering, personal learning,
-          the science of learning, and AI.
+          {t('me.about.invite')}
         </Text>
         <Text
           className="font-sans-medium text-body text-cornflower-deep"
@@ -50,13 +53,15 @@ export default function AboutScreen() {
       {/* Hidden toggle (docs/02): long-press the version to reveal Developer. */}
       <Pressable
         onLongPress={() =>
-          setToast(toggleInspectorEnabled() ? 'Developer settings on' : 'Developer settings off')
+          setToast(
+            toggleInspectorEnabled() ? t('me.about.developerOn') : t('me.about.developerOff'),
+          )
         }
         delayLongPress={1500}
         className="items-center py-2"
       >
         <Text className="font-sans text-caption text-ink-soft">
-          Version {Constants.expoConfig?.version ?? '0.0.0'}
+          {t('me.about.version', { version: Constants.expoConfig?.version ?? '0.0.0' })}
         </Text>
       </Pressable>
 

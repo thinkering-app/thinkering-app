@@ -1,5 +1,6 @@
 import { router } from 'expo-router'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Text, View } from 'react-native'
 
 import { importFromFile, refusalMessage } from '@/backup/actions'
@@ -12,6 +13,7 @@ import { SubScreen } from '@/components/sub-screen'
  * project — without one, the welcome goes straight to the file.
  */
 export default function ReturningScreen() {
+  const { t } = useTranslation()
   const [error, setError] = useState<string | null>(null)
 
   // Nothing is on the device yet, so there is nothing to confirm replacing.
@@ -23,10 +25,17 @@ export default function ReturningScreen() {
   }
 
   return (
-    <SubScreen title="Welcome back">
+    <SubScreen title={t('intake.returning.title')}>
       <View className="gap-3">
-        <Button label="Sign in to your account" onPress={() => router.push('/intake/sign-in')} />
-        <Button label="Restore from a backup file" variant="quiet" onPress={() => void restore()} />
+        <Button
+          label={t('intake.returning.signIn')}
+          onPress={() => router.push('/intake/sign-in')}
+        />
+        <Button
+          label={t('intake.returning.restoreFile')}
+          variant="quiet"
+          onPress={() => void restore()}
+        />
       </View>
       {error ? <Text className="font-sans text-secondary text-peach">{error}</Text> : null}
     </SubScreen>

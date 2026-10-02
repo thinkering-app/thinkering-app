@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useCallback, useMemo, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import type { ActivityDoc, Page, Rating } from '@thinkering/core'
@@ -62,7 +63,7 @@ export function ActivityPlayer({
   doc,
   goalTitle,
   streaming = false,
-  waitLabel = 'Writing your activity',
+  waitLabel,
   libraryItem,
   sink,
   page: requested,
@@ -77,6 +78,8 @@ export function ActivityPlayer({
   onAsk,
   overlay,
 }: PlayerProps) {
+  const { t } = useTranslation()
+  const wait = waitLabel ?? t('player.wait.writing')
   // Clamped, never stored: pages arrive while G5b streams, so the page we show
   // is always one that exists yet.
   const index = Math.max(0, Math.min(requested, doc.pages.length - 1))
@@ -105,12 +108,12 @@ export function ActivityPlayer({
           goalTitle={goalTitle}
           estMinutes={doc.estMinutes}
           item={libraryItem}
-          label={waitLabel}
+          label={wait}
         />
       ) : null
     }
     if (page.kind === 'review' && page.blocks === null) {
-      return <Generating label="One more look at your answers" />
+      return <Generating label={t('player.review.working')} />
     }
     return (
       <View className="gap-5">
@@ -125,7 +128,7 @@ export function ActivityPlayer({
         ))}
       </View>
     )
-  }, [doc.estMinutes, doc.tier, doc.title, goalTitle, libraryItem, page, streaming, waitLabel])
+  }, [doc.estMinutes, doc.tier, doc.title, goalTitle, libraryItem, page, streaming, t, wait])
 
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right', 'bottom']}>
@@ -138,7 +141,7 @@ export function ActivityPlayer({
           <View className="flex-row items-center gap-3 px-5 pt-2">
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Close"
+              accessibilityLabel={t('player.close')}
               onPress={onClose}
               hitSlop={12}
             >
@@ -188,7 +191,7 @@ export function ActivityPlayer({
           <View className="flex-row items-center gap-3 px-5 pb-2 pt-2">
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Back"
+              accessibilityLabel={t('player.back')}
               disabled={index === 0}
               onPress={() => go(index - 1)}
               className={`h-11 w-11 items-center justify-center rounded-pill border border-hairline ${
@@ -199,14 +202,14 @@ export function ActivityPlayer({
             </Pressable>
             <View className="flex-1">
               {isSummary ? (
-                <Button testID="player-done" label="Done" onPress={onDone} />
+                <Button testID="player-done" label={t('common.done')} onPress={onDone} />
               ) : (
                 <ContinueButton
                   page={page}
                   label={
                     page && streaming && atEnd
-                      ? `Writing page ${doc.pages.length + 1}…`
-                      : 'Continue'
+                      ? t('player.writingPage', { page: doc.pages.length + 1 })
+                      : t('common.continue')
                   }
                   disabled={streaming && atEnd}
                   onPress={() => go(index + 1)}
@@ -218,7 +221,7 @@ export function ActivityPlayer({
             {onAsk ? (
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Ask"
+                accessibilityLabel={t('player.ask.label')}
                 onPress={onAsk}
                 className="h-11 w-11 items-center justify-center rounded-pill border border-hairline active:bg-cornflower-tint"
               >

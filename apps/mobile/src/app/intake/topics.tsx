@@ -1,5 +1,6 @@
 import { router } from 'expo-router'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Generating } from '@/components/generating'
 import { useIntake } from '@/intake/context'
@@ -13,6 +14,7 @@ import { StepScreen } from '@/intake/step-screen'
  * the way. Selecting none is allowed.
  */
 export default function TopicsStep() {
+  const { t } = useTranslation()
   const { answers, update, topics, startChoices, retryChoices } = useIntake()
 
   useEffect(() => {
@@ -23,14 +25,14 @@ export default function TopicsStep() {
   return (
     <StepScreen
       step={4}
-      question="Which topics feel most relevant?"
+      question={t('intake.topics.question')}
       continueDisabled={topics.status !== 'ready'}
       onContinue={() => router.push('/intake/success')}
     >
       <ChipPicker
         testID="intake-topics"
-        addLabel="Add your own"
-        generated={topics.status === 'ready' ? topics.value.topics.map((t) => t.label) : []}
+        addLabel={t('intake.chipPicker.addYourOwn')}
+        generated={topics.status === 'ready' ? topics.value.topics.map((entry) => entry.label) : []}
         custom={answers.customTopics}
         selected={answers.selectedTopics}
         onChange={({ custom, selected }) =>
@@ -40,7 +42,7 @@ export default function TopicsStep() {
       {topics.status === 'error' ? (
         <GenerationError message={topics.message} onRetry={retryChoices} />
       ) : topics.status !== 'ready' ? (
-        <Generating label="Finding topics" />
+        <Generating label={t('intake.topics.generating')} />
       ) : null}
     </StepScreen>
   )
