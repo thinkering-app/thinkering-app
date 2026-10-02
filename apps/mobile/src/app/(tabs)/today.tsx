@@ -21,6 +21,7 @@ import { db } from '@/db'
 import { writeActivityDoc, type WritingDocs } from '@/features/activity-player/generate'
 import { useAddInterest } from '@/intake/add-interest'
 import { InterestSelector } from '@/interests/selector'
+import { PathButtons } from '@/path/path-buttons'
 import { ReflectCard } from '@/path/reflect-card'
 import { useInterestSelection } from '@/interests/selection'
 import { ConfigureSheet } from '@/today/configure-sheet'
@@ -100,8 +101,9 @@ export default function TodayScreen() {
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right']}>
       <View className="gap-4 px-5 pt-4">
-        <View className="flex-row items-center gap-3">
+        <View className="flex-row items-center gap-5">
           <Text className="flex-1 font-heading-bold text-display text-ink">Today</Text>
+          {configurable ? <PathButtons interestId={configurable.id} /> : null}
           <SettingsButton />
         </View>
         <InterestSelector />

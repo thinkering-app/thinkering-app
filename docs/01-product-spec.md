@@ -95,7 +95,7 @@ For one selected interest:
 
   Nothing is written until **Update path**, which saves path and outcomes together; the reflection records before and after.
 
-- **3 suggested goals** at the bottom (**G9**, cached, regenerated when the path changes), one tap to add.
+- **3 suggested goals** below the path (**G9**, cached, regenerated when the path changes), collapsed to their titles — tap to read one — and one tap to add. The way into a reflection sits last.
 
 ### Resources
 
@@ -106,7 +106,7 @@ Title, link, description, "how this could be used" (user-entered, generated if b
 
 ### Path settings
 
-Every intake answer, editable, plus topics (considered when suggesting goals), approach notes (from G1), and **Contexts** — projects, environments and people, used in Go further activities only when they genuinely help. Text and outcomes commit with **Save**; lists act as tapped.
+Opened, like **Resources**, from the icons beside the ⚙ on Today, Path and History when one interest is selected. Every intake answer, editable, plus topics (considered when suggesting goals), approach notes (from G1), and **Contexts** — projects, environments and people, used in Go further activities only when they genuinely help. Text and outcomes commit with **Save**; lists act as tapped.
 
 ## 6. History
 

@@ -19,6 +19,8 @@ build; internal refactors and docs don't appear here. The conventions are in
   bubble now.
 - Settings are one tap away from anywhere: the ⚙ now sits in the top-right of
   Today, Path and History as well as Me.
+- Resources and Path settings for the selected interest are now in the
+  top-right of Today and History too, not only Path.
 - Delete all data, in Account and data: your interests, path and history go
   from this device — and from our server, if you're signed in — for good.
 - Me → Settings → AI says why there's a daily limit, and where to write to us
@@ -61,6 +63,11 @@ build; internal refactors and docs don't appear here. The conventions are in
 - Creating an activity, the goal list starts folded away. Open it to pick
   an existing goal; leave it closed and the activity comes from your focus,
   or where the section would go next.
+- Path has headings for your goals and suggested goals. Suggestions show
+  just their titles until you tap one, each with a plain Add button, and
+  Reflect now sits at the bottom.
+- In Path settings, Save stays at the bottom of the screen and only works
+  once you've changed something.
 - Adding an interest asks for one thing you want to learn. The first time,
   it says you can add more later.
 - On a computer's browser, thinkering sits in a column down the middle of
