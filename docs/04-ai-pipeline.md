@@ -115,7 +115,7 @@ The rules that follow from that:
 
 - **Local**: `llm_calls` table + AI Inspector screen (prompt, response, tokens, latency, est. cost). This is the primary prompt-iteration loop. One row per attempt, so a repaired call logs the attempt that failed validation as well as the repair — otherwise the row would report the call as costing half what it did. The screen's per-kind totals for the last day are in weighted tokens, the unit the cap uses, but they are **a floor rather than the meter**: an aborted stream never reaches `message_delta` and so reports no tokens at all, while the proxy charges what it streamed. The panel shows how many such calls it couldn't count rather than letting a low number pass for the day's spend.
 - **Server**: per-kind counters (count, tokens, p50/p95 latency, error rate) — aggregate only, no prompt/response bodies logged server-side (privacy).
-- **PostHog**: `ai_call` event with kind, model, latency bucket, ok/error — no content (see `08`).
+- **PostHog**: `ai_call` event with kind, model, latency bucket, ok/error, a coarse `error_type` (`invalid_output`, `search_failed`, `upstream`, `network`, `byok_auth`, …), whether the call was `retried` or `repaired`, and the `mode` — no content (see `08`). A call a repair saved still reads `ok`, so `repaired` is the early warning that a prompt is drifting.
 
 ## Prompt authoring guidelines
 

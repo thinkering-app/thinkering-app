@@ -42,7 +42,7 @@ Never in any property: interest names, goal titles, activity titles, user text, 
 | `routine_configured`                 | via (checkboxes/free_text)                                                                                                                             |
 | `backup_enabled` / `backup_disabled` | —                                                                                                                                                      |
 | `byok_enabled`                       | —                                                                                                                                                      |
-| `ai_call`                            | kind, model, latency_bucket, status (ok/error/rate_limited)                                                                                            |
+| `ai_call`                            | kind, model, latency_bucket, status (ok/error/rate_limited), error_type (enum, `none` on success), retried, repaired, mode (proxy/byok)                |
 | `cap_reached`                        | —                                                                                                                                                      |
 | `featurebase_opened`                 | screen                                                                                                                                                 |
 | `email_feedback_sent`                | screen, included_context                                                                                                                               |

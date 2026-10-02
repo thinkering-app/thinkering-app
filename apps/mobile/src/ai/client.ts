@@ -11,6 +11,7 @@ import {
   parseActivityDoc,
   RECORDED_RESPONSES,
   SseParser,
+  type AiErrorType,
   type AnyPromptTemplate,
   type RenderedPrompt,
 } from '@thinkering/core'
@@ -88,7 +89,7 @@ interface Execution {
 
 const TRANSIENT = new Set([408, 429, 500, 502, 503, 504, 529])
 
-/** The logged reason a call stopped at the daily cap — also what `ai_call` reports. */
+/** The logged reason a call stopped at the daily cap. */
 const RATE_LIMITED = 'daily generation budget used'
 
 /** The proxy's wire code for a generation whose web search failed. */
@@ -113,6 +114,30 @@ export function isSearchFailure(error: unknown): boolean {
   return (error as { searchFailed?: boolean } | null)?.searchFailed === true
 }
 
+/**
+ * Tags a failure with the `error_type` that `ai_call` reports for it, where
+ * the class alone doesn't say — an `Error` from a refused key and one from a
+ * dropped connection look the same by the time they reach `callAi`.
+ */
+function withErrorType<E extends Error>(error: E, errorType: AiErrorType): E {
+  return Object.assign(error, { errorType })
+}
+
+/** The coarse reason `ai_call` reports, read the way `describeAiError` reads it. */
+function aiErrorType(error: unknown): AiErrorType {
+  if (error instanceof AiBudgetError) return 'rate_limited'
+  if (error instanceof AiOutdatedClientError) return 'outdated_client'
+  if (isSearchFailure(error)) return 'search_failed'
+  if (error instanceof AiOutputError) return 'invalid_output'
+  return (error as { errorType?: AiErrorType } | null)?.errorType ?? 'other'
+}
+
+/** What happened on the way to a call's result, for `ai_call`. */
+interface Attempts {
+  retried: boolean
+  repaired: boolean
+}
+
 export async function callAi<T = unknown>(
   kind: string,
   params: unknown,
@@ -124,6 +149,7 @@ export async function callAi<T = unknown>(
   const mode = opts.mode ?? getAiMode()
   const rendered = template.render(parsedParams as never)
   const started = Date.now()
+  const attempts: Attempts = { retried: false, repaired: false }
 
   const logCall = (
     status: 'ok' | 'error' | 'aborted',
@@ -146,18 +172,29 @@ export async function callAi<T = unknown>(
     })
   }
 
-  const finishLog = (status: 'ok' | 'error' | 'aborted', execution?: Execution, error?: string) => {
+  const finishLog = (
+    status: 'ok' | 'error' | 'aborted',
+    execution?: Execution,
+    error?: string,
+    failure?: unknown,
+  ) => {
     const latencyMs = Date.now() - started
     // `ai_call` (docs/08) counts kinds and latency buckets, never the prompt or
     // the output. An aborted call is a navigation, not a result, so it doesn't
     // count; fixture mode isn't a real call either. One event per call, so a
-    // repaired call is one `ai_call` even though it logs two rows locally.
+    // repaired call is one `ai_call` even though it logs two rows locally —
+    // `repaired` and `retried` say what it took.
     if (status !== 'aborted' && mode !== 'fixture') {
+      const errorType = status === 'ok' ? 'none' : aiErrorType(failure)
       track('ai_call', {
         kind,
         model: execution?.model ?? MODEL_IDS[template.model],
         latency_bucket: latencyBucket(latencyMs),
-        status: status === 'ok' ? 'ok' : error === RATE_LIMITED ? 'rate_limited' : 'error',
+        status: status === 'ok' ? 'ok' : errorType === 'rate_limited' ? 'rate_limited' : 'error',
+        error_type: errorType,
+        retried: attempts.retried,
+        repaired: attempts.repaired,
+        mode,
       })
     }
     logCall(status, latencyMs, execution, error)
@@ -172,6 +209,7 @@ export async function callAi<T = unknown>(
       rendered,
       undefined,
       opts,
+      attempts,
     )
     let validated = validateOutput(kind, template, parsedParams, execution.text)
 
@@ -181,8 +219,14 @@ export async function callAi<T = unknown>(
       // the search failed — and repairing runs the same searches into the same
       // outage, at the price of the most expensive call the app makes (docs/04).
       if (template.tools?.webSearch) {
-        finishLog('error', execution, `invalid output: ${validated.issues.slice(0, 3).join('; ')}`)
-        throw markSearchFailed(new AiOutputError(validated.issues))
+        const error = markSearchFailed(new AiOutputError(validated.issues))
+        finishLog(
+          'error',
+          execution,
+          `invalid output: ${validated.issues.slice(0, 3).join('; ')}`,
+          error,
+        )
+        throw error
       }
       // The failed attempt gets its own row before the repair overwrites it:
       // the model was paid for it, so an Inspector that showed only the repair
@@ -194,6 +238,7 @@ export async function callAi<T = unknown>(
         `invalid output, repaired: ${validated.issues.slice(0, 3).join('; ')}`,
       )
       // One repair round-trip: send the validation errors back (docs/04).
+      attempts.repaired = true
       execution = await executeWithRetry(
         mode,
         kind,
@@ -205,11 +250,18 @@ export async function callAi<T = unknown>(
           issues: validated.issues,
         },
         opts,
+        attempts,
       )
       validated = validateOutput(kind, template, parsedParams, execution.text)
       if (!validated.ok) {
-        finishLog('error', execution, `invalid output: ${validated.issues.slice(0, 3).join('; ')}`)
-        throw new AiOutputError(validated.issues)
+        const error = new AiOutputError(validated.issues)
+        finishLog(
+          'error',
+          execution,
+          `invalid output: ${validated.issues.slice(0, 3).join('; ')}`,
+          error,
+        )
+        throw error
       }
     }
 
@@ -226,10 +278,10 @@ export async function callAi<T = unknown>(
     if (opts.signal?.aborted) {
       finishLog('aborted')
     } else if (e instanceof AiBudgetError) {
-      finishLog('error', undefined, RATE_LIMITED)
+      finishLog('error', undefined, RATE_LIMITED, e)
       track('cap_reached')
     } else {
-      finishLog('error', undefined, (e as Error).message)
+      finishLog('error', undefined, (e as Error).message, e)
     }
     throw e
   }
@@ -270,6 +322,7 @@ async function executeWithRetry(
   rendered: RenderedPrompt,
   repair: Repair | undefined,
   opts: AiCallOptions,
+  attempts: Attempts,
 ): Promise<Execution> {
   try {
     return await executeOnce(mode, kind, template, params, rendered, repair, opts)
@@ -279,6 +332,7 @@ async function executeWithRetry(
       !opts.signal?.aborted &&
       (e as { transient?: boolean }).transient === true
     if (!retryable) throw e
+    attempts.retried = true
     return executeOnce(mode, kind, template, params, rendered, repair, opts)
   }
 }
@@ -343,6 +397,8 @@ async function proxyCall(
     headers: await signedHeaders(body),
     body,
     signal: opts.signal ?? null,
+  }).catch((e: Error) => {
+    throw withErrorType(e, 'network')
   })
 
   if (res.status === 429) {
@@ -361,7 +417,7 @@ async function proxyCall(
       searchFailed ? 'web search unavailable' : `proxy error ${res.status}`,
     ) as Error & { transient?: boolean }
     error.transient = !searchFailed && TRANSIENT.has(res.status)
-    throw searchFailed ? markSearchFailed(error) : error
+    throw searchFailed ? markSearchFailed(error) : withErrorType(error, 'upstream')
   }
   return consumeSse(res, opts)
 }
@@ -375,7 +431,11 @@ async function byokCall(
   opts: AiCallOptions,
 ): Promise<Execution> {
   const apiKey = await secureGet(KEYS.byokKey)
-  if (!apiKey) throw new Error('no Anthropic key saved — add one in Me → Settings → AI')
+  if (!apiKey)
+    throw withErrorType(
+      new Error('no Anthropic key saved — add one in Me → Settings → AI'),
+      'byok_auth',
+    )
 
   const messages: { role: 'user' | 'assistant'; content: string }[] = rendered.messages.map(
     (m) => ({
@@ -415,12 +475,14 @@ async function byokCall(
       stream: true,
     }),
     signal: opts.signal ?? null,
+  }).catch((e: Error) => {
+    throw withErrorType(e, 'network')
   })
 
   if (!res.ok) {
     const error = new Error(`anthropic error ${res.status}`) as Error & { transient?: boolean }
     error.transient = TRANSIENT.has(res.status)
-    throw error
+    throw withErrorType(error, res.status === 401 || res.status === 403 ? 'byok_auth' : 'upstream')
   }
   return consumeSse(res, opts)
 }
@@ -428,7 +490,7 @@ async function byokCall(
 // ── shared SSE consumption ───────────────────────────────────────────────────
 
 async function consumeSse(res: Response, opts: AiCallOptions): Promise<Execution> {
-  if (!res.body) throw new Error('no response stream')
+  if (!res.body) throw withErrorType(new Error('no response stream'), 'upstream')
   const reader = res.body.getReader()
   const decoder = new TextDecoder()
   const parser = new SseParser()
@@ -436,7 +498,10 @@ async function consumeSse(res: Response, opts: AiCallOptions): Promise<Execution
   let model = ''
 
   for (;;) {
-    const { done, value } = await reader.read()
+    const { done, value } = await reader.read().catch((e: Error) => {
+      // The connection dropped mid-stream.
+      throw withErrorType(e, 'network')
+    })
     if (done) break
     for (const event of parser.push(decoder.decode(value, { stream: true }))) {
       if (event.event === 'proxy_error') {
@@ -449,7 +514,7 @@ async function consumeSse(res: Response, opts: AiCallOptions): Promise<Execution
           searchFailed ? 'web search unavailable' : 'upstream stream error',
         ) as Error & { transient?: boolean }
         error.transient = !searchFailed
-        throw searchFailed ? markSearchFailed(error) : error
+        throw searchFailed ? markSearchFailed(error) : withErrorType(error, 'upstream')
       }
       let data: unknown = {}
       try {
