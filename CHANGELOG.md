@@ -146,6 +146,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Fixed
 
+- A fill-in-the-blank answer of 1 is no longer marked right when the answer
+  is -1.
 - Today no longer makes a Watch Along with nothing to watch, or a Guided
   Reading with nothing to read. Without a saved video or reading for it, those
   types are skipped; a section with no other type waits for you to add one

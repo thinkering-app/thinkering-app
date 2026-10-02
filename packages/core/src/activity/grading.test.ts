@@ -49,6 +49,9 @@ describe('grading', () => {
     expect(gradeBlank(blank('3.14'), '3,14')).toBe(false)
     expect(gradeBlank(blank('mitochondria'), 'mitochondri4')).toBe(false)
     expect(gradeBlank(blank('the'), '')).toBe(false)
+    expect(gradeBlank(blank('-1'), '1')).toBe(false)
+    expect(gradeBlank(blank('1'), '-1')).toBe(false)
+    expect(gradeBlank(blank('-1'), '−1.')).toBe(true)
   })
 
   it('requires the exact sequence for ordering', () => {
