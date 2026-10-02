@@ -73,6 +73,7 @@ Route handlers are called directly with a `Request`; the Anthropic SDK is mocked
 - Harness: `jest-expo` + React Native Testing Library. RNTL 14's `render` and `fireEvent` are **async** — `await` them. Rendering repeatedly in one test (a loop with `unmount()`) trips "overlapping act()" and silently renders nothing; use `it.each`.
 - Unknown block kind renders the placeholder without taking down the page (`05`).
 - Resume restores `current_page`; a partial streamed doc with one valid page renders.
+- **The AI client** (`src/ai/client.test.ts`): `callAi` against a scripted `fetch` — one retry on a transient failure and none after a failed search, the cap, or a cancel; one repair, and none for a searching kind; two `llm_calls` rows but one `ai_call` for a repaired call; and the `error_type` each failure reports. Fixture mode skips all of it, so no other tier reaches it.
 
 Not tested, on purpose: screen layout, styling, navigation chrome, component snapshots.
 

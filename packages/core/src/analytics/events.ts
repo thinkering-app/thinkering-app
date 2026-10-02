@@ -105,6 +105,25 @@ export const SETTINGS_KEYS = [
 ] as const
 export type SettingsKey = (typeof SETTINGS_KEYS)[number]
 
+/**
+ * Why an `ai_call` failed, coarsened (`none` when it didn't). `search_failed`
+ * is the web search tool failing, not our code; `byok_auth` is the learner's
+ * own key missing or refused; `upstream` is the proxy or Anthropic answering
+ * with an error; `network` is no answer at all.
+ */
+export const AI_ERROR_TYPES = [
+  'none',
+  'rate_limited',
+  'invalid_output',
+  'search_failed',
+  'outdated_client',
+  'byok_auth',
+  'upstream',
+  'network',
+  'other',
+] as const
+export type AiErrorType = (typeof AI_ERROR_TYPES)[number]
+
 /** An event that carries nothing but its name. */
 export type NoProperties = Record<string, never>
 
@@ -165,6 +184,12 @@ export type AnalyticsEvent =
         model: string
         latency_bucket: LatencyBucket
         status: 'ok' | 'error' | 'rate_limited'
+        error_type: AiErrorType
+        /** A transient failure was retried, whatever came of it. */
+        retried: boolean
+        /** Output failed validation and was sent back once for repair. */
+        repaired: boolean
+        mode: 'proxy' | 'byok'
       }
     }
   | { event: 'cap_reached'; properties: NoProperties }
@@ -215,7 +240,16 @@ export const ANALYTICS_EVENT_PROPERTIES: {
   backup_enabled: [],
   backup_disabled: [],
   byok_enabled: [],
-  ai_call: ['kind', 'model', 'latency_bucket', 'status'],
+  ai_call: [
+    'kind',
+    'model',
+    'latency_bucket',
+    'status',
+    'error_type',
+    'retried',
+    'repaired',
+    'mode',
+  ],
   cap_reached: [],
   featurebase_opened: ['screen'],
   email_feedback_sent: ['screen', 'included_context'],

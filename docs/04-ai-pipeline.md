@@ -121,7 +121,7 @@ A `kind` is a wire contract. The proxy renders from **its own** registry, so a r
 
 - **Local**: `llm_calls` + the AI Inspector (prompt, response, tokens, latency, est. cost) — the primary prompt-iteration loop. One row per attempt, so a repair's failed attempt is counted too. Per-kind daily totals are in weighted tokens but are **a floor, not the meter**: aborted streams report no tokens while the proxy charges what streamed, so the panel shows how many calls it couldn't count.
 - **Server**: per-kind counters (count, tokens, p50/p95 latency, error rate) — aggregate only, no prompt/response bodies (privacy).
-- **PostHog**: `ai_call` with kind, model, latency bucket, ok/error — no content (`08`).
+- **PostHog**: `ai_call` with kind, model, latency bucket, ok/error, a coarse `error_type` (`invalid_output`, `search_failed`, `upstream`, `network`, `byok_auth`, …), whether the call was `retried` or `repaired`, and the `mode` — no content (`08`). A call a repair saved still reads `ok`, so `repaired` is the early warning that a prompt is drifting.
 
 ## Prompt authoring guidelines
 
