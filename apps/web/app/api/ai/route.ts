@@ -78,8 +78,12 @@ const bodySchema = z.object({
   kind: z.string().min(1).max(64),
   params: z.unknown(),
   stream: z.boolean().optional().default(true),
-  /** The language to write in (docs/04 §Content language). Builds before it send none. */
-  language: z.enum(LANGUAGES).optional().default('en'),
+  /**
+   * The language to write in (docs/04 §Content language). Builds before it
+   * send none, and one this server doesn't know yet — an app that shipped a
+   * language ahead of the server — gets English rather than a failed call.
+   */
+  language: z.enum(LANGUAGES).catch('en'),
   /** One repair round-trip (docs/04 §Failure handling): the client sends back
    * the invalid output + validation errors; we append them as extra turns. */
   repair: z

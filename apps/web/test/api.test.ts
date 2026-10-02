@@ -151,7 +151,7 @@ describe('POST /api/ai — validation and behavior', () => {
     expect((await store.getUsage(creds.deviceId, '2026-09-15')).calls).toBe(0)
   })
 
-  it('writes in the language the client asks for, English when it names none', async () => {
+  it('writes in the language the client asks for, English when it names none or one this server lacks', async () => {
     const systems: string[] = []
     const client = fakeAnthropic()
     const create = client.messages.create.bind(client.messages)
@@ -164,17 +164,13 @@ describe('POST /api/ai — validation and behavior', () => {
     const withLanguage = (language: string) =>
       JSON.stringify({ ...(JSON.parse(APPROACH_BODY) as object), language })
 
-    for (const body of [APPROACH_BODY, withLanguage('es')]) {
+    for (const body of [APPROACH_BODY, withLanguage('es'), withLanguage('fr')]) {
       const res = await aiPost(signedRequest('http://x/api/ai', creds, { body }))
       expect(res.status).toBe(200)
     }
     expect(systems[0]).not.toContain('Language:')
     expect(systems[1]).toContain('the learner reads Spanish')
-
-    const unknown = await aiPost(
-      signedRequest('http://x/api/ai', creds, { body: withLanguage('fr') }),
-    )
-    expect(unknown.status).toBe(400)
+    expect(systems[2]).not.toContain('Language:')
   })
 
   it('returns the response with budget headers and meters usage (non-stream)', async () => {
