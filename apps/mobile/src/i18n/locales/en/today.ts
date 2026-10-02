@@ -47,6 +47,9 @@ export const today = {
     create: 'Create',
     forGoal: 'For an existing goal (optional)',
     activityType: 'Activity type (optional)',
+    activityTypeChosen: 'Activity type',
+    video: 'Video',
+    reading: 'Reading',
     focusPlaceholder: "Anything to focus on, or how you'd like to learn it",
   },
   routineSheet: {

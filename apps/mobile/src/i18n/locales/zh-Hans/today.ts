@@ -47,6 +47,9 @@ export const today: TranslationOf<typeof english> = {
     create: '创建',
     forGoal: '针对已有目标（可选）',
     activityType: '练习类型（可选）',
+    activityTypeChosen: '练习类型',
+    video: '视频',
+    reading: '阅读材料',
     focusPlaceholder: '想重点练什么，或者想怎么学',
   },
   routineSheet: {

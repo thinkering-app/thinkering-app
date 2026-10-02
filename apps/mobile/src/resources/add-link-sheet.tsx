@@ -49,9 +49,7 @@ export function AddLinkSheet({
       return
     }
     if (media && resourceMediaOf(normalized) !== media) {
-      setError(
-        media === 'video' ? "That isn't a YouTube video." : "That's a video, not a page to read.",
-      )
+      setError(media === 'video' ? t('path.resources.notAVideo') : t('path.resources.notAReading'))
       setStatus('error')
       return
     }
@@ -91,7 +89,11 @@ export function AddLinkSheet({
       visible={visible}
       onClose={onClose}
       title={
-        media === 'video' ? 'Add a video' : media === 'article' ? 'Add a reading' : t('path.resources.addLinkSheetTitle')
+        media === 'video'
+          ? t('path.resources.addVideo')
+          : media === 'article'
+            ? t('path.resources.addReading')
+            : t('path.resources.addLinkSheetTitle')
       }
       footer={
         status === 'draft' ? (
@@ -148,7 +150,11 @@ export function AddLinkSheet({
               setUrl(text)
               if (status === 'error') setStatus('url')
             }}
-            placeholder={media === 'video' ? 'Paste a YouTube link' : t('path.resources.linkPlaceholder')}
+            placeholder={
+              media === 'video'
+                ? t('path.resources.videoLinkPlaceholder')
+                : t('path.resources.linkPlaceholder')
+            }
             autoFocus
             accessibilityLabel={t('path.resources.linkAccessibilityLabel')}
             onSubmitEditing={() => void fetchDraft()}

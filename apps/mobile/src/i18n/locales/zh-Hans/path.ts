@@ -109,8 +109,13 @@ export const path: TranslationOf<typeof english> = {
     howToUsePlaceholder: '可以怎么用',
     howToUseAccessibilityLabel: '可以怎么用',
     linkPlaceholder: '粘贴链接',
+    videoLinkPlaceholder: '粘贴 YouTube 链接',
     linkAccessibilityLabel: '要添加的链接',
     invalidLink: '这看起来不像链接。',
+    notAVideo: '这不是 YouTube 视频。',
+    notAReading: '这是视频，不是可以阅读的网页。',
+    addVideo: '添加视频',
+    addReading: '添加阅读材料',
     linkErrors: {
       blocked: '这个链接看起来不是公开页面。',
       unreadable: '没能读取这个页面。',

@@ -48,6 +48,9 @@ export const today: TranslationOf<typeof english> = {
     create: 'Crear',
     forGoal: 'Para un objetivo existente (opcional)',
     activityType: 'Tipo de actividad (opcional)',
+    activityTypeChosen: 'Tipo de actividad',
+    video: 'Vídeo',
+    reading: 'Lectura',
     focusPlaceholder: 'En qué centrarte o cómo te gustaría aprenderlo',
   },
   routineSheet: {

@@ -106,8 +106,13 @@ export const path = {
     howToUsePlaceholder: 'How this could be used',
     howToUseAccessibilityLabel: 'How this could be used',
     linkPlaceholder: 'Paste a link',
+    videoLinkPlaceholder: 'Paste a YouTube link',
     linkAccessibilityLabel: 'Link to add',
     invalidLink: "That doesn't look like a link.",
+    notAVideo: "That isn't a YouTube video.",
+    notAReading: "That's a video, not a page to read.",
+    addVideo: 'Add a video',
+    addReading: 'Add a reading',
     linkErrors: {
       blocked: "That link doesn't look like a public page.",
       unreadable: "We couldn't read that page.",

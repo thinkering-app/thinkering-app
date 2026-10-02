@@ -109,8 +109,13 @@ export const path: TranslationOf<typeof english> = {
     howToUsePlaceholder: 'Cómo se podría usar',
     howToUseAccessibilityLabel: 'Cómo se podría usar',
     linkPlaceholder: 'Pega un enlace',
+    videoLinkPlaceholder: 'Pega un enlace de YouTube',
     linkAccessibilityLabel: 'Enlace para añadir',
     invalidLink: 'Eso no parece un enlace.',
+    notAVideo: 'Eso no es un vídeo de YouTube.',
+    notAReading: 'Eso es un vídeo, no una página para leer.',
+    addVideo: 'Añadir un vídeo',
+    addReading: 'Añadir una lectura',
     linkErrors: {
       blocked: 'Ese enlace no parece una página pública.',
       unreadable: 'No pudimos leer esa página.',
