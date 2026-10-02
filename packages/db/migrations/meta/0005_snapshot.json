@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "a6a5db17-33b9-4ac9-8308-08cf6c291b20",
-  "prevId": "fe0349ec-c09f-41eb-9575-8eb5cb359386",
+  "id": "ebd1dfe4-3c46-42f7-a9c3-84834e3c6521",
+  "prevId": "a6a5db17-33b9-4ac9-8308-08cf6c291b20",
   "tables": {
     "activities": {
       "name": "activities",
@@ -37,6 +37,13 @@
         },
         "focus": {
           "name": "focus",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "resource_id": {
+          "name": "resource_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false,

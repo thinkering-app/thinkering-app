@@ -4,6 +4,7 @@ import {
   type ExperienceChoice,
   type Frequency,
   type InterestStatus,
+  type ReadingAmount,
   type WhyChoice,
 } from '@thinkering/core'
 import type { Database, RepoContext } from '../database'
@@ -30,6 +31,7 @@ export interface NewInterest {
   successOutcomes?: string[] | null
   frequency: Frequency
   sessionMinutes: number
+  readingAmount?: ReadingAmount
   approachNotes?: string
   status: InterestStatus
   sortOrder: number
@@ -50,6 +52,7 @@ export function createInterest(db: Database, ctx: RepoContext, input: NewInteres
     successOutcomes: input.successOutcomes ?? null,
     frequency: input.frequency,
     sessionMinutes: input.sessionMinutes,
+    readingAmount: input.readingAmount ?? 'balanced',
     approachNotes: input.approachNotes ?? '',
     status: input.status,
     sortOrder: input.sortOrder,

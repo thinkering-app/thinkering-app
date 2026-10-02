@@ -74,6 +74,7 @@ Don't run `pnpm e2e` while iterating. The Maestro flows are a pre-release check 
 - Bump the template's `version`.
 - Review the prompt snapshot diff and update it with vitest `-u`. The diff is the review: it shows exactly what the model will now be sent.
 - Run `pnpm prompt:check <kind>`, then run the app in proxy mode, trigger that kind, and read each call's prompt, response, tokens and cost in Me → Settings → Developer → AI Inspector. Quality judgment stays human.
+- Save what the live scripts print. The response streams to stderr and stdout carries only the PASS/FAIL line, so send stderr to a file — `pnpm prompt:check <kind> --only <fixture> 2> .context/<fixture>.txt` (in Conductor `.context/` is the workspace's uncommitted scratch folder; any untracked path works elsewhere) — and never cut it with `| tail`. A run you didn't keep has to be paid for again.
 - Write the Inspector verdict — what you checked, what's good, what's still off — in the PR description.
 
 Re-record `fixtures/recorded/<kind>` only deliberately. A new kind needs a recording, added to `src/fixtures/recorded.ts`, which also enrolls it in the malformed-output checks (`src/fixtures/recorded.test.ts`).

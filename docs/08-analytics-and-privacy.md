@@ -30,7 +30,7 @@ Never in any property: interest names, goal titles, activity titles, user text, 
 | `app_opened`                         | platform, app_version, days_since_install (bucket)                                                                                                     |
 | `intake_started`                     | is_first_interest, resumed                                                                                                                             |
 | `intake_step_completed`              | step (1–7), duration_bucket                                                                                                                            |
-| `intake_completed`                   | topics_selected_count, frequency, session_minutes                                                                                                      |
+| `intake_completed`                   | topics_selected_count, frequency, session_minutes, reading_amount                                                                                      |
 | `intake_abandoned`                   | last_step                                                                                                                                              |
 | `activity_started`                   | section, tier, library_item_id, source (card/prefetch/resume — `prefetch` is reserved; prefetching generates a document, it doesn't start an activity) |
 | `activity_completed`                 | section, tier, library_item_id, duration_bucket, pages, questions_asked_count, rating                                                                  |
@@ -42,7 +42,7 @@ Never in any property: interest names, goal titles, activity titles, user text, 
 | `routine_configured`                 | via (checkboxes/free_text)                                                                                                                             |
 | `backup_enabled` / `backup_disabled` | —                                                                                                                                                      |
 | `byok_enabled`                       | —                                                                                                                                                      |
-| `ai_call`                            | kind, model, latency_bucket, status (ok/error/rate_limited)                                                                                            |
+| `ai_call`                            | kind, model, latency_bucket, status (ok/error/rate_limited), error_type (enum, `none` on success), retried, repaired, mode (proxy/byok)                |
 | `cap_reached`                        | —                                                                                                                                                      |
 | `featurebase_opened`                 | screen                                                                                                                                                 |
 | `email_feedback_sent`                | screen, included_context                                                                                                                               |

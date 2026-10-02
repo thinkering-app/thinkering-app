@@ -59,6 +59,7 @@ export {
   gradeOrdering,
   gradeMatching,
 } from './activity/grading'
+export { displayOrder } from './activity/display-order'
 export {
   reviewPageIndex,
   fillReviewPage,
@@ -228,6 +229,7 @@ export {
   ANALYTICS_EVENT_NAMES,
   ANALYTICS_EVENT_PROPERTIES,
   ACTIVITY_SOURCES,
+  AI_ERROR_TYPES,
   DAYS_SINCE_INSTALL_BUCKETS,
   DURATION_BUCKETS,
   LATENCY_BUCKETS,
@@ -238,6 +240,7 @@ export {
   latencyBucket,
   sanitizeAnalyticsProperties,
   type ActivitySource,
+  type AiErrorType,
   type AnalyticsEvent,
   type AnalyticsEventName,
   type AnalyticsProperties,

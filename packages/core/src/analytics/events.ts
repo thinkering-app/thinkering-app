@@ -1,4 +1,12 @@
-import type { Frequency, GoalSource, Rating, ResourceSource, Section, Tier } from '../domain'
+import type {
+  Frequency,
+  GoalSource,
+  Rating,
+  ReadingAmount,
+  ResourceSource,
+  Section,
+  Tier,
+} from '../domain'
 import type { FeedbackPlatform, FeedbackScreen } from '../feedback/context'
 
 /**
@@ -92,9 +100,29 @@ export const SETTINGS_KEYS = [
   'interest_order',
   'frequency',
   'session_minutes',
+  'reading_amount',
   'path_settings',
 ] as const
 export type SettingsKey = (typeof SETTINGS_KEYS)[number]
+
+/**
+ * Why an `ai_call` failed, coarsened (`none` when it didn't). `search_failed`
+ * is the web search tool failing, not our code; `byok_auth` is the learner's
+ * own key missing or refused; `upstream` is the proxy or Anthropic answering
+ * with an error; `network` is no answer at all.
+ */
+export const AI_ERROR_TYPES = [
+  'none',
+  'rate_limited',
+  'invalid_output',
+  'search_failed',
+  'outdated_client',
+  'byok_auth',
+  'upstream',
+  'network',
+  'other',
+] as const
+export type AiErrorType = (typeof AI_ERROR_TYPES)[number]
 
 /** An event that carries nothing but its name. */
 export type NoProperties = Record<string, never>
@@ -115,7 +143,12 @@ export type AnalyticsEvent =
     }
   | {
       event: 'intake_completed'
-      properties: { topics_selected_count: number; frequency: Frequency; session_minutes: number }
+      properties: {
+        topics_selected_count: number
+        frequency: Frequency
+        session_minutes: number
+        reading_amount: ReadingAmount
+      }
     }
   | { event: 'intake_abandoned'; properties: { last_step: number } }
   | {
@@ -151,6 +184,12 @@ export type AnalyticsEvent =
         model: string
         latency_bucket: LatencyBucket
         status: 'ok' | 'error' | 'rate_limited'
+        error_type: AiErrorType
+        /** A transient failure was retried, whatever came of it. */
+        retried: boolean
+        /** Output failed validation and was sent back once for repair. */
+        repaired: boolean
+        mode: 'proxy' | 'byok'
       }
     }
   | { event: 'cap_reached'; properties: NoProperties }
@@ -180,7 +219,7 @@ export const ANALYTICS_EVENT_PROPERTIES: {
   app_opened: ['platform', 'app_version', 'days_since_install'],
   intake_started: ['is_first_interest', 'resumed'],
   intake_step_completed: ['step', 'duration_bucket'],
-  intake_completed: ['topics_selected_count', 'frequency', 'session_minutes'],
+  intake_completed: ['topics_selected_count', 'frequency', 'session_minutes', 'reading_amount'],
   intake_abandoned: ['last_step'],
   activity_started: ['section', 'tier', 'library_item_id', 'source'],
   activity_completed: [
@@ -201,7 +240,16 @@ export const ANALYTICS_EVENT_PROPERTIES: {
   backup_enabled: [],
   backup_disabled: [],
   byok_enabled: [],
-  ai_call: ['kind', 'model', 'latency_bucket', 'status'],
+  ai_call: [
+    'kind',
+    'model',
+    'latency_bucket',
+    'status',
+    'error_type',
+    'retried',
+    'repaired',
+    'mode',
+  ],
   cap_reached: [],
   featurebase_opened: ['screen'],
   email_feedback_sent: ['screen', 'included_context'],
