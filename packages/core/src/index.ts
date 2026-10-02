@@ -59,6 +59,7 @@ export {
   gradeOrdering,
   gradeMatching,
 } from './activity/grading'
+export { displayOrder } from './activity/display-order'
 export {
   reviewPageIndex,
   fillReviewPage,
