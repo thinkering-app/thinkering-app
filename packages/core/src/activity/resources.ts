@@ -59,6 +59,27 @@ export function pickResource<T extends SavedResourceRef>(
 }
 
 /**
+ * Whether a card of `item` toward `goalId` has something to stand on. An item
+ * built around a video or a reading (Watch Along, Guided Reading) needs a saved
+ * one of that media, matched to the goal or serving the path generally:
+ * without it there's nothing to watch or read, so the item isn't offered
+ * (docs/06 §Resources in activities). One that only uses a resource when
+ * there is one (In the Wild) can describe its artifact on the page instead.
+ */
+export function hasResourceFor(
+  item: Pick<LibraryItem, 'usesResources' | 'resourceMedia'>,
+  goalId: string | null,
+  saved: readonly SavedResourceRef[],
+): boolean {
+  if (!item.usesResources || !item.resourceMedia) return true
+  return saved.some(
+    (r) =>
+      ((goalId !== null && r.goalIds?.includes(goalId)) || !r.goalIds || r.goalIds.length === 0) &&
+      resourceMediaOf(r.url) === item.resourceMedia,
+  )
+}
+
+/**
  * The saved resources a learner can choose from for a + card of `item`'s type
  * (docs/01 §3): those of its media, the goal's first, then the path's general
  * ones, then other goals'. Oldest first within each.

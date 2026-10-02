@@ -128,6 +128,10 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Fixed
 
+- Today no longer makes a Watch Along with nothing to watch, or a Guided
+  Reading with nothing to read. Without a saved video or reading for it, those
+  types are skipped; a section with no other type waits for you to add one
+  from its + card.
 - When the web search behind finding resources stops working, it gives up
   as soon as it knows, and never runs past four minutes, instead of leaving
   you waiting.

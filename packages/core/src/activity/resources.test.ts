@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { getLibraryItem } from '../library/items'
 import type { Block } from '../schemas/blocks'
-import { groundBlocks, pickResource } from './resources'
+import { groundBlocks, hasResourceFor, pickResource } from './resources'
 
 const video = { id: 'r-video', url: 'https://www.youtube.com/watch?v=zjkBMFhNj_g', goalIds: ['g1'] }
 const article = { id: 'r-article', url: 'https://example.com/guide', goalIds: ['g1'] }
@@ -34,6 +34,24 @@ describe('pickResource', () => {
 
   it('picks nothing for an item that isn’t built around a resource', () => {
     expect(pickResource(getLibraryItem('retrieval-quiz'), 'g1', [video])).toBeUndefined()
+  })
+})
+
+describe('hasResourceFor', () => {
+  const watchAlong = getLibraryItem('watch-along')!
+
+  it('needs a video of the goal’s or the path’s, not another goal’s or an article', () => {
+    expect(hasResourceFor(watchAlong, 'g1', [video])).toBe(true)
+    expect(hasResourceFor(watchAlong, 'g3', [general])).toBe(true)
+    expect(hasResourceFor(watchAlong, 'g3', [otherGoal])).toBe(false)
+    expect(hasResourceFor(watchAlong, 'g1', [article])).toBe(false)
+    expect(hasResourceFor(watchAlong, null, [video, general])).toBe(true)
+    expect(hasResourceFor(watchAlong, null, [video])).toBe(false)
+  })
+
+  it('always holds for an item that doesn’t need a video or a reading', () => {
+    expect(hasResourceFor(getLibraryItem('in-the-wild')!, 'g1', [])).toBe(true)
+    expect(hasResourceFor(getLibraryItem('retrieval-quiz')!, 'g1', [])).toBe(true)
   })
 })
 

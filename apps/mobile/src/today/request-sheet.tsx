@@ -25,10 +25,10 @@ import { defaultRequestPick, type ActivityRequest } from './plan'
 
 /**
  * A section's + card (docs/01 §3): one more activity, optionally for a goal
- * they choose, of a type they choose (Next and Strengthen), and shaped by what
- * they'd like to focus on. A type built around a saved resource needs one
- * chosen, or added here. With no goal and no focus, it lands where the
- * section would have gone next.
+ * they choose, of a type they choose (Next and Strengthen; a section down to
+ * one type shows it, already chosen), and shaped by what they'd like to focus
+ * on. A type built around a saved resource needs one chosen, or added here.
+ * With no goal and no focus, it lands where the section would have gone next.
  */
 export function RequestSheet({
   visible,
@@ -84,7 +84,9 @@ export function RequestSheet({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [interestId, section, today, visible],
   )
-  const type = types.find((item) => item.id === libraryItemId)
+  // The only type there is is the one they'll get.
+  const single = types.length === 1
+  const type = single ? types[0] : types.find((item) => item.id === libraryItemId)
   const needsResource = type?.usesResources === true
   const resources = useMemo(
     () =>
@@ -97,8 +99,10 @@ export function RequestSheet({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [interestId, visible],
   )
+  // When every type needs a resource, one has to be chosen to choose it.
   const ready =
     (goalId !== null || focus.trim().length > 0 || hasDefault) &&
+    (type !== undefined || types.length === 0 || types.some((item) => !item.usesResources)) &&
     (!needsResource || resourceId !== null) &&
     !isOverLimit(focus, 'note')
 
@@ -130,7 +134,7 @@ export function RequestSheet({
     onRequest({
       section,
       goalId,
-      libraryItemId,
+      libraryItemId: type?.id ?? null,
       resourceId: needsResource ? resourceId : null,
       focus,
     })
@@ -158,42 +162,25 @@ export function RequestSheet({
           </View>
         </Fold>
       ) : null}
-      {types.length > 1 ? (
+      {single ? (
+        <View className="gap-2">
+          <Text className="font-sans-medium text-secondary text-ink-soft">Activity type</Text>
+          <TypeRow item={types[0]!} selected onInfo={setInfo} />
+        </View>
+      ) : types.length > 1 ? (
         <Fold label="Activity type (optional)" open={typesOpen} onToggle={toggleTypes}>
           <View>
             {types.map((item, i) => {
               const selected = item.id === libraryItemId
               return (
-                <Pressable
+                <TypeRow
                   key={item.id}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected }}
+                  item={item}
+                  selected={selected}
+                  divided={i > 0}
                   onPress={() => chooseType(selected ? null : item.id)}
-                  className={`flex-row items-center gap-3 py-3 ${i > 0 ? 'border-t border-hairline' : ''}`}
-                >
-                  <View className="flex-1 flex-row items-center gap-1.5">
-                    <Text
-                      className={`shrink font-sans-medium text-body ${selected ? 'text-cornflower-deep' : 'text-ink'}`}
-                    >
-                      {item.name}
-                    </Text>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel={`About ${item.name}`}
-                      onPress={() => setInfo(item)}
-                      hitSlop={10}
-                    >
-                      <Ionicons
-                        name="information-circle-outline"
-                        size={20}
-                        color={colors.ink.soft}
-                      />
-                    </Pressable>
-                  </View>
-                  {selected ? (
-                    <Ionicons name="checkmark" size={20} color={colors.cornflower.deep} />
-                  ) : null}
-                </Pressable>
+                  onInfo={setInfo}
+                />
               )
             })}
           </View>
@@ -276,6 +263,49 @@ export function RequestSheet({
         }
       />
     </Sheet>
+  )
+}
+
+/** One activity type, with an ⓘ for what it is. */
+function TypeRow({
+  item,
+  selected,
+  divided = false,
+  onPress,
+  onInfo,
+}: {
+  item: LibraryItem
+  selected: boolean
+  divided?: boolean
+  /** Absent for a type that can't be unchosen. */
+  onPress?: () => void
+  onInfo: (item: LibraryItem) => void
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      disabled={!onPress}
+      className={`flex-row items-center gap-3 py-3 ${divided ? 'border-t border-hairline' : ''}`}
+    >
+      <View className="flex-1 flex-row items-center gap-1.5">
+        <Text
+          className={`shrink font-sans-medium text-body ${selected ? 'text-cornflower-deep' : 'text-ink'}`}
+        >
+          {item.name}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`About ${item.name}`}
+          onPress={() => onInfo(item)}
+          hitSlop={10}
+        >
+          <Ionicons name="information-circle-outline" size={20} color={colors.ink.soft} />
+        </Pressable>
+      </View>
+      {selected ? <Ionicons name="checkmark" size={20} color={colors.cornflower.deep} /> : null}
+    </Pressable>
   )
 }
 
