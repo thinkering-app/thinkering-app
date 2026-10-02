@@ -146,6 +146,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Fixed
 
+- Steps and numbered lists show each number once, instead of a step titled
+  "1" next to its own 1.
 - Today no longer makes a Watch Along with nothing to watch, or a Guided
   Reading with nothing to read. Without a saved video or reading for it, those
   types are skipped; a section with no other type waits for you to add one
