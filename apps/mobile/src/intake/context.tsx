@@ -256,6 +256,7 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
       ),
       frequency,
       sessionMinutes,
+      readingAmount: answers.readingAmount,
       approachNotes: approach.state.value.approachNotes,
       status: answers.statusOverride ?? placement,
       topics: [
@@ -280,6 +281,7 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
       topics_selected_count: selectedTopics.length,
       frequency,
       session_minutes: sessionMinutes,
+      reading_amount: answers.readingAmount,
     })
     return interest.id
   }, [answers, approach.state, choices.state, path.state, placement])

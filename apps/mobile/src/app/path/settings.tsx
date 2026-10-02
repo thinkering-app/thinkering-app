@@ -14,10 +14,12 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   EXPERIENCE_CHOICES,
   FREQUENCIES,
+  READING_AMOUNTS,
   isOverLimit,
   WHY_CHOICES,
   type ExperienceChoice,
   type Frequency,
+  type ReadingAmount,
   type WhyChoice,
 } from '@thinkering/core'
 import {
@@ -65,6 +67,12 @@ const FREQUENCY_LABEL: Record<Frequency, string> = {
   daily: 'Daily',
   several_weekly: 'Several times a week',
   when_i_can: 'When I can',
+}
+
+const READING_LABEL: Record<ReadingAmount, string> = {
+  less: 'Short',
+  balanced: 'Medium',
+  more: 'Long',
 }
 
 const PRESET_MINUTES = [5, 10, 15]
@@ -120,6 +128,9 @@ export default function PathSettingsScreen() {
   const nextOutcomeKey = useRef(outcomes.length)
   const [frequency, setFrequency] = useState<Frequency>(interest?.frequency ?? 'several_weekly')
   const [sessionMinutes, setSessionMinutes] = useState(interest?.sessionMinutes ?? 10)
+  const [readingAmount, setReadingAmount] = useState<ReadingAmount>(
+    interest?.readingAmount ?? 'balanced',
+  )
   const [approachNotes, setApproachNotes] = useState(interest?.approachNotes ?? '')
   const [newTopic, setNewTopic] = useState('')
   const [editingContext, setEditingContext] = useState<Context | null>(null)
@@ -152,6 +163,7 @@ export default function PathSettingsScreen() {
     successOutcomes: successOutcomes.length > 0 ? successOutcomes : null,
     frequency,
     sessionMinutes,
+    readingAmount,
     approachNotes: approachNotes.trim(),
   }
   // Pending only when Save would write something different — stray spaces and
@@ -166,6 +178,7 @@ export default function PathSettingsScreen() {
     successOutcomes.join('\n') !== (interest.successOutcomes ?? []).join('\n') ||
     patch.frequency !== interest.frequency ||
     patch.sessionMinutes !== interest.sessionMinutes ||
+    patch.readingAmount !== interest.readingAmount ||
     patch.approachNotes !== interest.approachNotes
 
   const save = () => {
@@ -174,6 +187,8 @@ export default function PathSettingsScreen() {
     if (frequency !== interest.frequency) track('settings_changed', { key: 'frequency' })
     if (sessionMinutes !== interest.sessionMinutes)
       track('settings_changed', { key: 'session_minutes' })
+    if (readingAmount !== interest.readingAmount)
+      track('settings_changed', { key: 'reading_amount' })
     router.back()
   }
 
@@ -338,6 +353,15 @@ export default function PathSettingsScreen() {
                 <Text className="font-sans text-body text-ink-soft">min</Text>
               </View>
             </View>
+          </Field>
+
+          <Field label="Reading per page">
+            <Chips
+              options={READING_AMOUNTS}
+              labels={READING_LABEL}
+              value={readingAmount}
+              onChange={setReadingAmount}
+            />
           </Field>
 
           <Field label="Topics of interest">

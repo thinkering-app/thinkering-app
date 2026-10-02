@@ -1,4 +1,12 @@
-import type { Frequency, GoalSource, Rating, ResourceSource, Section, Tier } from '../domain'
+import type {
+  Frequency,
+  GoalSource,
+  Rating,
+  ReadingAmount,
+  ResourceSource,
+  Section,
+  Tier,
+} from '../domain'
 import type { FeedbackPlatform, FeedbackScreen } from '../feedback/context'
 
 /**
@@ -92,6 +100,7 @@ export const SETTINGS_KEYS = [
   'interest_order',
   'frequency',
   'session_minutes',
+  'reading_amount',
   'path_settings',
 ] as const
 export type SettingsKey = (typeof SETTINGS_KEYS)[number]
@@ -134,7 +143,12 @@ export type AnalyticsEvent =
     }
   | {
       event: 'intake_completed'
-      properties: { topics_selected_count: number; frequency: Frequency; session_minutes: number }
+      properties: {
+        topics_selected_count: number
+        frequency: Frequency
+        session_minutes: number
+        reading_amount: ReadingAmount
+      }
     }
   | { event: 'intake_abandoned'; properties: { last_step: number } }
   | {
@@ -205,7 +219,7 @@ export const ANALYTICS_EVENT_PROPERTIES: {
   app_opened: ['platform', 'app_version', 'days_since_install'],
   intake_started: ['is_first_interest', 'resumed'],
   intake_step_completed: ['step', 'duration_bucket'],
-  intake_completed: ['topics_selected_count', 'frequency', 'session_minutes'],
+  intake_completed: ['topics_selected_count', 'frequency', 'session_minutes', 'reading_amount'],
   intake_abandoned: ['last_step'],
   activity_started: ['section', 'tier', 'library_item_id', 'source'],
   activity_completed: [

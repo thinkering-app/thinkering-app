@@ -94,6 +94,7 @@ async function generateActivityDoc(
     title: activity.title,
     estMinutes: activity.estMinutes,
     ...(activity.focus ? { focus: activity.focus } : {}),
+    reading: interest.readingAmount,
     ...(resource
       ? {
           resource: {

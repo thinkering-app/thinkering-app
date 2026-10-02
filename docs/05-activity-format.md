@@ -22,7 +22,7 @@ type Page =
   | { id: string; kind: 'inserted'; question?: string; blocks: Block[] } // created by G7 (Ask)
 ```
 
-Rules: 3–7 pages for a 5-minute session, scaling with `estMinutes`. Exactly one `review` page (second-to-last) and one `summary` page (last). Every non-summary page includes at least one interactive block. The renderer owns the progress bar (pages = segments; inserted pages extend it), back/forward navigation, and the always-visible Ask button — which sits in the navigation footer beside Back/Continue, in thumb reach, not in the header.
+Rules: 3–7 pages for a 5-minute session, scaling with `estMinutes`. The interest's reading setting changes how much prose a page carries, not the page count. Exactly one `review` page (second-to-last) and one `summary` page (last). Every non-summary page includes at least one interactive block. The renderer owns the progress bar (pages = segments; inserted pages extend it), back/forward navigation, and the always-visible Ask button — which sits in the navigation footer beside Back/Continue, in thumb reach, not in the header.
 
 ## Block types (v1)
 

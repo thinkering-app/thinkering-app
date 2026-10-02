@@ -20,6 +20,10 @@ export type ExperienceChoice = (typeof EXPERIENCE_CHOICES)[number]
 export const FREQUENCIES = ['daily', 'several_weekly', 'when_i_can'] as const
 export type Frequency = (typeof FREQUENCIES)[number]
 
+/** How much prose goes on each page of an activity; session length still sets the page count. */
+export const READING_AMOUNTS = ['less', 'balanced', 'more'] as const
+export type ReadingAmount = (typeof READING_AMOUNTS)[number]
+
 export const TOPIC_ORIGINS = ['motivation', 'foundational', 'adjacent', 'user'] as const
 export type TopicOrigin = (typeof TOPIC_ORIGINS)[number]
 

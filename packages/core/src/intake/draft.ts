@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { EXPERIENCE_CHOICES, FREQUENCIES, WHY_CHOICES } from '../domain'
+import { EXPERIENCE_CHOICES, FREQUENCIES, READING_AMOUNTS, WHY_CHOICES } from '../domain'
 import { approachOutputSchema, choicesOutputSchema, pathOutputSchema } from '../schemas/generations'
 
 /**
@@ -30,6 +30,8 @@ export const intakeAnswersSchema = z.object({
   selectedOutcomes: z.array(z.string()),
   frequency: z.enum(FREQUENCIES).nullable(),
   sessionMinutes: z.number().int().positive().nullable(),
+  /** Defaulted so a draft saved before step 6 asked it still parses. */
+  readingAmount: z.enum(READING_AMOUNTS).default('balanced'),
   /** Set only when the user overrides the D15 placement on step 7. */
   statusOverride: z.enum(['focus', 'exploring']).nullable(),
 })
@@ -47,6 +49,7 @@ export const EMPTY_INTAKE_ANSWERS: IntakeAnswers = {
   selectedOutcomes: [],
   frequency: null,
   sessionMinutes: null,
+  readingAmount: 'balanced',
   statusOverride: null,
 }
 
