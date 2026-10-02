@@ -10,15 +10,18 @@ import {
   modelRequestFields,
   parseActivityDoc,
   RECORDED_RESPONSES,
+  renderPrompt,
   SEARCH_DEADLINE_MS,
   serverToolError,
   SseParser,
   type AnyPromptTemplate,
+  type Language,
   type RenderedPrompt,
 } from '@thinkering/core'
 import { logLlmCall } from '@thinkering/db'
 import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
+import { currentLanguage } from '@/i18n'
 import { signedHeaders } from './device'
 import { KEYS, secureGet } from './secure-store'
 import { API_BASE_URL, getAiMode, type AiMode } from './settings'
@@ -66,6 +69,8 @@ export interface AiCallOptions {
   /** Accumulated raw text so far — feed extractPartialActivityDoc for G5b. */
   onText?: (text: string) => void
   mode?: AiMode
+  /** What the model writes in; the app language unless a caller says otherwise. */
+  language?: Language
 }
 
 export interface AiCallResult<T = unknown> {
@@ -118,13 +123,14 @@ export function isSearchFailure(error: unknown): boolean {
 export async function callAi<T = unknown>(
   kind: string,
   params: unknown,
-  opts: AiCallOptions = {},
+  callOpts: AiCallOptions = {},
 ): Promise<AiCallResult<T>> {
   const template = getPromptTemplate(kind)
   if (!template) throw new Error(`unknown generation kind "${kind}"`)
   const parsedParams = template.paramsSchema.parse(params)
+  const opts = { ...callOpts, language: callOpts.language ?? currentLanguage() }
   const mode = opts.mode ?? getAiMode()
-  const rendered = template.render(parsedParams as never)
+  const rendered = renderPrompt(template, parsedParams, opts.language)
   const started = Date.now()
 
   const logCall = (
@@ -339,7 +345,13 @@ async function proxyCall(
   repair: Repair | undefined,
   opts: AiCallOptions,
 ): Promise<Execution> {
-  const body = JSON.stringify({ kind, params, stream: true, ...(repair ? { repair } : {}) })
+  const body = JSON.stringify({
+    kind,
+    params,
+    language: opts.language ?? 'en',
+    stream: true,
+    ...(repair ? { repair } : {}),
+  })
   const res = await fetch(`${API_BASE_URL}/api/ai`, {
     method: 'POST',
     headers: await signedHeaders(body),

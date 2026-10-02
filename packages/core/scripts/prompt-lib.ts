@@ -3,6 +3,8 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import Anthropic from '@anthropic-ai/sdk'
+import { LANGUAGES, type Language } from '../src/language'
+import { renderPrompt } from '../src/prompts/language'
 import { getPromptTemplate } from '../src/prompts/registry'
 import { modelRequestFields, SEARCH_DEADLINE_MS, serverToolError } from '../src/prompts/request'
 import { MODEL_IDS, type AnyPromptTemplate } from '../src/prompts/types'
@@ -13,26 +15,45 @@ export interface ScriptArgs {
   kind: string | undefined
   /** `--only <fixture>`: run one input fixture instead of all of them. */
   only: string | undefined
+  /** `--lang <language>`: the content language to render in (docs/04 §Content language). */
+  language: Language
   record: boolean
 }
 
-export function parseScriptArgs(argv: string[]): ScriptArgs {
-  const onlyIndex = argv.indexOf('--only')
-  const only = onlyIndex >= 0 ? argv[onlyIndex + 1] : undefined
-  if (onlyIndex >= 0 && (!only || only.startsWith('--'))) {
-    console.error('--only needs a fixture name, e.g. --only default')
+/** The value after `flag`, or undefined when the flag isn't there; exits when it has none. */
+function flagValue(argv: string[], flag: string, example: string): string | undefined {
+  const i = argv.indexOf(flag)
+  if (i < 0) return undefined
+  const value = argv[i + 1]
+  if (!value || value.startsWith('--')) {
+    console.error(`${flag} needs a value, e.g. ${flag} ${example}`)
     process.exit(1)
   }
-  const positional = argv.filter(
-    (a, i) => !a.startsWith('--') && (onlyIndex < 0 || i !== onlyIndex + 1),
+  return value
+}
+
+export function parseScriptArgs(argv: string[]): ScriptArgs {
+  const only = flagValue(argv, '--only', 'default')
+  const lang = flagValue(argv, '--lang', 'es') ?? 'en'
+  const language = LANGUAGES.find((l) => l === lang)
+  if (!language) {
+    console.error(`unknown language "${lang}" — one of ${LANGUAGES.join(', ')}`)
+    process.exit(1)
+  }
+  const values = new Set(
+    ['--only', '--lang']
+      .map((f) => argv.indexOf(f))
+      .filter((i) => i >= 0)
+      .map((i) => i + 1),
   )
-  return { kind: positional[0], only, record: argv.includes('--record') }
+  const positional = argv.filter((a, i) => !a.startsWith('--') && !values.has(i))
+  return { kind: positional[0], only, language, record: argv.includes('--record') }
 }
 
 export function requireTemplate(kind: string | undefined): AnyPromptTemplate {
   if (!kind) {
     console.error(
-      'usage: pnpm prompt:run <kind> [--only <fixture>] [--record]  |  pnpm prompt:check <kind> [--only <fixture>]',
+      'usage: pnpm prompt:run <kind> [--only <fixture>] [--record] [--lang <language>]  |  pnpm prompt:check <kind> [--only <fixture>] [--lang <language>]',
     )
     process.exit(1)
   }
@@ -93,9 +114,13 @@ export interface LiveResult {
   stopped?: string
 }
 
-export async function runLive(template: AnyPromptTemplate, params: unknown): Promise<LiveResult> {
+export async function runLive(
+  template: AnyPromptTemplate,
+  params: unknown,
+  language: Language = 'en',
+): Promise<LiveResult> {
   const parsed = template.paramsSchema.parse(params)
-  const rendered = template.render(parsed as never)
+  const rendered = renderPrompt(template, parsed, language)
   if (!process.env.ANTHROPIC_API_KEY) {
     console.error('No ANTHROPIC_API_KEY: put it in apps/web/.env or export it.')
     process.exit(1)

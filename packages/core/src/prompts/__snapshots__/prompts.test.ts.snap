@@ -1,5 +1,51 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`content language (docs/04 §Content language) > es block for activity.generate (snapshot) 1`] = `
+"Language: the learner reads Spanish. Write every learner-facing string in Spanish, as a native writer would, not as a translation from English. These instructions and parts of the learner context are in English; that doesn't change the output language. JSON keys, enum values, ids and URLs stay exactly as specified.
+
+Use examples, names, currency, units and cultural references natural to a Spanish reader. The tone rules still hold: plain, warm, adult, no cheerleading.
+
+Address the learner as tú. Use neutral Spanish that reads naturally in both Spain and Latin America. Keep to the length limits: Spanish runs longer than English, so write tightly.
+
+If the interest is learning a language, that language is the subject: target words, phrases and examples stay in it, and the explanations are in Spanish.
+
+fillBlank: each blank is one short word or term; list other correct forms (for example, without accents) in "alts"."
+`;
+
+exports[`content language (docs/04 §Content language) > es block for resources.search (snapshot) 1`] = `
+"Language: the learner reads Spanish. Write every learner-facing string in Spanish, as a native writer would, not as a translation from English. These instructions and parts of the learner context are in English; that doesn't change the output language. JSON keys, enum values, ids and URLs stay exactly as specified.
+
+Use examples, names, currency, units and cultural references natural to a Spanish reader. The tone rules still hold: plain, warm, adult, no cheerleading.
+
+Address the learner as tú. Use neutral Spanish that reads naturally in both Spain and Latin America. Keep to the length limits: Spanish runs longer than English, so write tightly.
+
+If the interest is learning a language, that language is the subject: target words, phrases and examples stay in it, and the explanations are in Spanish.
+
+Prefer good sources in Spanish. An English source is fine when it's clearly better or there's nothing comparable; the descriptions you write are still in Spanish."
+`;
+
+exports[`content language (docs/04 §Content language) > zh-Hans block for activity.generate (snapshot) 1`] = `
+"Language: the learner reads Simplified Chinese. Write every learner-facing string in Simplified Chinese, as a native writer would, not as a translation from English. These instructions and parts of the learner context are in English; that doesn't change the output language. JSON keys, enum values, ids and URLs stay exactly as specified.
+
+Use examples, names, currency, units and cultural references natural to a Simplified Chinese reader. The tone rules still hold: plain, warm, adult, no cheerleading.
+
+Use Simplified characters only and Chinese full-width punctuation (，。？：) in prose. To quote a word or phrase inside a string, use “ ” — never a straight double quote, which ends the JSON string. Address the learner as 你. "Sentence case" does not apply. Where a limit is given in words, read one word as about two characters.
+
+If the interest is learning a language, that language is the subject: target words, phrases and examples stay in it, and the explanations are in Simplified Chinese.
+
+fillBlank: each blank is one short word or term, written as ___ with no spaces around it; list other correct forms in "alts"."
+`;
+
+exports[`content language (docs/04 §Content language) > zh-Hans block for intake.path (snapshot) 1`] = `
+"Language: the learner reads Simplified Chinese. Write every learner-facing string in Simplified Chinese, as a native writer would, not as a translation from English. These instructions and parts of the learner context are in English; that doesn't change the output language. JSON keys, enum values, ids and URLs stay exactly as specified.
+
+Use examples, names, currency, units and cultural references natural to a Simplified Chinese reader. The tone rules still hold: plain, warm, adult, no cheerleading.
+
+Use Simplified characters only and Chinese full-width punctuation (，。？：) in prose. To quote a word or phrase inside a string, use “ ” — never a straight double quote, which ends the JSON string. Address the learner as 你. "Sentence case" does not apply. Where a limit is given in words, read one word as about two characters.
+
+If the interest is learning a language, that language is the subject: target words, phrases and examples stay in it, and the explanations are in Simplified Chinese."
+`;
+
 exports[`prompt templates > activity.generate renders stably (snapshot) 1`] = `
 {
   "messages": [

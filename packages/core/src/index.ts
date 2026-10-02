@@ -83,6 +83,7 @@ export {
   serverToolError,
   type ModelRequestFields,
 } from './prompts/request'
+export { languageInstructions, renderPrompt } from './prompts/language'
 export {
   PROMPTS,
   getPromptTemplate,

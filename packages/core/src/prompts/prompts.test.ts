@@ -1,11 +1,18 @@
 import { describe, expect, it } from 'vitest'
-import { renderPromptFixture } from './inputs'
+import { PROMPT_INPUTS, renderPromptFixture } from './inputs'
+import { languageInstructions } from './language'
 import { SHARED_PREAMBLE } from './preamble'
 import { getPromptTemplate, PROMPTS, type ImplementedKind } from './registry'
 import { modelRequestFields } from './request'
 import { MODEL_IDS } from './types'
 
 const kinds = Object.keys(PROMPTS) as ImplementedKind[]
+
+/** The template's own render, with no language block: what English must equal. */
+function templateRender(kind: ImplementedKind) {
+  const template = PROMPTS[kind]
+  return template.render(template.paramsSchema.parse(PROMPT_INPUTS[kind]) as never)
+}
 
 describe('prompt templates', () => {
   // Prompts are the artifact, so string snapshots are correct here — the diff
@@ -52,5 +59,32 @@ describe('prompt templates', () => {
       if (t.model === 'sonnet') expect(t.effort, `${kind} needs an effort`).toBeDefined()
       else expect(t.effort).toBeUndefined()
     }
+  })
+})
+
+describe('content language (docs/04 §Content language)', () => {
+  it.each(kinds)('%s: English renders exactly as the template does', (kind) => {
+    expect(renderPromptFixture(kind, 'en')).toEqual(templateRender(kind))
+  })
+
+  it.each(kinds)('%s: another language adds one uncached block after the cached prefix', (kind) => {
+    const english = templateRender(kind)
+    for (const language of ['es', 'zh-Hans'] as const) {
+      const rendered = renderPromptFixture(kind, language)
+      // The cached blocks and the messages are untouched, so the cache is shared.
+      expect(rendered.system.slice(0, -1)).toEqual(english.system)
+      expect(rendered.messages).toEqual(english.messages)
+      expect(rendered.system.at(-1)).toEqual({ text: languageInstructions(language, kind) })
+    }
+  })
+
+  // The block is the prompt change, so its text is snapshotted like a prompt.
+  it.each([
+    ['es', 'activity.generate'],
+    ['zh-Hans', 'activity.generate'],
+    ['es', 'resources.search'],
+    ['zh-Hans', 'intake.path'],
+  ] as const)('%s block for %s (snapshot)', (language, kind) => {
+    expect(languageInstructions(language, kind)).toMatchSnapshot()
   })
 })
