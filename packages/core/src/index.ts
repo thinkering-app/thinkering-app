@@ -73,6 +73,8 @@ export {
   youtubeVideoId,
   resourceMediaOf,
   pickResource,
+  hasResourceFor,
+  resourceChoices,
   groundBlocks,
   groundPages,
   type SavedResourceRef,

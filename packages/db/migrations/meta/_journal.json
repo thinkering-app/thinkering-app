@@ -36,6 +36,13 @@
       "when": 1790853600140,
       "tag": "0004_wandering_ma_gnuci",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1790959418594,
+      "tag": "0005_add_activity_resource",
+      "breakpoints": true
     }
   ]
 }
