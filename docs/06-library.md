@@ -24,7 +24,7 @@ type LibraryItem = {
 }
 ```
 
-**Selection**: the scheduler picks the goal; G5a picks a library item from the active set for that section, using `goodFor` hints, the domain, variety (avoid repeating yesterday's item for the same goal), and — for `usesResources` items — whether a well-matched resource exists for the goal.
+**Selection**: the scheduler picks the goal; G5a picks a library item from the active set for that section, using `goodFor` hints, the domain, variety (avoid repeating yesterday's item for the same goal), and — for `usesResources` items — whether a well-matched resource exists for the goal. When the learner chooses a type on the + card, that item is the whole active set for the card, so G5a only titles it.
 
 ## Next (introduce)
 

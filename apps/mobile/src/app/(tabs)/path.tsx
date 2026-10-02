@@ -1,5 +1,3 @@
-import Ionicons from '@expo/vector-icons/Ionicons'
-import { router } from 'expo-router'
 import { useState } from 'react'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -25,16 +23,16 @@ import { useAddInterest } from '@/intake/add-interest'
 import { InterestSelector } from '@/interests/selector'
 import { GoalCard } from '@/path/goal-card'
 import { GoalSheet } from '@/path/goal-sheet'
+import { PathButtons } from '@/path/path-buttons'
 import { ReflectCard } from '@/path/reflect-card'
 import { useSuggestions } from '@/path/suggestions'
 import { usePath, usePathInterest } from '@/path/use-path'
-import { colors } from '@/theme/tokens'
 
 /**
  * Path (docs/01 §5): the interest's goals in path order with their status as a
  * colour treatment, expandable to the concepts beneath them, reorderable and
- * editable, with a way to add a goal of their own — and G9's three suggestions
- * at the bottom.
+ * editable, with a way to add a goal of their own — then G9's three
+ * suggestions, collapsed to their titles, and the way into a reflection.
  */
 export default function PathScreen() {
   const interest = usePathInterest()
@@ -44,6 +42,7 @@ export default function PathScreen() {
     goals.map((g) => g.goal),
   )
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [expandedSuggestion, setExpandedSuggestion] = useState<string | null>(null)
   const [editing, setEditing] = useState<Goal | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [reordering, setReordering] = useState(false)
@@ -68,37 +67,20 @@ export default function PathScreen() {
                 <Text className="font-sans-medium text-body text-cornflower-deep">Done</Text>
               </Pressable>
             ) : null}
-            {interest ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Resources"
-                onPress={() => router.push(`/path/resources?interestId=${interest.id}`)}
-                hitSlop={10}
-              >
-                <Ionicons name="book-outline" size={22} color={colors.ink.soft} />
-              </Pressable>
-            ) : null}
-            {interest ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Path settings"
-                onPress={() => router.push(`/path/settings?interestId=${interest.id}`)}
-                hitSlop={10}
-              >
-                <Ionicons name="options-outline" size={22} color={colors.ink.soft} />
-              </Pressable>
-            ) : null}
+            {interest ? <PathButtons interestId={interest.id} /> : null}
             <SettingsButton />
           </View>
         </View>
         <InterestSelector allowAll={false} />
       </View>
 
-      <ScrollView className="flex-1" contentContainerClassName="gap-3 px-5 py-6">
+      {/* Bottom room so the last card clears the feedback button. */}
+      <ScrollView className="flex-1" contentContainerClassName="gap-3 px-5 pb-24 pt-6">
         {!interest ? (
           <Empty />
         ) : (
           <>
+            <Text className="font-heading-bold text-heading text-ink">My goals</Text>
             {goals.map((view, index) => (
               <GoalCard
                 key={view.goal.id}
@@ -127,12 +109,8 @@ export default function PathScreen() {
               }}
             />
 
-            <View className="pt-6">
-              <ReflectCard interestId={interest.id} />
-            </View>
-
             <View className="gap-3 pt-6">
-              <Text className="font-heading-bold text-heading text-ink">Suggested</Text>
+              <Text className="font-heading-bold text-heading text-ink">Suggested goals</Text>
               {suggestions.error ? (
                 <GenerationError message={suggestions.error} onRetry={suggestions.retry} />
               ) : suggestions.pending ? (
@@ -142,6 +120,12 @@ export default function PathScreen() {
                   <SuggestionCard
                     key={suggestion.title}
                     suggestion={suggestion}
+                    expanded={expandedSuggestion === suggestion.title}
+                    onToggle={() =>
+                      setExpandedSuggestion((title) =>
+                        title === suggestion.title ? null : suggestion.title,
+                      )
+                    }
                     onAdd={() => {
                       suggestions.accept(suggestion)
                       reload()
@@ -149,6 +133,10 @@ export default function PathScreen() {
                   />
                 ))
               )}
+            </View>
+
+            <View className="pt-6">
+              <ReflectCard interestId={interest.id} />
             </View>
           </>
         )}
@@ -188,22 +176,44 @@ export default function PathScreen() {
   )
 }
 
-function SuggestionCard({ suggestion, onAdd }: { suggestion: GeneratedGoal; onAdd: () => void }) {
+/**
+ * A G9 suggestion, collapsed to its title like a goal; tapping shows why it's
+ * suggested. Add is the same quiet button the reflection's additions use.
+ */
+function SuggestionCard({
+  suggestion,
+  expanded,
+  onToggle,
+  onAdd,
+}: {
+  suggestion: GeneratedGoal
+  expanded: boolean
+  onToggle: () => void
+  onAdd: () => void
+}) {
   return (
-    <View className="flex-row items-start gap-3 rounded-card border border-hairline bg-surface p-4">
-      <View className="flex-1 gap-1">
-        <Text className="font-heading text-body text-ink">{suggestion.title}</Text>
-        <Text className="font-sans text-secondary text-ink-soft">{suggestion.description}</Text>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={suggestion.title}
+      accessibilityState={{ expanded }}
+      onPress={onToggle}
+      className="gap-2 rounded-card border border-hairline bg-surface py-2 pl-4 pr-2"
+    >
+      <View className="flex-row items-center gap-3">
+        <Text className="flex-1 py-2 font-heading text-body text-ink">{suggestion.title}</Text>
+        <Button
+          label="Add"
+          variant="quiet"
+          accessibilityLabel={`Add ${suggestion.title} to your path`}
+          onPress={onAdd}
+        />
       </View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Add ${suggestion.title} to your path`}
-        onPress={onAdd}
-        hitSlop={10}
-      >
-        <Ionicons name="add-circle-outline" size={24} color={colors.cornflower.DEFAULT} />
-      </Pressable>
-    </View>
+      {expanded ? (
+        <Text className="pb-2 pr-2 font-sans text-secondary text-ink-soft">
+          {suggestion.description}
+        </Text>
+      ) : null}
+    </Pressable>
   )
 }
 

@@ -121,14 +121,21 @@ describe('interactive blocks', () => {
     expect(screen.getByText(/^Answers?:/)).toHaveTextContent(blank.answer, { exact: false })
   })
 
-  it('ordering records the sequence after a move', async () => {
-    const { block, last } = await renderBlock('ordering')
+  it('ordering starts unsolved, and records the sequence only on Check', async () => {
+    const { block, recorded, last } = await renderBlock('ordering')
     if (block.kind !== 'ordering') throw new Error('wrong block')
-    const second = block.items[1]!
-    await fireEvent.press(screen.getByLabelText(`Move ${second.label} up`))
-    const payload = last()?.payload as { kind: string; order: string[] }
-    expect(payload.kind).toBe('ordering')
-    expect(payload.order[0]).toBe(second.id)
+    await fireEvent.press(screen.getByText('Check'))
+    expect(last()?.payload).toMatchObject({ kind: 'ordering', correct: false })
+    expect((last()?.payload as { order: string[] }).order).toHaveLength(block.items.length)
+    expect(screen.queryByText('Check')).toBeNull()
+
+    // A move after a check takes the verdict away; nothing saves until the next check.
+    const item = block.items[0]!
+    await fireEvent.press(screen.getByLabelText(`Move ${item.label} down`))
+    await fireEvent.press(screen.getByLabelText(`Move ${item.label} up`))
+    expect(recorded).toHaveLength(1)
+    await fireEvent.press(screen.getByText('Check'))
+    expect(recorded).toHaveLength(2)
   })
 
   it('matching records a pair and grades it', async () => {
@@ -148,7 +155,7 @@ describe('interactive blocks', () => {
     if (block.kind !== 'reveal') throw new Error('wrong block')
     const answerFragment = escapeRegExp(block.md.replace(/[*`_]/g, '').slice(0, 20))
     expect(screen.queryByText(new RegExp(answerFragment))).toBeNull()
-    await fireEvent.press(screen.getByText('Show me'))
+    await fireEvent.press(screen.getByText('Think of your answer, then tap to reveal'))
     expect(last()?.payload).toEqual({ kind: 'reveal', revealed: true })
     expect(screen.getByText(new RegExp(answerFragment))).toBeTruthy()
   })

@@ -55,7 +55,7 @@ Card metadata (title, estimate, library item) comes from the cheap **G5a** when 
 
 ### Adding an activity (+)
 
-With one interest in view, each section ends in a **+** card: optional goal chips (for Next, only unstarted goals) and an optional focus field. Create plans the card through G5a and writes it through G5b, both given the request; a placeholder shows **Writing** meanwhile.
+With one interest in view, each section ends in a **+** card: optional goal chips, collapsed until opened (for Next, only unstarted goals); for Next and Strengthen, an optional activity type, collapsed the same way, listing the section's active library items each with an ⓘ; and an optional focus field. Create plans the card through G5a and writes it through G5b, both given the request; a placeholder shows **Writing** meanwhile.
 
 - With a goal: targets it and completes at the section's tier.
 - With only a focus: no goal — its topic names the request, and it moves no goal status.
@@ -67,7 +67,7 @@ Completing an activity marks the section heading with a check and count ("2 toda
 
 ### Configure (⚙ per section)
 
-Toggles the section's library items for this user + interest + section. At least one must stay active.
+**Activity settings: <section>**. Lists the section's library items for this user + interest + section, each with an ⓘ (what it is and why it helps) and an on/off switch. At least one must stay active.
 
 ### Configure learning routine
 
@@ -78,7 +78,7 @@ Notes that daily counts aren't configurable yet (linking to the feedback board p
 Multi-page, rendered from an Activity Document (`05`); forward and back are always available.
 
 - **Response review page** (near the end): **G6** analyzes responses as the user works and fills it with the highest-value response — a misconception, a good answer deepened, or an implicit question answered.
-- **Summary page** (last): concept recap, chips for what was introduced, strengthened or put to use, and a rating (👎 / mixed / 👍) with optional note and **Send**, which shares the activity, rating and note — not the learner's answers — with the developers (`08`, D18).
+- **Summary page** (last): concept recap, chips for what was introduced, strengthened or put to use, the activity type with an ⓘ (the library item it was made from), and a rating (👎 / mixed / 👍) with optional note and **Send**, which shares the activity, rating and note — not the learner's answers — with the developers (`08`, D18).
 - **Ask** (always visible): **G7** inserts a page answering the question right after the current one and jumps to it.
 - Completing advances the goal's status, records history and updates section completion. An unfinished activity stays resumable from Today for the day and advances nothing.
 
@@ -95,7 +95,7 @@ For one selected interest:
 
   Nothing is written until **Update path**, which saves path and outcomes together; the reflection records before and after.
 
-- **3 suggested goals** at the bottom (**G9**, cached, regenerated when the path changes), one tap to add.
+- **3 suggested goals** below the path (**G9**, cached, regenerated when the path changes), collapsed to their titles — tap to read one — and one tap to add. The way into a reflection sits last.
 
 ### Resources
 
@@ -106,7 +106,7 @@ Title, link, description, "how this could be used" (user-entered, generated if b
 
 ### Path settings
 
-Every intake answer, editable, plus topics (considered when suggesting goals), approach notes (from G1), and **Contexts** — projects, environments and people, used in Go further activities only when they genuinely help. Text and outcomes commit with **Save**; lists act as tapped.
+Opened, like **Resources**, from the icons beside the ⚙ on Today, Path and History when one interest is selected. Every intake answer, editable, plus topics (considered when suggesting goals), approach notes (from G1), and **Contexts** — projects, environments and people, used in Go further activities only when they genuinely help. Text and outcomes commit with **Save**; lists act as tapped.
 
 ## 6. History
 
