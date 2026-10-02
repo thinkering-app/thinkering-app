@@ -38,7 +38,7 @@ export const today: TranslationOf<typeof english> = {
     help: {
       next: '从路径上的下一个目标开始，学点新东西。',
       strengthen: '加深对学过内容的记忆或理解。',
-      goFurther: '在现实中运用所学，或把它和其他概念联系起来。',
+      goFurther: '在现实中运用所学，或把它和其他知识点联系起来。',
     },
     listHelp: '这里的练习由这些类型生成。不想看到的可以关掉。',
   },
@@ -58,6 +58,6 @@ export const today: TranslationOf<typeof english> = {
     generating: '正在调整你的学习节奏',
     prompt: '你想多做些什么，少做些什么？',
     promptHint: '之后的练习都会照此安排。',
-    placeholder: '多练口语，少讲语法',
+    placeholder: '多练口语，少学语法',
   },
 }

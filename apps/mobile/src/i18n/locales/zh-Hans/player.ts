@@ -11,7 +11,7 @@ export const player: TranslationOf<typeof english> = {
     writing: '正在生成你的练习',
   },
   review: {
-    working: '再看一遍你的答案',
+    working: '正在看你的回答',
   },
   ask: {
     label: '提问',
@@ -48,8 +48,8 @@ export const player: TranslationOf<typeof english> = {
       '做得好。',
       '收工。',
       '又完成一个。',
-      '这是你应得的。',
-      '大脑，略微升级。',
+      '辛苦啦。',
+      '大脑已小幅升级。',
       '瞧你，又学到新东西了。',
       '神经元：已重连。',
     ],
@@ -60,11 +60,11 @@ export const player: TranslationOf<typeof english> = {
     },
     activityType: '练习类型：<bold>{{name}}</bold>',
     aboutItem: '关于“{{name}}”',
-    ratingPrompt: '这个练习有用吗？',
+    ratingPrompt: '这个练习有帮助吗？',
     rating: {
-      down: '没用',
+      down: '没帮助',
       mixed: '一般',
-      up: '有用',
+      up: '有帮助',
     },
     sent: '已发送，谢谢。',
     notePlaceholder: '还有什么想说的？（可选）',
@@ -76,7 +76,7 @@ export const player: TranslationOf<typeof english> = {
       '你的评分和留言保存在这台设备上。为了帮助开发者判断练习质量，你可以把这个练习连同评分和留言发给他们，但不会包括你的答案。',
   },
   error: {
-    budgetUsed: '今天包含的生成次数已经用完了。',
+    budgetUsed: '今天的生成额度已用完。',
     searchFailed: '暂时没能搜索网页。',
     badOutput: '返回的内容格式不对，没法使用。',
     generic: '暂时没能生成。',
@@ -84,6 +84,6 @@ export const player: TranslationOf<typeof english> = {
   },
   fallbackReview: {
     withConcepts: '这次值得记住的：{{concepts}}。',
-    bare: '值得记住的：这个练习围绕的核心概念。',
+    bare: '值得记住的：这个练习围绕的核心知识点。',
   },
 }

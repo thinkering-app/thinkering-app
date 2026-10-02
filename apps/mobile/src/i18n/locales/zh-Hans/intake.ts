@@ -30,7 +30,7 @@ export const intake: TranslationOf<typeof english> = {
       productManagement: '产品管理技能',
       climate: '多了解气候与可持续发展',
       drawing: '学画画',
-      spanish: '把西班牙语捡起来',
+      spanish: '重拾西班牙语',
       german: '能用德语日常对话',
       chess: '提高国际象棋水平',
     },
@@ -55,7 +55,7 @@ export const intake: TranslationOf<typeof english> = {
     noteQuestion: '你以前试过什么？效果怎么样？',
   },
   topics: {
-    question: '哪些话题最相关？',
+    question: '哪些话题和你最相关？',
     generating: '正在寻找话题',
   },
   success: {
@@ -90,7 +90,7 @@ export const intake: TranslationOf<typeof english> = {
     question: '我们可以从这个方向开始。',
     evolving: '随着你的学习，我们会不断调整它。',
     generating: '正在规划路径',
-    goToToday: '去今天',
+    goToToday: '开始今天的练习',
     modeHint: {
       focus: '适合想稳步推进的东西。',
       exploring: '适合出于好奇、不着急的东西。',
@@ -107,7 +107,7 @@ export const intake: TranslationOf<typeof english> = {
   addInterest: {
     resumeTitle: '从上次停下的地方继续？',
     keepGoing: '继续',
-    startNew: '开始新的',
+    startNew: '学点新的',
   },
   leave: {
     title: '以后再完成？',

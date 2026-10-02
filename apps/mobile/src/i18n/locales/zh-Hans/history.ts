@@ -12,8 +12,8 @@ export const history: TranslationOf<typeof english> = {
     introduceBare: '已入门',
     strengthen: '已巩固：{{subject}}',
     strengthenBare: '已巩固',
-    apply: '学以致用：{{subject}}',
-    applyBare: '学以致用',
+    apply: '已运用：{{subject}}',
+    applyBare: '已运用',
     withVerb: '{{verb}}：{{subject}}',
   },
 }
