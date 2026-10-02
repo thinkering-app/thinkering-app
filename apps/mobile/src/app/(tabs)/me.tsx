@@ -1,5 +1,6 @@
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useMemo, useReducer, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { monthLabel, type LocalDate } from '@thinkering/core'
@@ -22,6 +23,7 @@ import { useLocalToday } from '@/time'
  */
 
 export default function MeScreen() {
+  const { t } = useTranslation()
   const today = useLocalToday()
   const { month, marked, changeMonth, dayActivities } = useCalendar(today)
   // The selected day's activities sit under the calendar; tapping it again closes them.
@@ -38,12 +40,12 @@ export default function MeScreen() {
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right']}>
       <View className="flex-row items-center gap-3 px-5 pt-4">
-        <Text className="flex-1 font-heading-bold text-display text-ink">Me</Text>
+        <Text className="flex-1 font-heading-bold text-display text-ink">{t('me.home.title')}</Text>
         <SettingsButton testID="me-settings" />
       </View>
 
       <ScrollView className="flex-1" contentContainerClassName="gap-6 px-5 py-6">
-        <NavRow label="Interests" onPress={() => router.push('/me/interests')} />
+        <NavRow label={t('me.interests.title')} onPress={() => router.push('/me/interests')} />
 
         <CalendarMonth
           month={month}

@@ -1,18 +1,20 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useState } from 'react'
 import { Pressable } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import { FeedbackFlow } from '@/feedback/flow'
 import { colors } from '@/theme/tokens'
 
 /** Global feedback entry point (docs/01 §2): opens the community/private chooser. */
 export function FeedbackButton() {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   return (
     <>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Send feedback"
+        accessibilityLabel={t('common.sendFeedback')}
         onPress={() => setOpen(true)}
         className="absolute bottom-6 right-5 h-11 w-11 items-center justify-center rounded-pill border border-hairline bg-surface shadow-card active:bg-cornflower-tint"
       >

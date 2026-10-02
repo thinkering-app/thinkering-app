@@ -32,6 +32,7 @@ import {
 import { callAi } from '@/ai'
 import { interestContext } from '@/ai/context'
 import { db, repoContext } from '@/db'
+import { t } from '@/i18n'
 
 /**
  * The three generation calls an activity makes (docs/04): G5b writes the
@@ -188,10 +189,12 @@ export function fallbackReviewBlocks(doc: ActivityDoc): Block[] {
   return [
     {
       kind: 'paragraph',
+      // Stored in the doc like the model's own page, so it's written once, in
+      // the language the activity was generated in.
       md:
         labels.length > 0
-          ? `Worth holding on to from this one: ${labels.join(', ')}.`
-          : 'Worth holding on to: the idea this activity was built around.',
+          ? t('player.fallbackReview.withConcepts', { concepts: labels.join(', ') })
+          : t('player.fallbackReview.bare'),
     },
   ]
 }

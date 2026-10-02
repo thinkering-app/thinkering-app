@@ -1,4 +1,5 @@
 import { router } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { View } from 'react-native'
 import { isOverLimit, type ExperienceChoice } from '@thinkering/core'
 
@@ -7,24 +8,27 @@ import { useIntake } from '@/intake/context'
 import { OptionalNote } from '@/intake/optional-note'
 import { StepScreen } from '@/intake/step-screen'
 
-const OPTIONS: { value: ExperienceChoice; label: string }[] = [
-  { value: 'getting_started', label: 'Just getting started' },
-  { value: 'explored', label: 'Explored a bit' },
-  { value: 'in_middle', label: 'In the middle' },
-  { value: 'experienced', label: 'Have a lot of experience' },
-]
+const OPTION_KEY = {
+  getting_started: 'intake.experience.options.gettingStarted',
+  explored: 'intake.experience.options.explored',
+  in_middle: 'intake.experience.options.inMiddle',
+  experienced: 'intake.experience.options.experienced',
+} as const satisfies Record<ExperienceChoice, string>
+
+const OPTIONS: ExperienceChoice[] = ['getting_started', 'explored', 'in_middle', 'experienced']
 
 /**
  * Step 3 (docs/01 §1). On advance, G2 (waits on G1) and G2b go out together:
  * topics for step 4, what success could look like for step 5.
  */
 export default function ExperienceStep() {
+  const { t } = useTranslation()
   const { answers, update, startChoices } = useIntake()
 
   return (
     <StepScreen
       step={3}
-      question="How much experience do you have?"
+      question={t('intake.experience.question')}
       continueDisabled={!answers.experienceChoice || isOverLimit(answers.experienceText, 'note')}
       onContinue={() => {
         startChoices()
@@ -32,18 +36,18 @@ export default function ExperienceStep() {
       }}
     >
       <View className="flex-row flex-wrap gap-2">
-        {OPTIONS.map((option) => (
+        {OPTIONS.map((value) => (
           <ChoiceChip
-            key={option.value}
-            testID={`intake-experience-${option.value}`}
-            label={option.label}
-            selected={answers.experienceChoice === option.value}
-            onPress={() => update({ experienceChoice: option.value })}
+            key={value}
+            testID={`intake-experience-${value}`}
+            label={t(OPTION_KEY[value])}
+            selected={answers.experienceChoice === value}
+            onPress={() => update({ experienceChoice: value })}
           />
         ))}
       </View>
       <OptionalNote
-        question="What have you tried before, and how did it go?"
+        question={t('intake.experience.noteQuestion')}
         value={answers.experienceText}
         onChangeText={(experienceText) => update({ experienceText })}
       />

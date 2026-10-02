@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Pressable, Text, View } from 'react-native'
 import type { ResponsePayloadFor } from '@thinkering/core'
 
@@ -7,6 +8,7 @@ import type { BlockOf } from './types'
 
 /** Think, then tap to reveal (docs/05) — retrieval practice, so the tap is the point. */
 export function RevealBlock({ pageId, block }: { pageId: string; block: BlockOf<'reveal'> }) {
+  const { t } = useTranslation()
   const [answer, respond] = useResponse<ResponsePayloadFor<'reveal'>>(pageId, block.id)
   const revealed = answer?.revealed === true
 
@@ -23,7 +25,9 @@ export function RevealBlock({ pageId, block }: { pageId: string; block: BlockOf<
           onPress={() => respond({ kind: 'reveal', revealed: true })}
           className="items-center rounded-card border border-hairline bg-surface p-4 active:bg-cornflower-tint"
         >
-          <Text className="font-sans-medium text-body text-cornflower-deep">Show me</Text>
+          <Text className="font-sans-medium text-body text-cornflower-deep">
+            {t('player.reveal.show')}
+          </Text>
         </Pressable>
       )}
     </View>

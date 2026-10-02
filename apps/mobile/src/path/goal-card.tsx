@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
+import { useTranslation } from 'react-i18next'
 import { Pressable, Text, View } from 'react-native'
 import type { GoalConcept, GoalStatus } from '@thinkering/core'
 
@@ -11,12 +12,12 @@ import type { PathGoalView } from './use-path'
  * coverage (D16); long-pressing turns on reorder mode.
  */
 
-const STATUS_LABEL: Record<GoalStatus, string> = {
-  not_started: 'Not started',
-  introduced: 'Introduced',
-  strengthened: 'Strengthened',
-  applied: 'Put to use',
-}
+const STATUS_LABEL_KEY = {
+  not_started: 'path.goalStatus.notStarted',
+  introduced: 'path.goalStatus.introduced',
+  strengthened: 'path.goalStatus.strengthened',
+  applied: 'path.goalStatus.applied',
+} as const satisfies Record<GoalStatus, string>
 
 interface Treatment {
   card: string
@@ -86,6 +87,7 @@ export function GoalCard({
   onMoveUp,
   onMoveDown,
 }: GoalCardProps) {
+  const { t } = useTranslation()
   const { goal, covered } = view
   const tone = TREATMENT[goal.status]
   const reordering = Boolean(onMoveUp || onMoveDown)
@@ -93,7 +95,10 @@ export function GoalCard({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${goal.title} — ${STATUS_LABEL[goal.status]}`}
+      accessibilityLabel={t('path.goalCard.accessibilityLabel', {
+        title: goal.title,
+        status: t(STATUS_LABEL_KEY[goal.status]),
+      })}
       accessibilityState={{ expanded }}
       onPress={reordering ? undefined : onToggle}
       onLongPress={onLongPress}
@@ -104,7 +109,7 @@ export function GoalCard({
           <Text className={`font-heading text-body ${tone.title}`}>{goal.title}</Text>
           {goal.status === 'not_started' ? null : (
             <Text className={`font-sans text-caption ${tone.body}`}>
-              {STATUS_LABEL[goal.status]}
+              {t(STATUS_LABEL_KEY[goal.status])}
             </Text>
           )}
         </View>
@@ -112,13 +117,13 @@ export function GoalCard({
           <View className="flex-row gap-1">
             <IconButton
               name="chevron-up"
-              label={`Move ${goal.title} up`}
+              label={t('path.goalCard.moveUpAccessibilityLabel', { title: goal.title })}
               color={tone.icon}
               onPress={onMoveUp}
             />
             <IconButton
               name="chevron-down"
-              label={`Move ${goal.title} down`}
+              label={t('path.goalCard.moveDownAccessibilityLabel', { title: goal.title })}
               color={tone.icon}
               onPress={onMoveDown}
             />
@@ -126,7 +131,7 @@ export function GoalCard({
         ) : onEdit ? (
           <IconButton
             name="create-outline"
-            label={`Edit ${goal.title}`}
+            label={t('path.goalCard.editAccessibilityLabel', { title: goal.title })}
             color={tone.icon}
             onPress={onEdit}
           />
@@ -161,9 +166,14 @@ function ConceptChip({
   covered: boolean
   tone: Treatment
 }) {
+  const { t } = useTranslation()
   return (
     <View
-      accessibilityLabel={`${concept.label}${covered ? ', covered' : ''}`}
+      accessibilityLabel={
+        covered
+          ? t('path.goalCard.conceptCoveredAccessibilityLabel', { label: concept.label })
+          : concept.label
+      }
       className={`flex-row items-center gap-1.5 rounded-pill px-3 py-1.5 ${tone.chip} ${covered ? '' : 'opacity-70'}`}
     >
       {covered ? <Ionicons name="checkmark" size={12} color={tone.icon} /> : null}

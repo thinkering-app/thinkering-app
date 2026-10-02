@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Text, View } from 'react-native'
 import type { Block } from '@thinkering/core'
 
@@ -50,11 +51,10 @@ export function BlockView({ pageId, block }: { pageId: string; block: Block }) {
 }
 
 export function UnknownBlock() {
+  const { t } = useTranslation()
   return (
     <View className="rounded-card border border-hairline bg-surface p-4">
-      <Text className="font-sans text-body text-ink-soft">
-        This part needs a newer version of the app.
-      </Text>
+      <Text className="font-sans text-body text-ink-soft">{t('player.unknownBlock')}</Text>
     </View>
   )
 }
