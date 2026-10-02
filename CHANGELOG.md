@@ -144,6 +144,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Fixed
 
+- Steps and numbered lists show each number once, instead of a step titled
+  "1" next to its own 1.
 - When the web search behind finding resources stops working, it gives up
   as soon as it knows, and never runs past four minutes, instead of leaving
   you waiting.

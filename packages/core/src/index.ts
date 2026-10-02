@@ -60,6 +60,7 @@ export {
   gradeMatching,
 } from './activity/grading'
 export { displayOrder } from './activity/display-order'
+export { withoutLeadNumber } from './activity/numbering'
 export {
   reviewPageIndex,
   fillReviewPage,
