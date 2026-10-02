@@ -60,7 +60,7 @@ Counts that are deliberately raw rather than bucketed: `pages`, `questions_asked
 We want to see whether generated activities are actually good without ambient content collection. Two layers:
 
 1. **Aggregate signal** (PostHog, on unless turned off): `activity_completed` carries rating × library_item_id × tier — enough to spot "faded examples are rating poorly in language interests" without any content.
-2. **Shared activity reports** (explicit, per-activity): the summary page's rating row has a note box and a **Send** button. Sending shares the generated activity content, the rating + note, and the library item/kind metadata through signed `POST /api/activity-report`, which forwards it by email and never stores it. The user's own responses are **never included**, and neither are the questions they typed into Ask — the client strips `question` from the shared document (`docForReport`) and the route strips it again. The help text under Send says so. There is no opt-in to include them: one feedback path, one unconditional promise. Nothing is ever shared without this explicit action.
+2. **Shared activity reports** (explicit, per-activity): the summary page's rating row has a note box and a **Send** button. Sending shares the generated activity content, the rating + note, and the library item/kind metadata through signed `POST /api/activity-report`, which forwards it by email and never stores it. The user's own responses are **never included**, and neither are the questions they typed into Ask — the client strips `question` from the shared document (`docForReport`) and the route strips it again. The help text above Send says so. There is no opt-in to include them: one feedback path, one unconditional promise. Nothing is ever shared without this explicit action.
 
 ## What the server sees (and doesn't keep)
 
@@ -88,7 +88,7 @@ What App Privacy on App Store Connect should say, and why. **"Do you use data to
 Also before submission:
 
 - **The embedded Featurebase WebView** shows user-generated content from other people, so App Review Guideline 1.2 applies: the portal must have moderation, reporting, blocking and a contact path, and the checklist in `10-testing.md` §Tier 6 is the pre-TestFlight pass for it. If end-user reporting can't be provided, iOS opens the portal in the system browser instead of the WebView.
-- **Account deletion** (Guideline 5.1.1(v)): because the app offers account creation, it must offer in-app deletion of the account itself — not only the sign-out and the backup off-switch that deletes the server copy. Built in WP9.3 as a signed `POST /api/account/delete`.
+- **Account deletion** (Guideline 5.1.1(v)): because the app offers account creation, it must offer in-app deletion of the account itself — not only the sign-out and the backup off-switch that deletes the server copy. It's a signed `POST /api/account/delete` (`02` §Account deletion).
 - **Encryption**: `ITSAppUsesNonExemptEncryption = false` — HTTPS only, no custom cryptography. (The device-signing HMAC is exempt as standard authentication.)
 
 ## Privacy page (landing `/privacy` + Me → Privacy)

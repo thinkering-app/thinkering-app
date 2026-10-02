@@ -1,8 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
-import { Pressable, Switch, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 
 import { ReplayMask } from '@/analytics'
 import { TextField } from '@/components/text-field'
+import { Toggle } from '@/components/toggle'
 import { colors } from '@/theme/tokens'
 import { describeFeedbackContext } from './context'
 import { FEEDBACK_CONTACT, type Feedback } from './use-feedback'
@@ -69,12 +70,7 @@ export function FeedbackEmailFields({ feedback }: { feedback: Feedback }) {
             {describeFeedbackContext(feedback.context)}
           </Text>
         </View>
-        <Switch
-          value={feedback.includeContext}
-          onValueChange={feedback.setIncludeContext}
-          trackColor={{ false: colors.hairline, true: colors.cornflower.DEFAULT }}
-          thumbColor={colors.surface}
-        />
+        <Toggle value={feedback.includeContext} onValueChange={feedback.setIncludeContext} />
       </View>
       {feedback.error ? (
         <Text className="font-sans text-secondary text-ink">{feedback.error}</Text>

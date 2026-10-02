@@ -24,6 +24,7 @@ export function OptionalNote({ question, value, onChangeText }: OptionalNoteProp
         onChangeText={onChangeText}
         accessibilityLabel={question}
         multiline
+        limit="note"
       />
     </View>
   )

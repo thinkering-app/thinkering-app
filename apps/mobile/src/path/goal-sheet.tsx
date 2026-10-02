@@ -1,3 +1,4 @@
+import { isOverLimit } from '@thinkering/core'
 import { useState } from 'react'
 import { Alert, Pressable, Text, View } from 'react-native'
 import type { Goal } from '@thinkering/db'
@@ -60,13 +61,24 @@ export function GoalSheet({ visible, onClose, goal, onSave, onDelete }: GoalShee
       visible={visible}
       onClose={onClose}
       title={goal ? 'Edit goal' : 'Add a goal'}
-      footer={<Button label="Save" onPress={save} disabled={title.trim().length === 0} />}
+      footer={
+        <Button
+          label="Save"
+          onPress={save}
+          disabled={
+            title.trim().length === 0 ||
+            isOverLimit(title, 'line') ||
+            isOverLimit(description, 'note')
+          }
+        />
+      }
     >
       <TextField
         value={title}
         onChangeText={setTitle}
         placeholder="What this goal covers"
         accessibilityLabel="Goal title"
+        limit="line"
       />
       <TextField
         value={description}
@@ -74,6 +86,7 @@ export function GoalSheet({ visible, onClose, goal, onSave, onDelete }: GoalShee
         placeholder="A line or two of detail"
         multiline
         accessibilityLabel="Goal description"
+        limit="note"
       />
       {goal && goal.concepts.length > 0 ? (
         <View className="flex-row flex-wrap gap-2 pt-1">

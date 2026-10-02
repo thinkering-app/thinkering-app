@@ -1,6 +1,6 @@
 import { router } from 'expo-router'
 import { useState } from 'react'
-import { Switch, Text, View } from 'react-native'
+import { Text, View } from 'react-native'
 
 import { exportToFile, importFromFile, refusalMessage } from '@/backup/actions'
 import {
@@ -17,11 +17,11 @@ import { Button } from '@/components/button'
 import { confirmDestructive } from '@/components/confirm'
 import { SubScreen } from '@/components/sub-screen'
 import { Toast } from '@/components/toast'
+import { Toggle } from '@/components/toggle'
 import { deleteAllData } from '@/me/delete-all'
 import { reopenAt } from '@/reopen'
 import { signOutAndForget } from '@/sync/engine'
 import { useBackup } from '@/sync/use-backup'
-import { colors } from '@/theme/tokens'
 
 /**
  * Me → Settings → Account and data (docs/01 §7): a file you keep, and — off by
@@ -118,12 +118,10 @@ export default function DataScreen() {
                     <Text className="font-sans text-body text-ink">{backup.account.email}</Text>
                   </ReplayMask>
                 </View>
-                <Switch
+                <Toggle
                   value={backup.enabled}
                   disabled={backup.syncing}
                   onValueChange={(next) => void toggleSync(next)}
-                  trackColor={{ false: colors.hairline, true: colors.cornflower.DEFAULT }}
-                  thumbColor={colors.surface}
                 />
               </View>
               <Text className="font-sans text-caption text-ink-soft">{statusLine(backup)}</Text>
@@ -190,15 +188,13 @@ export default function DataScreen() {
           <Text className="flex-1 font-sans text-body text-ink">
             Share anonymous usage to improve thinkering
           </Text>
-          <Switch
+          <Toggle
             value={optedIn}
             onValueChange={(next) => {
               setAnalyticsConsent(next)
               setOptedIn(next)
               if (next) track('settings_changed', { key: 'analytics_opt_in' })
             }}
-            trackColor={{ false: colors.hairline, true: colors.cornflower.DEFAULT }}
-            thumbColor={colors.surface}
           />
         </View>
         <Text className="font-sans text-caption text-ink-soft">
@@ -213,15 +209,13 @@ export default function DataScreen() {
             <Text className="flex-1 font-sans text-body text-ink">
               Share session replays with developers
             </Text>
-            <Switch
+            <Toggle
               value={replayOptedIn}
               onValueChange={(next) => {
                 setReplayConsent(next)
                 setReplayOptedIn(next)
                 track('settings_changed', { key: 'session_replay_opt_in' })
               }}
-              trackColor={{ false: colors.hairline, true: colors.cornflower.DEFAULT }}
-              thumbColor={colors.surface}
             />
           </View>
           <Text className="font-sans text-caption text-ink-soft">{REPLAY_EXPLAINER}</Text>

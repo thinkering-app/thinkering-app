@@ -1,6 +1,12 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
-import { getPromptTemplate, modelRequestFields, type RenderedPrompt } from '@thinkering/core'
+import {
+  getPromptTemplate,
+  modelRequestFields,
+  SEARCH_DEADLINE_MS,
+  serverToolError,
+  type RenderedPrompt,
+} from '@thinkering/core'
 import { verifyDeviceAuth } from '@/lib/server/auth'
 import { getDeps } from '@/lib/server/deps'
 import {
@@ -27,6 +33,13 @@ export const maxDuration = 300
 const MAX_CHARS_PER_TOKEN = 6
 
 /**
+ * Refused before it is hashed or parsed. Params are bounded field by field
+ * (packages/core/src/limits.ts), but lists aren't, and a learner with every
+ * resource they've saved in the context sends a few hundred KB at most.
+ */
+export const MAX_BODY_CHARS = 1_000_000
+
+/**
  * Charging a cancelled stream (docs/04 §Usage metering). The real output count
  * arrives only in `message_delta`, at the end, so a call the client walked away
  * from has to be charged from what actually reached us. Deliberately low —
@@ -41,27 +54,6 @@ const CHARS_PER_OUTPUT_TOKEN = 3
  * `upstream_error` because the client must not retry it.
  */
 const SEARCH_UNAVAILABLE = 'search_unavailable'
-
-const TOOL_RESULT_TYPES = new Set(['web_search_tool_result', 'web_fetch_tool_result'])
-
-/**
- * The error code of a failed server tool, if this content block is one.
- *
- * Server tools don't raise. A search that was rate limited or ran out of uses
- * comes back as a normal 200 whose tool-result block holds a single error
- * object instead of a list of results, so an outage is indistinguishable from
- * a good answer unless it is looked for. Unlooked-for, it gets billed as `ok`,
- * and the model's narration about why it couldn't search reads downstream as
- * malformed output — which invites a repair, running the same searches again
- * for the same failure (docs/04 §Usage metering).
- */
-function serverToolError(block: unknown): string | undefined {
-  const { type, content } = (block ?? {}) as { type?: string; content?: unknown }
-  if (type === undefined || !TOOL_RESULT_TYPES.has(type)) return undefined
-  // Success is a list of results; failure is one object carrying `error_code`.
-  if (content === null || typeof content !== 'object' || Array.isArray(content)) return undefined
-  return (content as { error_code?: string }).error_code ?? 'unknown'
-}
 
 function toolErrorOf(blocks: readonly unknown[]): string | undefined {
   for (const block of blocks) {
@@ -118,6 +110,9 @@ export async function POST(req: Request): Promise<Response> {
   const { store, anthropic, now, logAiCall } = getDeps()
 
   const bodyText = await req.text()
+  if (bodyText.length > MAX_BODY_CHARS) {
+    return Response.json({ error: 'too_large' }, { status: 413 })
+  }
   const auth = await verifyDeviceAuth(req, bodyText, store, now())
   if (!auth.ok) return Response.json({ error: auth.message }, { status: auth.status })
 
@@ -182,15 +177,6 @@ export async function POST(req: Request): Promise<Response> {
   const request = toAnthropicRequest(template, rendered)
   const model = request.model
 
-  /**
-   * The SDK retries 429s and 5xxs twice by default. On a kind that searches
-   * the web that turns one rate-limited call into three, each running its own
-   * searches and each billed — and the thing being rate limited is usually the
-   * search, so the retries fail the same way. These kinds surface the failure
-   * instead (docs/04 §Usage metering).
-   */
-  const requestOptions = template.tools?.webSearch ? { maxRetries: 0 } : {}
-
   // Reserve before calling: the call is counted and its most expensive outcome
   // held against the budget up front, so parallel requests see each other.
   // Settling afterwards swaps the held output for the real count.
@@ -218,6 +204,25 @@ export async function POST(req: Request): Promise<Response> {
     )
   }
 
+  const searches = template.tools?.webSearch !== undefined
+  /** Stops a searching call at `SEARCH_DEADLINE_MS`; cleared when the call settles. */
+  const deadline = new AbortController()
+  let timedOut = false
+  const deadlineTimer = searches
+    ? setTimeout(() => {
+        timedOut = true
+        deadline.abort()
+      }, SEARCH_DEADLINE_MS)
+    : undefined
+  /**
+   * The SDK retries 429s and 5xxs twice by default. On a kind that searches
+   * the web that turns one rate-limited call into three, each running its own
+   * searches and each billed — and the thing being rate limited is usually the
+   * search, so the retries fail the same way. These kinds surface the failure
+   * instead (docs/04 §Usage metering).
+   */
+  const requestOptions = searches ? { maxRetries: 0, signal: deadline.signal } : {}
+
   const started = now()
   let settled = false
   /**
@@ -233,6 +238,7 @@ export async function POST(req: Request): Promise<Response> {
   ) => {
     if (settled) return
     settled = true
+    clearTimeout(deadlineTimer)
     const charged = outputTokens ?? opts.fallback ?? reservedOutput
     logAiCall({
       kind: template.kind,
@@ -302,7 +308,7 @@ export async function POST(req: Request): Promise<Response> {
     let toolError: string | undefined
     /** Characters of billable output seen so far — what a cancelled call is charged on. */
     let streamedChars = 0
-    /** Set by `cancel`: this stream was stopped by us, not broken under us. */
+    /** Set by `cancel`: the client stopped reading, so we stopped the stream. */
     let clientGone = false
     const streamedOutput = () =>
       Math.min(reservedOutput, Math.ceil(streamedChars / CHARS_PER_OUTPUT_TOKEN))
@@ -317,6 +323,8 @@ export async function POST(req: Request): Promise<Response> {
             // Closed by the client.
           }
         }
+        /** Set if the stream threw rather than ending. */
+        let broke: unknown
         try {
           for await (const event of stream) {
             if (event.type === 'message_start') {
@@ -333,26 +341,38 @@ export async function POST(req: Request): Promise<Response> {
               toolError ??= serverToolError(event.content_block)
             }
             send(event.type, event)
-          }
-          if (toolError !== undefined) {
-            // The turn completed, so it is paid for either way; what it must
-            // not do is look like a usable answer.
-            await settle(inputTokens, outputTokens, 'error', { error: toolFailure(toolError) })
-            send('proxy_error', { message: SEARCH_UNAVAILABLE })
-          } else {
-            send('done', {})
-            await settle(inputTokens, outputTokens, 'ok')
+            // The first failed search ends the call. Left to finish, the model
+            // searches again into the same error until the server stops it,
+            // and the answer is refused as search_unavailable all the same.
+            // Leaving the loop aborts the request.
+            if (toolError !== undefined) break
           }
         } catch (e) {
-          // A client that walked away is charged for what it streamed: we
-          // stopped the generation ourselves, so there is nothing more to pay
-          // for. A stream that broke under us keeps the reservation, since a
-          // response Anthropic billed for may have been lost (docs/04).
+          broke = e
+        }
+        // A stream we stopped ourselves may end quietly (the SDK swallows its
+        // own abort) or throw, so the reason is read from the flags, not from
+        // how the loop ended. Each of those is charged what streamed: we
+        // stopped the generation, so there is nothing more to pay for.
+        if (toolError !== undefined || timedOut) {
           await settle(inputTokens, outputTokens, 'error', {
-            error: e,
-            ...(clientGone ? { fallback: streamedOutput() } : {}),
+            error: toolFailure(toolError ?? 'deadline'),
+            fallback: streamedOutput(),
           })
+          send('proxy_error', { message: SEARCH_UNAVAILABLE })
+        } else if (clientGone) {
+          await settle(inputTokens, outputTokens, 'error', {
+            error: broke ?? new Error('client disconnected'),
+            fallback: streamedOutput(),
+          })
+        } else if (broke !== undefined) {
+          // A stream that broke under us keeps the reservation, since a
+          // response Anthropic billed for may have been lost (docs/04).
+          await settle(inputTokens, outputTokens, 'error', { error: broke })
           send('proxy_error', { message: 'upstream_error' })
+        } else {
+          send('done', {})
+          await settle(inputTokens, outputTokens, 'ok')
         }
         try {
           controller.close()
@@ -381,8 +401,14 @@ export async function POST(req: Request): Promise<Response> {
     // overloaded): nothing ran, so the held output is returned; the call still
     // counts. A connection error or timeout may have lost a response Anthropic
     // did bill for, so there the hold stands.
+    // A search stopped at its deadline before it answered keeps the hold too.
     const rejected = e instanceof Anthropic.APIError && e.status !== undefined
-    await settle(0, rejected ? 0 : undefined, 'error', { error: e })
-    return Response.json({ error: 'upstream_error' }, { status: 502, headers })
+    await settle(0, rejected ? 0 : undefined, 'error', {
+      error: timedOut ? toolFailure('deadline') : e,
+    })
+    return Response.json(
+      { error: timedOut ? SEARCH_UNAVAILABLE : 'upstream_error' },
+      { status: 502, headers },
+    )
   }
 }

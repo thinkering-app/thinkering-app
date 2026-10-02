@@ -10,6 +10,8 @@ import {
   modelRequestFields,
   parseActivityDoc,
   RECORDED_RESPONSES,
+  SEARCH_DEADLINE_MS,
+  serverToolError,
   SseParser,
   type AiErrorType,
   type AnyPromptTemplate,
@@ -453,6 +455,38 @@ async function byokCall(
     )
   }
 
+  // A searching call stops at the proxy's deadline here too: it is the
+  // learner's own key paying for a search that has stalled (docs/04).
+  const deadline = new AbortController()
+  let timedOut = false
+  const timer = template.tools?.webSearch
+    ? setTimeout(() => {
+        timedOut = true
+        deadline.abort()
+      }, SEARCH_DEADLINE_MS)
+    : undefined
+  const forwardAbort = () => deadline.abort()
+  opts.signal?.addEventListener('abort', forwardAbort)
+  if (opts.signal?.aborted) deadline.abort()
+  try {
+    return await byokStream(template, rendered, messages, apiKey, deadline.signal, opts)
+  } catch (e) {
+    if (!timedOut) throw e
+    throw markSearchFailed(new Error('web search stopped at its deadline'))
+  } finally {
+    clearTimeout(timer)
+    opts.signal?.removeEventListener('abort', forwardAbort)
+  }
+}
+
+async function byokStream(
+  template: AnyPromptTemplate,
+  rendered: RenderedPrompt,
+  messages: { role: 'user' | 'assistant'; content: string }[],
+  apiKey: string,
+  signal: AbortSignal,
+  opts: AiCallOptions,
+): Promise<Execution> {
   // Direct REST call: the Anthropic SDK's streaming path needs runtime pieces
   // React Native doesn't reliably provide; expo/fetch gives us the same SSE.
   const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -474,7 +508,7 @@ async function byokCall(
       messages,
       stream: true,
     }),
-    signal: opts.signal ?? null,
+    signal,
   }).catch((e: Error) => {
     throw withErrorType(e, 'network')
   })
@@ -524,6 +558,16 @@ async function consumeSse(res: Response, opts: AiCallOptions): Promise<Execution
       }
       if (event.event === 'message_start') {
         model = (data as { message?: { model?: string } }).message?.model ?? model
+      }
+      // The first failed search ends the call, as in the proxy: the model
+      // would otherwise keep searching into the same error on the learner's
+      // budget. Cancelling the read closes the connection, which stops it.
+      if (event.event === 'content_block_start') {
+        const code = serverToolError((data as { content_block?: unknown }).content_block)
+        if (code !== undefined) {
+          void reader.cancel()
+          throw markSearchFailed(new Error(`web search failed: ${code}`))
+        }
       }
       const next = accumulateEvent(acc, event.event, data)
       if (next.text !== acc.text && opts.onText) opts.onText(next.text)

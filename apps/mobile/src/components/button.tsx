@@ -5,6 +5,8 @@ type ButtonProps = {
   onPress?: () => void
   variant?: 'primary' | 'quiet'
   disabled?: boolean
+  /** When the label alone doesn't say what's acted on, e.g. one of several Adds. */
+  accessibilityLabel?: string
   /** Stable handle when an automated flow cannot use visible text. */
   testID?: string
 }
@@ -15,6 +17,7 @@ export function Button({
   onPress,
   variant = 'primary',
   disabled = false,
+  accessibilityLabel,
   testID,
 }: ButtonProps) {
   const primary = variant === 'primary'
@@ -22,6 +25,7 @@ export function Button({
     <Pressable
       testID={testID}
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={onPress}

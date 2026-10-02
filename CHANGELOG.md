@@ -8,8 +8,19 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Added
 
+- The end of each activity names its activity type, with an ⓘ that
+  says what it is and why it helps.
+- Creating a Next or Strengthen activity, you can choose its activity type
+  too. It starts folded away, and each type has an ⓘ.
+- Long answers and notes show how much room is left as you near the limit.
+  Past it, nothing you wrote is cut: sending waits until it fits.
+- Under each written answer in an activity: "Think about…", for a
+  way in when you're stuck, and "Ask a question". The Ask button is a speech
+  bubble now.
 - Settings are one tap away from anywhere: the ⚙ now sits in the top-right of
   Today, Path and History as well as Me.
+- Resources and Path settings for the selected interest are now in the
+  top-right of Today and History too, not only Path.
 - Delete all data, in Account and data: your interests, path and history go
   from this device — and from our server, if you're signed in — for good.
 - Me → Settings → AI says why there's a daily limit, and where to write to us
@@ -45,6 +56,28 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- A section's ⚙ is now Activity settings: a plain list of the kinds of
+  activity it makes, each with an on/off switch and an ⓘ that says what it
+  is.
+- The + for a new activity and the off switches have a clearer edge.
+- Creating an activity, the goal list starts folded away. Open it to pick
+  an existing goal; leave it closed and the activity comes from your focus,
+  or where the section would go next.
+- Path has headings for your goals and suggested goals. Suggestions show
+  just their titles until you tap one, each with a plain Add button, and
+  Reflect now sits at the bottom.
+- In Path settings, Save stays at the bottom of the screen and only works
+  once you've changed something.
+- Think-then-reveal questions are a flashcard: the question on the front,
+  a nudge to answer it in your head, then a tap to turn it over.
+- Ordering and matching questions start mixed up, not already in order.
+  An ordering is checked when you press Check, not as soon as you move
+  something.
+- Fill-in-the-blank answers are marked more kindly: "the" in front, a full
+  stop, a comma in a number like 10,000, or one typo in a longer word no
+  longer count as wrong.
+- Adding an interest asks for one thing you want to learn. The first time,
+  it says you can add more later.
 - On a computer's browser, thinkering sits in a column down the middle of
   the window instead of stretching across it.
 - Tapping a day on the Me calendar lists what you did under the calendar
@@ -108,6 +141,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Fixed
 
+- When the web search behind finding resources stops working, it gives up
+  as soon as it knows, and never runs past four minutes, instead of leaving
+  you waiting.
 - Starting a new interest works again on a version of the app installed before
   the last update. It failed straight away, with nothing to say why; if an
   update is what's needed, the app now says so.

@@ -1,6 +1,6 @@
 # 06 — Activity library (v1)
 
-The library is the set of learning strategies activities are built from. It's a core open-source growth area: contributors can add items without touching the AI pipeline, because each item is a data definition consumed by G5a (selection) and G5b (structure).
+The library is the set of learning strategies activities are built from. Each item is a data definition consumed by G5a (selection) and G5b (structure), so an item can change without touching the AI pipeline.
 
 Definition shape (`packages/core/library`):
 
@@ -12,7 +12,7 @@ type LibraryItem = {
   overview: string // what you'll do, ≤12 words; shown in the info dialog
   whyItHelps: string // one plain sentence for learners; shown in the info dialog
   activation?: string // when a situational item switches itself on; shown in the info dialog
-  pedagogy: string // why it works (for contributors + prompt context, never shown to learners)
+  pedagogy: string // why it works (prompt context and reference, never shown to learners)
   pageSkeleton: string[] // ordered page intents G5b follows
   interactions: BlockKind[] // preferred interactive blocks
   defaultActive: boolean
@@ -24,7 +24,7 @@ type LibraryItem = {
 }
 ```
 
-Selection: the scheduler picks the goal; G5a picks a library item from the active set for that section, using `goodFor` hints, the domain, variety (avoid repeating yesterday's item for the same goal), and — for `usesResources` items — whether a well-matched resource exists for the goal.
+**Selection**: the scheduler picks the goal; G5a picks a library item from the active set for that section, using `goodFor` hints, the domain, variety (avoid repeating yesterday's item for the same goal), and — for `usesResources` items — whether a well-matched resource exists for the goal. When the learner chooses a type on the + card, that item is the whole active set for the card, so G5a only titles it.
 
 ## Next (introduce)
 
@@ -91,8 +91,8 @@ The library is domain-general; G5a/G5b selection and authoring lean on these per
 
 ## Research grounding
 
-The library leans on well-replicated findings: retrieval practice/testing effect and spaced practice (the two most effective techniques in large meta-analyses, amplified by corrective feedback), interleaving, worked-example and fading effects, self-explanation/elaboration, generation effect, deliberate practice (isolated sub-skills + immediate specific feedback), perceptual learning modules (Kellman), multimedia learning principles for video (segmenting, embedded questions — Mayer), and comprehensible input + output for language acquisition. Starting points: [Nature Reviews Psychology on spacing & retrieval](https://www.nature.com/articles/s44159-022-00089-1), [evidence-based strategies review](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10368606/), [deliberate practice](https://pmc.ncbi.nlm.nih.gov/articles/PMC6824411/), [perceptual learning modules](https://onlinelibrary.wiley.com/doi/full/10.1111/j.1756-8765.2009.01053.x), [embedded questions in video](https://journals.aps.org/prper/abstract/10.1103/PhysRevPhysEducRes.18.010148), [instructional video design](https://www.sciencedirect.com/science/article/abs/pii/S2211368121000231), [Krashen, Principles and Practice](https://sdkrashen.com/content/books/principles_and_practice.pdf).
+The library leans on well-replicated findings: retrieval practice/testing effect and spaced practice (the two most effective techniques in large meta-analyses, amplified by corrective feedback), interleaving, worked-example and fading effects, self-explanation/elaboration, generation effect, deliberate practice (isolated sub-skills + immediate specific feedback), perceptual learning modules (Kellman), multimedia learning principles for video (segmenting, embedded questions — Mayer), and comprehensible input + output for language acquisition. Starting points: [Nature Reviews Psychology on spacing & retrieval](https://www.nature.com/articles/s44159-022-00089-1), [Dunlosky et al. on study techniques](https://doi.org/10.1177/1529100612453266), [Ericsson on deliberate practice](https://doi.org/10.1037/0033-295X.100.3.363), [Hattie & Timperley on feedback](https://doi.org/10.3102/003465430298487), [Kellman & Garrigan on perceptual learning](https://doi.org/10.1016/j.plrev.2008.12.001), [embedded questions in video](https://doi.org/10.1073/pnas.1221764110), [instructional video design](https://www.sciencedirect.com/science/article/abs/pii/S2211368121000231), [Nation's four strands for language learning](https://doi.org/10.2167/illt039.0).
 
-## Contribution notes
+## Adding an item
 
-New items need: honest pedagogy grounding (cite the effect/principle), a skeleton expressible in existing block types (or a paired block-type proposal), and a `goodFor` hint. Items should produce activities completable in one session length. Keep names concrete and adult — no cutesy naming.
+A new item needs: honest pedagogy grounding (cite the effect/principle), a skeleton expressible in existing block types (or a paired block-type proposal), and a `goodFor` hint. Items should produce activities completable in one session length. Keep names concrete and adult — no cutesy naming.

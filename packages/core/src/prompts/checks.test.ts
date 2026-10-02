@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { FIXTURE_DOC_INTRODUCE } from '../fixtures/activity-docs'
+import { FIXTURE_DOC_APPLY, FIXTURE_DOC_INTRODUCE } from '../fixtures/activity-docs'
 import type { ActivityDoc } from '../schemas/activity-doc'
+import type { Block } from '../schemas/blocks'
 import type { ResourceDraft } from '../schemas/generations'
 import {
   checkActivityDoc,
@@ -103,6 +104,21 @@ describe('checkActivityDoc', () => {
       (i) => i.check,
     )
     expect(checks).toContain('summary-shape')
+  })
+
+  it('flags a freeText with no consider, or one long enough to be the answer', () => {
+    const doc = JSON.parse(JSON.stringify(FIXTURE_DOC_APPLY)) as ActivityDoc
+    const considerIssues = () =>
+      checkActivityDoc(doc, { estMinutes: doc.estMinutes, goalConceptIds: [] }).filter(
+        (i) => i.check === 'consider',
+      )
+    expect(considerIssues()).toEqual([])
+    const [first, second] = doc.pages
+      .flatMap((p) => p.blocks ?? [])
+      .filter((b): b is Extract<Block, { kind: 'freeText' }> => b.kind === 'freeText')
+    first!.consider = '  '
+    second!.consider = 'word '.repeat(50)
+    expect(considerIssues()).toHaveLength(2)
   })
 
   it('tone lints catch filler praise and patronizing framings', () => {

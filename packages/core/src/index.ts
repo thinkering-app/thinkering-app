@@ -1,6 +1,14 @@
 export type { CoreContext } from './context'
 export * from './domain'
 export * from './schemas/blocks'
+export { isWebUrl, webUrlSchema } from './schemas/url'
+export {
+  TEXT_LIMITS,
+  TEXT_LIMIT_COUNTER_FROM,
+  SERVER_LIMIT_FACTOR,
+  isOverLimit,
+  type TextLimit,
+} from './limits'
 export * from './schemas/activity-doc'
 export type { LibraryItem } from './library/types'
 export { LIBRARY_ITEMS, getLibraryItem, libraryItemsForSection } from './library/items'
@@ -51,6 +59,7 @@ export {
   gradeOrdering,
   gradeMatching,
 } from './activity/grading'
+export { displayOrder } from './activity/display-order'
 export {
   reviewPageIndex,
   fillReviewPage,
@@ -69,7 +78,12 @@ export {
   type ResourceMedia,
 } from './activity/resources'
 export * from './prompts/types'
-export { modelRequestFields, type ModelRequestFields } from './prompts/request'
+export {
+  modelRequestFields,
+  SEARCH_DEADLINE_MS,
+  serverToolError,
+  type ModelRequestFields,
+} from './prompts/request'
 export {
   PROMPTS,
   getPromptTemplate,

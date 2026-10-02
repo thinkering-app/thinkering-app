@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Block } from '../schemas/blocks'
-import { gradeFillBlank, gradeMatching, gradeMcq, gradeOrdering } from './grading'
+import { gradeBlank, gradeFillBlank, gradeMatching, gradeMcq, gradeOrdering } from './grading'
 
 type BlockOf<K extends Block['kind']> = Extract<Block, { kind: K }>
 
@@ -31,6 +31,24 @@ describe('grading', () => {
     expect(gradeFillBlank(block, { b1: '1 kaffee' })).toBe(true)
     expect(gradeFillBlank(block, { b1: '' })).toBe(false)
     expect(gradeFillBlank(block, {})).toBe(false)
+  })
+
+  it('forgives articles, punctuation and one typo in a long answer, but not a near-miss word', () => {
+    const blank = (answer: string) => ({ id: 'b', answer })
+    expect(gradeBlank(blank('mitochondria'), 'The mitochondria.')).toBe(true)
+    expect(gradeBlank(blank('the cell'), 'cell')).toBe(true)
+    expect(gradeBlank(blank('self-attention'), 'self attention')).toBe(true)
+    expect(gradeBlank(blank('mitochondria'), 'mitochondira')).toBe(true)
+    expect(gradeBlank(blank('mitochondria'), 'mitocondria')).toBe(true)
+    expect(gradeBlank(blank('mitochondria'), 'mitocondrai')).toBe(false)
+    expect(gradeBlank(blank('an apple'), 'the apple')).toBe(false)
+    expect(gradeBlank(blank('effect'), 'affect')).toBe(false)
+    expect(gradeBlank(blank('19140000'), '19150000')).toBe(false)
+    expect(gradeBlank(blank('the cell'), 'the tell')).toBe(false)
+    expect(gradeBlank(blank('10000'), '10,000')).toBe(true)
+    expect(gradeBlank(blank('3.14'), '3,14')).toBe(false)
+    expect(gradeBlank(blank('mitochondria'), 'mitochondri4')).toBe(false)
+    expect(gradeBlank(blank('the'), '')).toBe(false)
   })
 
   it('requires the exact sequence for ordering', () => {

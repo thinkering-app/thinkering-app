@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { buildInterestContext, estimateTokens, type InterestContextInput } from './context-assembly'
+import { SERVER_LIMIT_FACTOR, TEXT_LIMITS } from '../limits'
+import {
+  buildInterestContext,
+  estimateTokens,
+  interestContextInputSchema,
+  type InterestContextInput,
+} from './context-assembly'
 
 function input(overrides: Partial<InterestContextInput> = {}): InterestContextInput {
   return {
@@ -83,5 +89,17 @@ describe('buildInterestContext', () => {
     expect(text).toContain('Activity 0')
     expect(text).toContain('Activity 9')
     expect(text).not.toContain('Activity 10')
+  })
+})
+
+describe('interestContextInputSchema', () => {
+  // The profile lines survive the budget whole, so their bound is the schema's.
+  it('trims a profile field past the server ceiling instead of refusing the call', () => {
+    const ceiling = TEXT_LIMITS.wantToLearn * SERVER_LIMIT_FACTOR
+    const long = input()
+    long.interest.wantToLearn = 'x'.repeat(ceiling + 500)
+    const parsed = interestContextInputSchema.parse(long)
+    expect(parsed.interest.wantToLearn).toHaveLength(ceiling)
+    expect(parsed.interest.name).toBe('Conversational German')
   })
 })

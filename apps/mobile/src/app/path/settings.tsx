@@ -1,11 +1,20 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useMemo, useRef, useState } from 'react'
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native'
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   EXPERIENCE_CHOICES,
   FREQUENCIES,
+  isOverLimit,
   WHY_CHOICES,
   type ExperienceChoice,
   type Frequency,
@@ -35,7 +44,8 @@ import { colors } from '@/theme/tokens'
 /**
  * Path settings (docs/01 §5): every intake answer, editable, plus the contexts
  * Go further activities can draw on. Text edits, outcomes included,
- * commit with Save; the lists (topics, contexts) act as they're tapped.
+ * commit with Save, pinned below the scroll and enabled only once something
+ * would change; the lists (topics, contexts) act as they're tapped.
  */
 
 const WHY_LABEL: Record<WhyChoice, string> = {
@@ -123,20 +133,43 @@ export default function PathSettingsScreen() {
     )
   }
 
+  const tooLong =
+    isOverLimit(name, 'line') ||
+    isOverLimit(wantToLearn, 'wantToLearn') ||
+    isOverLimit(whyText, 'note') ||
+    isOverLimit(experienceText, 'note') ||
+    isOverLimit(approachNotes, 'note') ||
+    outcomes.some((o) => isOverLimit(o.text, 'line'))
+
+  const successOutcomes = cleanOutcomes(outcomes)
+  const patch = {
+    name: name.trim() || interest.name,
+    wantToLearn: wantToLearn.trim() || interest.wantToLearn,
+    whyChoice,
+    whyText: whyText.trim() || null,
+    experienceChoice,
+    experienceText: experienceText.trim() || null,
+    successOutcomes: successOutcomes.length > 0 ? successOutcomes : null,
+    frequency,
+    sessionMinutes,
+    approachNotes: approachNotes.trim(),
+  }
+  // Pending only when Save would write something different — stray spaces and
+  // blank outcome rows don't count.
+  const dirty =
+    patch.name !== interest.name ||
+    patch.wantToLearn !== interest.wantToLearn ||
+    patch.whyChoice !== interest.whyChoice ||
+    patch.whyText !== (interest.whyText ?? null) ||
+    patch.experienceChoice !== interest.experienceChoice ||
+    patch.experienceText !== (interest.experienceText ?? null) ||
+    successOutcomes.join('\n') !== (interest.successOutcomes ?? []).join('\n') ||
+    patch.frequency !== interest.frequency ||
+    patch.sessionMinutes !== interest.sessionMinutes ||
+    patch.approachNotes !== interest.approachNotes
+
   const save = () => {
-    const successOutcomes = cleanOutcomes(outcomes)
-    updateInterest(db, repoContext, interest.id, {
-      name: name.trim() || interest.name,
-      wantToLearn: wantToLearn.trim() || interest.wantToLearn,
-      whyChoice,
-      whyText: whyText.trim() || null,
-      experienceChoice,
-      experienceText: experienceText.trim() || null,
-      successOutcomes: successOutcomes.length > 0 ? successOutcomes : null,
-      frequency,
-      sessionMinutes,
-      approachNotes: approachNotes.trim(),
-    })
+    updateInterest(db, repoContext, interest.id, patch)
     track('settings_changed', { key: 'path_settings' })
     if (frequency !== interest.frequency) track('settings_changed', { key: 'frequency' })
     if (sessionMinutes !== interest.sessionMinutes)
@@ -151,7 +184,7 @@ export default function PathSettingsScreen() {
 
   const addTopic = () => {
     const label = newTopic.trim()
-    if (label.length === 0) return
+    if (label.length === 0 || isOverLimit(label, 'line')) return
     createTopic(db, repoContext, {
       interestId: interest.id,
       label,
@@ -164,209 +197,232 @@ export default function PathSettingsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right']}>
-      <View className="flex-row items-center gap-3 px-5 pt-4">
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-          onPress={() => router.back()}
-          hitSlop={10}
-        >
-          <Ionicons name="chevron-back" size={24} color={colors.ink.DEFAULT} />
-        </Pressable>
-        <Text className="font-heading-bold text-title text-ink">Path settings</Text>
-      </View>
-
-      <ScrollView
+    <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right', 'bottom']}>
+      <KeyboardAvoidingView
         className="flex-1"
-        contentContainerClassName="gap-6 px-5 py-6"
-        keyboardShouldPersistTaps="handled"
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Field label="Interest name">
-          <TextField value={name} onChangeText={setName} accessibilityLabel="Interest name" />
-        </Field>
+        <View className="flex-row items-center gap-3 px-5 pt-4">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+            onPress={() => router.back()}
+            hitSlop={10}
+          >
+            <Ionicons name="chevron-back" size={24} color={colors.ink.DEFAULT} />
+          </Pressable>
+          <Text className="font-heading-bold text-title text-ink">Path settings</Text>
+        </View>
 
-        <Field label="What you want to learn">
-          <TextField
-            value={wantToLearn}
-            onChangeText={setWantToLearn}
-            multiline
-            accessibilityLabel="What you want to learn"
-          />
-        </Field>
+        <ScrollView
+          className="flex-1"
+          contentContainerClassName="gap-6 px-5 py-6"
+          keyboardShouldPersistTaps="handled"
+        >
+          <Field label="Interest name">
+            <TextField
+              value={name}
+              onChangeText={setName}
+              accessibilityLabel="Interest name"
+              limit="line"
+            />
+          </Field>
 
-        <Field label="Why">
-          <Chips
-            options={WHY_CHOICES}
-            labels={WHY_LABEL}
-            value={whyChoice}
-            onChange={setWhyChoice}
-          />
-          <TextField
-            value={whyText}
-            onChangeText={setWhyText}
-            placeholder="Anything more"
-            multiline
-            accessibilityLabel="Why, in your words"
-          />
-        </Field>
+          <Field label="What you want to learn">
+            <TextField
+              value={wantToLearn}
+              onChangeText={setWantToLearn}
+              multiline
+              accessibilityLabel="What you want to learn"
+              limit="wantToLearn"
+            />
+          </Field>
 
-        <Field label="Experience">
-          <Chips
-            options={EXPERIENCE_CHOICES}
-            labels={EXPERIENCE_LABEL}
-            value={experienceChoice}
-            onChange={setExperienceChoice}
-          />
-          <TextField
-            value={experienceText}
-            onChangeText={setExperienceText}
-            placeholder="Anything more"
-            multiline
-            accessibilityLabel="Experience, in your words"
-          />
-        </Field>
+          <Field label="Why">
+            <Chips
+              options={WHY_CHOICES}
+              labels={WHY_LABEL}
+              value={whyChoice}
+              onChange={setWhyChoice}
+            />
+            <TextField
+              value={whyText}
+              onChangeText={setWhyText}
+              placeholder="Anything more"
+              multiline
+              accessibilityLabel="Why, in your words"
+              limit="note"
+            />
+          </Field>
 
-        <Field label="What you're hoping for">
-          {outcomes.map((outcome) => (
-            <View key={outcome.key} className="flex-row items-center gap-2">
+          <Field label="Experience">
+            <Chips
+              options={EXPERIENCE_CHOICES}
+              labels={EXPERIENCE_LABEL}
+              value={experienceChoice}
+              onChange={setExperienceChoice}
+            />
+            <TextField
+              value={experienceText}
+              onChangeText={setExperienceText}
+              placeholder="Anything more"
+              multiline
+              accessibilityLabel="Experience, in your words"
+              limit="note"
+            />
+          </Field>
+
+          <Field label="What you're hoping for">
+            {outcomes.map((outcome) => (
+              <View key={outcome.key} className="flex-row items-center gap-2">
+                <View className="flex-1">
+                  <TextField
+                    value={outcome.text}
+                    onChangeText={(text) =>
+                      setOutcomes((rows) =>
+                        rows.map((r) => (r.key === outcome.key ? { ...r, text } : r)),
+                      )
+                    }
+                    // Only a just-added row mounts empty; saved outcomes never are.
+                    autoFocus={outcome.text === ''}
+                    placeholder="An outcome"
+                    accessibilityLabel="Outcome"
+                    limit="line"
+                  />
+                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Remove ${outcome.text || 'outcome'}`}
+                  onPress={() => setOutcomes((rows) => rows.filter((r) => r.key !== outcome.key))}
+                  hitSlop={10}
+                >
+                  <Ionicons name="close" size={18} color={colors.ink.soft} />
+                </Pressable>
+              </View>
+            ))}
+            <Button label="Add an outcome" variant="quiet" onPress={addOutcome} />
+          </Field>
+
+          <Field label="How often">
+            <Chips
+              options={FREQUENCIES}
+              labels={FREQUENCY_LABEL}
+              value={frequency}
+              onChange={setFrequency}
+            />
+          </Field>
+
+          <Field label="Each session">
+            <View className="flex-row flex-wrap items-center gap-2">
+              {PRESET_MINUTES.map((minutes) => (
+                <ChoiceChip
+                  key={minutes}
+                  label={`${minutes} min`}
+                  selected={sessionMinutes === minutes}
+                  onPress={() => setSessionMinutes(minutes)}
+                />
+              ))}
+              <View className="flex-row items-center gap-2 rounded-pill border border-hairline bg-surface px-4 py-2.5">
+                <TextInput
+                  accessibilityLabel="Custom session length in minutes"
+                  value={PRESET_MINUTES.includes(sessionMinutes) ? '' : String(sessionMinutes)}
+                  onChangeText={(text) => {
+                    const digits = Number(text.replace(/[^0-9]/g, '').slice(0, 3))
+                    if (digits > 0) setSessionMinutes(digits)
+                  }}
+                  keyboardType="number-pad"
+                  placeholder="Custom"
+                  placeholderTextColor={colors.ink.soft}
+                  className="min-w-14 font-sans text-body text-ink"
+                />
+                <Text className="font-sans text-body text-ink-soft">min</Text>
+              </View>
+            </View>
+          </Field>
+
+          <Field label="Topics of interest">
+            <View className="flex-row flex-wrap gap-2">
+              {topics.map((topic) => (
+                <Pressable
+                  key={topic.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Remove ${topic.label}`}
+                  onPress={() => {
+                    softDeleteTopic(db, repoContext, topic.id)
+                    setVersion((n) => n + 1)
+                  }}
+                  className="flex-row items-center gap-2 rounded-pill border border-hairline bg-surface px-4 py-2.5"
+                >
+                  <Text className="font-sans-medium text-body text-ink">{topic.label}</Text>
+                  <Ionicons name="close" size={14} color={colors.ink.soft} />
+                </Pressable>
+              ))}
+            </View>
+            <View className="flex-row items-center gap-2">
               <View className="flex-1">
                 <TextField
-                  value={outcome.text}
-                  onChangeText={(text) =>
-                    setOutcomes((rows) =>
-                      rows.map((r) => (r.key === outcome.key ? { ...r, text } : r)),
-                    )
-                  }
-                  // Only a just-added row mounts empty; saved outcomes never are.
-                  autoFocus={outcome.text === ''}
-                  placeholder="An outcome"
-                  accessibilityLabel="Outcome"
+                  value={newTopic}
+                  onChangeText={setNewTopic}
+                  placeholder="Add a topic"
+                  accessibilityLabel="Add a topic"
+                  onSubmitEditing={addTopic}
+                  limit="line"
                 />
               </View>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`Remove ${outcome.text || 'outcome'}`}
-                onPress={() => setOutcomes((rows) => rows.filter((r) => r.key !== outcome.key))}
-                hitSlop={10}
-              >
-                <Ionicons name="close" size={18} color={colors.ink.soft} />
-              </Pressable>
-            </View>
-          ))}
-          <Button label="Add an outcome" variant="quiet" onPress={addOutcome} />
-        </Field>
-
-        <Field label="How often">
-          <Chips
-            options={FREQUENCIES}
-            labels={FREQUENCY_LABEL}
-            value={frequency}
-            onChange={setFrequency}
-          />
-        </Field>
-
-        <Field label="Each session">
-          <View className="flex-row flex-wrap items-center gap-2">
-            {PRESET_MINUTES.map((minutes) => (
-              <ChoiceChip
-                key={minutes}
-                label={`${minutes} min`}
-                selected={sessionMinutes === minutes}
-                onPress={() => setSessionMinutes(minutes)}
+              <Button
+                label="Add"
+                variant="quiet"
+                onPress={addTopic}
+                disabled={isOverLimit(newTopic, 'line')}
               />
-            ))}
-            <View className="flex-row items-center gap-2 rounded-pill border border-hairline bg-surface px-4 py-2.5">
-              <TextInput
-                accessibilityLabel="Custom session length in minutes"
-                value={PRESET_MINUTES.includes(sessionMinutes) ? '' : String(sessionMinutes)}
-                onChangeText={(text) => {
-                  const digits = Number(text.replace(/[^0-9]/g, '').slice(0, 3))
-                  if (digits > 0) setSessionMinutes(digits)
-                }}
-                keyboardType="number-pad"
-                placeholder="Custom"
-                placeholderTextColor={colors.ink.soft}
-                className="min-w-14 font-sans text-body text-ink"
-              />
-              <Text className="font-sans text-body text-ink-soft">min</Text>
             </View>
-          </View>
-        </Field>
+          </Field>
 
-        <Field label="Topics of interest">
-          <View className="flex-row flex-wrap gap-2">
-            {topics.map((topic) => (
+          <Field label="Approach notes">
+            <TextField
+              value={approachNotes}
+              onChangeText={setApproachNotes}
+              multiline
+              accessibilityLabel="Approach notes"
+              limit="note"
+            />
+          </Field>
+
+          <Field label="Projects, environments, people">
+            {contexts.map((context) => (
               <Pressable
-                key={topic.id}
+                key={context.id}
                 accessibilityRole="button"
-                accessibilityLabel={`Remove ${topic.label}`}
                 onPress={() => {
-                  softDeleteTopic(db, repoContext, topic.id)
-                  setVersion((n) => n + 1)
+                  setEditingContext(context)
+                  setContextSheetOpen(true)
                 }}
-                className="flex-row items-center gap-2 rounded-pill border border-hairline bg-surface px-4 py-2.5"
+                className="gap-1 rounded-card border border-hairline bg-surface p-4"
               >
-                <Text className="font-sans-medium text-body text-ink">{topic.label}</Text>
-                <Ionicons name="close" size={14} color={colors.ink.soft} />
+                <Text className="font-sans text-caption text-ink-soft">
+                  {CONTEXT_KIND_LABEL[context.kind]}
+                </Text>
+                <Text className="font-sans-medium text-body text-ink">{context.label}</Text>
+                {context.notes ? (
+                  <Text className="font-sans text-secondary text-ink-soft">{context.notes}</Text>
+                ) : null}
               </Pressable>
             ))}
-          </View>
-          <View className="flex-row items-center gap-2">
-            <View className="flex-1">
-              <TextField
-                value={newTopic}
-                onChangeText={setNewTopic}
-                placeholder="Add a topic"
-                accessibilityLabel="Add a topic"
-                onSubmitEditing={addTopic}
-              />
-            </View>
-            <Button label="Add" variant="quiet" onPress={addTopic} />
-          </View>
-        </Field>
-
-        <Field label="Approach notes">
-          <TextField
-            value={approachNotes}
-            onChangeText={setApproachNotes}
-            multiline
-            accessibilityLabel="Approach notes"
-          />
-        </Field>
-
-        <Field label="Projects, environments, people">
-          {contexts.map((context) => (
-            <Pressable
-              key={context.id}
-              accessibilityRole="button"
+            <Button
+              label="Add a context"
+              variant="quiet"
               onPress={() => {
-                setEditingContext(context)
+                setEditingContext(null)
                 setContextSheetOpen(true)
               }}
-              className="gap-1 rounded-card border border-hairline bg-surface p-4"
-            >
-              <Text className="font-sans text-caption text-ink-soft">
-                {CONTEXT_KIND_LABEL[context.kind]}
-              </Text>
-              <Text className="font-sans-medium text-body text-ink">{context.label}</Text>
-              {context.notes ? (
-                <Text className="font-sans text-secondary text-ink-soft">{context.notes}</Text>
-              ) : null}
-            </Pressable>
-          ))}
-          <Button
-            label="Add a context"
-            variant="quiet"
-            onPress={() => {
-              setEditingContext(null)
-              setContextSheetOpen(true)
-            }}
-          />
-        </Field>
+            />
+          </Field>
+        </ScrollView>
 
-        <Button label="Save" onPress={save} />
-      </ScrollView>
+        <View className="px-5 pb-2 pt-2">
+          <Button label="Save" onPress={save} disabled={!dirty || tooLong} />
+        </View>
+      </KeyboardAvoidingView>
 
       <ContextSheet
         key={editingContext?.id ?? 'new'}

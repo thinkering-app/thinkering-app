@@ -8,7 +8,7 @@ import {
 } from './lib/server/internal-auth'
 
 /**
- * CORS for the device-facing API routes (docs/02 §Clients). The Expo web export
+ * CORS for the device-facing API routes (docs/02 §Platform strategy). The Expo web export
  * is deployed to its own origin (`web.thinkering.app`), so every call it makes
  * to `/api/*` here is cross-origin: without these headers the browser rejects
  * the preflight and the app never reaches the proxy at all. Native clients

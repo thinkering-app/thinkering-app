@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { cappedText } from '../../limits'
 import { approachOutputSchema } from '../../schemas/generations'
 import { SHARED_PREAMBLE } from '../preamble'
 import type { PromptTemplate } from '../types'
@@ -10,12 +11,24 @@ import type { PromptTemplate } from '../types'
  * get it in full.
  */
 
+/**
+ * The approach as the later intake kinds get it back. It is this kind's output,
+ * but the client returns it and the learner can edit the notes, so it is
+ * bounded like any other params rather than trusted as model output.
+ */
+export const approachParamSchema = z.object({
+  domain: cappedText('line', { min: 1 }),
+  approachNotes: cappedText('note', { min: 1 }),
+  pitfalls: z.array(cappedText('note', { min: 1 })).min(1),
+  progressionPrinciples: z.array(cappedText('note', { min: 1 })).min(1),
+})
+
 export const intakeApproachParamsSchema = z.object({
-  wantToLearn: z.string().min(1),
+  wantToLearn: cappedText('wantToLearn', { min: 1 }),
   whyChoice: z.enum(['career', 'personal_goal', 'fun']),
-  whyText: z.string().optional(),
+  whyText: cappedText('note').optional(),
   experienceChoice: z.enum(['getting_started', 'explored', 'in_middle', 'experienced']).optional(),
-  experienceText: z.string().optional(),
+  experienceText: cappedText('note').optional(),
 })
 export type IntakeApproachParams = z.infer<typeof intakeApproachParamsSchema>
 

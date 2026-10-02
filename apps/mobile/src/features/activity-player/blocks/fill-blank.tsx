@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react'
 import { Text, TextInput, View } from 'react-native'
-import { gradeBlank, gradeFillBlank, type ResponsePayloadFor } from '@thinkering/core'
+import { gradeBlank, gradeFillBlank, TEXT_LIMITS, type ResponsePayloadFor } from '@thinkering/core'
 
 import { colors } from '@/theme/tokens'
 import { MarkdownWords } from '../markdown'
@@ -90,6 +90,9 @@ function BlankInput({
       value={value}
       onChangeText={onChangeText}
       onBlur={onBlur}
+      // A hard cap, unlike TextField's soft limit: a blank takes a word or two,
+      // and a counter wouldn't fit beside it.
+      maxLength={TEXT_LIMITS.line}
       autoCapitalize="none"
       autoCorrect={false}
       selectionColor={colors.cornflower.DEFAULT}

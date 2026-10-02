@@ -174,6 +174,8 @@ export interface ActivityRequest {
   section: Section
   /** The goal they chose, if any. */
   goalId: string | null
+  /** The activity type they chose, if any — one of the section's active items. */
+  libraryItemId: string | null
   /** What to focus on or how they want to learn it; may be empty. */
   focus: string
 }
@@ -220,7 +222,11 @@ export async function requestActivity(
   const picks: TodayPlanParams['picks'] = { next: [], strengthen: [], goFurther: [] }
   picks[SECTION_KEYS[request.section]] = [{ ...described!, ...(focus ? { focus } : {}) }]
 
-  const [card] = await planCards(interest, today, goals, picks)
+  // A chosen type is the whole active set, so G5a writes the card around it.
+  const only = request.libraryItemId
+    ? { section: request.section, libraryItemId: request.libraryItemId }
+    : undefined
+  const [card] = await planCards(interest, today, goals, picks, undefined, only)
   if (!card) throw new Error('no card came back')
   return createActivity(db, repoContext, {
     ...card,
@@ -233,7 +239,8 @@ export async function requestActivity(
 /**
  * G5a for a set of picks, zipped back into cards. Only the sections with
  * picks are asked about — after a finished card that's one section, and asking
- * for the others would duplicate what's on screen.
+ * for the others would duplicate what's on screen. `only` narrows one
+ * section's active set to the item the learner chose, if it's in it.
  */
 async function planCards(
   interest: Interest,
@@ -241,6 +248,7 @@ async function planCards(
   goals: Goal[],
   picks: TodayPlanParams['picks'],
   signal?: AbortSignal,
+  only?: { section: Section; libraryItemId: string },
 ) {
   const goalsById = new Map(goals.map((g) => [g.id, g]))
   const prefs = listLibraryPrefs(db, interest.id)
@@ -249,6 +257,10 @@ async function planCards(
     next: activeLibraryItems('next', prefs, situation).map((i) => i.id),
     strengthen: activeLibraryItems('strengthen', prefs, situation).map((i) => i.id),
     goFurther: activeLibraryItems('go_further', prefs, situation).map((i) => i.id),
+  }
+  if (only) {
+    const key = SECTION_KEYS[only.section]
+    if (activeIds[key].includes(only.libraryItemId)) activeIds[key] = [only.libraryItemId]
   }
 
   const params: TodayPlanParams = {

@@ -4,8 +4,8 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import Anthropic from '@anthropic-ai/sdk'
 import { getPromptTemplate } from '../src/prompts/registry'
-import { modelRequestFields } from '../src/prompts/request'
-import type { AnyPromptTemplate } from '../src/prompts/types'
+import { modelRequestFields, SEARCH_DEADLINE_MS, serverToolError } from '../src/prompts/request'
+import { MODEL_IDS, type AnyPromptTemplate } from '../src/prompts/types'
 
 export const pkgRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -86,6 +86,11 @@ export interface LiveResult {
   }
   latencyMs: number
   model: string
+  /**
+   * Why the run was cut short, as the app would cut it: a failed search or the
+   * search deadline (docs/04 §Usage metering). Text and usage are then empty.
+   */
+  stopped?: string
 }
 
 export async function runLive(template: AnyPromptTemplate, params: unknown): Promise<LiveResult> {
@@ -110,7 +115,38 @@ export async function runLive(template: AnyPromptTemplate, params: unknown): Pro
   })
 
   stream.on('text', (delta) => process.stderr.write(delta))
-  const message = await stream.finalMessage()
+
+  // The app's two stops on a searching call, so a check can't run away either.
+  let stopped: string | undefined
+  const stop = (reason: string) => {
+    stopped ??= reason
+    stream.abort()
+  }
+  stream.on('streamEvent', (event) => {
+    if (event.type !== 'content_block_start') return
+    const code = serverToolError(event.content_block)
+    if (code !== undefined) stop(`search failed: ${code}`)
+  })
+  const timer = template.tools?.webSearch
+    ? setTimeout(() => stop(`search deadline (${SEARCH_DEADLINE_MS / 1000}s)`), SEARCH_DEADLINE_MS)
+    : undefined
+
+  let message: Anthropic.Message
+  try {
+    message = await stream.finalMessage()
+  } catch (e) {
+    if (stopped === undefined) throw e
+    process.stderr.write(`\n[stopped: ${stopped}]\n`)
+    return {
+      text: '',
+      usage: { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 },
+      latencyMs: Date.now() - started,
+      model: MODEL_IDS[template.model],
+      stopped,
+    }
+  } finally {
+    clearTimeout(timer)
+  }
   process.stderr.write('\n')
 
   const text = message.content
