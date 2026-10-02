@@ -4,6 +4,8 @@ import type { Language } from '@thinkering/core'
 
 import { deviceLanguage, formatLocale } from './language'
 import { en } from './locales/en'
+import { es } from './locales/es'
+import { zhHans } from './locales/zh-Hans'
 
 export { AVAILABLE_LANGUAGES } from './language'
 
@@ -19,7 +21,11 @@ export { AVAILABLE_LANGUAGES } from './language'
 export const i18n = createInstance()
 
 void i18n.use(initReactI18next).init({
-  resources: { en: { translation: en } },
+  resources: {
+    en: { translation: en },
+    es: { translation: es },
+    'zh-Hans': { translation: zhHans },
+  },
   lng: deviceLanguage(),
   fallbackLng: 'en',
   interpolation: { escapeValue: false },
