@@ -1,4 +1,5 @@
 import { Text, View } from 'react-native'
+import { withoutLeadNumber } from '@thinkering/core'
 import { Markdown } from '../markdown'
 import type { BlockOf } from './types'
 
@@ -20,7 +21,10 @@ export function ListBlock({ block }: { block: BlockOf<'list'> }) {
           <Text className="font-sans text-body text-ink-soft">
             {block.style === 'numbered' ? `${i + 1}.` : '•'}
           </Text>
-          <Markdown md={item} className="flex-1 font-sans text-body text-ink" />
+          <Markdown
+            md={block.style === 'numbered' ? withoutLeadNumber(item) : item}
+            className="flex-1 font-sans text-body text-ink"
+          />
         </View>
       ))}
     </View>
@@ -44,17 +48,26 @@ export function CalloutBlock({ block }: { block: BlockOf<'callout'> }) {
 export function StepsBlock({ block }: { block: BlockOf<'steps'> }) {
   return (
     <View className="gap-4 rounded-card bg-surface p-5 shadow-card">
-      {block.items.map((step, i) => (
-        <View key={i} className="gap-1">
-          <View className="flex-row items-center gap-2">
-            <View className="h-6 w-6 items-center justify-center rounded-pill bg-cornflower-tint">
-              <Text className="font-sans-medium text-caption text-cornflower-deep">{i + 1}</Text>
+      {block.items.map((step, i) => {
+        // A label that was only "1" or "Step 1" is gone; the step's text takes its place.
+        const label = withoutLeadNumber(step.label)
+        const md = withoutLeadNumber(step.md)
+        return (
+          <View key={i} className="gap-1">
+            <View className={`flex-row gap-2 ${label ? 'items-center' : 'items-start'}`}>
+              <View className="h-6 w-6 items-center justify-center rounded-pill bg-cornflower-tint">
+                <Text className="font-sans-medium text-caption text-cornflower-deep">{i + 1}</Text>
+              </View>
+              {label ? (
+                <Text className="flex-1 font-sans-semibold text-body text-ink">{label}</Text>
+              ) : (
+                <Markdown md={md} className="flex-1 font-sans text-body text-ink" />
+              )}
             </View>
-            <Text className="flex-1 font-sans-semibold text-body text-ink">{step.label}</Text>
+            {label ? <Markdown md={md} className="pl-8 font-sans text-body text-ink-soft" /> : null}
           </View>
-          <Markdown md={step.md} className="pl-8 font-sans text-body text-ink-soft" />
-        </View>
-      ))}
+        )
+      })}
     </View>
   )
 }

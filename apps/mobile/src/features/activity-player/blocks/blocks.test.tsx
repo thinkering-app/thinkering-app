@@ -66,6 +66,27 @@ describe('content blocks', () => {
     for (const step of block.items) expect(screen.getByText(step.label)).toBeTruthy()
   })
 
+  it('shows a step numbered once when the model wrote the number in too', async () => {
+    await render(
+      <BlockView
+        pageId="p"
+        block={{
+          kind: 'steps',
+          items: [
+            { label: '1', md: 'Lock your wrist.' },
+            { label: 'Step 2: Pivot', md: '2. From the shoulder.' },
+          ],
+        }}
+      />,
+    )
+    // Only the badge carries the number.
+    expect(screen.getAllByText('1')).toHaveLength(1)
+    expect(screen.queryByText(/Step 2|2\./)).toBeNull()
+    expect(screen.getByText('Lock your wrist.')).toBeTruthy()
+    expect(screen.getByText('Pivot')).toBeTruthy()
+    expect(screen.getByText('From the shoulder.')).toBeTruthy()
+  })
+
   it('renders a video resource embed with its focus prompt and title', async () => {
     const { block } = await renderBlock('resourceEmbed')
     if (block.kind !== 'resourceEmbed') throw new Error('wrong block')
