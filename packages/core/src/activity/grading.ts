@@ -24,10 +24,10 @@ export function gradeMcq(block: McqBlock, selectedId: string): boolean | null {
 
 /**
  * Blanks are forgiving: they ignore case, spacing, hyphens, punctuation at
- * either end and thousands commas ("10,000" for "10000"), and an article the
- * other side doesn't have ("the mitochondria" for "mitochondria"); `alts`
- * count as right. In an answer of eight letters or
- * more, one typo — a letter missing, extra, wrong or swapped with its
+ * either end — except a minus sign, so -1 isn't 1 — and thousands commas
+ * ("10,000" for "10000"), and an article the other side doesn't have ("the
+ * mitochondria" for "mitochondria"); `alts` count as right. In an answer of
+ * eight letters or more, one typo — a letter missing, extra, wrong or swapped with its
  * neighbour — still counts. Shorter answers and anything with a digit must
  * match, so "affect" isn't "effect" and 1914 isn't 1915.
  */
@@ -48,11 +48,13 @@ function letterCount(text: string): number {
 }
 
 function normalizeBlank(text: string): string {
-  return text
+  const sign = /^[\s\p{P}]*?[-‐–—−](?=\d)/u.test(text) ? '-' : ''
+  const rest = text
     .toLowerCase()
     .replace(/(?<=\d),(?=\d{3}(?!\d))/g, '')
-    .replace(/[\s\-‐–—]+/g, ' ')
+    .replace(/[\s\-‐–—−]+/g, ' ')
     .replace(/^[\s\p{P}]+|[\s\p{P}]+$/gu, '')
+  return sign + rest
 }
 
 function dropArticle(text: string): string {

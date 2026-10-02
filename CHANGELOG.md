@@ -146,6 +146,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Fixed
 
+- A fill-in-the-blank answer of 1 is no longer marked right when the answer
+  is -1.
 - Steps and numbered lists show each number once, instead of a step titled
   "1" next to its own 1.
 - Today no longer makes a Watch Along with nothing to watch, or a Guided

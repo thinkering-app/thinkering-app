@@ -39,7 +39,7 @@ Interactive (all record into `responses`):
 
 - `mcq { prompt, options: {id, label}[], correctId?, explain?: md }` — instant feedback when `correctId` present; opinion-style when absent
 - `freeText { prompt, placeholder?, minimal?: boolean, consider?: md }` — reflection / explain-back. `consider` is one sentence that gives a stuck learner a way in without giving the answer; it stays hidden behind a "Think about…" pill under the field. G5b writes one for every freeText; G7 pages and older documents may not have one, and then there's no pill.
-- `fillBlank { md, blanks: {id, answer, alts?: string[]}[] }` — each answer follows from what the activity already taught, and nothing else on the page gives it away; a wrong answer is shown once the learner leaves the blank. Grading forgives case, spacing, hyphens, punctuation at either end, thousands commas, an article only one side has, and one typo in an answer of eight letters or more without digits (`gradeBlank`)
+- `fillBlank { md, blanks: {id, answer, alts?: string[]}[] }` — each answer follows from what the activity already taught, and nothing else on the page gives it away; a wrong answer is shown once the learner leaves the blank. Grading forgives case, spacing, hyphens, punctuation at either end (but not a minus sign), thousands commas, an article only one side has, and one typo in an answer of eight letters or more without digits (`gradeBlank`)
 - `ordering { prompt, items: {id, label}[], correctOrder: id[] }` — items start shuffled; the learner arranges them and presses **Check**, which saves and grades the order
 - `matching { prompt, pairs: {leftId, left, rightId, right}[] }` — the right column starts shuffled
 - `reveal { prompt, md }` — think-then-tap-to-reveal (retrieval practice)
