@@ -32,9 +32,11 @@ export const player: TranslationOf<typeof english> = {
   ordering: {
     moveUp: '将“{{label}}”上移',
     moveDown: '将“{{label}}”下移',
+    check: '检查',
   },
   reveal: {
-    show: '看看',
+    hint: '先想好答案，再点一下查看',
+    accessibilityHint: '显示答案',
   },
   video: {
     openClip: '打开视频片段',

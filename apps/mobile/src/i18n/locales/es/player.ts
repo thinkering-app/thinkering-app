@@ -32,9 +32,11 @@ export const player: TranslationOf<typeof english> = {
   ordering: {
     moveUp: 'Subir {{label}}',
     moveDown: 'Bajar {{label}}',
+    check: 'Comprobar',
   },
   reveal: {
-    show: 'Mostrar',
+    hint: 'Piensa tu respuesta y toca para verla',
+    accessibilityHint: 'Muestra la respuesta',
   },
   video: {
     openClip: 'Abrir el clip',

@@ -156,6 +156,12 @@ export const path: TranslationOf<typeof english> = {
       customPlaceholder: '自定义',
       unit: '分钟',
     },
+    reading: {
+      label: '每页阅读量',
+      less: '较短',
+      balanced: '适中',
+      more: '较长',
+    },
     topics: {
       label: '关注的话题',
       removeAccessibilityLabel: '移除“{{label}}”',

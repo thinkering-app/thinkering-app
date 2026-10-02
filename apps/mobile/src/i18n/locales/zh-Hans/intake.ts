@@ -8,6 +8,7 @@ export const intake: TranslationOf<typeof english> = {
     getStarted: '开始',
     signInOrRestore: '我已有账户或备份文件',
     restoreFromBackup: '从备份恢复',
+    languageAccessibilityLabel: '语言：{{language}}',
   },
   returning: {
     title: '欢迎回来',
@@ -78,6 +79,12 @@ export const intake: TranslationOf<typeof english> = {
     custom: '自定义',
     customAccessibilityLabel: '自定义每次时长（分钟）',
     minUnit: '分钟',
+    readingPerPage: '每页阅读量',
+    reading: {
+      less: '较短',
+      balanced: '适中',
+      more: '较长',
+    },
   },
   direction: {
     question: '我们可以从这个方向开始。',

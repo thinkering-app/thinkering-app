@@ -8,6 +8,7 @@ export const intake: TranslationOf<typeof english> = {
     getStarted: 'Empezar',
     signInOrRestore: 'Ya tengo una cuenta o un archivo de copia de seguridad',
     restoreFromBackup: 'Restaurar desde una copia de seguridad',
+    languageAccessibilityLabel: 'Idioma: {{language}}',
   },
   returning: {
     title: 'Hola de nuevo',
@@ -79,6 +80,12 @@ export const intake: TranslationOf<typeof english> = {
     custom: 'Otra',
     customAccessibilityLabel: 'Duración personalizada de la sesión en minutos',
     minUnit: 'min',
+    readingPerPage: 'Lectura por página',
+    reading: {
+      less: 'Corta',
+      balanced: 'Media',
+      more: 'Larga',
+    },
   },
   direction: {
     question: 'Esta es una dirección para empezar.',

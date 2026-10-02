@@ -156,6 +156,12 @@ export const path: TranslationOf<typeof english> = {
       customPlaceholder: 'Otra',
       unit: 'min',
     },
+    reading: {
+      label: 'Lectura por página',
+      less: 'Corta',
+      balanced: 'Media',
+      more: 'Larga',
+    },
     topics: {
       label: 'Temas de interés',
       removeAccessibilityLabel: 'Quitar {{label}}',
