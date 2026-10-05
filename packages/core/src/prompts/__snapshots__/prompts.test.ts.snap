@@ -916,16 +916,11 @@ Output contract: respond with a single JSON object exactly matching the schema i
     },
     {
       "cache": true,
-      "text": "Task: the learner is about to reflect on their learning. Prepare two things for them.
+      "text": "Task: the learner is about to reflect on their learning. Recap it for them.
 
-Return JSON: { "recap": string, "outcomes": string[] }
+Return JSON: { "recap": string }
 
-"recap": what and how they've been learning lately, addressed to them as "you". At most two sentences and 40 words. Say which goals they've been working on, what kind of practice (meeting new ground, strengthening it, putting it to use), and anything their ratings suggest. Describe only what their recent activity shows — no praise, no verdict on their method, no advice. If there's no recent activity, say so plainly in one sentence.
-
-"outcomes": 2–3 more outcomes they could add to what they're hoping for, in their own voice: "I can…", "I understand…", "I've made…", "I feel confident…".
-- Each is 3–10 words (under 60 characters), sentence case, no trailing period. "I can sketch a face from memory" is the right size.
-- Draw on what they've actually been doing and why they're learning: reach a little past where they are now, reachable in weeks to months.
-- Never repeat or lightly rephrase one they already hold. Vary the kind: understanding, doing, making, a real moment in their life, confidence or habit.",
+"recap": what and how they've been learning lately, addressed to them as "you". At most two sentences and 40 words. Say which goals they've been working on, what kind of practice (meeting new ground, strengthening it, putting it to use), and anything their ratings suggest. Describe only what their recent activity shows — no praise, no verdict on their method, no advice. If there's no recent activity, say so plainly in one sentence.",
     },
   ],
 }
@@ -933,7 +928,7 @@ Return JSON: { "recap": string, "outcomes": string[] }
 
 exports[`prompt templates > reflect.open sends stable request fields (snapshot) 1`] = `
 {
-  "max_tokens": 600,
+  "max_tokens": 300,
   "model": "claude-haiku-4-5",
   "temperature": 0.3,
 }
@@ -1018,7 +1013,7 @@ Return JSON: {
     { "type": "remove", "ref": string, "reason": string },
     { "type": "reorder", "ref": string, "afterRef": string|null, "reason": string }   // afterRef null = move it to the front
   ],
-  "suggestedGoals": [          // new goals, 0–3
+  "suggestedGoals": [          // new goals, 0–4
     { "title": string, "description": string,
       "concepts": [{ "label": string, "kind": "concept"|"skill" }],   // 2–4, 2–5 words each
       "afterRef": string|null,   // the goal it should follow; null = the front of the path
@@ -1030,7 +1025,8 @@ Rules:
 - Refer to existing goals only by the refs listed below. Never invent a ref.
 - Propose only what the reflection actually supports. An empty "suggestedChanges" is the right answer when their path already fits what they said; say so in the observations.
 - Prefer reordering or revising over removing for a goal they have already started — their progress on it is real.
-- They have just confirmed what they're hoping for ("What would feel like success" above). Favor changes that move them toward it; an outcome no goal on the path serves is a good reason to suggest one. In a reason, call it what they're hoping for, never "success".
+- Their reflection may list things they want to cover or learn. Each one no goal on the path already covers is a good reason to suggest a goal for it; when they list more than fit, take the ones they put first.
+- Favor changes that move them toward what they're hoping for ("What would feel like success" above). In a reason, call it what they're hoping for, never "success".
 - Every "reason" is one line the learner reads, in their terms, about their learning — not about your reasoning.
 - New goals follow the same rules as the rest of the path: one session each, outcome-flavored titles, sequenced so prerequisites come first.
 - Speak to what they wrote. Never imply their knowledge is limited to what they have done in this app.",

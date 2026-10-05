@@ -57,13 +57,11 @@ export const choicesOutputSchema = z.object({
 
 /**
  * G8a `reflect.open` — what the reflection flow shows before the learner
- * writes anything: a short recap of their recent learning, and a few more
- * outcomes to consider alongside the ones they already hold.
+ * writes anything: a short recap of their recent learning.
  */
 export const reflectOpenOutputSchema = z.object({
   /** What and how they've been learning lately — 1–2 plain sentences. */
   recap: z.string().min(1).max(400),
-  outcomes: z.array(z.string().min(1).max(80)).max(4),
 })
 export type ReflectOpenOutput = z.infer<typeof reflectOpenOutputSchema>
 

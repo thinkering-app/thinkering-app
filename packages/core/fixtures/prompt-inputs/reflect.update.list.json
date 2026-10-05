@@ -1,0 +1,179 @@
+{
+  "context": {
+    "interest": {
+      "name": "Conversational German",
+      "wantToLearn": "Get conversational in German",
+      "whyChoice": "personal_goal",
+      "whyText": "Partner’s family is in Munich; I want to hold my own at dinner.",
+      "experienceChoice": "explored",
+      "experienceText": "Two Duolingo streaks that died; I can order food.",
+      "successOutcomes": [
+        "I can follow most of a dinner conversation",
+        "I've had a whole call with family in German",
+        "I feel relaxed speaking, even with mistakes"
+      ],
+      "frequency": "several_weekly",
+      "sessionMinutes": 10,
+      "approachNotes": "You learn a language by understanding messages and being pushed to produce them. We’ll pair short comprehensible input — reading and listening slightly above your level — with small speaking and writing reps every session, so recognition turns into production."
+    },
+    "goals": [
+      {
+        "title": "Greet and introduce yourself",
+        "status": "strengthened",
+        "concepts": [
+          {
+            "label": "Greetings by register",
+            "kind": "concept"
+          },
+          {
+            "label": "Introducing yourself",
+            "kind": "skill"
+          }
+        ]
+      },
+      {
+        "title": "Order food and drinks",
+        "status": "introduced",
+        "concepts": [
+          {
+            "label": "Restaurant phrases",
+            "kind": "concept"
+          },
+          {
+            "label": "Polite requests with hätte gern",
+            "kind": "skill"
+          }
+        ]
+      },
+      {
+        "title": "Talk about your family",
+        "status": "not_started",
+        "concepts": [
+          {
+            "label": "Family vocabulary",
+            "kind": "concept"
+          },
+          {
+            "label": "Possessives mein/dein",
+            "kind": "concept"
+          }
+        ]
+      },
+      {
+        "title": "Handle small talk about your weekend",
+        "status": "not_started",
+        "concepts": [
+          {
+            "label": "Perfekt for past events",
+            "kind": "concept"
+          },
+          {
+            "label": "Weekend vocabulary",
+            "kind": "concept"
+          }
+        ]
+      }
+    ],
+    "recentHistory": [
+      {
+        "title": "Hätte gern: ordering politely",
+        "goalTitle": "Order food and drinks",
+        "tier": "introduce",
+        "rating": "up"
+      },
+      {
+        "title": "Quick retrieval: greetings",
+        "goalTitle": "Greet and introduce yourself",
+        "tier": "strengthen",
+        "rating": null
+      }
+    ],
+    "activeLibraryItems": [
+      {
+        "section": "next",
+        "id": "plain-explainer"
+      },
+      {
+        "section": "next",
+        "id": "guided-discovery"
+      },
+      {
+        "section": "next",
+        "id": "watch-along"
+      },
+      {
+        "section": "strengthen",
+        "id": "retrieval-quiz"
+      },
+      {
+        "section": "strengthen",
+        "id": "focused-drill"
+      },
+      {
+        "section": "strengthen",
+        "id": "faded-example"
+      },
+      {
+        "section": "go_further",
+        "id": "make-something"
+      },
+      {
+        "section": "go_further",
+        "id": "put-to-work"
+      },
+      {
+        "section": "go_further",
+        "id": "connect-ideas"
+      }
+    ],
+    "contexts": [
+      {
+        "kind": "person",
+        "label": "Partner’s mother Heike",
+        "notes": "Speaks no English; loves cooking"
+      }
+    ],
+    "resources": [
+      {
+        "title": "Easy German: At the Restaurant (video)",
+        "description": "Street interviews ordering food",
+        "goalTitles": ["Order food and drinks"]
+      }
+    ],
+    "routineNotes": ["Prefers speaking practice over grammar drills"]
+  },
+  "sessionMinutes": 10,
+  "feelingText": "Things I want to cover:\n- talking about my family\n- separable verbs, they keep tripping me up\n- toasting and table manners at a German dinner\n- the past tense for telling a story",
+  "goals": [
+    {
+      "ref": "G1",
+      "title": "Greet and introduce yourself",
+      "description": "Greetings for formal and informal situations, and saying who you are.",
+      "status": "strengthened"
+    },
+    {
+      "ref": "G2",
+      "title": "Order food and drinks",
+      "description": "Ordering in a cafe or restaurant, politely, without switching to English.",
+      "status": "introduced"
+    },
+    {
+      "ref": "G3",
+      "title": "Talk about your family",
+      "description": "Talking about who is in your family and how you are related.",
+      "status": "not_started"
+    },
+    {
+      "ref": "G4",
+      "title": "Handle small talk about your weekend",
+      "description": "Saying what you did at the weekend using the Perfekt.",
+      "status": "not_started"
+    }
+  ],
+  "topics": [
+    "Small talk and everyday phrases",
+    "Food and restaurants",
+    "German word order",
+    "Bavarian culture"
+  ]
+}

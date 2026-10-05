@@ -8,15 +8,15 @@ import type { PromptTemplate } from '../types'
 
 /**
  * G8 `reflect.update` — the reflection flow (docs/01 §5). The learner says how
- * their learning feels and what they want next; this proposes edits to the
- * path. Every proposal is a suggestion the learner accepts or ignores, so each
+ * their learning feels, or lists what they want to cover next; this proposes
+ * edits to the path. Every proposal is a suggestion the learner accepts or ignores, so each
  * one carries a reason in their terms.
  */
 
 export const reflectUpdateParamsSchema = z.object({
   context: interestContextInputSchema,
   sessionMinutes: z.number().int().positive(),
-  /** What they wrote in step 1 of the flow. */
+  /** What they wrote on the flow's first step. */
   feelingText: cappedText('long', { min: 1 }),
   /** The path, with the short refs the response must use. */
   goals: z.array(
@@ -40,7 +40,7 @@ Return JSON: {
     { "type": "remove", "ref": string, "reason": string },
     { "type": "reorder", "ref": string, "afterRef": string|null, "reason": string }   // afterRef null = move it to the front
   ],
-  "suggestedGoals": [          // new goals, 0–3
+  "suggestedGoals": [          // new goals, 0–4
     { "title": string, "description": string,
       "concepts": [{ "label": string, "kind": "concept"|"skill" }],   // 2–4, 2–5 words each
       "afterRef": string|null,   // the goal it should follow; null = the front of the path
@@ -52,14 +52,15 @@ Rules:
 - Refer to existing goals only by the refs listed below. Never invent a ref.
 - Propose only what the reflection actually supports. An empty "suggestedChanges" is the right answer when their path already fits what they said; say so in the observations.
 - Prefer reordering or revising over removing for a goal they have already started — their progress on it is real.
-- They have just confirmed what they're hoping for ("What would feel like success" above). Favor changes that move them toward it; an outcome no goal on the path serves is a good reason to suggest one. In a reason, call it what they're hoping for, never "success".
+- Their reflection may list things they want to cover or learn. Each one no goal on the path already covers is a good reason to suggest a goal for it; when they list more than fit, take the ones they put first.
+- Favor changes that move them toward what they're hoping for ("What would feel like success" above). In a reason, call it what they're hoping for, never "success".
 - Every "reason" is one line the learner reads, in their terms, about their learning — not about your reasoning.
 - New goals follow the same rules as the rest of the path: one session each, outcome-flavored titles, sequenced so prerequisites come first.
 - Speak to what they wrote. Never imply their knowledge is limited to what they have done in this app.`
 
 export const reflectUpdateTemplate: PromptTemplate<ReflectUpdateParams, ReflectUpdateOutput> = {
   kind: 'reflect.update',
-  version: 3,
+  version: 4,
   model: 'sonnet',
   maxTokens: 8000,
   effort: 'low',
