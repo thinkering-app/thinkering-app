@@ -8,7 +8,6 @@ import {
   createInterest,
   attachDoc,
   getGoal,
-  getInterest,
   listCoverage,
   listGoals,
   listReflections,
@@ -140,26 +139,5 @@ describe('applyReflection', () => {
     expect(added.concepts[0]!.id).toBeTruthy()
     expect(listReflections(db, interestId)).toEqual([reflection])
     expect(reflection.changes.removed).toEqual(['B'])
-  })
-
-  it('saves what they are hoping for only when the flow passes it, and clears it when empty', () => {
-    const [a] = makePath(['A'])
-    const keep = [{ kind: 'existing' as const, goalId: a!.id, title: 'A', description: '' }]
-    const noChanges = { added: [], removed: [], revised: [], reordered: false }
-    const reflect = (successOutcomes?: string[]) =>
-      applyReflection(db, ctx, {
-        interestId,
-        feelingText: 'Fine.',
-        entries: keep,
-        changes: noChanges,
-        successOutcomes,
-      })
-
-    reflect(['I can explain attention'])
-    expect(getInterest(db, interestId)!.successOutcomes).toEqual(['I can explain attention'])
-    reflect()
-    expect(getInterest(db, interestId)!.successOutcomes).toEqual(['I can explain attention'])
-    reflect([])
-    expect(getInterest(db, interestId)!.successOutcomes).toBeNull()
   })
 })

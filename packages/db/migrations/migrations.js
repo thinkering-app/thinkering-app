@@ -7,6 +7,7 @@ import m0002 from './0002_add_interest_success_outcomes.sql';
 import m0003 from './0003_add_activity_focus.sql';
 import m0004 from './0004_wandering_ma_gnuci.sql';
 import m0005 from './0005_add_activity_resource.sql';
+import m0006 from './0006_add_interest_weekly_days.sql';
 
   export default {
     journal,
@@ -16,7 +17,8 @@ m0001,
 m0002,
 m0003,
 m0004,
-m0005
+m0005,
+m0006
     }
   }
   

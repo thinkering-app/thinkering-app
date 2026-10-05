@@ -23,7 +23,7 @@ import { useLocalToday } from '@/time'
 
 export default function MeScreen() {
   const today = useLocalToday()
-  const { month, marked, changeMonth, dayActivities } = useCalendar(today)
+  const { month, marked, streak, changeMonth, dayActivities } = useCalendar(today)
   // The selected day's activities sit under the calendar; tapping it again closes them.
   const [selectedDay, setSelectedDay] = useState<LocalDate | null>(null)
   const [version, reload] = useReducer((n: number) => n + 1, 0)
@@ -49,6 +49,7 @@ export default function MeScreen() {
           month={month}
           label={monthLabel(month)}
           marked={marked}
+          streak={streak}
           today={today}
           selected={selectedDay}
           onSelect={(date) => setSelectedDay((current) => (current === date ? null : date))}

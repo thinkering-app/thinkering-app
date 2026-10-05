@@ -8,6 +8,13 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Added
 
+- Dots beside Today show your week with the interest in view: one for each
+  day you're aiming for, filled in as you go, with a check once you've
+  learned today. Tap them to see how your
+  week is going, and choose how many days in Configure learning routine.
+- The calendar shows how many weeks in a row you've learned something.
+- Path shows how many goals you've introduced, strengthened and put to use,
+  and how many activities you've completed.
 - Choose how much reading goes on each page of an activity: short, medium
   or long. It's on the time step when you add an interest, and in Path
   settings.
@@ -61,6 +68,10 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- Reflect on progress is now Check in, above the suggested goals, and
+  asks one question: say how it's going, or list what you want to learn
+  next, and the suggestions add goals for it. What you're hoping for
+  stays in Path settings. A suggested move says where the goal would go.
 - Adding an interest asks what you're hoping for before which topics
   feel most relevant, and the topics are named for how much experience
   you have: everyday words if you're new to it, the field's terms if not.

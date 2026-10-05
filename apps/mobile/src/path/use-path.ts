@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useReducer } from 'react'
 import { useFocusEffect } from 'expo-router'
-import { conceptCoverage } from '@thinkering/core'
+import { conceptCoverage, pathProgress, type PathProgress } from '@thinkering/core'
 import { listCoverage, listGoals, type Goal, type Interest } from '@thinkering/db'
 
 import { db } from '@/db'
@@ -19,6 +19,8 @@ export interface PathGoalView {
 
 export interface PathView {
   goals: PathGoalView[]
+  /** Goals at each status and the interest's completed activities — the line under the goals. */
+  progress: PathProgress & { activities: number }
   reload: () => void
 }
 
@@ -35,15 +37,22 @@ export function usePath(interest: Interest | null): PathView {
   const [version, reload] = useReducer((n: number) => n + 1, 0)
   useFocusEffect(useCallback(() => reload(), []))
 
-  const goals = useMemo(() => {
-    if (!interest) return []
-    const coverage = conceptCoverage(listCoverage(db, interest.id))
-    return listGoals(db, interest.id).map((goal) => ({
+  const { goals, progress } = useMemo(() => {
+    if (!interest) return { goals: [], progress: { ...pathProgress([]), activities: 0 } }
+    // Every completed activity of the interest, with or without a goal still on the path.
+    const completed = listCoverage(db, interest.id)
+    const coverage = conceptCoverage(completed)
+    const goals = listGoals(db, interest.id).map((goal) => ({
       goal,
       covered: coverage.get(goal.id) ?? new Set<string>(),
     }))
+    const progress = {
+      ...pathProgress(goals.map((g) => g.goal.status)),
+      activities: completed.length,
+    }
+    return { goals, progress }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `version` is the re-read trigger
   }, [interest?.id, version])
 
-  return { goals, reload }
+  return { goals, progress, reload }
 }

@@ -51,6 +51,26 @@ describe('planReflection', () => {
     )
     expect(plan.draft[0]!.proposal).toEqual({ kind: 'remove', reason: 'First.' })
   })
+
+  it('places a suggested goal naming a goal that is not there at the end', () => {
+    const goal = { title: 'D', description: 'd', concepts: [], reason: 'r.' }
+    const plan = planReflection(GOALS, output({ suggestedGoals: [{ ...goal, afterRef: 'G9' }] }))
+    expect(plan.additions[0]!.afterKey).toBe('c')
+  })
+
+  it('drops a reorder that would leave the goal where it is', () => {
+    const plan = planReflection(
+      GOALS,
+      output({
+        suggestedChanges: [
+          { type: 'reorder', ref: 'G1', afterRef: null, reason: 'Already first.' },
+          { type: 'reorder', ref: 'G3', afterRef: 'G2', reason: 'Already there.' },
+          { type: 'reorder', ref: 'G2', afterRef: 'G3', reason: 'A real move.' },
+        ],
+      }),
+    )
+    expect(plan.draft.map((g) => g.proposal?.kind ?? null)).toEqual([null, 'reorder', null])
+  })
 })
 
 describe('accepting proposals', () => {
