@@ -41,7 +41,10 @@ export const REPAIR_COUNTER = 'repair'
 /** Per-kind daily burst limits to prevent abuse of the expensive kinds. */
 export const BURST_LIMITS: Record<string, number> = {
   'intake.approach': 10,
+  /** Retired, still sent by older builds (docs/04 §Retired kinds). */
   'intake.choices': 10,
+  'intake.outcomes': 10,
+  'intake.topicOptions': 10,
   'intake.path': 15,
   'resources.search': 10,
   /**
@@ -165,7 +168,7 @@ export function deviceLimit(bonusWeighted = 0): number {
 /**
  * Burst limits scale with the grant, in the same proportion. A code that
  * doubles the tokens has to double the per-kind headroom too, or the kind
- * limits stop the extra budget from ever being spendable — `intake.choices`
+ * limits stop the extra budget from ever being spendable — `intake.outcomes`
  * at 10/day binds long before 500,000 weighted tokens do.
  */
 function burstLimit(counter: string, bonusWeighted = 0): number | undefined {

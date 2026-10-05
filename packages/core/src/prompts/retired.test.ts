@@ -33,8 +33,8 @@ describe('retired kinds', () => {
   })
 
   it('a live kind is not reported as retired', () => {
-    expect(isRetiredKind('intake.choices')).toBe(false)
-    expect(getPromptTemplate('intake.choices')).toBeDefined()
+    expect(isRetiredKind('intake.outcomes')).toBe(false)
+    expect(getPromptTemplate('intake.outcomes')).toBeDefined()
     expect(getPromptTemplate('nonsense.kind')).toBeUndefined()
   })
 })

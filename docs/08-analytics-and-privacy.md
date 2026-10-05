@@ -29,9 +29,9 @@ Never in any property: interest names, goal titles, activity titles, user text, 
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `app_opened`                         | platform, app_version, days_since_install (bucket)                                                                                                     |
 | `intake_started`                     | is_first_interest, resumed                                                                                                                             |
-| `intake_step_completed`              | step (1–7), duration_bucket                                                                                                                            |
+| `intake_step_completed`              | step (1–7), screen, duration_bucket                                                                                                                    |
 | `intake_completed`                   | topics_selected_count, frequency, session_minutes, reading_amount                                                                                      |
-| `intake_abandoned`                   | last_step                                                                                                                                              |
+| `intake_abandoned`                   | last_step, last_screen                                                                                                                                 |
 | `activity_started`                   | section, tier, library_item_id, source (card/prefetch/resume — `prefetch` is reserved; prefetching generates a document, it doesn't start an activity) |
 | `activity_completed`                 | section, tier, library_item_id, duration_bucket, pages, questions_asked_count, rating                                                                  |
 | `activity_abandoned`                 | tier, last_page_index                                                                                                                                  |
@@ -52,6 +52,8 @@ Never in any property: interest names, goal titles, activity titles, user text, 
 Implementation: the schema is a discriminated union in `packages/core/src/analytics/events.ts` — in core rather than the app so its buckets and allowlist are unit-testable — and `track()` in `apps/mobile/src/analytics/track.ts` is typed by it. Adding an event means editing the union, the runtime allowlist beside it (a type error if they disagree), and this table. No stray `posthog.capture` calls.
 
 `sanitizeAnalyticsProperties` runs on every event before it's sent: properties the schema doesn't declare are dropped, and so is any value that isn't a string under 64 characters, a finite number, or a boolean — an object, an array or a long string is the shape a content leak takes. Buckets: `durationBucket` (`<10s` … `45m+`), `latencyBucket` (`<500ms` … `30s+`), `daysSinceInstallBucket` (`0`, `1-6`, `7-29`, `30-89`, `90+`).
+
+`screen` and `last_screen` name the intake screen (`learn`, `why`, `experience`, `outcomes`, `topics`, `time`, `direction`), so a funnel holds when the steps are reordered — as they were when outcomes moved ahead of topics.
 
 Counts that are deliberately raw rather than bucketed: `pages`, `questions_asked_count`, `topics_selected_count`, `session_minutes`, `changes_count`, `last_page_index`, `step` — small integers about our own structures, not about the person.
 

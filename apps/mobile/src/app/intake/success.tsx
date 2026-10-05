@@ -8,27 +8,25 @@ import { ChipPicker } from '@/intake/chip-picker'
 import { StepScreen } from '@/intake/step-screen'
 
 /**
- * Step 5 (docs/01 §1) — what they're hoping for: G2's outcomes, plus any they
- * add themselves. Step 4 already waited for the same call, so this is normally
- * ready on arrival. Selecting none is allowed, and so is moving on when G2
- * failed. On advance, G3 goes out; step 6 covers its wait.
+ * Step 4 (docs/01 §1) — what they're hoping for: G2's outcomes, plus any they
+ * add themselves. Step 3 is all G2 gets, so the branded generating state shows
+ * here when it's still on the way. Selecting none is allowed. G2b's topics for
+ * step 5 went out at the same time and use this step to finish.
  */
 export default function SuccessStep() {
-  const { answers, update, success, startChoices, retryChoices, startPath } = useIntake()
+  const { answers, update, success, startChoices, retryOutcomes } = useIntake()
 
   useEffect(() => {
+    // Covers a cold entry (deep link, or an answer changed on the way back).
     if (success.status === 'idle') startChoices()
   }, [startChoices, success.status])
 
   return (
     <StepScreen
-      step={5}
+      step={4}
       question="What are you hoping for?"
-      continueDisabled={success.status === 'idle' || success.status === 'pending'}
-      onContinue={() => {
-        startPath()
-        router.push('/intake/time')
-      }}
+      continueDisabled={success.status !== 'ready'}
+      onContinue={() => router.push('/intake/topics')}
     >
       <ChipPicker
         testID="intake-success"
@@ -41,7 +39,7 @@ export default function SuccessStep() {
         }
       />
       {success.status === 'error' ? (
-        <GenerationError message={success.message} onRetry={retryChoices} />
+        <GenerationError message={success.message} onRetry={retryOutcomes} />
       ) : success.status !== 'ready' ? (
         <Generating label="Thinking it through" />
       ) : null}

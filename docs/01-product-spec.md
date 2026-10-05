@@ -8,9 +8,9 @@ Runs for a new user (after a welcome screen) and whenever an interest is added. 
 
 1. **What's one thing you want to learn?** Free text, with a few tappable example chips. It becomes one interest with one path, so it asks for one thing; on a first interest, a line under the field says **You can add more later.**
 2. **Why?** **For my career / For a personal goal / For fun**, plus an optional follow-up. → On advance, fire **G1** (approach notes).
-3. **How much experience?** **Just getting started / Explored a bit / In the middle / Have a lot of experience**, plus an optional follow-up. → On advance, fire **G2** (topics and outcomes; waits on G1). It streams topics first, so step 4 doesn't wait on step 5's half.
-4. **Which topics feel most relevant?** Multi-select from G2's ~10 topics, plus add-your-own. None is allowed.
-5. **What are you hoping for?** Multi-select from G2's 3–5 first-person outcomes, plus add-your-own. None is allowed, as is moving on if G2 failed. → On advance, fire **G3** (interest name + 5–8 sequenced goals).
+3. **How much experience?** **Just getting started / Explored a bit / In the middle / Have a lot of experience**, plus an optional follow-up. → On advance, fire **G2** (outcomes) and **G2b** (topics) together; both wait on G1. Step 4 waits only on G2, and is the time G2b has to finish.
+4. **What are you hoping for?** Multi-select from G2's 3–5 first-person outcomes, plus add-your-own. None is allowed.
+5. **Which topics feel most relevant?** Multi-select from G2b's ~10 topics, named for their experience — everyday words for a newcomer, the field's terms for someone experienced — plus add-your-own. None is allowed, as is moving on if G2b failed. → On advance, fire **G3** (interest name + 5–8 sequenced goals).
 6. **How much time?** Frequency (**Daily / Several times a week / When I can**), session length (**5 / 10 / 15 min / Custom**) and reading per page (**Short / Medium / Long**, starting on Medium). Session length sets an activity's pages; reading sets how much prose is on each.
 7. **Here's a direction we can start with.** The interest name and goals, streaming if G3 is still going. → On completion, fire **G4** (resource search) and **G5-prefetch** (today's Next).
 

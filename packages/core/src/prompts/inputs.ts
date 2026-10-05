@@ -3,7 +3,8 @@ import activityQuestion from '../../fixtures/prompt-inputs/activity.question.jso
 import activityReview from '../../fixtures/prompt-inputs/activity.review.json'
 import intakeApproach from '../../fixtures/prompt-inputs/intake.approach.json'
 import intakePath from '../../fixtures/prompt-inputs/intake.path.json'
-import intakeChoices from '../../fixtures/prompt-inputs/intake.choices.json'
+import intakeOutcomes from '../../fixtures/prompt-inputs/intake.outcomes.json'
+import intakeTopicOptions from '../../fixtures/prompt-inputs/intake.topicOptions.json'
 import pathSuggestGoals from '../../fixtures/prompt-inputs/path.suggestGoals.json'
 import reflectOpen from '../../fixtures/prompt-inputs/reflect.open.json'
 import reflectUpdate from '../../fixtures/prompt-inputs/reflect.update.json'
@@ -23,7 +24,8 @@ import type { RenderedPrompt } from './types'
  */
 export const PROMPT_INPUTS: Record<ImplementedKind, unknown> = {
   'intake.approach': intakeApproach,
-  'intake.choices': intakeChoices,
+  'intake.outcomes': intakeOutcomes,
+  'intake.topicOptions': intakeTopicOptions,
   'intake.path': intakePath,
   'today.plan': todayPlan,
   'activity.generate': activityGenerate,

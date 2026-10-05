@@ -124,11 +124,6 @@ export {
 export { extractPartialActivityDoc, type PartialActivityDoc } from './streaming/partial-doc'
 export { extractPartialPath, type PartialPath, type PathGoal } from './streaming/partial-path'
 export { extractPartialBlocks } from './streaming/partial-blocks'
-export {
-  extractPartialTopics,
-  type ChoiceTopic,
-  type PartialTopics,
-} from './streaming/partial-topics'
 export { extractJsonText } from './streaming/json'
 export { placeInterest } from './intake/placement'
 export {
@@ -144,7 +139,11 @@ export {
 } from './intake/draft'
 export { RECORDED_RESPONSES, type RecordedResponse } from './fixtures/recorded'
 export { intakeApproachTemplate, type IntakeApproachParams } from './prompts/kinds/intake-approach'
-export { intakeChoicesTemplate, type IntakeChoicesParams } from './prompts/kinds/intake-choices'
+export { intakeOutcomesTemplate, type IntakeOutcomesParams } from './prompts/kinds/intake-outcomes'
+export {
+  intakeTopicOptionsTemplate,
+  type IntakeTopicOptionsParams,
+} from './prompts/kinds/intake-topic-options'
 export { intakePathTemplate, type IntakePathParams } from './prompts/kinds/intake-path'
 export { todayPlanTemplate, type TodayPlanParams } from './prompts/kinds/today-plan'
 export {
@@ -248,6 +247,7 @@ export {
   type AnalyticsValue,
   type DaysSinceInstallBucket,
   type DurationBucket,
+  type IntakeStepName,
   type LatencyBucket,
   type NoProperties,
   type SettingsKey,
