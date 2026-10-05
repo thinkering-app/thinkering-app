@@ -59,9 +59,9 @@ export function ActivityCard({
           : inProgress
             ? 'Continue'
             : writing
-              ? 'Writing'
+              ? 'Preparing'
               : unwritten
-                ? 'Write'
+                ? 'Prepare'
                 : `${estMinutes} minutes`
       }`}
       onPress={onPress}
@@ -108,9 +108,9 @@ export function ActivityCard({
                 {inProgress
                   ? 'Continue'
                   : writing
-                    ? 'Writing'
+                    ? 'Preparing'
                     : unwritten
-                      ? 'Write'
+                      ? 'Prepare'
                       : `${estMinutes} min`}
               </Text>
             </>

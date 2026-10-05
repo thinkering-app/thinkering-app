@@ -93,7 +93,7 @@ export function useToday(
     // Only Next is written ahead (docs/04 §Latency & cost): it is the card a
     // day usually starts with, and writing all three spent an activity
     // document — the app's most expensive call — on two cards most days never
-    // open. The rest offer Write. Explore → All writes nothing ahead at all.
+    // open. The rest offer Prepare. Explore → All writes nothing ahead at all.
     // The writes outlive this effect on purpose.
     const writeAheadFor = (list: Interest[]) => {
       if (opts.suggestOnly) return
@@ -135,7 +135,7 @@ export function useToday(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, today, version, opts.suggestOnly])
 
-  // A write changes what a card offers as it goes (Write → Writing → its
+  // A write changes what a card offers as it goes (Prepare → Preparing → its
   // time), so a change in `writing` re-reads too.
   const sections = useMemo(
     () => readSections(shown, today, timeZone),

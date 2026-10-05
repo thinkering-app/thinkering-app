@@ -68,7 +68,7 @@ export default function TodayScreen() {
     refresh()
   }
 
-  // A write the learner asked for says why it failed; the card goes back to Write.
+  // A write the learner asked for says why it failed; the card goes back to Prepare.
   const onWriteFailed = (e: unknown) => setToast(describeAiError(e))
 
   const onRequest = async (request: ActivityRequest) => {

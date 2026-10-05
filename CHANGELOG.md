@@ -64,6 +64,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 - Adding an interest asks what you're hoping for before which topics
   feel most relevant, and the topics are named for how much experience
   you have: everyday words if you're new to it, the field's terms if not.
+- An activity that's still on its way says Preparing, not Writing, and one
+  you can ask for says Prepare.
 - A section's ⚙ is now Activity settings: a plain list of the kinds of
   activity it makes, each with an on/off switch and an ⓘ that says what it
   is.
