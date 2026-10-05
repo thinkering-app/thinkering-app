@@ -16,12 +16,14 @@ import {
   type Interest,
 } from '@thinkering/db'
 
+import { ensureApproachBrief } from '@/ai/approach-brief'
 import { db } from '@/db'
 
 /**
  * The per-interest context block every generation call carries (docs/04
  * §Context assembly), read from the local DB. Assembly and budgeting live in
- * packages/core; this is only the reading.
+ * packages/core; this is only the reading — and, for an interest without an
+ * approach brief, asking for one in the background (`ensureApproachBrief`).
  */
 
 /**
@@ -39,6 +41,7 @@ export function interestContext(interest: Interest, goals?: Goal[]): InterestCon
   const situation = librarySituation(path)
   const prefs = listLibraryPrefs(db, interest.id)
   const goalTitles = new Map(path.map((g) => [g.id, g.title]))
+  if (!interest.approachBrief) ensureApproachBrief(interest.id)
 
   return {
     interest: {

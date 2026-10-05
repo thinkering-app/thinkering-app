@@ -82,7 +82,10 @@ export type IntakeDraft = z.infer<typeof intakeDraftSchema>
 
 export function parseIntakeDraft(value: unknown): IntakeDraft | undefined {
   const parsed = intakeDraftSchema.safeParse(value)
-  return parsed.success ? parsed.data : undefined
+  if (!parsed.success) return undefined
+  // G3 is written from G1, so a path goes with a dropped approach: kept, step 7
+  // would show a finished path it can't save, and never ask for either again.
+  return parsed.data.approach ? parsed.data : { ...parsed.data, path: undefined }
 }
 
 /** Worth keeping only once they've said what they want to learn. */

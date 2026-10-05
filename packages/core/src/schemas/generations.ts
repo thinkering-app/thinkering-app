@@ -34,6 +34,14 @@ export const approachOutputSchema = approachBriefSchema.extend({
 })
 export type ApproachOutput = z.infer<typeof approachOutputSchema>
 
+/** The notes the learner can read and edit, and the brief that stays hidden. */
+export function splitApproach({ approachNotes, ...approachBrief }: ApproachOutput): {
+  approachNotes: string
+  approachBrief: ApproachBrief
+} {
+  return { approachNotes, approachBrief }
+}
+
 const topicOptionSchema = z.object({
   label: z.string().min(1).max(60),
   origin: z.enum(['motivation', 'foundational', 'adjacent']),

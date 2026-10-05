@@ -51,11 +51,13 @@ const PAST_REVIEWS = 3
 const OTHER_INTERESTS = 4
 const OTHER_INTEREST_GOALS = 5
 
+/** Finished activities read for those reviews: some end without one, so a few more than three. */
+const REVIEW_LOOKBACK = 10
+
 /** What the review page said on this goal's latest finished activities, newest first. */
 function pastReviews(interestId: string, goalId: string): string[] {
-  return listHistory(db, { interestId })
-    .filter((a) => a.goalId === goalId && a.doc)
-    .flatMap((a) => reviewText(a.doc!) ?? [])
+  return listHistory(db, { interestId, goalId, limit: REVIEW_LOOKBACK })
+    .flatMap((a) => (a.doc ? (reviewText(a.doc) ?? []) : []))
     .slice(0, PAST_REVIEWS)
 }
 

@@ -21,6 +21,7 @@ import {
   type PartialPath,
   type PathOutput,
   type TopicOptionsOutput,
+  splitApproach,
 } from '@thinkering/core'
 import {
   clearIntakeDraft,
@@ -337,11 +338,6 @@ function choicesParams(a: IntakeAnswers, experienceChoice: ExperienceChoice) {
     experienceChoice,
     experienceText: optional(a.experienceText),
   }
-}
-
-/** The notes the learner can read and edit, and the brief that stays hidden. */
-function splitApproach({ approachNotes, ...approachBrief }: ApproachOutput) {
-  return { approachNotes, approachBrief }
 }
 
 /** G3 params. Session length is deliberately absent — they're answering it as this goes out. */

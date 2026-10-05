@@ -92,8 +92,21 @@ describe('parseIntakeDraft', () => {
   })
 
   it('keeps the answers of a draft saved before the approach brief grew, and asks again', () => {
+    // The path it was written from goes too, so step 7 writes both again.
+    const path = {
+      key: '{}',
+      value: {
+        name: 'Spanish',
+        goals: ['Greetings', 'Ordering food', 'Small talk', 'Past tense'].map((title) => ({
+          title,
+          description: title,
+          concepts: [{ label: title, kind: 'skill' }],
+        })),
+      },
+    }
     const before = {
       ...draft,
+      path,
       approach: {
         key: '{}',
         value: {

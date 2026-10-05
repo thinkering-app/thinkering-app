@@ -19,7 +19,7 @@ export {
   type LibraryPref,
   type LibrarySituation,
 } from './library/prefs'
-export { varyLibraryItems } from './library/variety'
+export { REPEAT_LIMIT, varyLibraryItems } from './library/variety'
 export { localDateOf, isSameLocalDay, type LocalDate } from './scheduler/local-date'
 export {
   suggestInterests,

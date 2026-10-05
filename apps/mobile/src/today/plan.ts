@@ -15,6 +15,7 @@ import {
   type SavedResourceRef,
   type Section,
   type TodayPlanParams,
+  REPEAT_LIMIT,
   varyLibraryItems,
 } from '@thinkering/core'
 import {
@@ -57,9 +58,6 @@ type PlanKey = (typeof SECTION_KEYS)[Section]
 type Picks = Record<PlanKey, CardPick[]>
 
 type PlanPick = TodayPlanParams['picks']['next'][number]
-
-/** Finished activities read for variety; enough to hold each section's last two. */
-const RECENT_FOR_VARIETY = 30
 
 /** Finished today is a day's worth; this reaches past it with room to spare. */
 const HISTORY_LOOKBACK = 30
@@ -308,14 +306,23 @@ async function planCards(
   const prefs = listLibraryPrefs(db, interest.id)
   const situation = librarySituation(goals)
   const saved = listResources(db, interest.id)
-  const done = listHistory(db, { interestId: interest.id, limit: RECENT_FOR_VARIETY })
+  const recentItems = Object.fromEntries(
+    SECTIONS.map((section) => [
+      section,
+      listHistory(db, { interestId: interest.id, section, limit: REPEAT_LIMIT }).map(
+        (a) => a.libraryItemId,
+      ),
+    ]),
+  ) as Record<Section, string[]>
   const itemsFor = (section: Section, pick: PlanPick) => {
     const chosen =
       only?.section === section &&
       activeLibraryItems(section, prefs, situation).some((i) => i.id === only.libraryItemId)
     if (chosen) return [only.libraryItemId]
-    const recent = done.filter((a) => a.section === section).map((a) => a.libraryItemId)
-    return varyLibraryItems(usableItems(section, pick.goalId, prefs, situation, saved), recent)
+    return varyLibraryItems(
+      usableItems(section, pick.goalId, prefs, situation, saved),
+      recentItems[section],
+    )
   }
   const usable = { next: [], strengthen: [], goFurther: [] } as Record<PlanKey, string[][]>
   const asked: TodayPlanParams['picks'] = { next: [], strengthen: [], goFurther: [] }

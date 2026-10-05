@@ -4,23 +4,23 @@ Every LLM call has a `kind` id, a versioned prompt template in `packages/core/sr
 
 ## Generation map
 
-| id  | kind                  | Trigger                                                                       | Model                      | Latency handling                                                     |
-| --- | --------------------- | ----------------------------------------------------------------------------- | -------------------------- | -------------------------------------------------------------------- |
-| G1  | `intake.approach`     | Intake step 3 → 4, alongside G2 and G2b                                       | Sonnet                     | Background; only G3 waits on it                                      |
-| G2  | `intake.outcomes`     | Intake step 3 → 4                                                             | Sonnet                     | Short; step 4 waits on it                                            |
-| G2b | `intake.topicOptions` | Intake step 3 → 4, alongside G2                                               | Sonnet                     | Background; step 4 buys time                                         |
-| G3  | `intake.path`         | Intake step 5 → 6                                                             | Sonnet                     | Step 6 (time) buys time; streamed onto step 7 (name, then goals)     |
-| G4  | `resources.search`    | Intake complete                                                               | Sonnet + web_search tool   | Fully background; resources appear when ready                        |
-| G5a | `today.plan`          | App open / interest created / plan stale (new local date)                     | Haiku                      | Fast (~3–4s); the day's `planned` activity rows are the cache        |
-| G5b | `activity.generate`   | Next written ahead after G5a; the other sections on tap (Prepare)             | Sonnet                     | Streamed; page 1 renders as soon as it parses (40–60s end to end)    |
-| G6  | `activity.review`     | User finishes the last interactive page before the review slot                | Haiku                      | Runs while user reads the following page; soft skeleton if not ready |
-| G7  | `activity.question`   | Ask button                                                                    | Sonnet                     | Streamed into the inserted page                                      |
-| G8a | `reflect.open`        | Reflection flow opens & cache stale (path, statuses or last activity changed) | Haiku                      | Background; nothing waits on it; cached                              |
-| G8  | `reflect.update`      | Reflection flow submit                                                        | Sonnet                     | Streamed suggestions                                                 |
-| G9  | `path.suggestGoals`   | Path opened & cache stale (path changed)                                      | Haiku                      | Background; cached                                                   |
-| G10 | `resource.describe`   | User adds a link                                                              | Haiku (+ server URL fetch) | Inline (~2s), editable draft                                         |
-| G11 | `routine.customize`   | Routine free-text submit                                                      | Haiku                      | Inline, one-line confirmation                                        |
-| G12 | `resources.more`      | **Find more** in the resources panel                                          | Sonnet + web_search tool   | Background like G4; results appear on the next read                  |
+| id  | kind                  | Trigger                                                                         | Model                      | Latency handling                                                     |
+| --- | --------------------- | ------------------------------------------------------------------------------- | -------------------------- | -------------------------------------------------------------------- |
+| G1  | `intake.approach`     | Intake step 3 → 4, alongside G2 and G2b; later, for an interest without a brief | Sonnet                     | Background; only G3 waits on it                                      |
+| G2  | `intake.outcomes`     | Intake step 3 → 4                                                               | Sonnet                     | Short; step 4 waits on it                                            |
+| G2b | `intake.topicOptions` | Intake step 3 → 4, alongside G2                                                 | Sonnet                     | Background; step 4 buys time                                         |
+| G3  | `intake.path`         | Intake step 5 → 6                                                               | Sonnet                     | Step 6 (time) buys time; streamed onto step 7 (name, then goals)     |
+| G4  | `resources.search`    | Intake complete                                                                 | Sonnet + web_search tool   | Fully background; resources appear when ready                        |
+| G5a | `today.plan`          | App open / interest created / plan stale (new local date)                       | Haiku                      | Fast (~3–4s); the day's `planned` activity rows are the cache        |
+| G5b | `activity.generate`   | Next written ahead after G5a; the other sections on tap (Prepare)               | Sonnet                     | Streamed; page 1 renders as soon as it parses (40–60s end to end)    |
+| G6  | `activity.review`     | User finishes the last interactive page before the review slot                  | Haiku                      | Runs while user reads the following page; soft skeleton if not ready |
+| G7  | `activity.question`   | Ask button                                                                      | Sonnet                     | Streamed into the inserted page                                      |
+| G8a | `reflect.open`        | Reflection flow opens & cache stale (path, statuses or last activity changed)   | Haiku                      | Background; nothing waits on it; cached                              |
+| G8  | `reflect.update`      | Reflection flow submit                                                          | Sonnet                     | Streamed suggestions                                                 |
+| G9  | `path.suggestGoals`   | Path opened & cache stale (path changed)                                        | Haiku                      | Background; cached                                                   |
+| G10 | `resource.describe`   | User adds a link                                                                | Haiku (+ server URL fetch) | Inline (~2s), editable draft                                         |
+| G11 | `routine.customize`   | Routine free-text submit                                                        | Haiku                      | Inline, one-line confirmation                                        |
+| G12 | `resources.more`      | **Find more** in the resources panel                                            | Sonnet + web_search tool   | Background like G4; results appear on the next read                  |
 
 ### Contracts (summary — full Zod schemas, in camelCase, in `packages/core/src/schemas`)
 
@@ -28,7 +28,7 @@ Every LLM call has a `kind` id, a versioned prompt template in `packages/core/sr
   - **The notes** (`approach_notes`) are for the learner: the specific insight that makes a difference when learning this at their level, not a description of teaching methods. Stored on the interest and editable in Path settings.
   - **The brief** is everything else, stored hidden as `approach_brief` and read by every later generation through context assembly. `progress` says what getting better mostly is — `understanding` ideas, `doing` a skill yourself, doing it `with_people` (leading, presenting, conversation), or `making` things — because that, more than the subject, decides what practice should look like. `practice` is what one practice attempt looks like and where it happens; `good_looks_like` is three observable signs of doing it well. Each field is word-budgeted, since it rides along on every later call.
 
-  Experience stays an optional param, and the brief's newer fields optional where G3 gets the approach back, because builds before this fire G1 on step 2 → 3 with only the older four fields. Interests created before the brief have none, and their context has only the notes.
+  Experience stays an optional param, and the brief's newer fields optional where G3 gets the approach back, because builds before this fire G1 on step 2 → 3 with only the older four fields. An interest without a brief — created before it, or with its want-to-learn, why or experience changed in Path settings, which clears it — gets one in the background: the next generation that assembles its context fires G1 from the interest's answers and stores only the brief, keeping the learner's notes (`apps/mobile/src/ai/approach-brief.ts`). Until it lands, that context has only the notes.
 
 - **G2 →** `{outcomes: string[]}` — 3–5 short, first-person, deliberately varied answers to "What would feel like success?". The chosen ones go to G3 and are stored on the interest (`success_outcomes`) for context assembly.
 - **G2b →** `{topics: [{label, origin: motivation|foundational|adjacent, blurb}]}` (~10), same params as G2, worded for their experience: labels a newcomer would recognize, the field's terms only once they'd know them; topics the learner adds are saved with origin `user`.

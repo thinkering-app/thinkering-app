@@ -179,11 +179,18 @@ export function listPlannedForDate(
 
 /**
  * History: completed activities, newest first, keyset-paginated by `completed_at`
- * (docs/01 §6 loads ~5 recent days then pages).
+ * (docs/01 §6 loads ~5 recent days then pages). `goalId` and `section` narrow
+ * it in the query, so a limit counts only the rows asked about.
  */
 export function listHistory(
   db: Database,
-  opts: { interestId?: string; beforeCompletedAt?: number; limit?: number } = {},
+  opts: {
+    interestId?: string
+    goalId?: string
+    section?: Section
+    beforeCompletedAt?: number
+    limit?: number
+  } = {},
 ): Activity[] {
   const conditions = [
     eq(activities.status, 'completed'),
@@ -191,6 +198,8 @@ export function listHistory(
     isNull(activities.deletedAt),
   ]
   if (opts.interestId !== undefined) conditions.push(eq(activities.interestId, opts.interestId))
+  if (opts.goalId !== undefined) conditions.push(eq(activities.goalId, opts.goalId))
+  if (opts.section !== undefined) conditions.push(eq(activities.section, opts.section))
   if (opts.beforeCompletedAt !== undefined)
     conditions.push(lt(activities.completedAt, opts.beforeCompletedAt))
   return db
