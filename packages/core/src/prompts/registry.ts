@@ -4,7 +4,9 @@ import { activityReviewTemplate } from './kinds/activity-review'
 import { intakeApproachTemplate } from './kinds/intake-approach'
 import { intakePathTemplate } from './kinds/intake-path'
 import { intakeChoicesTemplate } from './kinds/intake-choices'
+import { intakeOutcomesTemplate } from './kinds/intake-outcomes'
 import { intakeSuccessTemplate } from './kinds/intake-success'
+import { intakeTopicOptionsTemplate } from './kinds/intake-topic-options'
 import { intakeTopicsTemplate } from './kinds/intake-topics'
 import { pathSuggestGoalsTemplate } from './kinds/path-suggest-goals'
 import { reflectOpenTemplate } from './kinds/reflect-open'
@@ -17,13 +19,14 @@ import { todayPlanTemplate } from './kinds/today-plan'
 import type { AnyPromptTemplate, GenerationKind } from './types'
 
 /**
- * Every prompt template this build generates by kind — all fourteen of
+ * Every prompt template this build generates by kind — all fifteen of
  * docs/04's generation map. The proxy rejects kinds present neither here nor
  * in `RETIRED_PROMPTS`.
  */
 export const PROMPTS = {
   'intake.approach': intakeApproachTemplate,
-  'intake.choices': intakeChoicesTemplate,
+  'intake.outcomes': intakeOutcomesTemplate,
+  'intake.topicOptions': intakeTopicOptionsTemplate,
   'intake.path': intakePathTemplate,
   'today.plan': todayPlanTemplate,
   'activity.generate': activityGenerateTemplate,
@@ -45,11 +48,12 @@ export type ImplementedKind = keyof typeof PROMPTS
  * release (docs/04 §Retired kinds). Separate from `PROMPTS` on purpose: the
  * snapshot tests, the input fixtures and the internal prompts page all iterate
  * `PROMPTS`, and none of them should show a prompt nobody sends any more.
- * Removing the shims is deleting this map and the two files it names.
+ * Removing the shims is deleting this map and the files it names.
  */
 export const RETIRED_PROMPTS = {
   'intake.topics': intakeTopicsTemplate,
   'intake.success': intakeSuccessTemplate,
+  'intake.choices': intakeChoicesTemplate,
 } as const
 
 /**

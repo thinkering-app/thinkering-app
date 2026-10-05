@@ -15,8 +15,8 @@ const OPTIONS: { value: ExperienceChoice; label: string }[] = [
 ]
 
 /**
- * Step 3 (docs/01 §1). On advance, G2 (waits on G1) and G2b go out together:
- * topics for step 4, what success could look like for step 5.
+ * Step 3 (docs/01 §1). On advance, G2 and G2b go out together (both wait on
+ * G1): what success could look like for step 4, and topics for step 5.
  */
 export default function ExperienceStep() {
   const { answers, update, startChoices } = useIntake()
@@ -28,7 +28,7 @@ export default function ExperienceStep() {
       continueDisabled={!answers.experienceChoice || isOverLimit(answers.experienceText, 'note')}
       onContinue={() => {
         startChoices()
-        router.push('/intake/topics')
+        router.push('/intake/success')
       }}
     >
       <View className="flex-row flex-wrap gap-2">

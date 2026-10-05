@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { READING_AMOUNTS } from '../../domain'
 import { cappedText, trimmedText } from '../../limits'
 import { activityDocSchema, type ActivityDoc } from '../../schemas/activity-doc'
 import { resourceMediaOf } from '../../activity/resources'
@@ -44,6 +45,8 @@ export const activityGenerateParamsSchema = z.object({
     .optional(),
   /** What the learner asked this activity to focus on, or how they want to learn it (the + card). */
   focus: cappedText('note').optional(),
+  /** How much prose each page carries (Path settings); balanced when absent. */
+  reading: z.enum(READING_AMOUNTS).optional(),
   /** Prerequisite-fallback cards carry a topic instead of a goal elsewhere; here goal is always present. */
 })
 export type ActivityGenerateParams = z.infer<typeof activityGenerateParamsSchema>
@@ -66,6 +69,7 @@ Additional rules for this task:
 - Without a provided resource, don't embed a video or send the learner off to find one — no channels, no "search YouTube for". Teach it on the page instead.
 - Give every freeText block a "consider": md — one sentence, under 25 words, that the learner can open if they're stuck. Point to where to look, not what they'll find there: an angle, a kind of example to think of, or what to notice. If they could copy it down as their answer, it says too much.
 - estMinutes and page count must match the requested session length.
+- A reading preference, when given, sets how much prose each page carries, never the page count. less: a few sentences per content page, with more of the work done in interactions. more: fuller explanations, and a further example where it helps.
 - Use the provided card title as the document title unless it's clearly wrong for the content you wrote.
 - If the learner made a request for this activity, honour it: it says what to focus on or how they want to learn it. Stay within the tier and the library item's shape. Take the request's own words over the learner's saved contexts: if they name a situation or person, use that one, and draw on contexts only for what the request leaves open.
 
@@ -101,7 +105,9 @@ export const activityGenerateTemplate: PromptTemplate<ActivityGenerateParams, Ac
   // v10: the resource's summary and how-to-use arrive inside <resource_notes>
   // tags, named as material rather than instructions — they were drafted from
   // a web page, and a page's text shouldn't steer the activity.
-  version: 10,
+  // v11: the learner's reading preference — less or more prose per page,
+  // with page count still set by the session length.
+  version: 11,
   model: 'sonnet',
   // Thinking plus the document: a 10-minute activity ran ~5.6k at high effort,
   // and 15-minute ones need the room.
@@ -135,6 +141,9 @@ export const activityGenerateTemplate: PromptTemplate<ActivityGenerateParams, Ac
               ]
             : []),
           ...(params.focus ? [`- Learner's request: "${params.focus}"`] : []),
+          ...(params.reading && params.reading !== 'balanced'
+            ? [`- Reading preference: ${params.reading}`]
+            : []),
         ].join('\n'),
       },
     ],

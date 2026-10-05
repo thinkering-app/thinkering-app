@@ -1,9 +1,11 @@
+import Ionicons from '@expo/vector-icons/Ionicons'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import { useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import type { ActivityDoc, Rating, Tier } from '@thinkering/core'
 
 import { Button } from '@/components/button'
+import { InfoDialog } from '@/components/sheet'
 import { TextField } from '@/components/text-field'
 import { colors } from '@/theme/tokens'
 import { celebrationFor, GOAL_VERB } from './summary-copy'
@@ -11,8 +13,8 @@ import { celebrationFor, GOAL_VERB } from './summary-copy'
 /**
  * What the renderer adds to the summary page (docs/05): a heading to mark the
  * finish and a line naming the goal above G5b's concept recap (the words are in
- * `summary-copy.ts`), and below it the concept chips, the rating
- * row, and an optional note that can be sent to the developers (D18).
+ * `summary-copy.ts`), and below it the concept chips, the activity type, the
+ * rating row, and an optional note that can be sent to the developers (D18).
  */
 
 export function SummaryHeader({
@@ -39,6 +41,10 @@ export function SummaryHeader({
   )
 }
 
+/** Above Send. It keeps docs/08's promise: the learner's own answers never go. */
+const SHARE_HELP =
+  'Your rating and note are saved on this device. To help the developers judge activity quality, you can send them this activity with your rating and note — not your answers.'
+
 const RATINGS: {
   value: Rating
   icon: 'thumb-down-outline' | 'thumbs-up-down-outline' | 'thumb-up-outline'
@@ -51,6 +57,7 @@ const RATINGS: {
 
 export function SummaryFooter({
   doc,
+  libraryItem,
   rating,
   ratingText,
   onRate,
@@ -58,6 +65,8 @@ export function SummaryFooter({
   shareState,
 }: {
   doc: ActivityDoc
+  /** The library item it was made from, named under the concepts. */
+  libraryItem?: { name: string; about: string }
   rating: Rating | null
   ratingText: string
   onRate: (rating: Rating, text: string) => void
@@ -65,18 +74,36 @@ export function SummaryFooter({
   shareState: 'idle' | 'pending' | 'done' | 'error'
 }) {
   const [text, setText] = useState(ratingText)
+  const [aboutOpen, setAboutOpen] = useState(false)
   const canSend = (rating !== null || text.trim() !== '') && shareState !== 'pending'
 
   return (
     <View className="flex-1 gap-8">
-      <View className="flex-row flex-wrap gap-2">
-        {doc.concepts.map((concept) => (
-          <View key={concept.label} className="rounded-pill bg-cornflower-tint px-3 py-1.5">
-            <Text className="font-sans-medium text-caption text-cornflower-deep">
-              {concept.label}
+      <View className="gap-3">
+        <View className="flex-row flex-wrap gap-2">
+          {doc.concepts.map((concept) => (
+            <View key={concept.label} className="rounded-pill bg-cornflower-tint px-3 py-1.5">
+              <Text className="font-sans-medium text-caption text-cornflower-deep">
+                {concept.label}
+              </Text>
+            </View>
+          ))}
+        </View>
+        {libraryItem ? (
+          <View className="flex-row items-center gap-1.5">
+            <Text className="font-sans text-secondary text-ink-soft">
+              Activity type: <Text className="font-sans-medium text-ink">{libraryItem.name}</Text>
             </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`About ${libraryItem.name}`}
+              onPress={() => setAboutOpen(true)}
+              hitSlop={10}
+            >
+              <Ionicons name="information-circle-outline" size={18} color={colors.ink.soft} />
+            </Pressable>
           </View>
-        ))}
+        ) : null}
       </View>
 
       {/* Pushed to the bottom of the page when the recap is short. */}
@@ -124,20 +151,29 @@ export function SummaryFooter({
               accessibilityLabel="Rating detail"
               multiline
             />
+            <Text className="text-center font-sans text-caption text-ink-soft">{SHARE_HELP}</Text>
             <Button
               label={shareState === 'pending' ? 'Sending…' : 'Send'}
               variant="quiet"
               disabled={!canSend}
               onPress={() => onShare(text)}
             />
-            <Text className="text-center font-sans text-caption text-ink-soft">
-              {shareState === 'error'
-                ? "That didn't send. Try again later."
-                : 'Sends this activity, your rating and your note to the developers. What you wrote stays on your device.'}
-            </Text>
+            {shareState === 'error' ? (
+              <Text className="text-center font-sans text-caption text-ink-soft">
+                That didn&apos;t send. Try again later.
+              </Text>
+            ) : null}
           </>
         )}
       </View>
+      {libraryItem ? (
+        <InfoDialog
+          visible={aboutOpen}
+          onClose={() => setAboutOpen(false)}
+          title={libraryItem.name}
+          body={libraryItem.about}
+        />
+      ) : null}
     </View>
   )
 }

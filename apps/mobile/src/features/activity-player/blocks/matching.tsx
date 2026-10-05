@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
-import { gradeMatching, type ResponsePayloadFor } from '@thinkering/core'
+import { displayOrder, gradeMatching, type ResponsePayloadFor } from '@thinkering/core'
 
 import { Markdown } from '../markdown'
 import { useResponse } from '../responses'
@@ -16,7 +16,13 @@ export function MatchingBlock({ pageId, block }: { pageId: string; block: BlockO
   // The left item waiting for its match; pairing advances to the next unpaired one.
   const [active, setActive] = useState<string | null>(() => block.pairs[0]?.leftId ?? null)
 
-  const rights = [...block.pairs].sort((a, b) => (a.rightId < b.rightId ? -1 : 1))
+  // Shuffled: the model writes each right beside its own left.
+  const [rights] = useState(() => {
+    const inStep = block.pairs.map((p) => p.rightId)
+    return displayOrder(inStep, `${pageId}:${block.id}`, inStep).map((id) =>
+      block.pairs.find((p) => p.rightId === id)!,
+    )
+  })
 
   const choose = (rightId: string) => {
     if (!active) return

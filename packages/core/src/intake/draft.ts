@@ -1,6 +1,11 @@
 import { z } from 'zod'
-import { EXPERIENCE_CHOICES, FREQUENCIES, WHY_CHOICES } from '../domain'
-import { approachOutputSchema, choicesOutputSchema, pathOutputSchema } from '../schemas/generations'
+import { EXPERIENCE_CHOICES, FREQUENCIES, READING_AMOUNTS, WHY_CHOICES } from '../domain'
+import {
+  approachOutputSchema,
+  outcomesOutputSchema,
+  pathOutputSchema,
+  topicOptionsOutputSchema,
+} from '../schemas/generations'
 
 /**
  * An intake that hasn't finished yet (docs/01 §1): the answers so far, the step
@@ -20,16 +25,18 @@ export const intakeAnswersSchema = z.object({
   whyText: z.string(),
   experienceChoice: z.enum(EXPERIENCE_CHOICES).nullable(),
   experienceText: z.string(),
-  /** Topics they wrote on step 4. */
+  /** Topics they wrote on step 5. */
   customTopics: z.array(z.string()),
-  /** Topic labels selected on step 4, generated or their own; selecting none is allowed. */
+  /** Topic labels selected on step 5, generated or their own; selecting none is allowed. */
   selectedTopics: z.array(z.string()),
-  /** What they wrote on step 5. */
+  /** What they wrote on step 4. */
   customOutcomes: z.array(z.string()),
-  /** What would feel like success, selected on step 5; selecting none is allowed. */
+  /** What would feel like success, selected on step 4; selecting none is allowed. */
   selectedOutcomes: z.array(z.string()),
   frequency: z.enum(FREQUENCIES).nullable(),
   sessionMinutes: z.number().int().positive().nullable(),
+  /** Defaulted so a draft saved before step 6 asked it still parses. */
+  readingAmount: z.enum(READING_AMOUNTS).default('balanced'),
   /** Set only when the user overrides the D15 placement on step 7. */
   statusOverride: z.enum(['focus', 'exploring']).nullable(),
 })
@@ -47,6 +54,7 @@ export const EMPTY_INTAKE_ANSWERS: IntakeAnswers = {
   selectedOutcomes: [],
   frequency: null,
   sessionMinutes: null,
+  readingAmount: 'balanced',
   statusOverride: null,
 }
 
@@ -60,7 +68,8 @@ export const intakeDraftSchema = z.object({
   /** The step they were last on, 1-based. */
   step: z.number().int().min(1).max(INTAKE_STEP_TOTAL),
   approach: keyed(approachOutputSchema),
-  choices: keyed(choicesOutputSchema),
+  outcomes: keyed(outcomesOutputSchema),
+  topics: keyed(topicOptionsOutputSchema),
   path: keyed(pathOutputSchema),
   updatedAt: z.number(),
 })

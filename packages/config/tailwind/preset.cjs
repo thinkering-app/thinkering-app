@@ -13,6 +13,7 @@ module.exports = {
         paper: '#FBF8F2',
         surface: '#FFFFFF',
         hairline: '#EAE4D8',
+        outline: '#878FA5',
         ink: {
           DEFAULT: '#2B3A5C',
           soft: '#5C6784',

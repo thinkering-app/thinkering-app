@@ -6,14 +6,12 @@ import { SHARED_PREAMBLE } from '../preamble'
 import type { PromptTemplate } from '../types'
 
 /**
- * G2 `intake.choices` — fired on intake step 3 → 4; consumes G1's output.
- * Produces both of the chip sets intake offers: topics for step 4 and
- * outcomes for step 5. These were two calls (G2 and G2b) taking identical
- * params, which meant paying for the same reasoning about the learner twice;
- * outcomes now also get G1's domain notes, which they never had.
- *
- * Step 5 does not wait on step 4: `topics` is emitted first and the client
- * renders it as the array closes (extractPartialTopics).
+ * G2 `intake.choices` — RETIRED, split into `intake.outcomes` and
+ * `intake.topicOptions` (docs/04 §Retired kinds) so step 4 waits only on the
+ * short outcomes call. Kept unchanged for installs shipped before the split,
+ * which fire it on step 3 → 4. Byte-identical to what those builds were
+ * compiled against — do not edit it or bump its version. Delete it once those
+ * builds are gone.
  */
 
 export const intakeChoicesParamsSchema = z.object({

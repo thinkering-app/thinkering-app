@@ -8,10 +8,10 @@ Runs for a new user (after a welcome screen) and whenever an interest is added. 
 
 1. **What's one thing you want to learn?** Free text, with a few tappable example chips. It becomes one interest with one path, so it asks for one thing; on a first interest, a line under the field says **You can add more later.**
 2. **Why?** **For my career / For a personal goal / For fun**, plus an optional follow-up. → On advance, fire **G1** (approach notes).
-3. **How much experience?** **Just getting started / Explored a bit / In the middle / Have a lot of experience**, plus an optional follow-up. → On advance, fire **G2** (topics and outcomes; waits on G1). It streams topics first, so step 4 doesn't wait on step 5's half.
-4. **Which topics feel most relevant?** Multi-select from G2's ~10 topics, plus add-your-own. None is allowed.
-5. **What are you hoping for?** Multi-select from G2's 3–5 first-person outcomes, plus add-your-own. None is allowed, as is moving on if G2 failed. → On advance, fire **G3** (interest name + 5–8 sequenced goals).
-6. **How much time?** Frequency (**Daily / Several times a week / When I can**) and session length (**5 / 10 / 15 min / Custom**).
+3. **How much experience?** **Just getting started / Explored a bit / In the middle / Have a lot of experience**, plus an optional follow-up. → On advance, fire **G2** (outcomes) and **G2b** (topics) together; both wait on G1. Step 4 waits only on G2, and is the time G2b has to finish.
+4. **What are you hoping for?** Multi-select from G2's 3–5 first-person outcomes, plus add-your-own. None is allowed.
+5. **Which topics feel most relevant?** Multi-select from G2b's ~10 topics, named for their experience — everyday words for a newcomer, the field's terms for someone experienced — plus add-your-own. None is allowed, as is moving on if G2b failed. → On advance, fire **G3** (interest name + 5–8 sequenced goals).
+6. **How much time?** Frequency (**Daily / Several times a week / When I can**), session length (**5 / 10 / 15 min / Custom**) and reading per page (**Short / Medium / Long**, starting on Medium). Session length sets an activity's pages; reading sets how much prose is on each.
 7. **Here's a direction we can start with.** The interest name and goals, streaming if G3 is still going. → On completion, fire **G4** (resource search) and **G5-prefetch** (today's Next).
 
 **Mode placement (D15)**: step 7 shows where the interest landed — **In focus** if frequency is daily or several times a week, or the why is career or personal goal; **Exploring** for for-fun + when-I-can. One tap toggles it.
@@ -39,11 +39,11 @@ Four tabs: **Today, Path, History, Me**.
 
 ## 3. Today
 
-Per selected interest (or aggregated for Explore → All): **Next**, **Strengthen** and **Go further**, each with a ⚙ and swipeable cards. A card shows title, goal and time estimate, or **Writing** until page 1 has streamed in (it can still be opened).
+Per selected interest (or aggregated for Explore → All): **Next**, **Strengthen** and **Go further**, each with a ⚙ and swipeable cards. A card shows title, goal and time estimate, or **Preparing** until page 1 has streamed in (it can still be opened).
 
 Each section has **one open card at a time**. Finishing it brings the next straight away, skipping goals the section already had today. A new day clears finished cards; unfinished ones stay, and only empty sections get a new card. Nothing is generated until needed.
 
-**Explore → All** suggests rather than prepares: cards from at most **2** exploring interests — never-practiced first, then least recently practiced (judged on days before today, so the pair holds for the day). They get titles (G5a) but no content; each says **Write**, and tapping writes it in place. Selecting a single interest fills its sections and writes ahead. A failed background write also shows **Write**.
+**Explore → All** suggests rather than prepares: cards from at most **2** exploring interests — never-practiced first, then least recently practiced (judged on days before today, so the pair holds for the day). They get titles (G5a) but no content; each says **Prepare**, and tapping writes it in place. Selecting a single interest fills its sections and writes ahead. A failed background write also shows **Prepare**.
 
 ### Card selection rules (deterministic — `packages/core/scheduler`)
 
@@ -55,7 +55,7 @@ Card metadata (title, estimate, library item) comes from the cheap **G5a** when 
 
 ### Adding an activity (+)
 
-With one interest in view, each section ends in a **+** card: optional goal chips (for Next, only unstarted goals) and an optional focus field. Create plans the card through G5a and writes it through G5b, both given the request; a placeholder shows **Writing** meanwhile.
+With one interest in view, each section ends in a **+** card: optional goal chips, collapsed until opened (for Next, only unstarted goals); for Next and Strengthen, an optional activity type, collapsed the same way, listing the section's active library items each with an ⓘ (a section down to one type shows it, already chosen); and an optional focus field. Choosing a type built around a saved resource (Watch Along, Guided Reading) lists the saved resources of its media — the goal's first, then general ones, then other goals' — under an **Add a video** / **Add a reading** row that opens the add-link sheet (§5) and selects what it saves; a link of the other media is turned away. Create waits until a resource is chosen, and, when every type on the list is built around one, until a type is. Create plans the card through G5a and writes it through G5b, both given the request; a placeholder shows **Preparing** meanwhile.
 
 - With a goal: targets it and completes at the section's tier.
 - With only a focus: no goal — its topic names the request, and it moves no goal status.
@@ -67,7 +67,7 @@ Completing an activity marks the section heading with a check and count ("2 toda
 
 ### Configure (⚙ per section)
 
-Toggles the section's library items for this user + interest + section. At least one must stay active.
+**Activity settings: <section>**. Lists the section's library items for this user + interest + section, each with an ⓘ (what it is and why it helps) and an on/off switch. At least one must stay active.
 
 ### Configure learning routine
 
@@ -78,7 +78,7 @@ Notes that daily counts aren't configurable yet (linking to the feedback board p
 Multi-page, rendered from an Activity Document (`05`); forward and back are always available.
 
 - **Response review page** (near the end): **G6** analyzes responses as the user works and fills it with the highest-value response — a misconception, a good answer deepened, or an implicit question answered.
-- **Summary page** (last): concept recap, chips for what was introduced, strengthened or put to use, and a rating (👎 / mixed / 👍) with optional note and **Send**, which shares the activity, rating and note — not the learner's answers — with the developers (`08`, D18).
+- **Summary page** (last): concept recap, chips for what was introduced, strengthened or put to use, the activity type with an ⓘ (the library item it was made from), and a rating (👎 / mixed / 👍) with optional note and **Send**, which shares the activity, rating and note — not the learner's answers — with the developers (`08`, D18).
 - **Ask** (always visible): **G7** inserts a page answering the question right after the current one and jumps to it.
 - Completing advances the goal's status, records history and updates section completion. An unfinished activity stays resumable from Today for the day and advances nothing.
 
@@ -95,7 +95,7 @@ For one selected interest:
 
   Nothing is written until **Update path**, which saves path and outcomes together; the reflection records before and after.
 
-- **3 suggested goals** at the bottom (**G9**, cached, regenerated when the path changes), one tap to add.
+- **3 suggested goals** below the path (**G9**, cached, regenerated when the path changes), collapsed to their titles — tap to read one — and one tap to add. The way into a reflection sits last.
 
 ### Resources
 
@@ -106,7 +106,7 @@ Title, link, description, "how this could be used" (user-entered, generated if b
 
 ### Path settings
 
-Every intake answer, editable, plus topics (considered when suggesting goals), approach notes (from G1), and **Contexts** — projects, environments and people, used in Go further activities only when they genuinely help. Text and outcomes commit with **Save**; lists act as tapped.
+Opened, like **Resources**, from the icons beside the ⚙ on Today, Path and History when one interest is selected. Every intake answer, editable, plus topics (considered when suggesting goals), approach notes (from G1), and **Contexts** — projects, environments and people, used in Go further activities only when they genuinely help. Text and outcomes commit with **Save**; lists act as tapped.
 
 ## 6. History
 

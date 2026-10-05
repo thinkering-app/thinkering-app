@@ -65,7 +65,13 @@ export default function ActivityScreen() {
   )
   const [libraryItem] = useState(() => {
     const item = activity ? getLibraryItem(activity.libraryItemId) : undefined
-    return item ? { name: item.name, overview: item.overview } : undefined
+    return item
+      ? {
+          name: item.name,
+          overview: item.overview,
+          about: [item.overview, item.whyItHelps, item.activation].filter(Boolean).join('\n\n'),
+        }
+      : undefined
   })
   const [doc, setDoc] = useState<ActivityDoc | null>(activity?.doc ?? null)
   const [partial, setPartial] = useState<PartialActivityDoc | null>(null)
@@ -288,7 +294,7 @@ export default function ActivityScreen() {
       streaming={doc === null}
       // Before any text, the model is still working out the activity (docs/04
       // §Thinking); once it writes, the title and pages follow.
-      waitLabel={partial === null ? 'Planning your activity' : 'Writing your activity'}
+      waitLabel={partial === null ? 'Planning your activity' : 'Preparing your activity'}
       libraryItem={libraryItem}
       sink={sink}
       page={page}

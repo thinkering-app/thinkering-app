@@ -39,7 +39,7 @@ export interface PlayerProps {
   /** What the wait says while a streaming document has no pages yet. */
   waitLabel?: string
   /** The library item behind the activity, shown with the wait before page 1. */
-  libraryItem?: { name: string; overview: string }
+  libraryItem?: { name: string; overview: string; about: string }
   sink: ResponseSink
   /** Controlled: the route owns the page so Ask can jump to the page it inserted. */
   page: number
@@ -62,7 +62,7 @@ export function ActivityPlayer({
   doc,
   goalTitle,
   streaming = false,
-  waitLabel = 'Writing your activity',
+  waitLabel = 'Preparing your activity',
   libraryItem,
   sink,
   page: requested,
@@ -174,6 +174,7 @@ export function ActivityPlayer({
               {isSummary ? (
                 <SummaryFooter
                   doc={doc}
+                  libraryItem={libraryItem}
                   rating={rating}
                   ratingText={ratingText}
                   onRate={onRate}
@@ -204,7 +205,7 @@ export function ActivityPlayer({
                   page={page}
                   label={
                     page && streaming && atEnd
-                      ? `Writing page ${doc.pages.length + 1}…`
+                      ? `Preparing page ${doc.pages.length + 1}…`
                       : 'Continue'
                   }
                   disabled={streaming && atEnd}

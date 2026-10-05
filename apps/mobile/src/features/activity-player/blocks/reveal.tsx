@@ -5,27 +5,44 @@ import { Markdown } from '../markdown'
 import { useResponse } from '../responses'
 import type { BlockOf } from './types'
 
-/** Think, then tap to reveal (docs/05) — retrieval practice, so the tap is the point. */
+const CARD = 'min-h-48 rounded-card p-5 shadow-card'
+
+/**
+ * Think, then tap to reveal (docs/05) — retrieval practice, so the tap is the
+ * point. A flashcard: the prompt on the front, the answer on the back, and a
+ * line asking for an answer in their head before they turn it.
+ */
 export function RevealBlock({ pageId, block }: { pageId: string; block: BlockOf<'reveal'> }) {
   const [answer, respond] = useResponse<ResponsePayloadFor<'reveal'>>(pageId, block.id)
   const revealed = answer?.revealed === true
 
-  return (
-    <View className="gap-3">
-      <Markdown md={block.prompt} className="font-sans-medium text-body text-ink" />
-      {revealed ? (
-        <View className="rounded-card bg-cornflower-tint p-4">
-          <Markdown md={block.md} />
+  if (revealed) {
+    return (
+      <View className={`${CARD} gap-3 bg-cornflower-tint`}>
+        <Markdown md={block.prompt} className="font-sans text-secondary text-ink-soft" />
+        <View className="flex-1 justify-center">
+          <Markdown md={block.md} className="font-sans text-body text-ink" />
         </View>
-      ) : (
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => respond({ kind: 'reveal', revealed: true })}
-          className="items-center rounded-card border border-hairline bg-surface p-4 active:bg-cornflower-tint"
-        >
-          <Text className="font-sans-medium text-body text-cornflower-deep">Show me</Text>
-        </Pressable>
-      )}
-    </View>
+      </View>
+    )
+  }
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityHint="Shows the answer"
+      onPress={() => respond({ kind: 'reveal', revealed: true })}
+      className={`${CARD} justify-between gap-4 bg-surface active:bg-cornflower-tint`}
+    >
+      <View className="flex-1 justify-center">
+        <Markdown
+          md={block.prompt}
+          className="text-center font-sans-medium text-heading text-ink"
+        />
+      </View>
+      <Text className="text-center font-sans text-secondary text-ink-soft">
+        Think of your answer, then tap to reveal
+      </Text>
+    </Pressable>
   )
 }

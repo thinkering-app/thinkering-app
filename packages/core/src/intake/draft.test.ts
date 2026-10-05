@@ -41,7 +41,8 @@ describe('parseIntakeDraft', () => {
   const draft: IntakeDraft = {
     answers: ANSWERED,
     step: 4,
-    choices: {
+    outcomes: { key: '{}', value: { outcomes: ['I can order food', 'I can chat', 'I can read'] } },
+    topics: {
       key: '{}',
       value: {
         topics: [
@@ -72,7 +73,6 @@ describe('parseIntakeDraft', () => {
             blurb: 'Listening for pleasure, not study.',
           },
         ],
-        outcomes: ['I can order food', 'I can chat', 'I can read'],
       },
     },
     updatedAt: 0,
@@ -82,11 +82,20 @@ describe('parseIntakeDraft', () => {
     expect(parseIntakeDraft(JSON.parse(JSON.stringify(draft)))).toEqual(draft)
   })
 
+  it('keeps the answers of a draft saved before G2 was split, and asks again', () => {
+    const { outcomes, topics, ...rest } = draft
+    const before = {
+      ...rest,
+      choices: { key: '{}', value: { ...outcomes!.value, ...topics!.value } },
+    }
+    expect(parseIntakeDraft(before)).toEqual(rest)
+  })
+
   it('drops a draft whose stored generation no longer fits its schema', () => {
     // Too few topics for the schema: the whole draft goes rather than a
     // half-trusted one.
-    const thin = { key: '{}', value: { ...draft.choices!.value, topics: [] } }
-    expect(parseIntakeDraft({ ...draft, choices: thin })).toBe(undefined)
+    const thin = { key: '{}', value: { topics: [] } }
+    expect(parseIntakeDraft({ ...draft, topics: thin })).toBe(undefined)
     expect(parseIntakeDraft({ answers: {}, step: 1, updatedAt: 0 })).toBe(undefined)
     expect(parseIntakeDraft(undefined)).toBe(undefined)
   })

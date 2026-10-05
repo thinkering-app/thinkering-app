@@ -1,32 +1,17 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { router, useLocalSearchParams } from 'expo-router'
-import { isOverLimit } from '@thinkering/core'
 import { useMemo, useState } from 'react'
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import {
-  createResource,
-  getInterest,
-  listResources,
-  softDeleteResource,
-  type Resource,
-} from '@thinkering/db'
+import { getInterest, listResources, softDeleteResource, type Resource } from '@thinkering/db'
 
 import { describeAiError } from '@/ai'
 import { Button } from '@/components/button'
-import { Generating } from '@/components/generating'
-import { Sheet } from '@/components/sheet'
-import { TextField } from '@/components/text-field'
-import { track } from '@/analytics'
 import { EmptyState } from '@/components/empty-state'
+import { Generating } from '@/components/generating'
 import { db, repoContext } from '@/db'
-import {
-  draftResource,
-  hostOf,
-  LinkError,
-  normalizeUrl,
-  type ResourceDraft,
-} from '@/resources/link'
+import { AddLinkSheet } from '@/resources/add-link-sheet'
+import { hostOf } from '@/resources/link'
 import { openResource } from '@/resources/open'
 import { FIND_MORE_ENABLED, findMoreResources } from '@/resources/seed'
 import { colors } from '@/theme/tokens'
@@ -178,136 +163,5 @@ export default function ResourcesScreen() {
         onSaved={() => setVersion((n) => n + 1)}
       />
     </SafeAreaView>
-  )
-}
-
-function AddLinkSheet({
-  visible,
-  onClose,
-  interest,
-  onSaved,
-}: {
-  visible: boolean
-  onClose: () => void
-  interest: NonNullable<ReturnType<typeof getInterest>>
-  onSaved: () => void
-}) {
-  const [url, setUrl] = useState('')
-  const [status, setStatus] = useState<'url' | 'fetching' | 'draft' | 'error'>('url')
-  const [error, setError] = useState('')
-  const [draft, setDraft] = useState<ResourceDraft | null>(null)
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [howToUse, setHowToUse] = useState('')
-
-  const fetchDraft = async () => {
-    const normalized = normalizeUrl(url)
-    if (!normalized) {
-      setError("That doesn't look like a link.")
-      setStatus('error')
-      return
-    }
-    setStatus('fetching')
-    try {
-      const result = await draftResource(interest, normalized)
-      setDraft(result)
-      setTitle(result.title)
-      setDescription(result.description)
-      setHowToUse(result.howToUse)
-      setStatus('draft')
-    } catch (e) {
-      setError(e instanceof LinkError ? e.message : describeAiError(e))
-      setStatus('error')
-    }
-  }
-
-  const save = () => {
-    if (!draft) return
-    createResource(db, repoContext, {
-      interestId: interest.id,
-      url: draft.url,
-      title: title.trim() || draft.title,
-      description: description.trim(),
-      howToUse: howToUse.trim() || null,
-      summary: draft.summary,
-      source: 'user',
-      goalIds: draft.goalIds,
-    })
-    track('resource_added', { source: 'user' })
-    onSaved()
-    onClose()
-  }
-
-  return (
-    <Sheet
-      visible={visible}
-      onClose={onClose}
-      title="Add a link"
-      footer={
-        status === 'draft' ? (
-          <Button
-            label="Save"
-            onPress={save}
-            disabled={
-              isOverLimit(title, 'line') ||
-              isOverLimit(description, 'note') ||
-              isOverLimit(howToUse, 'note')
-            }
-          />
-        ) : status === 'fetching' ? null : (
-          <Button
-            label="Look it up"
-            onPress={() => void fetchDraft()}
-            disabled={url.trim().length === 0}
-          />
-        )
-      }
-    >
-      {status === 'fetching' ? (
-        <Generating label="Reading the page" />
-      ) : status === 'draft' ? (
-        <>
-          <Text className="font-sans text-caption text-ink-soft">{hostOf(draft?.url ?? '')}</Text>
-          <TextField
-            value={title}
-            onChangeText={setTitle}
-            accessibilityLabel="Resource title"
-            limit="line"
-          />
-          <TextField
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            accessibilityLabel="What it is"
-            limit="note"
-          />
-          <TextField
-            value={howToUse}
-            onChangeText={setHowToUse}
-            multiline
-            placeholder="How this could be used"
-            accessibilityLabel="How this could be used"
-            limit="note"
-          />
-        </>
-      ) : (
-        <>
-          <TextField
-            value={url}
-            onChangeText={(text) => {
-              setUrl(text)
-              if (status === 'error') setStatus('url')
-            }}
-            placeholder="Paste a link"
-            autoFocus
-            accessibilityLabel="Link to add"
-            onSubmitEditing={() => void fetchDraft()}
-          />
-          {status === 'error' ? (
-            <Text className="font-sans text-secondary text-ink">{error}</Text>
-          ) : null}
-        </>
-      )}
-    </Sheet>
   )
 }

@@ -59,6 +59,8 @@ export {
   gradeOrdering,
   gradeMatching,
 } from './activity/grading'
+export { displayOrder } from './activity/display-order'
+export { withoutLeadNumber } from './activity/numbering'
 export {
   reviewPageIndex,
   fillReviewPage,
@@ -71,6 +73,8 @@ export {
   youtubeVideoId,
   resourceMediaOf,
   pickResource,
+  hasResourceFor,
+  resourceChoices,
   groundBlocks,
   groundPages,
   type SavedResourceRef,
@@ -120,11 +124,6 @@ export {
 export { extractPartialActivityDoc, type PartialActivityDoc } from './streaming/partial-doc'
 export { extractPartialPath, type PartialPath, type PathGoal } from './streaming/partial-path'
 export { extractPartialBlocks } from './streaming/partial-blocks'
-export {
-  extractPartialTopics,
-  type ChoiceTopic,
-  type PartialTopics,
-} from './streaming/partial-topics'
 export { extractJsonText } from './streaming/json'
 export { placeInterest } from './intake/placement'
 export {
@@ -140,7 +139,11 @@ export {
 } from './intake/draft'
 export { RECORDED_RESPONSES, type RecordedResponse } from './fixtures/recorded'
 export { intakeApproachTemplate, type IntakeApproachParams } from './prompts/kinds/intake-approach'
-export { intakeChoicesTemplate, type IntakeChoicesParams } from './prompts/kinds/intake-choices'
+export { intakeOutcomesTemplate, type IntakeOutcomesParams } from './prompts/kinds/intake-outcomes'
+export {
+  intakeTopicOptionsTemplate,
+  type IntakeTopicOptionsParams,
+} from './prompts/kinds/intake-topic-options'
 export { intakePathTemplate, type IntakePathParams } from './prompts/kinds/intake-path'
 export { todayPlanTemplate, type TodayPlanParams } from './prompts/kinds/today-plan'
 export {
@@ -226,6 +229,7 @@ export {
   ANALYTICS_EVENT_NAMES,
   ANALYTICS_EVENT_PROPERTIES,
   ACTIVITY_SOURCES,
+  AI_ERROR_TYPES,
   DAYS_SINCE_INSTALL_BUCKETS,
   DURATION_BUCKETS,
   LATENCY_BUCKETS,
@@ -236,12 +240,14 @@ export {
   latencyBucket,
   sanitizeAnalyticsProperties,
   type ActivitySource,
+  type AiErrorType,
   type AnalyticsEvent,
   type AnalyticsEventName,
   type AnalyticsProperties,
   type AnalyticsValue,
   type DaysSinceInstallBucket,
   type DurationBucket,
+  type IntakeStepName,
   type LatencyBucket,
   type NoProperties,
   type SettingsKey,

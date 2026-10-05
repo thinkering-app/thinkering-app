@@ -27,18 +27,24 @@ interface Step {
 
 const STEPS: Record<ImplementedKind, Step> = {
   'intake.approach': { lane: 'intake', trigger: 'Intake step 2 → 3', writes: ['approach notes'] },
-  'intake.choices': {
+  'intake.outcomes': {
     lane: 'intake',
     trigger: 'Step 3 → 4',
     from: [{ kind: 'intake.approach', carries: 'domain notes' }],
     writes: ['outcomes'],
+  },
+  'intake.topicOptions': {
+    lane: 'intake',
+    trigger: 'Step 3 → 4',
+    from: [{ kind: 'intake.approach', carries: 'domain notes' }],
   },
   'intake.path': {
     lane: 'intake',
     trigger: 'Step 5 → 6',
     from: [
       { kind: 'intake.approach', carries: 'domain notes, pitfalls' },
-      { kind: 'intake.choices', carries: 'picked topics and outcomes' },
+      { kind: 'intake.outcomes', carries: 'picked outcomes' },
+      { kind: 'intake.topicOptions', carries: 'picked topics' },
     ],
     writes: ['goals'],
   },

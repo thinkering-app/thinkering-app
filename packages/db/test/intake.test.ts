@@ -33,6 +33,7 @@ const INPUT: SaveIntakeInput = {
   experienceChoice: 'explored',
   frequency: 'several_weekly',
   sessionMinutes: 10,
+  readingAmount: 'balanced',
   approachNotes: 'Comprehensible input first; delay explicit grammar.',
   status: 'focus',
   topics: [

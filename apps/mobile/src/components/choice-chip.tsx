@@ -13,6 +13,8 @@ type ChoiceChipProps = {
 /**
  * Intake and topic selection chip (docs/07). Wraps in a row; selected is a
  * cornflower tint with a deep border so it reads as chosen without shouting.
+ * Never wider than its row: a long label (a generated outcome) wraps inside
+ * the chip rather than running off the screen.
  */
 export function ChoiceChip({
   label,
@@ -21,7 +23,7 @@ export function ChoiceChip({
   variant = 'default',
   testID,
 }: ChoiceChipProps) {
-  const base = 'rounded-pill border px-4 py-2.5 active:bg-cornflower-tint'
+  const base = 'max-w-full rounded-pill border px-4 py-2.5 active:bg-cornflower-tint'
   const tone = selected
     ? 'border-cornflower-deep bg-cornflower-tint'
     : variant === 'quiet'

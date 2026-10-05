@@ -20,7 +20,7 @@ export const intakePathParamsSchema = z.object({
   approach: approachParamSchema,
   selectedTopics: z.array(cappedText('line')),
   unselectedTopics: z.array(cappedText('line')).optional(),
-  /** What would feel like success — picked or written on step 5. */
+  /** What would feel like success — picked or written on step 4. */
   successOutcomes: z.array(cappedText('line')).optional(),
 })
 export type IntakePathParams = z.infer<typeof intakePathParamsSchema>
@@ -28,7 +28,7 @@ export type IntakePathParams = z.infer<typeof intakePathParamsSchema>
 const INSTRUCTIONS = `Task: name the interest and lay out its initial path.
 
 Return JSON: {
-  "name": string,        // short display name for the interest, 2–4 words, sentence case ("Conversational German", "Understanding LLMs") — emit this field FIRST so it streams early
+  "name": string,        // short display name for the interest, as few words as name it (1–3), sentence case ("Conversational German", "LLMs", "PM"); prefer their own short form or a common abbreviation, never pad with "fundamentals", "basics" or "intro to" — emit this field FIRST so it streams early
   "goals": [{
     "title": string,                 // what they'll be able to do or explain after one session, 8 words at most ("Order and react to food at dinner", "Explain what a token is")
     "description": string,           // what this session covers, one or two plain sentences, 30 words at most, written about the material — not instructions to the learner
@@ -53,8 +53,9 @@ export const intakePathTemplate: PromptTemplate<
   kind: 'intake.path',
   // v5: medium effort — high spent ~23s thinking before the first goal
   // streamed (docs/04 §Thinking). v6: the sequencing high effort did in its
-  // thinking is spelled out, so medium follows it.
-  version: 6,
+  // thinking is spelled out, so medium follows it. v7: the name is as short as
+  // it can be — it labels chips and tags across the app.
+  version: 7,
   model: 'sonnet',
   maxTokens: 16000,
   effort: 'medium',

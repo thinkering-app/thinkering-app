@@ -4,6 +4,7 @@ import type {
   Frequency,
   GoalConcept,
   InterestStatus,
+  ReadingAmount,
   TopicOrigin,
   WhyChoice,
 } from '@thinkering/core'
@@ -41,6 +42,7 @@ export interface SaveIntakeInput {
   successOutcomes?: string[]
   frequency: Frequency
   sessionMinutes: number
+  readingAmount: ReadingAmount
   approachNotes: string
   status: InterestStatus
   topics: IntakeTopicInput[]
@@ -69,6 +71,7 @@ export function saveIntake(
       input.successOutcomes && input.successOutcomes.length > 0 ? input.successOutcomes : null,
     frequency: input.frequency,
     sessionMinutes: input.sessionMinutes,
+    readingAmount: input.readingAmount,
     approachNotes: input.approachNotes,
     status: input.status,
     sortOrder: nextInterestSortOrder(db),

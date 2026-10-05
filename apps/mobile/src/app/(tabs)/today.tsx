@@ -21,6 +21,7 @@ import { db } from '@/db'
 import { writeActivityDoc, type WritingDocs } from '@/features/activity-player/generate'
 import { useAddInterest } from '@/intake/add-interest'
 import { InterestSelector } from '@/interests/selector'
+import { PathButtons } from '@/path/path-buttons'
 import { ReflectCard } from '@/path/reflect-card'
 import { useInterestSelection } from '@/interests/selection'
 import { ConfigureSheet } from '@/today/configure-sheet'
@@ -67,7 +68,7 @@ export default function TodayScreen() {
     refresh()
   }
 
-  // A write the learner asked for says why it failed; the card goes back to Write.
+  // A write the learner asked for says why it failed; the card goes back to Prepare.
   const onWriteFailed = (e: unknown) => setToast(describeAiError(e))
 
   const onRequest = async (request: ActivityRequest) => {
@@ -100,8 +101,9 @@ export default function TodayScreen() {
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right']}>
       <View className="gap-4 px-5 pt-4">
-        <View className="flex-row items-center gap-3">
+        <View className="flex-row items-center gap-5">
           <Text className="flex-1 font-heading-bold text-display text-ink">Today</Text>
+          {configurable ? <PathButtons interestId={configurable.id} /> : null}
           <SettingsButton />
         </View>
         <InterestSelector />
@@ -289,7 +291,7 @@ function AddCard({ section, onPress }: { section: Section; onPress: () => void }
       accessibilityLabel={`Create a new ${SECTION_LABELS[section]} activity`}
       onPress={onPress}
       wrapperClassName="w-20 min-h-36"
-      className="items-center justify-center rounded-card border border-dashed border-hairline"
+      className="items-center justify-center rounded-card border border-dashed border-outline/35"
     >
       <Ionicons name="add" size={26} color={colors.ink.soft} />
     </PressScale>

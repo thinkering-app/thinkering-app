@@ -5,6 +5,7 @@ import type {
   ActivityStatus,
   ContextKind,
   ExperienceChoice,
+  ReadingAmount,
   Frequency,
   GoalConcept,
   GoalSource,
@@ -41,10 +42,11 @@ export const interests = sqliteTable('interests', {
   whyText: text('why_text'),
   experienceChoice: text('experience_choice').$type<ExperienceChoice>().notNull(),
   experienceText: text('experience_text'),
-  /** What would feel like success, picked or written on intake step 5. Null for interests that predate it. */
+  /** What would feel like success, picked or written on intake step 4. Null for interests that predate it. */
   successOutcomes: text('success_outcomes', { mode: 'json' }).$type<string[]>(),
   frequency: text('frequency').$type<Frequency>().notNull(),
   sessionMinutes: integer('session_minutes').notNull(),
+  readingAmount: text('reading_amount').$type<ReadingAmount>().notNull().default('balanced'),
   approachNotes: text('approach_notes').notNull().default(''),
   status: text('status').$type<InterestStatus>().notNull(),
   sortOrder: real('sort_order').notNull(),
@@ -116,6 +118,12 @@ export const activities = sqliteTable(
     topic: text('topic'),
     /** What the learner asked this card to focus on, when they added it with + (docs/01 §3). */
     focus: text('focus'),
+    /**
+     * The saved resource the learner chose for a + card of a resource-shaped
+     * type (docs/01 §3); G5b builds the document around it. No foreign key:
+     * resources are declared below, and a soft-deleted one just falls back.
+     */
+    resourceId: text('resource_id'),
     section: text('section').$type<Section>().notNull(),
     tier: text('tier').$type<Tier>().notNull(),
     libraryItemId: text('library_item_id').notNull(),

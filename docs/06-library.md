@@ -24,7 +24,7 @@ type LibraryItem = {
 }
 ```
 
-**Selection**: the scheduler picks the goal; G5a picks a library item from the active set for that section, using `goodFor` hints, the domain, variety (avoid repeating yesterday's item for the same goal), and — for `usesResources` items — whether a well-matched resource exists for the goal.
+**Selection**: the scheduler picks the goal; G5a picks a library item from the active set for that section, using `goodFor` hints, the domain, variety (avoid repeating yesterday's item for the same goal), and — for `usesResources` items — whether a well-matched resource exists for the goal. When the learner chooses a type on the + card, that item is the whole active set for the card, so G5a only titles it.
 
 ## Next (introduce)
 
@@ -77,7 +77,7 @@ Resources aren't only Go further material — they're first-class in every secti
 - **Strengthen**: follow along a worked example on video with checkpoints (`watch-along` at strengthen tier), or `notice-training`/`focused-drill` reps built on a resource's examples.
 - **Go further**: `in-the-wild` critique of a real artifact or saved resource.
 
-Mechanics: G5a prefers `usesResources` items when a resource matches the goal well (via `resources.goal_ids` and summaries); G5b receives the matched resource — its id, URL, media and summary — and builds the activity around it with `resourceEmbed` blocks: segmented, never "watch this 20-minute video", always paired with interaction. The client picks that resource with `pickResource` (`packages/core/src/activity/resources.ts`): one matched to the goal, else one with no goal, preferring the item's `resourceMedia`, oldest first. Without one, G5b embeds no video.
+Mechanics: G5a prefers `usesResources` items when a resource matches the goal well (via `resources.goal_ids` and summaries); G5b receives the matched resource — its id, URL, media and summary — and builds the activity around it with `resourceEmbed` blocks: segmented, never "watch this 20-minute video", always paired with interaction. The client picks that resource with `pickResource` (`packages/core/src/activity/resources.ts`): the one the learner chose on a + card (`activities.resource_id`) while it's still saved, else one matched to the goal, else one with no goal, preferring the item's `resourceMedia`, oldest first. An item built around a video or a reading that can't get one — no video for Watch Along — isn't offered to G5a for that card (`hasResourceFor`); a section left with nothing to offer gets no card until a resource is saved or the learner adds one from its + card. `in-the-wild` names no media and is always offered: without a resource it describes its artifact on the page.
 
 ## Domain-specific guidance
 

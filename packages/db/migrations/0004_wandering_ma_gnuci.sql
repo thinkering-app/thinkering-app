@@ -1,0 +1,1 @@
+ALTER TABLE `interests` ADD `reading_amount` text DEFAULT 'balanced' NOT NULL;

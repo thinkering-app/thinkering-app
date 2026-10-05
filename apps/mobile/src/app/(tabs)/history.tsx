@@ -12,6 +12,7 @@ import { dayLabel } from '@/history/day-label'
 import { useHistory } from '@/history/use-history'
 import { useInterestSelection } from '@/interests/selection'
 import { InterestSelector } from '@/interests/selector'
+import { PathButtons } from '@/path/path-buttons'
 import { useLocalToday } from '@/time'
 
 /**
@@ -24,6 +25,8 @@ export default function HistoryScreen() {
     () => (focus.length + exploring.length === 0 ? undefined : selected.map((i) => i.id)),
     [exploring.length, focus.length, selected],
   )
+  // Resources and Path settings are per-interest.
+  const single = selected.length === 1 ? selected[0]! : null
   const { days, hasMore, loadMore } = useHistory(interestIds)
   const today = useLocalToday()
   // Explore → All mixes interests, so each row says which one it belongs to.
@@ -40,8 +43,9 @@ export default function HistoryScreen() {
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right']}>
       <View className="gap-4 px-5 pt-4">
-        <View className="flex-row items-center gap-3">
+        <View className="flex-row items-center gap-5">
           <Text className="flex-1 font-heading-bold text-display text-ink">History</Text>
+          {single ? <PathButtons interestId={single.id} /> : null}
           <SettingsButton />
         </View>
         <InterestSelector />

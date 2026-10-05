@@ -29,9 +29,9 @@ Never in any property: interest names, goal titles, activity titles, user text, 
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `app_opened`                         | platform, app_version, days_since_install (bucket)                                                                                                     |
 | `intake_started`                     | is_first_interest, resumed                                                                                                                             |
-| `intake_step_completed`              | step (1–7), duration_bucket                                                                                                                            |
-| `intake_completed`                   | topics_selected_count, frequency, session_minutes                                                                                                      |
-| `intake_abandoned`                   | last_step                                                                                                                                              |
+| `intake_step_completed`              | step (1–7), screen, duration_bucket                                                                                                                    |
+| `intake_completed`                   | topics_selected_count, frequency, session_minutes, reading_amount                                                                                      |
+| `intake_abandoned`                   | last_step, last_screen                                                                                                                                 |
 | `activity_started`                   | section, tier, library_item_id, source (card/prefetch/resume — `prefetch` is reserved; prefetching generates a document, it doesn't start an activity) |
 | `activity_completed`                 | section, tier, library_item_id, duration_bucket, pages, questions_asked_count, rating                                                                  |
 | `activity_abandoned`                 | tier, last_page_index                                                                                                                                  |
@@ -42,7 +42,7 @@ Never in any property: interest names, goal titles, activity titles, user text, 
 | `routine_configured`                 | via (checkboxes/free_text)                                                                                                                             |
 | `backup_enabled` / `backup_disabled` | —                                                                                                                                                      |
 | `byok_enabled`                       | —                                                                                                                                                      |
-| `ai_call`                            | kind, model, latency_bucket, status (ok/error/rate_limited)                                                                                            |
+| `ai_call`                            | kind, model, latency_bucket, status (ok/error/rate_limited), error_type (enum, `none` on success), retried, repaired, mode (proxy/byok)                |
 | `cap_reached`                        | —                                                                                                                                                      |
 | `featurebase_opened`                 | screen                                                                                                                                                 |
 | `email_feedback_sent`                | screen, included_context                                                                                                                               |
@@ -53,6 +53,8 @@ Implementation: the schema is a discriminated union in `packages/core/src/analyt
 
 `sanitizeAnalyticsProperties` runs on every event before it's sent: properties the schema doesn't declare are dropped, and so is any value that isn't a string under 64 characters, a finite number, or a boolean — an object, an array or a long string is the shape a content leak takes. Buckets: `durationBucket` (`<10s` … `45m+`), `latencyBucket` (`<500ms` … `30s+`), `daysSinceInstallBucket` (`0`, `1-6`, `7-29`, `30-89`, `90+`).
 
+`screen` and `last_screen` name the intake screen (`learn`, `why`, `experience`, `outcomes`, `topics`, `time`, `direction`), so a funnel holds when the steps are reordered — as they were when outcomes moved ahead of topics.
+
 Counts that are deliberately raw rather than bucketed: `pages`, `questions_asked_count`, `topics_selected_count`, `session_minutes`, `changes_count`, `last_page_index`, `step` — small integers about our own structures, not about the person.
 
 ## Activity quality review (D18)
@@ -60,7 +62,7 @@ Counts that are deliberately raw rather than bucketed: `pages`, `questions_asked
 We want to see whether generated activities are actually good without ambient content collection. Two layers:
 
 1. **Aggregate signal** (PostHog, on unless turned off): `activity_completed` carries rating × library_item_id × tier — enough to spot "faded examples are rating poorly in language interests" without any content.
-2. **Shared activity reports** (explicit, per-activity): the summary page's rating row has a note box and a **Send** button. Sending shares the generated activity content, the rating + note, and the library item/kind metadata through signed `POST /api/activity-report`, which forwards it by email and never stores it. The user's own responses are **never included**, and neither are the questions they typed into Ask — the client strips `question` from the shared document (`docForReport`) and the route strips it again. The help text under Send says so. There is no opt-in to include them: one feedback path, one unconditional promise. Nothing is ever shared without this explicit action.
+2. **Shared activity reports** (explicit, per-activity): the summary page's rating row has a note box and a **Send** button. Sending shares the generated activity content, the rating + note, and the library item/kind metadata through signed `POST /api/activity-report`, which forwards it by email and never stores it. The user's own responses are **never included**, and neither are the questions they typed into Ask — the client strips `question` from the shared document (`docForReport`) and the route strips it again. The help text above Send says so. There is no opt-in to include them: one feedback path, one unconditional promise. Nothing is ever shared without this explicit action.
 
 ## What the server sees (and doesn't keep)
 

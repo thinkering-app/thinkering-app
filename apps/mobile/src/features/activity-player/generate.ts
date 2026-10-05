@@ -59,7 +59,12 @@ async function generateActivityDoc(
   if (!interest) throw new Error('interest is gone')
   const goal = activity.goalId ? getGoal(db, activity.goalId) : undefined
   const saved = listResources(db, activity.interestId)
-  const resource = pickResource(getLibraryItem(activity.libraryItemId), activity.goalId, saved)
+  const resource = pickResource(
+    getLibraryItem(activity.libraryItemId),
+    activity.goalId,
+    saved,
+    activity.resourceId,
+  )
 
   const params: ActivityGenerateParams = {
     context: interestContext(interest),
@@ -94,6 +99,7 @@ async function generateActivityDoc(
     title: activity.title,
     estMinutes: activity.estMinutes,
     ...(activity.focus ? { focus: activity.focus } : {}),
+    reading: interest.readingAmount,
     ...(resource
       ? {
           resource: {
@@ -264,7 +270,7 @@ function docShape(partial: PartialActivityDoc): string {
 
 /**
  * Next's card has its document written before the tap; Strengthen and Go
- * further offer Write and are written when asked for (docs/04 §Latency &
+ * further offer Prepare and are written when asked for (docs/04 §Latency &
  * cost). Writing all three ahead spent three documents on a day most people
  * take one card from, and an activity document is the most expensive call the
  * app makes. Each write is shared: opening a card whose document is already
@@ -284,7 +290,7 @@ interface Write {
 const inFlight = new Map<string, Write>()
 /**
  * Written ahead and failed this session — left for the learner to retry with
- * Write. A write the app was backgrounded during lands here too: the stream
+ * Prepare. A write the app was backgrounded during lands here too: the stream
  * died with the suspended app, and the model had already produced most of a
  * document by then, so starting a second one spends that again on a card
  * nobody has asked for.
@@ -296,9 +302,9 @@ const WRITERS = 2
 let writers = 0
 /** The writes under way, as Today reads them (`useWritingDocs`). */
 export interface WritingDocs {
-  /** Queued or streaming: a document is on its way, so the card must not offer Write. */
+  /** Queued or streaming: a document is on its way, so the card must not offer Prepare. */
   ids: ReadonlySet<string>
-  /** Streaming with page 1 in hand: openable now, so the card shows its time, not Writing. */
+  /** Streaming with page 1 in hand: openable now, so the card shows its time, not Preparing. */
   ready: ReadonlySet<string>
 }
 
@@ -364,7 +370,7 @@ export function writeActivityDoc(
 
 /**
  * Queues documents for cards that don't have one yet. Failures are silent and
- * not retried here — the card offers Write instead.
+ * not retried here — the card offers Prepare instead.
  */
 export function writeAhead(activities: readonly Activity[]): void {
   const waiting = new Set([...inFlight.keys(), ...queue.map((a) => a.id)])
@@ -394,7 +400,7 @@ async function drain() {
   }
 }
 
-/** The cards whose documents are queued or being written — "Writing" on Today. */
+/** The cards whose documents are queued or being written — "Preparing" on Today. */
 export function useWritingDocs(): WritingDocs {
   return useSyncExternalStore(subscribeWriting, () => writingDocs)
 }
