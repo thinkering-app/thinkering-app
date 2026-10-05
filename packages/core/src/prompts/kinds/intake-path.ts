@@ -20,7 +20,7 @@ export const intakePathParamsSchema = z.object({
   approach: approachParamSchema,
   selectedTopics: z.array(cappedText('line')),
   unselectedTopics: z.array(cappedText('line')).optional(),
-  /** What would feel like success — picked or written on step 5. */
+  /** What would feel like success — picked or written on step 4. */
   successOutcomes: z.array(cappedText('line')).optional(),
 })
 export type IntakePathParams = z.infer<typeof intakePathParamsSchema>

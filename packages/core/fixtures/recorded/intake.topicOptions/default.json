@@ -1,0 +1,14 @@
+{
+  "kind": "intake.topicOptions",
+  "promptVersion": 1,
+  "model": "claude-sonnet-5",
+  "fixture": "default",
+  "text": "{\"topics\":[{\"label\":\"Dinner table small talk\",\"origin\":\"motivation\",\"blurb\":\"Phrases for chatting before and during a meal with family.\"},{\"label\":\"Talking about food you like\",\"origin\":\"motivation\",\"blurb\":\"How to say what you like, dislike, and want more of at the table.\"},{\"label\":\"Asking people about themselves\",\"origin\":\"motivation\",\"blurb\":\"Simple questions to show interest in Munich family members.\"},{\"label\":\"Introducing yourself naturally\",\"origin\":\"foundational\",\"blurb\":\"Short, casual ways to say who you are and how you fit in.\"},{\"label\":\"Saying yes, no, and maybe politely\",\"origin\":\"foundational\",\"blurb\":\"Soft ways to agree, disagree, or hedge in conversation.\"},{\"label\":\"Numbers and time basics\",\"origin\":\"foundational\",\"blurb\":\"Enough to talk about when dinner is or how many people are coming.\"},{\"label\":\"Giving simple opinions\",\"origin\":\"motivation\",\"blurb\":\"How to say you think something is good, bad, or just okay.\"},{\"label\":\"Family words and relations\",\"origin\":\"motivation\",\"blurb\":\"Terms for in-laws, siblings, and other relatives you'll meet.\"},{\"label\":\"Everyday politeness habits\",\"origin\":\"adjacent\",\"blurb\":\"Small customs Germans use to sound warm and respectful at the table.\"},{\"label\":\"Common conversation fillers\",\"origin\":\"adjacent\",\"blurb\":\"Little words Germans use to sound natural while thinking or reacting.\"},{\"label\":\"Munich dialect quirks\",\"origin\":\"adjacent\",\"blurb\":\"A few Bavarian words and sounds that differ from standard German.\"}]}",
+  "usage": {
+    "inputTokens": 349,
+    "outputTokens": 544,
+    "cacheReadTokens": 1068,
+    "cacheWriteTokens": 456
+  },
+  "latencyMs": 5981
+}

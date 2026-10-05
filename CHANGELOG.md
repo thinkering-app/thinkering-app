@@ -61,6 +61,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- Adding an interest asks what you're hoping for before which topics
+  feel most relevant, and the topics are named for how much experience
+  you have: everyday words if you're new to it, the field's terms if not.
 - A section's ⚙ is now Activity settings: a plain list of the kinds of
   activity it makes, each with an on/off switch and an ⓘ that says what it
   is.
@@ -146,6 +149,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Fixed
 
+- A long choice, like a suggested outcome, wraps onto a second line instead
+  of running off the screen.
 - A fill-in-the-blank answer of 1 is no longer marked right when the answer
   is -1.
 - Steps and numbered lists show each number once, instead of a step titled

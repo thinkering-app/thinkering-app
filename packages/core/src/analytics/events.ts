@@ -127,6 +127,22 @@ export type AiErrorType = (typeof AI_ERROR_TYPES)[number]
 /** An event that carries nothing but its name. */
 export type NoProperties = Record<string, never>
 
+/**
+ * Intake's screens by name (docs/01 §1), sent beside the step number so a
+ * funnel survives the steps being reordered. The order is the app's
+ * (`apps/mobile/src/intake/steps.ts`).
+ */
+export const INTAKE_STEP_NAMES = [
+  'learn',
+  'why',
+  'experience',
+  'outcomes',
+  'topics',
+  'time',
+  'direction',
+] as const
+export type IntakeStepName = (typeof INTAKE_STEP_NAMES)[number]
+
 export type AnalyticsEvent =
   | {
       event: 'app_opened'
@@ -139,7 +155,7 @@ export type AnalyticsEvent =
   | { event: 'intake_started'; properties: { is_first_interest: boolean; resumed: boolean } }
   | {
       event: 'intake_step_completed'
-      properties: { step: number; duration_bucket: DurationBucket }
+      properties: { step: number; screen: IntakeStepName; duration_bucket: DurationBucket }
     }
   | {
       event: 'intake_completed'
@@ -150,7 +166,10 @@ export type AnalyticsEvent =
         reading_amount: ReadingAmount
       }
     }
-  | { event: 'intake_abandoned'; properties: { last_step: number } }
+  | {
+      event: 'intake_abandoned'
+      properties: { last_step: number; last_screen: IntakeStepName }
+    }
   | {
       event: 'activity_started'
       properties: { section: Section; tier: Tier; library_item_id: string; source: ActivitySource }
@@ -218,9 +237,9 @@ export const ANALYTICS_EVENT_PROPERTIES: {
 } = {
   app_opened: ['platform', 'app_version', 'days_since_install'],
   intake_started: ['is_first_interest', 'resumed'],
-  intake_step_completed: ['step', 'duration_bucket'],
+  intake_step_completed: ['step', 'screen', 'duration_bucket'],
   intake_completed: ['topics_selected_count', 'frequency', 'session_minutes', 'reading_amount'],
-  intake_abandoned: ['last_step'],
+  intake_abandoned: ['last_step', 'last_screen'],
   activity_started: ['section', 'tier', 'library_item_id', 'source'],
   activity_completed: [
     'section',

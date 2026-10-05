@@ -8,7 +8,8 @@ import type { z } from 'zod'
 
 export const GENERATION_KINDS = [
   'intake.approach', // G1
-  'intake.choices', // G2
+  'intake.outcomes', // G2
+  'intake.topicOptions', // G2b
   'intake.path', // G3
   'resources.search', // G4
   'today.plan', // G5a
@@ -35,6 +36,7 @@ export type GenerationKind = (typeof GENERATION_KINDS)[number]
 export const RETIRED_KINDS = [
   'intake.topics', // merged into intake.choices
   'intake.success', // merged into intake.choices
+  'intake.choices', // split into intake.outcomes and intake.topicOptions
 ] as const
 export type RetiredKind = (typeof RETIRED_KINDS)[number]
 

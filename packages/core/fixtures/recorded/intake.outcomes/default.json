@@ -1,0 +1,14 @@
+{
+  "kind": "intake.outcomes",
+  "promptVersion": 1,
+  "model": "claude-sonnet-5",
+  "fixture": "default",
+  "text": "{\"outcomes\": [\"I can follow dinner conversation with my partner's family\", \"I can introduce myself and ask others about their lives\", \"I understand enough to catch jokes and small talk\", \"I feel confident speaking without translating in my head\", \"I've held a full German conversation through a Munich dinner\"]}",
+  "usage": {
+    "inputTokens": 349,
+    "outputTokens": 99,
+    "cacheReadTokens": 1068,
+    "cacheWriteTokens": 307
+  },
+  "latencyMs": 2346
+}

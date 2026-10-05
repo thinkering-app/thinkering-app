@@ -8,24 +8,27 @@ import { ChipPicker } from '@/intake/chip-picker'
 import { StepScreen } from '@/intake/step-screen'
 
 /**
- * Step 4 (docs/01 §1) — the G2 chips, plus any they add themselves. Step 3 is
- * all G2 gets, so the branded generating state shows here when it's still on
- * the way. Selecting none is allowed.
+ * Step 5 (docs/01 §1) — G2b's topic chips, plus any they add themselves. G2b
+ * went out with G2 and had step 4 to finish, so this is normally ready on
+ * arrival. Selecting none is allowed, and so is moving on when G2b failed. On
+ * advance, G3 goes out; step 6 covers its wait.
  */
 export default function TopicsStep() {
-  const { answers, update, topics, startChoices, retryChoices } = useIntake()
+  const { answers, update, topics, startChoices, retryTopics, startPath } = useIntake()
 
   useEffect(() => {
-    // Covers a cold entry (deep link, or an answer changed on the way back).
     if (topics.status === 'idle') startChoices()
   }, [startChoices, topics.status])
 
   return (
     <StepScreen
-      step={4}
+      step={5}
       question="Which topics feel most relevant?"
-      continueDisabled={topics.status !== 'ready'}
-      onContinue={() => router.push('/intake/success')}
+      continueDisabled={topics.status === 'idle' || topics.status === 'pending'}
+      onContinue={() => {
+        startPath()
+        router.push('/intake/time')
+      }}
     >
       <ChipPicker
         testID="intake-topics"
@@ -38,7 +41,7 @@ export default function TopicsStep() {
         }
       />
       {topics.status === 'error' ? (
-        <GenerationError message={topics.message} onRetry={retryChoices} />
+        <GenerationError message={topics.message} onRetry={retryTopics} />
       ) : topics.status !== 'ready' ? (
         <Generating label="Finding topics" />
       ) : null}

@@ -38,7 +38,7 @@ name: optin
 - tapOn:
     id: 'intake-continue'
 
-# 4 — topics (G2), then 5 — what they're hoping for (G2b)
+# 4 — what they're hoping for (G2), then 5 — topics (G2b)
 - extendedWaitUntil:
     visible:
       id: 'intake-continue'

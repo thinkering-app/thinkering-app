@@ -41,7 +41,7 @@ name: intake
 - tapOn:
     id: 'intake-continue'
 
-# 4 — topics (G2). Selecting none is allowed; the wait is the assertion.
+# 4 — what they're hoping for (G2). Selecting none is allowed; the wait is the assertion.
 - extendedWaitUntil:
     visible:
       id: 'intake-continue'
@@ -50,8 +50,8 @@ name: intake
 - tapOn:
     id: 'intake-continue'
 
-# 5 — what they're hoping for (G2's other half). Same: none selected, wait
-# for it — normally already there, since step 4 waited on the same call.
+# 5 — topics (G2b, which went out with G2). Same: none selected, wait
+# for it — normally already there, since it had step 4 to finish.
 - extendedWaitUntil:
     visible:
       id: 'intake-continue'

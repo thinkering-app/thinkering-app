@@ -20,53 +20,40 @@ export const approachOutputSchema = z.object({
 })
 export type ApproachOutput = z.infer<typeof approachOutputSchema>
 
-/**
- * Retired with `intake.choices`, kept for one release so builds shipped before
- * the merge keep working (docs/04 §Retired kinds). Delete with the templates.
- */
-export const topicsOutputSchema = z.object({
-  topics: z
-    .array(
-      z.object({
-        label: z.string().min(1).max(60),
-        origin: z.enum(['motivation', 'foundational', 'adjacent']),
-        blurb: z.string().min(1),
-      }),
-    )
-    .min(6)
-    .max(14),
+const topicOptionSchema = z.object({
+  label: z.string().min(1).max(60),
+  origin: z.enum(['motivation', 'foundational', 'adjacent']),
+  blurb: z.string().min(1),
 })
-export type TopicsOutput = z.infer<typeof topicsOutputSchema>
-
-/** Retired with `intake.choices`; see `topicsOutputSchema`. */
-export const successOutputSchema = z.object({
-  outcomes: z.array(z.string().min(1).max(80)).min(3).max(6),
-})
-export type SuccessOutput = z.infer<typeof successOutputSchema>
+const topicOptionsSchema = z.array(topicOptionSchema).min(6).max(14)
+const outcomesSchema = z.array(z.string().min(1).max(80)).min(3).max(6)
 
 /**
- * G2 `intake.choices` — what the learner picks from on steps 4 and 5: ~10 topic
- * chips (the origin mix is invisible to them) and a few first-person outcomes
- * ("I can…", "I understand…"). One call rather than two: the params are
- * identical, and asking twice paid for the same reasoning twice.
- *
- * `topics` comes first on the wire so step 4 can render it while the outcomes
- * are still being written (see extractPartialTopics).
+ * G2 `intake.outcomes` — what step 4 offers: a few first-person outcomes
+ * ("I can…", "I understand…") the learner picks from.
  */
+export const outcomesOutputSchema = z.object({ outcomes: outcomesSchema })
+export type OutcomesOutput = z.infer<typeof outcomesOutputSchema>
+
+/**
+ * G2b `intake.topicOptions` — what step 5 offers: ~10 topic chips, worded for
+ * the learner's experience (the origin mix is invisible to them).
+ */
+export const topicOptionsOutputSchema = z.object({ topics: topicOptionsSchema })
+export type TopicOptionsOutput = z.infer<typeof topicOptionsOutputSchema>
+
+/**
+ * Retired kinds' contracts, kept for one release so builds shipped before
+ * them keep working (docs/04 §Retired kinds). Delete with the templates.
+ * `intake.topics` and `intake.success` were merged into `intake.choices`,
+ * which was split again into `intake.outcomes` and `intake.topicOptions`.
+ */
+export const topicsOutputSchema = topicOptionsOutputSchema
+export const successOutputSchema = outcomesOutputSchema
 export const choicesOutputSchema = z.object({
-  topics: z
-    .array(
-      z.object({
-        label: z.string().min(1).max(60),
-        origin: z.enum(['motivation', 'foundational', 'adjacent']),
-        blurb: z.string().min(1),
-      }),
-    )
-    .min(6)
-    .max(14),
-  outcomes: z.array(z.string().min(1).max(80)).min(3).max(6),
+  topics: topicOptionsSchema,
+  outcomes: outcomesSchema,
 })
-export type ChoicesOutput = z.infer<typeof choicesOutputSchema>
 
 /**
  * G8a `reflect.open` — what the reflection flow shows before the learner

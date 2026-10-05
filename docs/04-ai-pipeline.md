@@ -4,27 +4,29 @@ Every LLM call has a `kind` id, a versioned prompt template in `packages/core/sr
 
 ## Generation map
 
-| id  | kind                | Trigger                                                                       | Model                      | Latency handling                                                     |
-| --- | ------------------- | ----------------------------------------------------------------------------- | -------------------------- | -------------------------------------------------------------------- |
-| G1  | `intake.approach`   | Intake step 2 → 3                                                             | Sonnet                     | Background; user is answering step 3                                 |
-| G2  | `intake.choices`    | Intake step 3 → 4 (awaits G1)                                                 | Sonnet                     | Background; streamed, `topics` first so step 4 shows its chips early |
-| G3  | `intake.path`       | Intake step 5 → 6                                                             | Sonnet                     | Step 6 (time) buys time; streamed onto step 7 (name, then goals)     |
-| G4  | `resources.search`  | Intake complete                                                               | Sonnet + web_search tool   | Fully background; resources appear when ready                        |
-| G5a | `today.plan`        | App open / interest created / plan stale (new local date)                     | Haiku                      | Fast (~3–4s); the day's `planned` activity rows are the cache        |
-| G5b | `activity.generate` | Next written ahead after G5a; the other sections on tap (Write)               | Sonnet                     | Streamed; page 1 renders as soon as it parses (40–60s end to end)    |
-| G6  | `activity.review`   | User finishes the last interactive page before the review slot                | Haiku                      | Runs while user reads the following page; soft skeleton if not ready |
-| G7  | `activity.question` | Ask button                                                                    | Sonnet                     | Streamed into the inserted page                                      |
-| G8a | `reflect.open`      | Reflection flow opens & cache stale (path, statuses or last activity changed) | Haiku                      | Background; nothing waits on it; cached                              |
-| G8  | `reflect.update`    | Reflection flow submit                                                        | Sonnet                     | Streamed suggestions                                                 |
-| G9  | `path.suggestGoals` | Path opened & cache stale (path changed)                                      | Haiku                      | Background; cached                                                   |
-| G10 | `resource.describe` | User adds a link                                                              | Haiku (+ server URL fetch) | Inline (~2s), editable draft                                         |
-| G11 | `routine.customize` | Routine free-text submit                                                      | Haiku                      | Inline, one-line confirmation                                        |
-| G12 | `resources.more`    | **Find more** in the resources panel                                          | Sonnet + web_search tool   | Background like G4; results appear on the next read                  |
+| id  | kind                  | Trigger                                                                       | Model                      | Latency handling                                                     |
+| --- | --------------------- | ----------------------------------------------------------------------------- | -------------------------- | -------------------------------------------------------------------- |
+| G1  | `intake.approach`     | Intake step 2 → 3                                                             | Sonnet                     | Background; user is answering step 3                                 |
+| G2  | `intake.outcomes`     | Intake step 3 → 4 (awaits G1)                                                 | Sonnet                     | Short; step 4 waits on it                                            |
+| G2b | `intake.topicOptions` | Intake step 3 → 4, alongside G2 (awaits G1)                                   | Sonnet                     | Background; step 4 buys time                                         |
+| G3  | `intake.path`         | Intake step 5 → 6                                                             | Sonnet                     | Step 6 (time) buys time; streamed onto step 7 (name, then goals)     |
+| G4  | `resources.search`    | Intake complete                                                               | Sonnet + web_search tool   | Fully background; resources appear when ready                        |
+| G5a | `today.plan`          | App open / interest created / plan stale (new local date)                     | Haiku                      | Fast (~3–4s); the day's `planned` activity rows are the cache        |
+| G5b | `activity.generate`   | Next written ahead after G5a; the other sections on tap (Write)               | Sonnet                     | Streamed; page 1 renders as soon as it parses (40–60s end to end)    |
+| G6  | `activity.review`     | User finishes the last interactive page before the review slot                | Haiku                      | Runs while user reads the following page; soft skeleton if not ready |
+| G7  | `activity.question`   | Ask button                                                                    | Sonnet                     | Streamed into the inserted page                                      |
+| G8a | `reflect.open`        | Reflection flow opens & cache stale (path, statuses or last activity changed) | Haiku                      | Background; nothing waits on it; cached                              |
+| G8  | `reflect.update`      | Reflection flow submit                                                        | Sonnet                     | Streamed suggestions                                                 |
+| G9  | `path.suggestGoals`   | Path opened & cache stale (path changed)                                      | Haiku                      | Background; cached                                                   |
+| G10 | `resource.describe`   | User adds a link                                                              | Haiku (+ server URL fetch) | Inline (~2s), editable draft                                         |
+| G11 | `routine.customize`   | Routine free-text submit                                                      | Haiku                      | Inline, one-line confirmation                                        |
+| G12 | `resources.more`      | **Find more** in the resources panel                                          | Sonnet + web_search tool   | Background like G4; results appear on the next read                  |
 
 ### Contracts (summary — full Zod schemas, in camelCase, in `packages/core/src/schemas`)
 
-- **G1 →** `{domain, approach_notes, pitfalls, progression_principles}` — effective approaches, progressions and pedagogy for this domain given their why. It fires before the experience question is answered, so experience is an optional param and the notes hold across levels. Stored on the interest (editable), reused as context by G2/G3/G5/G8. Every field is word-budgeted, because G2 waits on this call.
-- **G2 →** `{topics: [{label, origin: motivation|foundational|adjacent, blurb}]}` (~10); topics the learner adds are saved with origin `user`. **Also →** `{outcomes: string[]}` — 3–5 short, first-person, deliberately varied answers to "What would feel like success?". The chosen ones go to G3 and are stored on the interest (`success_outcomes`) for context assembly.
+- **G1 →** `{domain, approach_notes, pitfalls, progression_principles}` — effective approaches, progressions and pedagogy for this domain given their why. It fires before the experience question is answered, so experience is an optional param and the notes hold across levels. Stored on the interest (editable), reused as context by G2/G3/G5/G8. Every field is word-budgeted, because G2 and G2b wait on this call.
+- **G2 →** `{outcomes: string[]}` — 3–5 short, first-person, deliberately varied answers to "What would feel like success?". The chosen ones go to G3 and are stored on the interest (`success_outcomes`) for context assembly.
+- **G2b →** `{topics: [{label, origin: motivation|foundational|adjacent, blurb}]}` (~10), same params as G2, worded for their experience: labels a newcomer would recognize, the field's terms only once they'd know them; topics the learner adds are saved with origin `user`.
 - **G3 →** `{name, goals: [{title, description, concepts: [{label, kind: concept|skill}]}]}` — 5–8 sequenced goals, each one 5–15 minute session, leading toward the chosen outcomes. Concepts become the goal's first-class concepts (D16); labels are 2–5 words because they render as chips, and ids are assigned on save.
 - **G4 →** `{resources: [{url, title, description, howToUse, summary, goalTitles[]}]}` — found with the **web search tool** (`web_search_20260209`, max 2 uses). Templates declare tools abstractly (`PromptTemplate.tools`); the proxy and BYO-key client own the wire shape. A tool-using turn narrates before it answers, so `extractJsonText` also picks the largest balanced object out of surrounding prose. Goal titles map back to ids by exact title; an unmatched title is dropped, never guessed at.
 
@@ -55,7 +57,7 @@ A deterministic builder (`packages/core/src/prompts/context-assembly.ts`) produc
 ## Latency & cost strategy
 
 - **Structure**: the system preamble (product, library definitions, activity schema, pedagogy) is identical across calls of a kind, with a `cache_control` breakpoint after it. Per-interest context next, volatile params last.
-- **Stream everything user-facing**: SSE passthrough; the client parses JSON incrementally and renders each page as it closes. An early release (G2's topics) decides the array is complete from its own closing bracket and every element validating, never from key order. The finished call settles the step either way, so a strict guard only costs a wait.
+- **Stream everything user-facing**: SSE passthrough; the client parses JSON incrementally and renders each page as it closes.
 - **Write ahead only what a day usually starts with**: Next's document is written as soon as G5a lands; Strengthen and Go further are generated on tap (**Write**). Activity documents are the most expensive call, and most days never open the other two.
 - **Write ahead, two at a time** (single interest in view; Explore → All only suggests): open cards' documents are written in the background in section order, two streams at a time; a + card skips the queue. Opening a card mid-write joins its stream, and leaving doesn't cancel it. A failed write is silent, not retried that session, and the card offers **Write** — except a write killed by the OS suspending the app, which is requeued on foreground. Completed docs are kept locally.
 - **Say where the wait is**: the activity opens straight into the player's frame, showing what was known before the write began — title, goal, library item, minutes — above the wait. It reads "Planning your activity" until the first text arrives, "Writing your activity" until page 1 closes, then "Writing page N…" on Continue. Each label is true when shown: no timers, no invented progress.
@@ -74,7 +76,7 @@ Sonnet 5 thinks unless told otherwise; thinking counts against `max_tokens` and 
 | G3 `intake.path`        | medium | 16000      | Seconds to the first goal against ~25s at high, whose slightly better ordering isn't worth that wait.                                                                           |
 | G4 `resources.search`   | low    | 16000      | Background; latency is the searches. Output, mostly thinking, is the cost: at medium a good run took ~3 min and 11k output tokens. Told its search budget (`searchBudgetRule`). |
 | G12 `resources.more`    | medium | 16000      | As G4, with a wider brief. Not yet moved to low with G4: Find more is off (`FIND_MORE_ENABLED`), and its brief isn't settled.                                                   |
-| G1, G2, G7, G8          | low    | 8000       | Short, structured output, or (G7) a learner waiting mid-activity.                                                                                                               |
+| G1, G2, G2b, G7, G8     | low    | 8000       | Short, structured output, or (G7) a learner waiting mid-activity.                                                                                                               |
 
 Stay at 16k or below — the SDK refuses larger non-streaming requests, and the proxy still has a non-streaming path.
 
@@ -110,7 +112,7 @@ Prompt injection can't be ruled out, so the pipeline is built so that it matters
 
 ## Retired kinds
 
-A `kind` is a wire contract. The proxy renders from **its own** registry, so a removed or renamed kind breaks every install that hasn't updated — and mobile bundles ship with no OTA. The rejection happens at `getPromptTemplate`, before the usage reservation, so it leaves no row in `device_usage`: the learner sees a failure and the server keeps no trace. (The `intake.topics` + `intake.success` → `intake.choices` merge broke intake this way.)
+A `kind` is a wire contract. The proxy renders from **its own** registry, so a removed or renamed kind breaks every install that hasn't updated — and mobile bundles ship with no OTA. The rejection happens at `getPromptTemplate`, before the usage reservation, so it leaves no row in `device_usage`: the learner sees a failure and the server keeps no trace. (The `intake.topics` + `intake.success` → `intake.choices` merge broke intake this way. `intake.choices` was later split again into `intake.outcomes` + `intake.topicOptions`, so step 4 waits only on the short call; it is retired the same way.)
 
 - **Retiring a kind keeps it registered for one release.** The template moves unchanged, version untouched, to `RETIRED_PROMPTS` in `src/prompts/registry.ts`, so old installs get what they were built against. It stays out of `PROMPTS`, which drives snapshots, input fixtures and the internal prompts page. Retired kinds need no recording: fixture mode never crosses the wire.
 - **Delete the shims only once the builds that send them are gone** — the map entry and the template file.
