@@ -47,7 +47,8 @@ ${libraryReference()}`
 
 export const routineCustomizeTemplate: PromptTemplate<RoutineCustomizeParams, RoutineOutput> = {
   kind: 'routine.customize',
-  version: 1,
+  // v2: the library's good-for hints and skeletons describe kinds of goal.
+  version: 2,
   model: 'haiku',
   maxTokens: 800,
   temperature: 0.2,

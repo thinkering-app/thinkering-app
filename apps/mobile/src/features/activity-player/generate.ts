@@ -10,6 +10,7 @@ import {
   pageToPlainText,
   parseResponsePayload,
   pickResource,
+  reviewText,
   type ActivityDoc,
   type ActivityGenerateParams,
   type ActivityQuestionParams,
@@ -24,6 +25,9 @@ import {
   getActivity,
   getGoal,
   getInterest,
+  listGoals,
+  listHistory,
+  listInterests,
   listResources,
   listResponses,
   type Activity,
@@ -41,6 +45,35 @@ import { db, repoContext } from '@/db'
  * as it stands and persist from there — a call that started before an Ask must
  * not overwrite the page the Ask inserted.
  */
+
+/** How much of the learner's other work G5b sees (docs/04): earlier reviews, other interests. */
+const PAST_REVIEWS = 3
+const OTHER_INTERESTS = 4
+const OTHER_INTEREST_GOALS = 5
+
+/** Finished activities read for those reviews: some end without one, so a few more than three. */
+const REVIEW_LOOKBACK = 10
+
+/** What the review page said on this goal's latest finished activities, newest first. */
+function pastReviews(interestId: string, goalId: string): string[] {
+  return listHistory(db, { interestId, goalId, limit: REVIEW_LOOKBACK })
+    .flatMap((a) => (a.doc ? (reviewText(a.doc) ?? []) : []))
+    .slice(0, PAST_REVIEWS)
+}
+
+/** The learner's other live interests, each with the goals they've started there. */
+function otherInterests(interestId: string): { name: string; goals: string[] }[] {
+  return listInterests(db)
+    .filter((i) => i.id !== interestId && i.status !== 'archived')
+    .slice(0, OTHER_INTERESTS)
+    .map((i) => ({
+      name: i.name,
+      goals: listGoals(db, i.id)
+        .filter((g) => g.status !== 'not_started')
+        .map((g) => g.title)
+        .slice(0, OTHER_INTEREST_GOALS),
+    }))
+}
 
 /**
  * G5b. Streams; `onPartial` fires first when the model starts writing and then
@@ -100,6 +133,12 @@ async function generateActivityDoc(
     estMinutes: activity.estMinutes,
     ...(activity.focus ? { focus: activity.focus } : {}),
     reading: interest.readingAmount,
+    ...(activity.tier === 'strengthen' && goal
+      ? { pastReviews: pastReviews(activity.interestId, goal.id) }
+      : {}),
+    ...(activity.libraryItemId === 'connect-ideas'
+      ? { otherInterests: otherInterests(activity.interestId) }
+      : {}),
     ...(resource
       ? {
           resource: {

@@ -1,0 +1,1 @@
+ALTER TABLE `interests` ADD `approach_brief` text;

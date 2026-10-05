@@ -24,6 +24,14 @@ export type Frequency = (typeof FREQUENCIES)[number]
 export const READING_AMOUNTS = ['less', 'balanced', 'more'] as const
 export type ReadingAmount = (typeof READING_AMOUNTS)[number]
 
+/**
+ * What getting better at an interest mostly is (G1, docs/04): understanding
+ * ideas, doing a skill yourself, doing it with or in front of people, or making
+ * things. It decides what practice should look like, not the subject.
+ */
+export const PROGRESS_KINDS = ['understanding', 'doing', 'with_people', 'making'] as const
+export type ProgressKind = (typeof PROGRESS_KINDS)[number]
+
 export const TOPIC_ORIGINS = ['motivation', 'foundational', 'adjacent', 'user'] as const
 export type TopicOrigin = (typeof TOPIC_ORIGINS)[number]
 

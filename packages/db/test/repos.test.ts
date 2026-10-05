@@ -194,6 +194,24 @@ describe('activity lifecycle and goal transitions', () => {
     expect(page2.map((a) => a.id)).toEqual([ids[1], ids[0]])
   })
 
+  it('history narrowed to a goal or section is limited after narrowing', () => {
+    const interest = makeInterest()
+    const goal = makeGoal(interest.id)
+    const other = makeGoal(interest.id)
+    const old = makeActivity(interest.id, goal.id, 'strengthen')
+    ctx.advance(1_000)
+    completeActivity(db, ctx, old.id)
+    for (let i = 0; i < 3; i++) {
+      const a = makeActivity(interest.id, other.id)
+      ctx.advance(1_000)
+      completeActivity(db, ctx, a.id)
+    }
+    const byGoal = listHistory(db, { interestId: interest.id, goalId: goal.id, limit: 2 })
+    expect(byGoal.map((a) => a.id)).toEqual([old.id])
+    const bySection = listHistory(db, { interestId: interest.id, section: 'strengthen', limit: 2 })
+    expect(bySection.map((a) => a.id)).toEqual([old.id])
+  })
+
   it('saveProgress and rating persist', () => {
     const interest = makeInterest()
     const goal = makeGoal(interest.id)

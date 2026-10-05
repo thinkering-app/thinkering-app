@@ -8,6 +8,7 @@ import {
   interactiveBlocksBeforeReview,
   lastInteractivePageIndex,
   reviewPageIndex,
+  reviewText,
 } from './doc-ops'
 
 /** The three post-generation edits a document takes (G6 fill, G7 insert, review trigger). */
@@ -22,6 +23,14 @@ describe('doc ops', () => {
     expect(activityDocSchema.safeParse(filled).success).toBe(true)
     // The original is untouched — the caller persists what comes back.
     expect(FIXTURE_DOC_INTRODUCE.pages[reviewPageIndex(FIXTURE_DOC_INTRODUCE)]?.blocks).toBeNull()
+  })
+
+  it('reads what the review page said, once G6 has filled it', () => {
+    expect(reviewText(FIXTURE_DOC_INTRODUCE)).toBeUndefined()
+    const filled = fillReviewPage(FIXTURE_DOC_INTRODUCE, [
+      { kind: 'paragraph', md: 'You mixed up the example and the rule.' },
+    ])
+    expect(reviewText(filled)).toBe('You mixed up the example and the rule.')
   })
 
   it('inserts an Ask page after the current one without breaking the document', () => {

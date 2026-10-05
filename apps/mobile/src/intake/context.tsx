@@ -21,6 +21,7 @@ import {
   type PartialPath,
   type PathOutput,
   type TopicOptionsOutput,
+  splitApproach,
 } from '@thinkering/core'
 import {
   clearIntakeDraft,
@@ -71,8 +72,7 @@ interface IntakeValue {
   /** G3's output as it streams — the name lands well before the goals do. */
   partialPath: PartialPath
   /** Kick-offs, called as the user leaves the step that unlocks them. */
-  startApproach: () => void
-  /** G2 and G2b. Steps 4 and 5 both call it; the second is a no-op on the same answers. */
+  /** G1, G2 and G2b. Steps 4 and 5 both call it; the second is a no-op on the same answers. */
   startChoices: () => void
   startPath: () => void
   retryOutcomes: () => void
@@ -171,12 +171,12 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
 
   /**
    * G1, started on demand and keyed by its inputs: whoever needs the approach
-   * notes calls this and awaits. Going back and changing an answer re-keys it,
-   * which supersedes the in-flight call.
+   * calls this and awaits. Going back and changing an answer re-keys it, which
+   * supersedes the in-flight call.
    */
   const ensureApproach = useCallback(
-    (a: IntakeAnswers): Promise<ApproachOutput> => {
-      const params = approachParams(a)
+    (a: IntakeAnswers, experienceChoice: ExperienceChoice): Promise<ApproachOutput> => {
+      const params = choicesParams(a, experienceChoice)
       return approach.start(JSON.stringify(params), (signal) =>
         callAi<ApproachOutput>('intake.approach', params, { signal }).then((r) => r.output),
       )
@@ -184,54 +184,41 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
     [approach],
   )
 
-  const startApproach = useCallback(() => {
-    if (!answers.whyChoice) return
-    ensureApproach(answers).catch(() => {})
-  }, [answers, ensureApproach])
-
   /**
-   * G2 and G2b, in parallel off the same params. Each is keyed by them, so a
-   * second start on the same answers is a no-op, and a changed answer
-   * supersedes both.
+   * G1, G2 and G2b, in parallel off the same params; only G3 waits on G1. Each
+   * is keyed by them, so a second start on the same answers is a no-op, and a
+   * changed answer supersedes all three.
    */
   const startChoices = useCallback(() => {
     if (!answers.experienceChoice) return
+    ensureApproach(answers, answers.experienceChoice).catch(() => {})
     const params = choicesParams(answers, answers.experienceChoice)
     const key = JSON.stringify(params)
     outcomes
       .start(key, async (signal) => {
-        const resolved = await ensureApproach(answers)
-        const result = await callAi<OutcomesOutput>(
-          'intake.outcomes',
-          { ...params, approach: resolved },
-          { signal },
-        )
+        const result = await callAi<OutcomesOutput>('intake.outcomes', params, { signal })
         return result.output
       })
       .catch(() => {})
     topics
       .start(key, async (signal) => {
-        const resolved = await ensureApproach(answers)
-        const result = await callAi<TopicOptionsOutput>(
-          'intake.topicOptions',
-          { ...params, approach: resolved },
-          { signal },
-        )
+        const result = await callAi<TopicOptionsOutput>('intake.topicOptions', params, { signal })
         return result.output
       })
       .catch(() => {})
   }, [answers, outcomes, topics, ensureApproach])
 
   const startPath = useCallback(() => {
-    if (!answers.experienceChoice) return
+    const { experienceChoice } = answers
+    if (!experienceChoice) return
     const offeredTopics =
       topics.state.status === 'ready' ? topics.state.value.topics.map((t) => t.label) : []
     const offeredOutcomes = outcomes.state.status === 'ready' ? outcomes.state.value.outcomes : []
-    const params = pathParams(answers, answers.experienceChoice, offeredTopics, offeredOutcomes)
+    const params = pathParams(answers, experienceChoice, offeredTopics, offeredOutcomes)
     path
       .start(JSON.stringify(params), async (signal) => {
         setPartialPath({ goals: [] })
-        const resolved = await ensureApproach(answers)
+        const resolved = await ensureApproach(answers, experienceChoice)
         const result = await callAi<PathOutput>(
           'intake.path',
           { ...params, approach: resolved },
@@ -276,7 +263,7 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
       frequency,
       sessionMinutes,
       readingAmount: answers.readingAmount,
-      approachNotes: approach.state.value.approachNotes,
+      ...splitApproach(approach.state.value),
       status: answers.statusOverride ?? placement,
       topics: [
         ...answers.customTopics.map((label) => ({
@@ -318,7 +305,6 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
     topics: topics.state,
     path: path.state,
     partialPath,
-    startApproach,
     startChoices,
     startPath,
     retryOutcomes: outcomes.retry,
@@ -343,18 +329,15 @@ function optional(text: string): string | undefined {
   return trimmed.length > 0 ? trimmed : undefined
 }
 
-/** G1 params. Experience is deliberately absent — they're answering it as this goes out. */
-function approachParams(a: IntakeAnswers) {
+/** G1, G2 and G2b params — the same for all three. */
+function choicesParams(a: IntakeAnswers, experienceChoice: ExperienceChoice) {
   return {
     wantToLearn: a.wantToLearn.trim(),
     whyChoice: a.whyChoice,
     whyText: optional(a.whyText),
+    experienceChoice,
+    experienceText: optional(a.experienceText),
   }
-}
-
-/** G2 and G2b params — the same for both. */
-function choicesParams(a: IntakeAnswers, experienceChoice: ExperienceChoice) {
-  return { ...approachParams(a), experienceChoice, experienceText: optional(a.experienceText) }
 }
 
 /** G3 params. Session length is deliberately absent — they're answering it as this goes out. */

@@ -35,6 +35,7 @@ import {
   type Context,
 } from '@thinkering/db'
 
+import { changesApproachInputs, ensureApproachBrief } from '@/ai/approach-brief'
 import { Button } from '@/components/button'
 import { ChoiceChip } from '@/components/choice-chip'
 import { TextField } from '@/components/text-field'
@@ -182,7 +183,15 @@ export default function PathSettingsScreen() {
     patch.approachNotes !== interest.approachNotes
 
   const save = () => {
-    updateInterest(db, repoContext, interest.id, patch)
+    // The brief was written from these answers; a changed one gets a new brief.
+    const rebrief = changesApproachInputs(interest, patch)
+    updateInterest(
+      db,
+      repoContext,
+      interest.id,
+      rebrief ? { ...patch, approachBrief: null } : patch,
+    )
+    if (rebrief) ensureApproachBrief(interest.id)
     track('settings_changed', { key: 'path_settings' })
     if (frequency !== interest.frequency) track('settings_changed', { key: 'frequency' })
     if (sessionMinutes !== interest.sessionMinutes)

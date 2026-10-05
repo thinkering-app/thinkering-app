@@ -7,9 +7,9 @@ import type { PromptTemplate } from '../types'
 
 /**
  * G2 `intake.outcomes` — fired on intake step 3 → 4, alongside G2b
- * (`intake.topicOptions`); consumes G1's output. What step 4 offers in answer
- * to "What are you hoping for?". A short answer on its own, so step 4 doesn't
- * wait on the topics step 5 needs.
+ * (`intake.topicOptions`) and G1, without waiting on G1. What step 4 offers in
+ * answer to "What are you hoping for?". A short answer on its own, so step 4
+ * doesn't wait on the topics step 5 needs.
  */
 
 export const intakeOutcomesParamsSchema = z.object({
@@ -18,7 +18,8 @@ export const intakeOutcomesParamsSchema = z.object({
   whyText: cappedText('note').optional(),
   experienceChoice: z.enum(['getting_started', 'explored', 'in_middle', 'experienced']),
   experienceText: cappedText('note').optional(),
-  approach: approachParamSchema,
+  /** Sent by builds from before G1 moved to step 3 → 4; no longer read. */
+  approach: approachParamSchema.optional(),
 })
 export type IntakeOutcomesParams = z.infer<typeof intakeOutcomesParamsSchema>
 
@@ -35,7 +36,8 @@ export const intakeOutcomesTemplate: PromptTemplate<
   z.infer<typeof outcomesOutputSchema>
 > = {
   kind: 'intake.outcomes',
-  version: 1,
+  // v2: no longer waits on G1, so no approach lines.
+  version: 2,
   model: 'sonnet',
   maxTokens: 8000,
   effort: 'low',
@@ -56,8 +58,5 @@ export function renderLearner(params: IntakeOutcomesParams): string {
     `They want to learn: ${params.wantToLearn}`,
     `Why: ${params.whyChoice}${params.whyText ? ` — ${params.whyText}` : ''}`,
     `Experience: ${params.experienceChoice}${params.experienceText ? ` — ${params.experienceText}` : ''}`,
-    `Domain: ${params.approach.domain}`,
-    `Approach notes: ${params.approach.approachNotes}`,
-    `Progression principles: ${params.approach.progressionPrinciples.join(' · ')}`,
   ].join('\n')
 }

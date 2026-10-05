@@ -1,14 +1,14 @@
 {
   "kind": "intake.approach",
-  "promptVersion": 3,
+  "promptVersion": 6,
   "model": "claude-sonnet-5",
   "fixture": "default",
-  "text": "{\n  \"domain\": \"language acquisition\",\n  \"approachNotes\": \"You'll get the most from comprehensible input paired with real output: hear or read German at your level, then produce your own sentences, not just recognize them. Since Munich dinners are the goal, build around spoken, social register — greetings, family talk, food, opinions — over textbook grammar drills. Until we know your level, early sessions will test where you land; if you already know some German, we'll skip basics and go straight to gaps. As you progress, scaffolding (translations, sentence starters) fades and improvisation load increases.\",\n  \"pitfalls\": [\n    \"Recognizing words when reading feels like fluency but doesn't mean you can produce them aloud.\",\n    \"Overusing English grammar logic causes systematic errors in case endings and word order.\",\n    \"Politeness and small talk phrases get neglected in favor of vocabulary lists, hurting real dinners.\"\n  ],\n  \"progressionPrinciples\": [\n    \"Start with high-frequency social phrases and questions before tackling grammar rules abstractly.\",\n    \"Interleave listening and speaking early so output habits form alongside comprehension.\",\n    \"Sequence topics around real family-dinner scenarios: introductions, food, opinions, small talk.\"\n  ]\n}",
+  "text": "{\n  \"domain\": \"conversational German\",\n  \"progress\": \"with_people\",\n  \"approachNotes\": \"Duolingo gave you words but not the reflexes for live conversation — that's normal, apps train recognition, not production. The shift now is to speak full sentences out loud, even badly, and to get used to not understanding everything at a dinner table. Focus on high-frequency phrases for family talk — opinions, reactions, questions — over vocabulary breadth. Skip grammar deep-dives for now; you'll absorb cases faster from patterns you actually use.\",\n  \"practice\": \"Speak answers aloud to real questions (how was your week, what do you think) in short German sentences, then try one with family in Munich.\",\n  \"goodLooksLike\": [\n    \"Answers a question in German without switching to English mid-sentence\",\n    \"Asks a follow-up question instead of just responding and stopping\",\n    \"Recovers from a wrong word by rephrasing, not freezing\"\n  ],\n  \"pitfalls\": [\n    \"Mistaking recognizing words on a screen for being able to produce them aloud\",\n    \"Over-focusing on perfect grammar before building basic conversational flow\",\n    \"Avoiding speaking until 'ready,' which never arrives without practice\"\n  ],\n  \"progressionPrinciples\": [\n    \"Prioritize spoken survival phrases for family settings over textbook vocabulary lists\",\n    \"Introduce grammar only once a pattern already in use needs explaining\",\n    \"Interleave listening comprehension with speaking so both grow at the dinner table\"\n  ]\n}",
   "usage": {
-    "inputTokens": 61,
-    "outputTokens": 518,
-    "cacheReadTokens": 1466,
+    "inputTokens": 81,
+    "outputTokens": 516,
+    "cacheReadTokens": 1837,
     "cacheWriteTokens": 0
   },
-  "latencyMs": 10157
+  "latencyMs": 7058
 }
