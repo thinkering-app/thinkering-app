@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "93af89aa-d182-4c18-9ee0-5a1aec3237be",
-  "prevId": "ebd1dfe4-3c46-42f7-a9c3-84834e3c6521",
+  "id": "0f630fb1-a984-4874-a5f0-bd4ba21329c7",
+  "prevId": "93af89aa-d182-4c18-9ee0-5a1aec3237be",
   "tables": {
     "activities": {
       "name": "activities",
@@ -627,6 +627,13 @@
           "notNull": true,
           "autoincrement": false,
           "default": "''"
+        },
+        "approach_brief": {
+          "name": "approach_brief",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         },
         "status": {
           "name": "status",

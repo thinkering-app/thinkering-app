@@ -69,13 +69,8 @@ const STEPS: Record<ImplementedKind, Step> = {
     trigger: 'Ask',
     from: [{ kind: 'activity.generate', carries: 'the page they’re on' }],
   },
-  'reflect.open': { lane: 'reflect', trigger: 'Reflection opens', writes: ['outcomes'] },
-  'reflect.update': {
-    lane: 'reflect',
-    trigger: 'Reflection submit',
-    from: [{ kind: 'reflect.open', carries: 'outcomes they kept' }],
-    writes: ['goals'],
-  },
+  'reflect.open': { lane: 'reflect', trigger: 'Reflection opens' },
+  'reflect.update': { lane: 'reflect', trigger: 'Reflection submit', writes: ['goals'] },
   'path.suggestGoals': { lane: 'onDemand', trigger: 'Path opened', writes: ['goals'] },
   'resource.describe': { lane: 'onDemand', trigger: 'Add a link', writes: ['resources'] },
   'resources.more': {

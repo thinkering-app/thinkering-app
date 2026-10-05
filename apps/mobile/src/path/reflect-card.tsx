@@ -19,15 +19,17 @@ export function ReflectCard({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="Reflect on progress and update path"
+      accessibilityLabel="Check in: reflect, or add what you want to learn"
       onPress={() => router.push(`/path/reflect?interestId=${interestId}`)}
       className="flex-row items-center gap-3 rounded-card border border-cornflower-tint bg-cornflower-tint p-4 active:opacity-80"
     >
       <Ionicons name="compass-outline" size={22} color={colors.cornflower.deep} />
       <View className="flex-1 gap-1">
-        <Text className="font-heading text-body text-ink">Reflect on progress</Text>
+        <Text className="font-heading text-body text-ink">Check in</Text>
         <Text className="font-sans text-secondary text-ink-soft">
-          {interestName ? `${interestName} — update your path` : 'Update your path'}
+          {interestName
+            ? `${interestName} — reflect, or add what you want to learn`
+            : 'Reflect, or add what you want to learn'}
         </Text>
       </View>
     </Pressable>

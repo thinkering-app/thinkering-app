@@ -20,7 +20,7 @@ Use these terms exactly, in code and copy.
 | **Library item** | A reusable learning strategy (Worked Example, Retrieval Practice, Scenario Challenge…) grounded in learning science. See `06`.                                              |
 | **Path**         | The ordered list of goals for an interest, plus suggestions.                                                                                                                |
 | **Resource**     | A user-added or app-found link (article, video) usable as activity material.                                                                                                |
-| **Reflection**   | The "Reflect on progress and update path" flow.                                                                                                                             |
+| **Reflection**   | The "Check in" flow: reflect, or add what you want to learn, and update the path.                                                                                           |
 | **Intake**       | The flow that creates an interest (`01` §1).                                                                                                                                |
 
 ## Decisions

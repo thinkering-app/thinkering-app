@@ -47,8 +47,15 @@
     {
       "idx": 6,
       "version": "6",
-      "when": 1791216912014,
-      "tag": "0006_add_interest_approach_brief",
+      "when": 1791224307075,
+      "tag": "0006_add_interest_weekly_days",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1791234880073,
+      "tag": "0007_add_interest_approach_brief",
       "breakpoints": true
     }
   ]

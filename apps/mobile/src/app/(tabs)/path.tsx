@@ -26,17 +26,17 @@ import { GoalSheet } from '@/path/goal-sheet'
 import { PathButtons } from '@/path/path-buttons'
 import { ReflectCard } from '@/path/reflect-card'
 import { useSuggestions } from '@/path/suggestions'
-import { usePath, usePathInterest } from '@/path/use-path'
+import { usePath, usePathInterest, type PathView } from '@/path/use-path'
 
 /**
  * Path (docs/01 §5): the interest's goals in path order with their status as a
  * colour treatment, expandable to the concepts beneath them, reorderable and
- * editable, with a way to add a goal of their own — then G9's three
- * suggestions, collapsed to their titles, and the way into a reflection.
+ * editable, with a way to add a goal of their own — then the way into a
+ * reflection, and G9's three suggestions, collapsed to their titles.
  */
 export default function PathScreen() {
   const interest = usePathInterest()
-  const { goals, reload } = usePath(interest)
+  const { goals, progress, reload } = usePath(interest)
   const suggestions = useSuggestions(
     interest,
     goals.map((g) => g.goal),
@@ -108,6 +108,11 @@ export default function PathScreen() {
                 setSheetOpen(true)
               }}
             />
+            <ProgressLine progress={progress} />
+
+            <View className="pt-6">
+              <ReflectCard interestId={interest.id} />
+            </View>
 
             <View className="gap-3 pt-6">
               <Text className="font-heading-bold text-heading text-ink">Suggested goals</Text>
@@ -133,10 +138,6 @@ export default function PathScreen() {
                   />
                 ))
               )}
-            </View>
-
-            <View className="pt-6">
-              <ReflectCard interestId={interest.id} />
             </View>
           </>
         )}
@@ -214,6 +215,30 @@ function SuggestionCard({
         </Text>
       ) : null}
     </Pressable>
+  )
+}
+
+/**
+ * A quiet footnote to the goals (docs/01 §5): how far they've come and how
+ * many activities it took. No totals, so a goal added later never reads as
+ * ground lost, and nothing at all before the first completed activity.
+ */
+function ProgressLine({ progress }: { progress: PathView['progress'] }) {
+  if (progress.activities === 0) return null
+  const statuses = [
+    progress.introduced > 0 ? `${progress.introduced} introduced` : null,
+    progress.strengthened > 0 ? `${progress.strengthened} strengthened` : null,
+    progress.applied > 0 ? `${progress.applied} put to use` : null,
+  ].filter((part) => part !== null)
+  return (
+    <View className="items-center gap-0.5 pt-2">
+      {statuses.length > 0 ? (
+        <Text className="font-sans text-caption text-ink-soft">{statuses.join(' · ')}</Text>
+      ) : null}
+      <Text className="font-sans text-caption text-ink-soft">
+        {progress.activities} {progress.activities === 1 ? 'activity' : 'activities'} completed
+      </Text>
+    </View>
   )
 }
 

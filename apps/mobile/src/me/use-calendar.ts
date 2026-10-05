@@ -4,6 +4,7 @@ import {
   localDateOf,
   monthBoundsMs,
   shiftMonth,
+  weeklyStreak,
   yearMonthOf,
   type LocalDate,
   type YearMonth,
@@ -25,6 +26,8 @@ export interface CalendarView {
   marked: Set<LocalDate>
   changeMonth: (delta: number) => void
   dayActivities: (date: LocalDate) => HistoryRow[]
+  /** Weeks in a row with any activity, in any interest (docs/01 §7). */
+  streak: number
 }
 
 export function useCalendar(today: LocalDate): CalendarView {
@@ -46,8 +49,18 @@ export function useCalendar(today: LocalDate): CalendarView {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `version` is the re-read trigger
   }, [month, version])
 
+  const streak = useMemo(() => {
+    const timeZone = deviceTimeZone()
+    const dates = listCompletedBetween(db, { fromMs: 0, toMs: Number.MAX_SAFE_INTEGER }).map(
+      (row) => localDateOf(row.completedAt, timeZone),
+    )
+    return weeklyStreak(dates, today)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `version` is the re-read trigger
+  }, [today, version])
+
   return {
     month,
+    streak,
     marked: useMemo(() => new Set(byDate.keys()), [byDate]),
     changeMonth: useCallback((delta: number) => setMonth((m) => shiftMonth(m, delta)), []),
     dayActivities: useCallback((date: LocalDate) => byDate.get(date) ?? [], [byDate]),

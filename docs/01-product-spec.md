@@ -65,13 +65,17 @@ With one interest in view, each section ends in a **+** card: optional goal chip
 
 Completing an activity marks the section heading with a check and count ("2 today") and the card with "Done today". Remaining cards stay available — completion celebrates, it doesn't lock.
 
+### Weekly rhythm
+
+With one interest in view, dots beside the **Today** title show its week (Monday to Sunday): one per day of its weekly target — chosen in **Configure learning routine**, or until then set by its frequency: **5** for daily, **3** for several times a week — filled for each day with a completed activity in that interest, light for the rest. Days past the target add filled dots; "when I can" (or **No target**) has none, so only filled dots show, and none until the first day. The dots aren't weekdays, so there's no wrong day to miss. Tapping them says what they mean in a toast — the count ("2 of 5 days this week.") and a short line for where the week stands: not started, under way, target met, past it, or no target. The line is picked from a fixed list (`today/week-copy.ts`), stable for the day. Explore → All has none.
+
 ### Configure (⚙ per section)
 
 **Activity settings: <section>**. Lists the section's library items for this user + interest + section, each with an ⓘ (what it is and why it helps) and an on/off switch. At least one must stay active. Mixed Review and Connect Ideas stay off, their switches disabled, until two goals are started (`06`).
 
 ### Configure learning routine
 
-Notes that daily counts aren't configurable yet (linking to the feedback board post), shows the routine, and asks **"What would you like more or less of?"** → **G11** turns the answer into library activations and preference notes and confirms in one line.
+Notes that daily counts aren't configurable yet (linking to the feedback board post), shows the routine, then **Days to aim for** — chips 1–7 and **No target**, saved as tapped, moving only the week dots — and asks **"What would you like more or less of?"** → **G11** turns the answer into library activations and preference notes and confirms in one line.
 
 ## 4. Activities
 
@@ -88,14 +92,14 @@ For one selected interest:
 
 - **Goal list** in path order. Status is a color treatment, not pills (`07`). Long-press to reorder; tap to expand; the pencil edits or removes. **Add a goal** appends a title and optional description, with no concepts.
 - **Expandable goals (D16)**: an expanded goal shows its concepts and skills, marking those covered by completed activities.
-- **Reflection**: three steps. **G8a** fires on open and gates nothing; its parts appear when ready, or not at all if it fails.
-  1. **"Is this still what you're hoping for?"** — saved outcomes selected, add-your-own, and 2–3 unselected from G8a. Deselecting drops one.
-  2. G8a's short recap, a read-only **Your path**, and a free-text question on what to focus on next.
-  3. The goals to remove or reorder, add-your-own, and **G8** suggestions from the reflection, outcomes and adjacent topics.
+- **Reflection** (the **Check in** card): two steps. **G8a** fires on open and gates nothing; its recap appears when ready, or not at all if it fails.
+  1. G8a's short recap, a read-only **Your path**, and one free-text field: how it's going, or a list of what they want to cover or learn next.
+  2. The goals to remove or reorder, add-your-own, and **G8** suggestions from the reflection, outcomes and adjacent topics. Anything they listed that the path doesn't cover becomes a suggested goal. A proposed move says which way and after which goal, and a suggested goal where it would go; a move that would leave a goal in place isn't shown.
 
-  Nothing is written until **Update path**, which saves path and outcomes together; the reflection records before and after.
+  Nothing is written until **Update path**; the reflection records the changes. What they're hoping for is edited in Path settings.
 
-- **3 suggested goals** below the path (**G9**, cached, regenerated when the path changes), collapsed to their titles — tap to read one — and one tap to add. The way into a reflection sits last.
+- **Progress**: under **Add a goal**, two caption lines — how many goals have reached at least each status ("8 introduced · 5 strengthened · 2 put to use", a status at zero left out) and the interest's completed activities ("23 activities completed"). No totals, so adding a goal never reads as ground lost. Hidden until the first completed activity.
+- **3 suggested goals** below the path (**G9**, cached, regenerated when the path changes), collapsed to their titles — tap to read one — and one tap to add. The way into a reflection sits above them.
 
 ### Resources
 
@@ -115,7 +119,7 @@ For the selected interest, Explore → All, or one exploring interest: completed
 ## 7. Me
 
 - **Manage Interests**: reorder, set **In focus / Exploring / Archived**, unarchive, **+** to add. An unfinished intake (§1) sits above under **Unfinished**: continue, or discard after a confirm.
-- **Calendar**: active days highlighted; tapping one lists its activities by interest.
+- **Calendar**: active days highlighted; tapping one lists its activities by interest. Under the month, from two weeks up: **"N weeks in a row"** — weeks with an activity in any interest. The current week only adds once it has one and never breaks the run while it's under way; a broken run simply disappears.
 - **Settings**: the **⚙** on Me, Today, Path and History opens an index of screens.
 
 **Account and data** — what leaves this device:

@@ -180,6 +180,7 @@ export {
 export { sortOrderBetween, respreadSortOrders } from './path/ordering'
 export { conceptCoverage, type CoverageActivity } from './path/coverage'
 export { pathSignature } from './path/signature'
+export { pathProgress, type PathProgress } from './path/progress'
 export {
   goalRefs,
   planReflection,
@@ -210,6 +211,15 @@ export {
   type CalendarDay,
   type YearMonth,
 } from './history/calendar'
+export {
+  WEEKLY_TARGET,
+  weekBoundsMs,
+  weekRhythm,
+  weeklyTarget,
+  weekStartOf,
+  weeklyStreak,
+  type WeekRhythm,
+} from './history/rhythm'
 export {
   coarseScreen,
   featurebasePortalUrl,
