@@ -49,8 +49,14 @@ export interface InterestContextInput {
     status: GoalStatus
     concepts: { label: string; kind: ConceptKind }[]
   }[]
-  /** Newest first, last ~10. */
-  recentHistory?: { title: string; goalTitle: string; tier: string; rating?: string | null }[]
+  /** Newest first, last ~10. The library item lets G5a see the mix of activity types. */
+  recentHistory?: {
+    title: string
+    goalTitle: string
+    tier: string
+    libraryItemId?: string
+    rating?: string | null
+  }[]
   activeLibraryItems?: { section: Section; id: string }[]
   /** Included for apply-tier generation only (docs/04). */
   contexts?: { kind: ContextKind; label: string; notes?: string | null }[]
@@ -104,6 +110,7 @@ export const interestContextInputSchema: z.ZodType<InterestContextInput> = z.obj
         title: cappedText('line'),
         goalTitle: cappedText('line'),
         tier: cappedText('line'),
+        libraryItemId: cappedText('line').optional(),
         rating: cappedText('line').nullish(),
       }),
     )
@@ -224,7 +231,7 @@ export function buildInterestContext(
     lines.push('### Recent activity in thinkering (newest first)')
     for (const h of input.recentHistory.slice(0, 10)) {
       lines.push(
-        `- ${h.title} (${h.tier} · ${h.goalTitle})${h.rating ? ` — rated ${h.rating}` : ''}`,
+        `- ${h.title} (${h.tier}${h.libraryItemId ? ` · ${h.libraryItemId}` : ''} · ${h.goalTitle})${h.rating ? ` — rated ${h.rating}` : ''}`,
       )
     }
   }

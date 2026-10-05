@@ -24,7 +24,8 @@ const LIST_HELP = "Activities here are made from these types. Turn off any you'd
 /**
  * The per-section ⚙ sheet (docs/01 §3): which strategies this interest draws
  * from, as a list. The ⓘ explains a strategy; the switch turns it on or off.
- * At least one item stays active per section.
+ * At least one item stays active per section, and an item still waiting on
+ * the path (Mixed Review, Connect Ideas) stays off until it applies.
  */
 export function ConfigureSheet({
   visible,
@@ -82,7 +83,7 @@ export function ConfigureSheet({
         {SECTION_HELP[section]} {LIST_HELP}
       </Text>
       <View>
-        {rows.map(({ item, active }, i) => (
+        {rows.map(({ item, active, locked }, i) => (
           <View
             key={item.id}
             className={`flex-row items-center gap-3 py-3 ${i > 0 ? 'border-t border-hairline' : ''}`}
@@ -101,7 +102,7 @@ export function ConfigureSheet({
             <Toggle
               accessibilityLabel={item.name}
               value={active}
-              disabled={active && activeCount <= 1}
+              disabled={locked || (active && activeCount <= 1)}
               onValueChange={(next) => toggle(item, next)}
             />
           </View>

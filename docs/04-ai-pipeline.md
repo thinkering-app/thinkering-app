@@ -46,7 +46,7 @@ Every LLM call has a `kind` id, a versioned prompt template in `packages/core/sr
   **Off for the beta.** Each call is minutes of web search, too much of the shared budget for now. The button stays, disabled and labelled "soon" (`FIND_MORE_ENABLED` in `apps/mobile/src/resources/seed.ts`), and the proxy refuses the kind with a burst limit of 0 (`BURST_LIMITS` in `apps/web/lib/server/metering.ts`), so older builds can't spend it either. Turning it back on is both changes together: the flag to `true`, the limit back to 10.
 
 - **G5a →** per section: `[{goal_id, library_item_id, title, est_minutes}]` — the scheduler picks goals; G5a picks a library item from the active set and writes a title. The client zips cards with the scheduler's picks **by position** and ignores the returned `goal_id`, so a stale or invented id can't misdirect a card. A `library_item_id` outside the active set falls back to the first active item.
-- **G5b →** an Activity Document (`05-activity-format.md`), including the empty reserved review page, declaring which of the goal's concept/skill ids it targets (D16).
+- **G5b →** an Activity Document (`05-activity-format.md`), including the empty reserved review page, declaring which of the goal's concept/skill ids it targets (D16). Two optional params widen what it sees: a Strengthen activity gets what the review page said on the goal's last three finished activities (`pastReviews`) — the nearest thing to the learner's weak spots, since their answers otherwise reach only G6 — and Connect Ideas gets the learner's other live interests with the goals started there (`otherInterests`).
 - **G6 →** content blocks for the review page: respond to / build on / correct the highest-value thing in their responses.
 - **G7 →** one new page (content + optional interaction) answering the question.
 - **G8a →** `{recap, outcomes: string[]}` — a 1–2 sentence descriptive (never evaluative) recap of recent learning, and 2–3 more outcomes in G2's form that don't repeat the ones they hold.
@@ -57,7 +57,7 @@ Every LLM call has a `kind` id, a versioned prompt template in `packages/core/sr
 
 ## Context assembly
 
-A deterministic builder (`packages/core/src/prompts/context-assembly.ts`) produces the per-interest context block for G5/G6/G7/G8/G9: intake answers, approach notes and brief, goals + statuses, recent history (titles + ratings, last ~10), active library items, contexts (G5b apply-tier only), relevant resources, routine notes. Budgeted (~2–3k tokens) and ordered stable-first for prompt caching.
+A deterministic builder (`packages/core/src/prompts/context-assembly.ts`) produces the per-interest context block for G5/G6/G7/G8/G9: intake answers, approach notes and brief, goals + statuses, recent history (titles, library items and ratings, last ~10), active library items, contexts (G5b apply-tier only), relevant resources, routine notes. Budgeted (~2–3k tokens) and ordered stable-first for prompt caching.
 
 ## Latency & cost strategy
 

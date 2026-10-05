@@ -1,6 +1,7 @@
 import type { ActivityDoc, Page } from '../schemas/activity-doc'
 import type { Block } from '../schemas/blocks'
 import { isInteractiveBlock } from '../schemas/blocks'
+import { pageToPlainText } from './describe'
 
 /**
  * The three ways a document changes after G5b wrote it (docs/05): G6 fills the
@@ -11,6 +12,13 @@ import { isInteractiveBlock } from '../schemas/blocks'
 
 export function reviewPageIndex(doc: ActivityDoc): number {
   return doc.pages.findIndex((p) => p.kind === 'review')
+}
+
+/** What G6 wrote on the review page, as plain text; undefined while it's unfilled. */
+export function reviewText(doc: ActivityDoc): string | undefined {
+  const page = doc.pages[reviewPageIndex(doc)]
+  if (!page || page.blocks === null) return undefined
+  return pageToPlainText(page).trim() || undefined
 }
 
 /** Fills the reserved review page with G6's blocks. */

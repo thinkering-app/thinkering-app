@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { activeLibraryItems, libraryPrefsForSection } from './prefs'
+import { activeLibraryItems, libraryPrefsForSection, type LibraryPref } from './prefs'
 
 /** Configure-sheet activation (docs/01 §3, docs/06 situational items). */
 
@@ -8,16 +8,30 @@ const underway = { startedGoalCount: 4 }
 
 function activeIds(
   section: 'next' | 'strengthen' | 'go_further',
-  prefs = [],
+  prefs: LibraryPref[] = [],
   situation = underway,
 ) {
   return activeLibraryItems(section, prefs, situation).map((i) => i.id)
 }
 
 describe('library prefs', () => {
-  it('unlocks mixed-review only once three goals are under way', () => {
-    expect(activeIds('strengthen', [], fresh)).not.toContain('mixed-review')
-    expect(activeIds('strengthen')).toContain('mixed-review')
+  it('locks mixed-review and connect-ideas until two goals are under way, then turns them on', () => {
+    const one = { startedGoalCount: 1 }
+    const two = { startedGoalCount: 2 }
+    expect(activeIds('strengthen', [], one)).not.toContain('mixed-review')
+    expect(activeIds('go_further', [], one)).not.toContain('connect-ideas')
+    expect(activeIds('strengthen', [], two)).toContain('mixed-review')
+    expect(activeIds('go_further', [], two)).toContain('connect-ideas')
+  })
+
+  it('keeps a locked item off even when a stored preference turned it on', () => {
+    const on = [{ section: 'strengthen' as const, libraryItemId: 'mixed-review', active: true }]
+    const rows = libraryPrefsForSection('strengthen', on, fresh)
+    expect(rows.find((r) => r.item.id === 'mixed-review')).toMatchObject({
+      active: false,
+      locked: true,
+    })
+    expect(activeIds('strengthen', on, underway)).toContain('mixed-review')
   })
 
   it('offers big-picture-map while the path is at its first goal', () => {
@@ -28,8 +42,12 @@ describe('library prefs', () => {
   it('lets a stored preference override the situational default either way', () => {
     const off = [{ section: 'next' as const, libraryItemId: 'big-picture-map', active: false }]
     expect(activeLibraryItems('next', off, fresh).map((i) => i.id)).not.toContain('big-picture-map')
-    const on = [{ section: 'strengthen' as const, libraryItemId: 'mixed-review', active: true }]
-    expect(activeLibraryItems('strengthen', on, fresh).map((i) => i.id)).toContain('mixed-review')
+    const offAfter = [
+      { section: 'strengthen' as const, libraryItemId: 'mixed-review', active: false },
+    ]
+    expect(activeLibraryItems('strengthen', offAfter, underway).map((i) => i.id)).not.toContain(
+      'mixed-review',
+    )
   })
 
   it('never hands the model an empty active set', () => {

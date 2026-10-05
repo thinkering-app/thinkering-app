@@ -64,6 +64,15 @@ build; internal refactors and docs don't appear here. The conventions are in
 - The approach notes for a new interest are written for your level, and
   activities now know what practice and doing it well look like for what
   you're learning.
+- Skills get practice rather than quizzes: drills where you write what
+  you'd say or do, then compare it with a model answer, and Put It to Work
+  plans one real try and how you'll know it worked.
+- Activity types vary more: the same type won't be picked three times in a
+  row in a section. A Worked Example asks "why this step?" as it goes, and
+  Strengthen activities aim at what your earlier reviews picked up.
+- Mixed Review and Connect Ideas turn on once you've started two goals, and
+  their switches stay off until then. Connect Ideas can link to your other
+  interests.
 - Adding an interest asks what you're hoping for before which topics
   feel most relevant, and the topics are named for how much experience
   you have: everyday words if you're new to it, the field's terms if not.

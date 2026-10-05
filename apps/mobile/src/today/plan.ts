@@ -15,6 +15,7 @@ import {
   type SavedResourceRef,
   type Section,
   type TodayPlanParams,
+  varyLibraryItems,
 } from '@thinkering/core'
 import {
   createActivity,
@@ -56,6 +57,9 @@ type PlanKey = (typeof SECTION_KEYS)[Section]
 type Picks = Record<PlanKey, CardPick[]>
 
 type PlanPick = TodayPlanParams['picks']['next'][number]
+
+/** Finished activities read for variety; enough to hold each section's last two. */
+const RECENT_FOR_VARIETY = 30
 
 /** Finished today is a day's worth; this reaches past it with room to spare. */
 const HISTORY_LOOKBACK = 30
@@ -286,7 +290,8 @@ export async function requestActivity(
  * picks are asked about — after a finished card that's one section, and asking
  * for the others would duplicate what's on screen. Each pick is offered only
  * the items it can be made from (`usableItems`), and a pick with none is
- * dropped. `only` narrows one section's set to the item the learner chose, if
+ * dropped, and an item the section's last two activities both used is left out
+ * when there's another (`varyLibraryItems`). `only` narrows one section's set to the item the learner chose, if
  * it's active — its resource, if it needs one, was chosen with it — and
  * `matched` stands in for the saved resources G5a is told about.
  */
@@ -303,13 +308,14 @@ async function planCards(
   const prefs = listLibraryPrefs(db, interest.id)
   const situation = librarySituation(goals)
   const saved = listResources(db, interest.id)
+  const done = listHistory(db, { interestId: interest.id, limit: RECENT_FOR_VARIETY })
   const itemsFor = (section: Section, pick: PlanPick) => {
     const chosen =
       only?.section === section &&
       activeLibraryItems(section, prefs, situation).some((i) => i.id === only.libraryItemId)
-    return chosen
-      ? [only.libraryItemId]
-      : usableItems(section, pick.goalId, prefs, situation, saved)
+    if (chosen) return [only.libraryItemId]
+    const recent = done.filter((a) => a.section === section).map((a) => a.libraryItemId)
+    return varyLibraryItems(usableItems(section, pick.goalId, prefs, situation, saved), recent)
   }
   const usable = { next: [], strengthen: [], goFurther: [] } as Record<PlanKey, string[][]>
   const asked: TodayPlanParams['picks'] = { next: [], strengthen: [], goFurther: [] }

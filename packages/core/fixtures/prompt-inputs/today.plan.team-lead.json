@@ -1,0 +1,287 @@
+{
+  "context": {
+    "interest": {
+      "name": "Engineering management",
+      "wantToLearn": "Become a better manager for my team",
+      "whyChoice": "career",
+      "whyText": "I was promoted to lead my team of five engineers three months ago. My 1:1s feel aimless and I avoid hard feedback.",
+      "experienceChoice": "getting_started",
+      "successOutcomes": [
+        "I run 1:1s my engineers look forward to",
+        "I give hard feedback within a day, calmly"
+      ],
+      "frequency": "several_weekly",
+      "sessionMinutes": 10,
+      "approachNotes": "Managing well is mostly a set of conversations done deliberately, not a personality trait. The leverage right now is two things: giving your 1:1s a real structure so they stop feeling aimless, and saying the hard thing earlier and smaller, before it becomes a big thing. Skip frameworks about org design for now — you don't have that problem yet. Practice on real conversations this week, not hypothetical ones.",
+      "approachBrief": {
+        "domain": "engineering team management",
+        "progress": "with_people",
+        "practice": "A short scripted move you try in your next real 1:1 or feedback moment, then a quick page reviewing how it landed.",
+        "goodLooksLike": [
+          "1:1s have a recurring structure the engineer can anticipate and prepare for.",
+          "You name a specific behavior and its impact within a day of noticing it.",
+          "Engineers bring you problems before they're emergencies."
+        ],
+        "pitfalls": [
+          "Mistaking being liked for being trusted — avoiding feedback feels kind but reads as disengagement.",
+          "Treating 1:1s as status updates instead of the person's own agenda.",
+          "Vague feedback ('be more proactive') that gives no actionable next step."
+        ],
+        "progressionPrinciples": [
+          "Start with 1:1 structure and small corrective feedback before tackling performance issues or conflict.",
+          "Practice one specific phrasing or move at a time, not general 'communication skills.'",
+          "Move from scripted language to adapting tone once the basic moves feel natural."
+        ]
+      }
+    },
+    "goals": [
+      {
+        "title": "Give your 1:1s a repeatable structure",
+        "status": "strengthened",
+        "concepts": [
+          {
+            "label": "1:1 agenda structure",
+            "kind": "concept"
+          },
+          {
+            "label": "Opening with their agenda",
+            "kind": "skill"
+          }
+        ]
+      },
+      {
+        "title": "Turn status updates into real conversations",
+        "status": "introduced",
+        "concepts": [
+          {
+            "label": "Status vs. agenda-driven 1:1",
+            "kind": "concept"
+          },
+          {
+            "label": "Open-ended follow-up questions",
+            "kind": "skill"
+          }
+        ]
+      },
+      {
+        "title": "Set expectations that are actually checkable",
+        "status": "introduced",
+        "concepts": [
+          {
+            "label": "Specific vs. vague expectations",
+            "kind": "concept"
+          },
+          {
+            "label": "Observable behavior language",
+            "kind": "skill"
+          }
+        ]
+      },
+      {
+        "title": "Name a behavior and its impact, not a trait",
+        "status": "introduced",
+        "concepts": [
+          {
+            "label": "Behavior + impact framing",
+            "kind": "concept"
+          },
+          {
+            "label": "Avoiding trait labels",
+            "kind": "skill"
+          }
+        ]
+      },
+      {
+        "title": "Deliver feedback within a day, calmly",
+        "status": "not_started",
+        "concepts": [
+          {
+            "label": "Feedback timing",
+            "kind": "concept"
+          },
+          {
+            "label": "Calm opening line",
+            "kind": "skill"
+          }
+        ]
+      },
+      {
+        "title": "Stay steady when feedback lands badly",
+        "status": "not_started",
+        "concepts": [
+          {
+            "label": "Defensiveness vs. disagreement",
+            "kind": "concept"
+          },
+          {
+            "label": "Holding the point",
+            "kind": "skill"
+          }
+        ]
+      },
+      {
+        "title": "Make 1:1s the place problems surface early",
+        "status": "not_started",
+        "concepts": [
+          {
+            "label": "Trust vs. being liked",
+            "kind": "concept"
+          },
+          {
+            "label": "Inviting early problem-raising",
+            "kind": "skill"
+          }
+        ]
+      }
+    ],
+    "recentHistory": [
+      {
+        "title": "Name the behavior, then the impact",
+        "goalTitle": "Name a behavior and its impact, not a trait",
+        "tier": "introduce",
+        "rating": "up"
+      },
+      {
+        "title": "From vague to checkable expectations",
+        "goalTitle": "Set expectations that are actually checkable",
+        "tier": "introduce",
+        "rating": "up"
+      },
+      {
+        "title": "Their agenda first",
+        "goalTitle": "Give your 1:1s a repeatable structure",
+        "tier": "strengthen",
+        "rating": "mixed"
+      }
+    ],
+    "activeLibraryItems": [
+      {
+        "section": "next",
+        "id": "plain-explainer"
+      },
+      {
+        "section": "next",
+        "id": "worked-example"
+      },
+      {
+        "section": "next",
+        "id": "guided-discovery"
+      },
+      {
+        "section": "next",
+        "id": "mini-case"
+      },
+      {
+        "section": "strengthen",
+        "id": "retrieval-quiz"
+      },
+      {
+        "section": "strengthen",
+        "id": "explain-back"
+      },
+      {
+        "section": "strengthen",
+        "id": "spot-the-error"
+      },
+      {
+        "section": "strengthen",
+        "id": "compare-contrast"
+      },
+      {
+        "section": "strengthen",
+        "id": "faded-example"
+      },
+      {
+        "section": "strengthen",
+        "id": "focused-drill"
+      },
+      {
+        "section": "strengthen",
+        "id": "notice-training"
+      },
+      {
+        "section": "go_further",
+        "id": "put-to-work"
+      },
+      {
+        "section": "go_further",
+        "id": "scenario-challenge"
+      },
+      {
+        "section": "go_further",
+        "id": "teach-back"
+      },
+      {
+        "section": "go_further",
+        "id": "make-something"
+      },
+      {
+        "section": "go_further",
+        "id": "in-the-wild"
+      },
+      {
+        "section": "go_further",
+        "id": "dig-deeper"
+      },
+      {
+        "section": "go_further",
+        "id": "connect-ideas"
+      }
+    ],
+    "contexts": [
+      {
+        "kind": "person",
+        "label": "Priya",
+        "notes": "Senior engineer on my team; quiet in 1:1s, rarely raises problems"
+      }
+    ]
+  },
+  "sessionMinutes": 10,
+  "picks": {
+    "next": [
+      {
+        "goalId": "g5",
+        "goalTitle": "Deliver feedback within a day, calmly"
+      }
+    ],
+    "strengthen": [
+      {
+        "goalId": "g4",
+        "goalTitle": "Name a behavior and its impact, not a trait"
+      }
+    ],
+    "goFurther": [
+      {
+        "goalId": "g1",
+        "goalTitle": "Give your 1:1s a repeatable structure"
+      }
+    ]
+  },
+  "activeItems": {
+    "next": ["plain-explainer", "worked-example", "guided-discovery", "mini-case"],
+    "strengthen": [
+      "retrieval-quiz",
+      "explain-back",
+      "spot-the-error",
+      "compare-contrast",
+      "faded-example",
+      "focused-drill",
+      "notice-training"
+    ],
+    "goFurther": [
+      "put-to-work",
+      "scenario-challenge",
+      "teach-back",
+      "make-something",
+      "in-the-wild",
+      "dig-deeper",
+      "connect-ideas"
+    ]
+  },
+  "yesterdayItems": [
+    {
+      "goalId": "g4",
+      "libraryItemId": "guided-discovery"
+    }
+  ]
+}

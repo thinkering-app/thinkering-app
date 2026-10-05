@@ -14,10 +14,12 @@ export type { LibraryItem } from './library/types'
 export { LIBRARY_ITEMS, getLibraryItem, libraryItemsForSection } from './library/items'
 export {
   activeLibraryItems,
+  isLibraryItemLocked,
   libraryPrefsForSection,
   type LibraryPref,
   type LibrarySituation,
 } from './library/prefs'
+export { varyLibraryItems } from './library/variety'
 export { localDateOf, isSameLocalDay, type LocalDate } from './scheduler/local-date'
 export {
   suggestInterests,
@@ -64,6 +66,7 @@ export { withoutLeadNumber } from './activity/numbering'
 export {
   reviewPageIndex,
   fillReviewPage,
+  reviewText,
   insertPageAfter,
   lastInteractivePageIndex,
   interactiveBlocksBeforeReview,

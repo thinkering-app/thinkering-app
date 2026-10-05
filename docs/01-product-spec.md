@@ -67,7 +67,7 @@ Completing an activity marks the section heading with a check and count ("2 toda
 
 ### Configure (⚙ per section)
 
-**Activity settings: <section>**. Lists the section's library items for this user + interest + section, each with an ⓘ (what it is and why it helps) and an on/off switch. At least one must stay active.
+**Activity settings: <section>**. Lists the section's library items for this user + interest + section, each with an ⓘ (what it is and why it helps) and an on/off switch. At least one must stay active. Mixed Review and Connect Ideas stay off, their switches disabled, until two goals are started (`06`).
 
 ### Configure learning routine
 

@@ -1,14 +1,14 @@
 {
   "kind": "intake.approach",
-  "promptVersion": 5,
+  "promptVersion": 6,
   "model": "claude-sonnet-5",
   "fixture": "default",
-  "text": "{\n  \"domain\": \"conversational German\",\n  \"progress\": \"with_people\",\n  \"approachNotes\": \"You know scattered words but not how to string a real exchange together — that's normal after app streaks, which drill vocabulary, not conversation. The shift now is producing full sentences out loud, even clumsy ones, instead of recognizing correct ones on a screen. Focus on dinner-table territory: asking questions, reacting, telling small stories about your day. Skip grammar rules you can't yet use; chase phrases you'll actually say in Munich.\",\n  \"practice\": \"Speak a short answer out loud to a real or imagined question a family member might ask at dinner, then check it against a model.\",\n  \"goodLooksLike\": [\n    \"Answers a question with a full sentence, not just a single word\",\n    \"Asks a follow-up question back instead of going quiet\",\n    \"Self-corrects word order or verb placement without being told\"\n  ],\n  \"pitfalls\": [\n    \"Mistaking word recognition on an app for being able to produce speech\",\n    \"Over-focusing on perfect grammar instead of getting a message across\",\n    \"Learning vocabulary lists disconnected from things you'd actually say at dinner\"\n  ],\n  \"progressionPrinciples\": [\n    \"Build around real dinner-table functions: asking, reacting, storytelling, not grammar topics\",\n    \"Push spoken output every session, even short, before adding new vocabulary\",\n    \"Interleave past material into new conversations so phrases get reused, not forgotten\"\n  ]\n}",
+  "text": "{\n  \"domain\": \"conversational German\",\n  \"progress\": \"with_people\",\n  \"approachNotes\": \"Duolingo gave you words but not the reflexes for live conversation — that's normal, apps train recognition, not production. The shift now is to speak full sentences out loud, even badly, and to get used to not understanding everything at a dinner table. Focus on high-frequency phrases for family talk — opinions, reactions, questions — over vocabulary breadth. Skip grammar deep-dives for now; you'll absorb cases faster from patterns you actually use.\",\n  \"practice\": \"Speak answers aloud to real questions (how was your week, what do you think) in short German sentences, then try one with family in Munich.\",\n  \"goodLooksLike\": [\n    \"Answers a question in German without switching to English mid-sentence\",\n    \"Asks a follow-up question instead of just responding and stopping\",\n    \"Recovers from a wrong word by rephrasing, not freezing\"\n  ],\n  \"pitfalls\": [\n    \"Mistaking recognizing words on a screen for being able to produce them aloud\",\n    \"Over-focusing on perfect grammar before building basic conversational flow\",\n    \"Avoiding speaking until 'ready,' which never arrives without practice\"\n  ],\n  \"progressionPrinciples\": [\n    \"Prioritize spoken survival phrases for family settings over textbook vocabulary lists\",\n    \"Introduce grammar only once a pattern already in use needs explaining\",\n    \"Interleave listening comprehension with speaking so both grow at the dinner table\"\n  ]\n}",
   "usage": {
     "inputTokens": 81,
-    "outputTokens": 510,
-    "cacheReadTokens": 1812,
+    "outputTokens": 516,
+    "cacheReadTokens": 1837,
     "cacheWriteTokens": 0
   },
-  "latencyMs": 7490
+  "latencyMs": 7058
 }

@@ -27,9 +27,14 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     whyItHelps:
       "Studying a solved example teaches a method faster than working it out cold, especially when you're starting out.",
     pedagogy:
-      'Worked-example effect: novices learn more from studying steps than solving cold. Great for procedures, math-ish, language patterns.',
-    pageSkeleton: ['setup', 'steps block', 'faded step', 'recap'],
-    interactions: ['fillBlank', 'mcq'],
+      'Worked-example effect: novices learn more from studying steps than solving cold. Self-explanation prompts — "why this step?" — make the example teach more than reading it (Renkl; Atkinson, Renkl & Merrill 2003). A long procedure groups its steps so each page holds one idea. Great for procedures, math-ish, language patterns.',
+    pageSkeleton: [
+      'setup',
+      'the solution a step at a time, with a quick "why this step?" check on the key steps',
+      'one step done by the learner',
+      'recap',
+    ],
+    interactions: ['mcq', 'fillBlank'],
     defaultActive: true,
     goodFor: 'procedures, quantitative material, language patterns',
   },
@@ -53,11 +58,11 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     overview: "Read a short real story, decide what you'd do, then debrief.",
     whyItHelps: 'A story shows why an idea matters and gives your memory a hook.',
     pedagogy:
-      'Case-based learning; episodic memory hooks; shows why the concept matters. Good for strategy, finance, PM, climate.',
+      'Case-based learning; episodic memory hooks; shows why the concept matters. Good for strategy, finance, PM, climate, and judgement calls with people.',
     pageSkeleton: ['story', '"what would you do"', 'debrief', 'takeaway check'],
     interactions: ['mcq', 'freeText'],
     defaultActive: true,
-    goodFor: 'strategy, finance, product management, climate',
+    goodFor: 'judgement in context — strategy, finance, product management, leading people',
   },
   {
     id: 'big-picture-map',
@@ -91,7 +96,7 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     ],
     interactions: ['mcq', 'freeText'],
     defaultActive: true,
-    goodFor: 'demos, technique, worked examples on video',
+    goodFor: 'seeing a skill done well — demos, technique, talks, worked examples on video',
     usesResources: true,
     resourceMedia: 'video',
   },
@@ -124,11 +129,11 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     overview: 'Answer a few quick questions from memory.',
     whyItHelps: 'Pulling something from memory is what makes it stick.',
     pedagogy:
-      'Retrieval practice / testing effect; spacing when it revisits older goals. Default strengthen item.',
+      'Retrieval practice / testing effect; spacing when it revisits older goals. The strengthen choice for concepts, facts and vocabulary; a skill strengthens through reps instead.',
     pageSkeleton: ['warm-up reveal', '3–5 mixed questions', 'tricky-one revisit'],
     interactions: ['mcq', 'fillBlank', 'ordering'],
     defaultActive: true,
-    goodFor: 'any domain; the default strengthen choice',
+    goodFor: 'concepts, facts and vocabulary worth recalling',
   },
   {
     id: 'explain-back',
@@ -149,11 +154,11 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     overview: "Find what's wrong in an example, then fix it.",
     whyItHelps: 'Catching mistakes sharpens your sense of what right looks like.',
     pedagogy:
-      'Error-spotting builds discrimination and challenges illusions of fluency. Good for code, grammar, reasoning, chess.',
+      'Error-spotting builds discrimination and challenges illusions of fluency. Good for code, grammar, reasoning, chess, and for weak work to improve: vague feedback, a muddled slide, a clunky level.',
     pageSkeleton: ['flawed artifact', 'find/select the error', "why it's wrong", 'fixed version'],
     interactions: ['mcq', 'freeText'],
     defaultActive: true,
-    goodFor: 'code, grammar, reasoning, chess',
+    goodFor: 'code, grammar, reasoning, chess; a flawed draft, message or design to fix',
   },
   {
     id: 'compare-contrast',
@@ -185,13 +190,13 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     sections: ['strengthen'],
     overview: 'Answer questions that mix recent material with earlier goals.',
     whyItHelps: "Switching between topics is harder, and that's what makes it last.",
-    activation: "Turns on by itself once you've started three goals.",
-    pedagogy: 'Interleaving + spacing; harder, stickier. Unlocks once ≥3 goals are introduced.',
+    activation: "Turns on by itself once you've started two goals.",
+    pedagogy: 'Interleaving + spacing; harder, stickier. Unlocks once ≥2 goals are introduced.',
     pageSkeleton: ['4–6 interleaved questions across goals', 'pattern debrief'],
     interactions: ['mcq', 'fillBlank', 'matching'],
-    // Activates once ≥3 goals are introduced (docs/06).
+    // Locked until ≥2 goals are introduced (prefs.ts, docs/06).
     defaultActive: false,
-    goodFor: 'paths with ≥3 introduced goals',
+    goodFor: 'paths with ≥2 introduced goals',
   },
   {
     id: 'focused-drill',
@@ -201,11 +206,16 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     whyItHelps:
       'Practicing just past your comfort zone, with feedback each time, builds skill fastest.',
     pedagogy:
-      'Deliberate practice: isolate a sub-skill just past comfort, immediate specific feedback each rep. Best for skill domains — languages, drawing, music, chess, coding.',
-    pageSkeleton: ['pick the weak point', '3–5 tight reps', 'feedback per rep', 'one harder rep'],
-    interactions: ['fillBlank', 'mcq', 'freeText'],
+      'Deliberate practice: isolate a sub-skill just past comfort, immediate specific feedback each rep. Best for skills you do — languages, chess, coding, drawing, and the words for a hard conversation or a tough question. A written rep (freeText) is followed by a model answer to compare against (reveal), so each rep gets feedback on the page.',
+    pageSkeleton: [
+      'pick the weak point — from earlier reviews on this goal, or a slip common at their level',
+      '3–5 tight reps, each checked or compared with a model answer',
+      'one harder rep',
+    ],
+    interactions: ['freeText', 'reveal', 'fillBlank', 'mcq'],
     defaultActive: true,
-    goodFor: 'skill domains — languages, drawing, music, chess, coding',
+    goodFor:
+      'skills you do — grammar and word-form patterns, code, chess, drawing; what to say in a hard conversation, a pitch or an answer under pressure',
   },
   {
     id: 'notice-training',
@@ -223,7 +233,8 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     ],
     interactions: ['mcq', 'matching'],
     defaultActive: true,
-    goodFor: 'chess positions, art/composition, grammar forms, chart reading',
+    goodFor:
+      'chess positions, art/composition, grammar forms, chart reading; telling a strong opening, answer or level design from a weak one',
   },
 
   // ── Go further ────────────────────────────────────────────────────────────
@@ -231,19 +242,20 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     id: 'put-to-work',
     name: 'Put It to Work',
     sections: ['go_further'],
-    overview: 'Plan how to use this in your own project, work or life.',
+    overview: 'Plan one real try at this in your own project, work or life.',
     whyItHelps: 'Using an idea somewhere real is how it becomes yours.',
     pedagogy:
-      "Transfer + relevance; uses the interest's contexts (projects/people/environments) when they fit.",
+      "Transfer + relevance; implementation intentions (when, where, what you'll do) make a real attempt likelier. Uses the interest's contexts (projects/people/environments) when they fit.",
     pageSkeleton: [
-      'pick/confirm the context',
-      'plan the application',
-      'pressure-test',
-      'concrete next step',
+      'pick the real moment — a meeting, a conversation, a build session',
+      'plan the attempt: what you will do or say',
+      'pressure-test: what might go differently',
+      'how you will know it worked',
     ],
     interactions: ['freeText', 'mcq', 'reveal'],
     defaultActive: true,
-    goodFor: 'users with saved contexts; practical domains',
+    goodFor:
+      'anything practiced in real life — leading, presenting, conversation, a project of their own',
     flavor: 'apply',
     outcomeLabel: 'Put to use',
   },
@@ -257,7 +269,8 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     pageSkeleton: ['scenario', '2–3 decision points', 'debrief', 'principle recap'],
     interactions: ['mcq', 'freeText'],
     defaultActive: true,
-    goodFor: 'decision-heavy domains — strategy, finance, PM',
+    goodFor:
+      'decisions and live situations — strategy, finance, PM, leading, negotiating, handling questions',
     flavor: 'apply',
     outcomeLabel: 'Put to use',
   },
@@ -287,10 +300,16 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     overview: "Make one small thing with what you've learned.",
     whyItHelps: 'Producing something, however small, uses what you know in a new way.',
     pedagogy: 'Generation + production practice; constraints keep it 5-minute-sized.',
-    pageSkeleton: ['the brief', 'make it', 'self-check against criteria', 'one refinement'],
+    pageSkeleton: [
+      'the brief, with 2–3 criteria',
+      'make it',
+      'self-check against the criteria',
+      'one refinement',
+    ],
     interactions: ['freeText', 'selfRate'],
     defaultActive: true,
-    goodFor: 'creative and production skills — languages, drawing, writing',
+    goodFor:
+      'making things — writing, drawing, music, game design, a language — or one small piece of a larger project',
     flavor: 'apply',
     outcomeLabel: 'Put to use',
   },
@@ -341,6 +360,7 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     sections: ['go_further'],
     overview: 'Link this goal to another goal, interest or field.',
     whyItHelps: "Ideas you've connected are easier to recall and use together.",
+    activation: "Turns on by itself once you've started two goals.",
     pedagogy: 'Elaboration + far transfer; building a connected schema rather than islands.',
     pageSkeleton: [
       'the two ideas',
@@ -349,8 +369,9 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
       'takeaway',
     ],
     interactions: ['freeText', 'matching'],
-    defaultActive: true,
-    goodFor: 'users with multiple goals or interests',
+    // Locked until ≥2 goals are introduced (prefs.ts, docs/06).
+    defaultActive: false,
+    goodFor: 'a goal with another started goal or interest to link to',
     flavor: 'extend',
     outcomeLabel: 'Branched out from',
   },

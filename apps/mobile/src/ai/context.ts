@@ -63,6 +63,7 @@ export function interestContext(interest: Interest, goals?: Goal[]): InterestCon
       title: a.title,
       goalTitle: (a.goalId ? goalTitles.get(a.goalId) : undefined) ?? a.topic ?? '',
       tier: a.tier,
+      libraryItemId: a.libraryItemId,
       rating: a.rating,
     })),
     activeLibraryItems: SECTIONS.flatMap((section) =>

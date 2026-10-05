@@ -57,9 +57,9 @@ const INSTRUCTIONS = `Task: write the brief that steers every later generation f
 Return JSON: {
   "domain": string,                    // the field, named plainly in 2–5 words: "conversational German", "team leadership", "2D game development", "personal finance"
   "progress": "understanding" | "doing" | "with_people" | "making",
-                                       // what getting better here mostly is. understanding: knowing and explaining ideas (history, how LLMs work). doing: a skill or procedure you carry out yourself (coding, chess, a language's grammar, cooking). with_people: doing it with or in front of others (leading, presenting, negotiating, conversation). making: producing work (games, songs, drawings, stories). Pick the one their goal leans on most.
+                                       // what getting better here mostly is. understanding: knowing and explaining ideas (history, how LLMs work, investing basics). doing: a skill you carry out on your own (coding, chess, cooking, reading a language). with_people: a skill used live with or in front of others (leading, presenting, negotiating, speaking a language in conversation). making: producing work (games, songs, drawings, stories). Pick the one their goal leans on most.
   "approachNotes": string,             // to the learner ("you"), 3–4 sentences, 90 words maximum: the specific, useful insight about learning this at their level — what tends to make the difference, where to put the effort, what to skip for now. Write as someone who knows the field, not as a description of teaching methods or of this app.
-  "practice": string,                  // 1–2 sentences, 40 words maximum: what one practice attempt looks like for them at their level, and where it happens — on the page, or out in their life (a real conversation, a meeting, a build session)
+  "practice": string,                  // 1–2 sentences, 40 words maximum: what one practice attempt looks like for them at their level, and where it happens — a short exercise, or out in their life (a real conversation, a meeting, a build session). Describe the practice itself, not an app or its pages
   "goodLooksLike": string[],           // exactly 3 observable signs of doing it well at their level, one line of 15 words maximum each — what someone watching, or the work itself, would show
   "pitfalls": string[],                // exactly 3 traps specific to this domain and level (illusions of progress, common misconceptions, habits that stall people), one line of 20 words maximum each
   "progressionPrinciples": string[]    // exactly 3 principles for sequencing what they learn here, at this level, one line of 20 words maximum each
@@ -76,7 +76,9 @@ export const intakeApproachTemplate: PromptTemplate<
   kind: 'intake.approach',
   // v5: fired once experience is known; adds progress, practice and
   // goodLooksLike, and the notes are insight for the learner rather than method.
-  version: 5,
+  // v6: conversation counts as with_people, and practice describes the
+  // practice, not an app.
+  version: 6,
   model: 'sonnet',
   maxTokens: 8000,
   effort: 'low',
