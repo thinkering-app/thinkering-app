@@ -75,7 +75,7 @@ With one interest in view, dots beside the **Today** title show its week (Monday
 
 ### Configure learning routine
 
-Notes that daily counts aren't configurable yet (linking to the feedback board post), shows the routine, then **Days a week** — chips 1–7 and **No target**, saved as tapped, moving only the week dots — and asks **"What would you like more or less of?"** → **G11** turns the answer into library activations and preference notes and confirms in one line.
+Notes that daily counts aren't configurable yet (linking to the feedback board post), shows the routine, then **Days to aim for** — chips 1–7 and **No target**, saved as tapped, moving only the week dots — and asks **"What would you like more or less of?"** → **G11** turns the answer into library activations and preference notes and confirms in one line.
 
 ## 4. Activities
 

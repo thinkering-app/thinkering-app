@@ -204,11 +204,12 @@ function WeeklyDays({ interestId, onChanged }: { interestId: string; onChanged: 
   const choose = (days: number | null) => {
     setTarget(days)
     updateInterest(db, repoContext, interestId, { weeklyDays: days ?? 0 })
+    track('settings_changed', { key: 'weekly_days' })
     onChanged()
   }
   return (
     <View className="gap-3">
-      <Text className="font-sans-medium text-body text-ink">Days a week</Text>
+      <Text className="font-sans-medium text-body text-ink">Days to aim for</Text>
       <View className="flex-row flex-wrap gap-2">
         {WEEKLY_DAY_CHOICES.map((days) => (
           <ChoiceChip

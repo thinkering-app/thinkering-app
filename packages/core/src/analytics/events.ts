@@ -101,6 +101,7 @@ export const SETTINGS_KEYS = [
   'frequency',
   'session_minutes',
   'reading_amount',
+  'weekly_days',
   'path_settings',
 ] as const
 export type SettingsKey = (typeof SETTINGS_KEYS)[number]
