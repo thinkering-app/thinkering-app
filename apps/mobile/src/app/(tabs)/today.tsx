@@ -29,6 +29,7 @@ import { dropUntouchedCards, requestActivity, type ActivityRequest } from '@/tod
 import { RequestSheet } from '@/today/request-sheet'
 import { RoutineSheet } from '@/today/routine-sheet'
 import { useToday, type TodaySectionView } from '@/today/use-today'
+import { WeekDots } from '@/today/week-dots'
 import { colors } from '@/theme/tokens'
 
 /** A + request whose card G5a is still planning — shown in its section meanwhile. */
@@ -45,7 +46,7 @@ interface Draft {
  * question at the bottom.
  */
 export default function TodayScreen() {
-  const { selected, selection } = useInterestSelection()
+  const { selected, selection, reload: reloadInterests } = useInterestSelection()
   const exploreAll = selection?.kind === 'explore' && selection.interestId === null
   const { today, sections, reflect, empty, generating, writing, error, retry, refresh } = useToday(
     selected,
@@ -102,7 +103,13 @@ export default function TodayScreen() {
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right']}>
       <View className="gap-4 px-5 pt-4">
         <View className="flex-row items-center gap-5">
-          <Text className="flex-1 font-heading-bold text-display text-ink">Today</Text>
+          <View className="flex-1 flex-row items-center gap-3">
+            <Text className="font-heading-bold text-display text-ink">Today</Text>
+            {/* The week's rhythm is per interest: it needs one in view (docs/01 §3). */}
+            {configurable ? (
+              <WeekDots interest={configurable} today={today} onExplain={setToast} />
+            ) : null}
+          </View>
           {configurable ? <PathButtons interestId={configurable.id} /> : null}
           <SettingsButton />
         </View>
@@ -176,6 +183,7 @@ export default function TodayScreen() {
             onClose={() => setRoutineOpen(false)}
             interestId={configurable.id}
             onChanged={() => onConfigured()}
+            onWeeklyDaysChanged={reloadInterests}
           />
           <RequestSheet
             visible={requestOpen}
@@ -187,7 +195,8 @@ export default function TodayScreen() {
           />
         </>
       ) : null}
-      <Toast message={toast} onHide={() => setToast(null)} />
+      {/* Long enough to read the week's two sentences. */}
+      <Toast message={toast} onHide={() => setToast(null)} durationMs={3500} />
       <FeedbackButton />
     </SafeAreaView>
   )

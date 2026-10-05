@@ -1,0 +1,1 @@
+ALTER TABLE `interests` ADD `weekly_days` integer;

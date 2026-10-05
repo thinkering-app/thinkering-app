@@ -46,6 +46,8 @@ export const interests = sqliteTable('interests', {
   successOutcomes: text('success_outcomes', { mode: 'json' }).$type<string[]>(),
   frequency: text('frequency').$type<Frequency>().notNull(),
   sessionMinutes: integer('session_minutes').notNull(),
+  /** Days a week Today's dots aim for (docs/01 §3); 0 is no target. Null follows `frequency`. */
+  weeklyDays: integer('weekly_days'),
   readingAmount: text('reading_amount').$type<ReadingAmount>().notNull().default('balanced'),
   approachNotes: text('approach_notes').notNull().default(''),
   status: text('status').$type<InterestStatus>().notNull(),

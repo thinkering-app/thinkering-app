@@ -3,6 +3,7 @@ import { groupByLocalDay } from './grouping'
 import { outcomeLine } from './outcome'
 import { monthBoundsMs, monthGrid, monthLabel, shiftMonth, yearMonthOf } from './calendar'
 import { localDateOf } from '../scheduler/local-date'
+import { weekBoundsMs, weekRhythm, weekStartOf, weeklyStreak, weeklyTarget } from './rhythm'
 
 describe('outcomeLine (docs/01 §6, D1)', () => {
   it('reads the verb from the tier outside Go further', () => {
@@ -130,5 +131,48 @@ describe('calendar month grid', () => {
     expect(toMs).toBeGreaterThanOrEqual(lastLocal)
     expect(localDateOf(firstLocal, 'Pacific/Kiritimati')).toBe('2026-09-01')
     expect(localDateOf(lastLocal, 'Etc/GMT+12')).toBe('2026-09-30')
+  })
+})
+
+describe('weekly rhythm (docs/01 §3, §7)', () => {
+  // 2026-10-05 is a Monday.
+  it('starts weeks on Monday, across a month and a year boundary', () => {
+    expect(weekStartOf('2026-10-05')).toBe('2026-10-05')
+    expect(weekStartOf('2026-10-11')).toBe('2026-10-05')
+    expect(weekStartOf('2026-10-01')).toBe('2026-09-28')
+    expect(weekStartOf('2027-01-01')).toBe('2026-12-28')
+  })
+
+  it('bounds the week with a day of slack either side', () => {
+    const { fromMs, toMs } = weekBoundsMs('2026-10-08')
+    expect(fromMs).toBe(Date.parse('2026-10-04T00:00:00Z'))
+    expect(toMs).toBe(Date.parse('2026-10-13T00:00:00Z'))
+  })
+
+  it("counts this week's distinct days, up to today", () => {
+    const dates = ['2026-10-04', '2026-10-05', '2026-10-05', '2026-10-07', '2026-10-09']
+    expect(weekRhythm(dates, '2026-10-08', 5)).toEqual({ done: 2, target: 5 })
+  })
+
+  it('takes the chosen days over the frequency, and 0 as no target', () => {
+    expect(weeklyTarget({ frequency: 'daily', weeklyDays: null })).toBe(5)
+    expect(weeklyTarget({ frequency: 'several_weekly', weeklyDays: null })).toBe(3)
+    expect(weeklyTarget({ frequency: 'when_i_can', weeklyDays: null })).toBeNull()
+    expect(weeklyTarget({ frequency: 'when_i_can', weeklyDays: 2 })).toBe(2)
+    expect(weeklyTarget({ frequency: 'daily', weeklyDays: 0 })).toBeNull()
+  })
+
+  it('counts weeks in a row with any day, not breaking on a week still under way', () => {
+    const dates = ['2026-09-14', '2026-09-23', '2026-09-28', '2026-10-04']
+    // This week (from 10-05) has nothing yet: the run through last week stands.
+    expect(weeklyStreak(dates, '2026-10-05')).toBe(3)
+    expect(weeklyStreak([...dates, '2026-10-06'], '2026-10-06')).toBe(4)
+    // A week with nothing ends the run: 09-14's week is cut off from the rest.
+    expect(weeklyStreak(['2026-09-14', '2026-09-28'], '2026-10-01')).toBe(1)
+  })
+
+  it('has no streak once a whole week passes empty', () => {
+    expect(weeklyStreak(['2026-09-21', '2026-09-22'], '2026-10-05')).toBe(0)
+    expect(weeklyStreak([], '2026-10-05')).toBe(0)
   })
 })

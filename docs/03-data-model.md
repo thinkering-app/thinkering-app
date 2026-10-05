@@ -6,7 +6,7 @@ Conventions: `id` is a client-generated UUIDv7 (time-ordered). Timestamps are ep
 
 ## Synced tables ⟳
 
-- **interests** — an interest and its intake answers (why, experience, `success_outcomes`, frequency, session length, `reading_amount`), `approach_notes` from G1 (editable), `status` (`focus | exploring | archived`) and a fractional `sort_order`.
+- **interests** — an interest and its intake answers (why, experience, `success_outcomes`, frequency, session length, `reading_amount`), `weekly_days` — the week dots' target, null to follow the frequency, 0 for none (`01` §3), `approach_notes` from G1 (editable), `status` (`focus | exploring | archived`) and a fractional `sort_order`.
 - **topics** — intake topic chips and later additions. `origin` is `motivation | foundational | adjacent | user`.
 - **goals** — ordered by `sort_order`. `status` is `not_started | introduced | strengthened | applied`. `concepts` is `{id, label, kind: 'concept' | 'skill'}[]` (D16); the ids are stable so activities can reference them. `introduced_at` / `strengthened_at` / `applied_at` drive spaced-review ordering. `source` is `intake | suggestion | reflection | user`.
 - **activities** — one card and, once written, its Activity Document (`doc`, null until G5b). `section` (`next | strengthen | go_further`), `tier` (`introduce | strengthen | apply`), `library_item_id`, `status` (`planned | ready | in_progress | completed | abandoned`), `current_page` as the resume point, `planned_for` as the local date the scheduler planned it for, and the learner's `rating`. `goal_id` is null only on the Strengthen prerequisite card or a + card made without a goal; those carry a `topic` instead. `focus` is what the learner asked a + card for, passed to G5b (`01` §3); `resource_id` is the saved resource they chose for it, when its type is built around one.
@@ -17,7 +17,7 @@ Conventions: `id` is a client-generated UUIDv7 (time-ordered). Timestamps are ep
 - **library_prefs** — per interest and section, whether a library item is active. No row means the item's default. Library definitions live in code (`packages/core/src/library`), not the database.
 - **routine_notes** — free-text routine preferences from G11; a null `interest_id` means global.
 
-History is completed activities (indexed on `interest_id, completed_at`). The calendar is the distinct local dates of `completed_at`. Concept coverage is derived, not stored: completed activities' `doc.concepts[].goalConceptId` joined against the goal's concept ids.
+History is completed activities (indexed on `interest_id, completed_at`). The calendar is the distinct local dates of `completed_at`, and its streak and Today's week dots are read from the same dates (`packages/core` `history/rhythm`). Concept coverage is derived, not stored: completed activities' `doc.concepts[].goalConceptId` joined against the goal's concept ids.
 
 ## Local-only tables
 

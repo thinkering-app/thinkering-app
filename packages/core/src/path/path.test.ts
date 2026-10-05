@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { conceptCoverage } from './coverage'
+import { pathProgress } from './progress'
 import { respreadSortOrders, sortOrderBetween } from './ordering'
 import { pathSignature } from './signature'
 
@@ -52,5 +53,13 @@ describe('pathSignature', () => {
     expect(pathSignature([path[1]!, path[0]!])).toBe(pathSignature(path))
     expect(pathSignature([...path, { id: 'c', title: 'Third' }])).not.toBe(pathSignature(path))
     expect(pathSignature([{ id: 'a', title: 'Renamed' }, path[1]!])).not.toBe(pathSignature(path))
+  })
+})
+
+describe('pathProgress', () => {
+  it('counts each goal at every status it has reached', () => {
+    expect(
+      pathProgress(['applied', 'strengthened', 'introduced', 'introduced', 'not_started']),
+    ).toEqual({ introduced: 4, strengthened: 2, applied: 1 })
   })
 })
