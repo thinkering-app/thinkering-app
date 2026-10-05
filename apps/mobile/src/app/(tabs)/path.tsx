@@ -31,8 +31,8 @@ import { usePath, usePathInterest } from '@/path/use-path'
 /**
  * Path (docs/01 §5): the interest's goals in path order with their status as a
  * colour treatment, expandable to the concepts beneath them, reorderable and
- * editable, with a way to add a goal of their own — then G9's three
- * suggestions, collapsed to their titles, and the way into a reflection.
+ * editable, with a way to add a goal of their own — then the way into a
+ * reflection, and G9's three suggestions, collapsed to their titles.
  */
 export default function PathScreen() {
   const interest = usePathInterest()
@@ -109,6 +109,10 @@ export default function PathScreen() {
               }}
             />
 
+            <View className="pt-6">
+              <ReflectCard interestId={interest.id} />
+            </View>
+
             <View className="gap-3 pt-6">
               <Text className="font-heading-bold text-heading text-ink">Suggested goals</Text>
               {suggestions.error ? (
@@ -133,10 +137,6 @@ export default function PathScreen() {
                   />
                 ))
               )}
-            </View>
-
-            <View className="pt-6">
-              <ReflectCard interestId={interest.id} />
             </View>
           </>
         )}

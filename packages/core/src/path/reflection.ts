@@ -66,6 +66,7 @@ export function planReflection(
   output: ReflectUpdateOutput,
 ): ReflectionPlan {
   const byRef = new Map(goalRefs(goals).map(({ ref, goal }) => [ref, goal.id]))
+  const before = new Map(goals.map((g, i) => [g.id, i > 0 ? goals[i - 1]!.id : null]))
   const known = new Set(goals.map((g) => g.id))
   const resolve = (ref: string | null): string | null =>
     ref === null ? null : (byRef.get(ref) ?? null)
@@ -87,8 +88,9 @@ export function planReflection(
       proposals.set(goalId, { kind: 'remove', reason: change.reason })
     } else {
       const afterId = resolve(change.afterRef)
-      // A reorder that lands a goal after itself says nothing.
-      if (afterId === goalId) continue
+      // A reorder that lands a goal after itself, or where it already is,
+      // says nothing — and a card proposing it reads as a change that isn't.
+      if (afterId === goalId || afterId === before.get(goalId)) continue
       if (change.afterRef !== null && afterId === null) continue
       proposals.set(goalId, { kind: 'reorder', afterKey: afterId, reason: change.reason })
     }
@@ -107,9 +109,12 @@ export function planReflection(
       proposal: proposals.get(goal.id) ?? null,
     })),
     additions: output.suggestedGoals.flatMap((suggestion, i) => {
-      const afterId = resolve(suggestion.afterRef)
       // An addition whose placement is unresolvable still belongs on the list —
       // it just goes to the end of the path.
+      const afterId =
+        suggestion.afterRef !== null && !byRef.has(suggestion.afterRef)
+          ? (goals.at(-1)?.id ?? null)
+          : resolve(suggestion.afterRef)
       return [
         {
           key: `add-${i}`,

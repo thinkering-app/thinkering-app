@@ -1,14 +1,14 @@
 {
   "kind": "reflect.open",
-  "promptVersion": 1,
+  "promptVersion": 2,
   "model": "claude-haiku-4-5-20251001",
   "fixture": "default",
-  "text": "```json\n{\n  \"recap\": \"You've been introducing ordering phrases and strengthening your greetings through retrieval practice. Both sessions went well, building toward the restaurant confidence you'll need in Munich.\",\n  \"outcomes\": [\n    \"I can order a full meal without hesitating\",\n    \"I understand when someone asks about my weekend\",\n    \"I've had a real text exchange with a German speaker\"\n  ]\n}\n```",
+  "text": "```json\n{\n  \"recap\": \"You've just introduced ordering politely with hätte gern and strengthened your greetings through retrieval practice. Both activities landed well for you, so you're building from recognition into production across your first two goals.\"\n}\n```",
   "usage": {
-    "inputTokens": 1484,
-    "outputTokens": 101,
+    "inputTokens": 1321,
+    "outputTokens": 62,
     "cacheReadTokens": 0,
     "cacheWriteTokens": 0
   },
-  "latencyMs": 1685
+  "latencyMs": 1639
 }

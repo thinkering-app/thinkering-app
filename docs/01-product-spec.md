@@ -88,14 +88,13 @@ For one selected interest:
 
 - **Goal list** in path order. Status is a color treatment, not pills (`07`). Long-press to reorder; tap to expand; the pencil edits or removes. **Add a goal** appends a title and optional description, with no concepts.
 - **Expandable goals (D16)**: an expanded goal shows its concepts and skills, marking those covered by completed activities.
-- **Reflection**: three steps. **G8a** fires on open and gates nothing; its parts appear when ready, or not at all if it fails.
-  1. **"Is this still what you're hoping for?"** — saved outcomes selected, add-your-own, and 2–3 unselected from G8a. Deselecting drops one.
-  2. G8a's short recap, a read-only **Your path**, and a free-text question on what to focus on next.
-  3. The goals to remove or reorder, add-your-own, and **G8** suggestions from the reflection, outcomes and adjacent topics.
+- **Reflection** (the **Check in** card): two steps. **G8a** fires on open and gates nothing; its recap appears when ready, or not at all if it fails.
+  1. G8a's short recap, a read-only **Your path**, and one free-text field: how it's going, or a list of what they want to cover or learn next.
+  2. The goals to remove or reorder, add-your-own, and **G8** suggestions from the reflection, outcomes and adjacent topics. Anything they listed that the path doesn't cover becomes a suggested goal. A proposed move says which way and after which goal, and a suggested goal where it would go; a move that would leave a goal in place isn't shown.
 
-  Nothing is written until **Update path**, which saves path and outcomes together; the reflection records before and after.
+  Nothing is written until **Update path**; the reflection records the changes. What they're hoping for is edited in Path settings.
 
-- **3 suggested goals** below the path (**G9**, cached, regenerated when the path changes), collapsed to their titles — tap to read one — and one tap to add. The way into a reflection sits last.
+- **3 suggested goals** below the path (**G9**, cached, regenerated when the path changes), collapsed to their titles — tap to read one — and one tap to add. The way into a reflection sits above them.
 
 ### Resources
 

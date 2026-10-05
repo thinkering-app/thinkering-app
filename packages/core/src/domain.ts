@@ -77,7 +77,7 @@ export interface ReflectionChanges {
   removed: string[]
   revised: string[]
   reordered: boolean
-  /** What they're hoping for, when the reflection changed it. */
+  /** What they're hoping for, when the reflection changed it (older reflections only). */
   outcomes?: { before: string[]; after: string[] }
 }
 
