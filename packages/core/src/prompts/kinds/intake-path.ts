@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { cappedText } from '../../limits'
-import { approachParamSchema } from './intake-approach'
+import { approachBriefLines, approachParamSchema } from './intake-approach'
 import { pathOutputSchema } from '../../schemas/generations'
 import { SHARED_PREAMBLE } from '../preamble'
 import type { PromptTemplate } from '../types'
@@ -36,7 +36,7 @@ Return JSON: {
   }]
 }
 
-5–8 goals, each introducible in one 5–15 minute session. The progression principles and pitfalls you're given are this domain's specifics; apply them inside these decisions, made in this order:
+5–8 goals, each introducible in one 5–15 minute session. The brief you're given — what progress here is, what practice and doing it well look like, the progression principles and pitfalls — is this domain's specifics; apply it inside these decisions, made in this order:
 1. Where they start. Their experience sets the first goal: getting_started assumes nothing; explored means they know scattered basics, so the first goal consolidates them and moves on; in_middle and experienced skip foundations they likely have and start at the edge of what they can do. Their own words about their experience outrank the label.
 2. Where they're going. When they've said what would feel like success, the last one or two goals get them there, and every outcome they picked is reached by some goal.
 3. What carries the weight in between. If several goals depend on one structure (German word order, Python functions, a chord shape), that structure is its own goal, placed before the goals that use it — don't spread it thinly across situational goals. Selected topics get priority; a topic shown but not selected is either something they know or something they don't care about, so include it only when a later goal can't be learned without it.
@@ -54,8 +54,9 @@ export const intakePathTemplate: PromptTemplate<
   // v5: medium effort — high spent ~23s thinking before the first goal
   // streamed (docs/04 §Thinking). v6: the sequencing high effort did in its
   // thinking is spelled out, so medium follows it. v7: the name is as short as
-  // it can be — it labels chips and tags across the app.
-  version: 7,
+  // it can be — it labels chips and tags across the app. v8: G1's brief adds
+  // progress, practice and what good looks like.
+  version: 8,
   model: 'sonnet',
   maxTokens: 16000,
   effort: 'medium',
@@ -75,6 +76,7 @@ export const intakePathTemplate: PromptTemplate<
           `Experience: ${params.experienceChoice}${params.experienceText ? ` — in their words: ${params.experienceText}` : ''}`,
           `Domain: ${params.approach.domain}`,
           `Approach notes: ${params.approach.approachNotes}`,
+          ...approachBriefLines(params.approach),
           `Progression principles: ${params.approach.progressionPrinciples.join(' · ')}`,
           `Pitfalls to design around: ${params.approach.pitfalls.join(' · ')}`,
           `Topics they selected: ${params.selectedTopics.length > 0 ? params.selectedTopics.join(', ') : '(none selected)'}`,

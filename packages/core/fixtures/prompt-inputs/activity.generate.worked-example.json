@@ -1,0 +1,238 @@
+{
+  "context": {
+    "interest": {
+      "name": "Pandas for reports",
+      "wantToLearn": "Use Python for data analysis at work",
+      "whyChoice": "career",
+      "whyText": "I rebuild the same Excel reports every month and want to automate them, then do analysis Excel can't.",
+      "experienceChoice": "in_middle",
+      "experienceText": "I write small Python scripts for file renaming and API calls. Never used pandas; strong in Excel pivots and VLOOKUP.",
+      "successOutcomes": [
+        "My monthly report runs from one script",
+        "I can answer a question my manager asks without rebuilding a spreadsheet"
+      ],
+      "frequency": "daily",
+      "sessionMinutes": 10,
+      "approachNotes": "You already think in tables and write Python, so skip language basics and map pandas onto what you do in Excel: filters, pivots, lookups. Work on your own report data from the start, with worked examples you then adapt. The shift that matters is from clicking to describing a transformation in code you can rerun, so each session should end with a script that does one real step of your monthly report.",
+      "approachBrief": {
+        "domain": "data analysis with pandas",
+        "progress": "doing",
+        "practice": "Write a short pandas step against a copy of their own monthly report file, run it, and check the result against the Excel version.",
+        "goodLooksLike": [
+          "Checks row counts before and after every join",
+          "Reruns the script on a new month without edits",
+          "Reaches for column operations, not row loops"
+        ],
+        "pitfalls": [
+          "Looping over rows like a script instead of using vectorized column operations.",
+          "Silent join mistakes that duplicate or drop rows, unnoticed without row-count checks.",
+          "Copying notebook snippets that work once but can't be rerun on next month's file."
+        ],
+        "progressionPrinciples": [
+          "Anchor each pandas idea to the Excel operation it replaces before going beyond Excel.",
+          "Loading, selecting and filtering come before grouping, joining and reshaping.",
+          "Move from one-off exploration to a rerunnable script early, then build on it."
+        ]
+      }
+    },
+    "goals": [
+      {
+        "title": "Load and filter your report like Excel filters",
+        "status": "strengthened",
+        "concepts": [
+          {
+            "label": "DataFrame structure",
+            "kind": "concept"
+          },
+          {
+            "label": "Reading Excel/CSV files",
+            "kind": "skill"
+          },
+          {
+            "label": "Boolean row filtering",
+            "kind": "skill"
+          }
+        ]
+      },
+      {
+        "title": "Replace formulas with vectorized column calculations",
+        "status": "introduced",
+        "concepts": [
+          {
+            "label": "Vectorized operations",
+            "kind": "concept"
+          },
+          {
+            "label": "Creating new columns",
+            "kind": "skill"
+          },
+          {
+            "label": "Avoiding row loops",
+            "kind": "concept"
+          }
+        ]
+      },
+      {
+        "title": "Summarize data like a pivot table",
+        "status": "not_started",
+        "concepts": [
+          {
+            "label": "Groupby and aggregation",
+            "kind": "skill"
+          },
+          {
+            "label": "Aggregation functions",
+            "kind": "concept"
+          },
+          {
+            "label": "Pivot table logic",
+            "kind": "concept"
+          }
+        ]
+      },
+      {
+        "title": "Merge data from several files without losing rows",
+        "status": "not_started",
+        "concepts": [
+          {
+            "label": "Merge/join types",
+            "kind": "concept"
+          },
+          {
+            "label": "Join keys",
+            "kind": "concept"
+          },
+          {
+            "label": "Row-count verification",
+            "kind": "skill"
+          }
+        ]
+      },
+      {
+        "title": "Reshape a summary into a pivot table layout",
+        "status": "not_started",
+        "concepts": [
+          {
+            "label": "pivot_table function",
+            "kind": "skill"
+          },
+          {
+            "label": "Long vs wide format",
+            "kind": "concept"
+          },
+          {
+            "label": "Index and columns arguments",
+            "kind": "concept"
+          }
+        ]
+      },
+      {
+        "title": "Turn your steps into a script you can rerun",
+        "status": "not_started",
+        "concepts": [
+          {
+            "label": "Script structure",
+            "kind": "skill"
+          },
+          {
+            "label": "Parameterizing file paths",
+            "kind": "skill"
+          },
+          {
+            "label": "Rerunnability check",
+            "kind": "concept"
+          }
+        ]
+      },
+      {
+        "title": "Add charts from code",
+        "status": "not_started",
+        "concepts": [
+          {
+            "label": "Plotting from DataFrame",
+            "kind": "skill"
+          },
+          {
+            "label": "Choosing a chart type",
+            "kind": "concept"
+          }
+        ]
+      },
+      {
+        "title": "Answer an ad hoc question without rebuilding a spreadsheet",
+        "status": "not_started",
+        "concepts": [
+          {
+            "label": "Combining transformations",
+            "kind": "skill"
+          },
+          {
+            "label": "Exploratory querying",
+            "kind": "skill"
+          }
+        ]
+      }
+    ],
+    "recentHistory": [
+      {
+        "title": "Vectorize the margin column",
+        "goalTitle": "Replace formulas with vectorized column calculations",
+        "tier": "introduce",
+        "libraryItemId": "guided-discovery",
+        "rating": "up"
+      },
+      {
+        "title": "Filters, the pandas way",
+        "goalTitle": "Load and filter your report like Excel filters",
+        "tier": "strengthen",
+        "libraryItemId": "retrieval-quiz",
+        "rating": "up"
+      }
+    ],
+    "activeLibraryItems": [
+      {
+        "section": "next",
+        "id": "plain-explainer"
+      },
+      {
+        "section": "next",
+        "id": "worked-example"
+      },
+      {
+        "section": "next",
+        "id": "guided-discovery"
+      },
+      {
+        "section": "next",
+        "id": "mini-case"
+      }
+    ]
+  },
+  "goal": {
+    "id": "g3",
+    "title": "Summarize data like a pivot table",
+    "description": "Use groupby and aggregation to produce the same totals and subtotals you'd get dragging fields into an Excel pivot table.",
+    "status": "not_started",
+    "concepts": [
+      {
+        "id": "c-pivot-1",
+        "label": "Groupby and aggregation",
+        "kind": "skill"
+      },
+      {
+        "id": "c-pivot-2",
+        "label": "Aggregation functions",
+        "kind": "concept"
+      },
+      {
+        "id": "c-pivot-3",
+        "label": "Pivot table logic",
+        "kind": "concept"
+      }
+    ]
+  },
+  "tier": "introduce",
+  "libraryItemId": "worked-example",
+  "title": "Your monthly pivot, as a groupby",
+  "estMinutes": 10
+}

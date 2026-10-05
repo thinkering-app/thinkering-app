@@ -1,27 +1,47 @@
 import { z } from 'zod'
 import { cappedText } from '../../limits'
+import { PROGRESS_KINDS } from '../../domain'
 import { approachOutputSchema } from '../../schemas/generations'
 import { SHARED_PREAMBLE } from '../preamble'
 import type { PromptTemplate } from '../types'
 
 /**
- * G1 `intake.approach` — fired on intake step 2 → 3; runs in the background
- * while the user answers step 3. Experience is therefore optional here: it's
- * the very question they're on when this call goes out (docs/01 §1). G2 and G3
- * get it in full.
+ * G1 `intake.approach` — fired on intake step 3 → 4, once experience is known,
+ * alongside G2 and G2b, which don't wait on it. G3 does: it has steps 4 and 5
+ * to finish. Experience stays optional because builds before the move fire it
+ * on step 2 → 3 and send none (docs/04 §Retired kinds).
  */
 
 /**
- * The approach as the later intake kinds get it back. It is this kind's output,
- * but the client returns it and the learner can edit the notes, so it is
- * bounded like any other params rather than trusted as model output.
+ * The approach as G3 gets it back. It is this kind's output, but the client
+ * returns it and the learner can edit the notes, so it is bounded like any
+ * other params rather than trusted as model output. The brief's newer fields
+ * are optional: builds before them send only domain, notes, pitfalls and
+ * principles.
  */
 export const approachParamSchema = z.object({
   domain: cappedText('line', { min: 1 }),
+  progress: z.enum(PROGRESS_KINDS).optional(),
   approachNotes: cappedText('note', { min: 1 }),
+  practice: cappedText('note', { min: 1 }).optional(),
+  goodLooksLike: z
+    .array(cappedText('note', { min: 1 }))
+    .min(1)
+    .optional(),
   pitfalls: z.array(cappedText('note', { min: 1 })).min(1),
   progressionPrinciples: z.array(cappedText('note', { min: 1 })).min(1),
 })
+
+/** The brief's newer lines, for the kinds that get the approach back; none from older builds. */
+export function approachBriefLines(approach: z.infer<typeof approachParamSchema>): string[] {
+  return [
+    ...(approach.progress ? [`Progress here is mostly: ${approach.progress}`] : []),
+    ...(approach.practice ? [`A practice attempt: ${approach.practice}`] : []),
+    ...(approach.goodLooksLike
+      ? [`Doing it well looks like: ${approach.goodLooksLike.join(' · ')}`]
+      : []),
+  ]
+}
 
 export const intakeApproachParamsSchema = z.object({
   wantToLearn: cappedText('wantToLearn', { min: 1 }),
@@ -32,27 +52,33 @@ export const intakeApproachParamsSchema = z.object({
 })
 export type IntakeApproachParams = z.infer<typeof intakeApproachParamsSchema>
 
-const INSTRUCTIONS = `Task: classify the learning domain and write the approach notes that will steer every later generation for this interest.
-
-Their experience level may be missing — they are answering that question right now. When it is, write notes that hold across levels and say what changes with experience, rather than guessing.
+const INSTRUCTIONS = `Task: write the brief that steers every later generation for this interest — how getting better at this actually works, for this person, at their level — and a short note to the learner.
 
 Return JSON: {
-  "domain": string,                    // short classification, e.g. "language acquisition", "quantitative-technical", "creative-physical skill", "strategy game", "knowledge-rich domain"
-  "approachNotes": string,             // 3–4 sentences, 90 words maximum: what works for teaching this domain to this person, given their why and experience; concrete, method-level, no fluff. The user can read and edit this text.
-  "pitfalls": string[],                // exactly 3 domain-specific traps (illusions of fluency, common misconceptions, motivation cliffs), one line of 20 words maximum each
-  "progressionPrinciples": string[]    // exactly 3 principles for sequencing topics in this domain at this level, one line of 20 words maximum each
+  "domain": string,                    // the field, named plainly in 2–5 words: "conversational German", "team leadership", "2D game development", "personal finance"
+  "progress": "understanding" | "doing" | "with_people" | "making",
+                                       // what getting better here mostly is. understanding: knowing and explaining ideas (history, how LLMs work, investing basics). doing: a skill you carry out on your own (coding, chess, cooking, reading a language). with_people: a skill used live with or in front of others (leading, presenting, negotiating, speaking a language in conversation). making: producing work (games, songs, drawings, stories). Pick the one their goal leans on most.
+  "approachNotes": string,             // to the learner ("you"), 3–4 sentences, 90 words maximum: the specific, useful insight about learning this at their level — what tends to make the difference, where to put the effort, what to skip for now. Write as someone who knows the field, not as a description of teaching methods or of this app.
+  "practice": string,                  // 1–2 sentences, 40 words maximum: what one practice attempt looks like for them at their level, and where it happens — a short exercise, or out in their life (a real conversation, a meeting, a build session). Describe the practice itself, not an app or its pages
+  "goodLooksLike": string[],           // exactly 3 observable signs of doing it well at their level, one line of 15 words maximum each — what someone watching, or the work itself, would show
+  "pitfalls": string[],                // exactly 3 traps specific to this domain and level (illusions of progress, common misconceptions, habits that stall people), one line of 20 words maximum each
+  "progressionPrinciples": string[]    // exactly 3 principles for sequencing what they learn here, at this level, one line of 20 words maximum each
 }
 
-Every later generation reads this, so it is a brief, and briefs are short. Downstream calls wait on it.
+Pitch everything to their experience: a newcomer gets everyday words and first steps; someone experienced gets the field's terms and the edge of their craft. Their own words about their experience outrank the label. If no experience is given, assume they're fairly new to it, and don't mention it.
 
-The approach notes are user-visible: write them to the learner ("you"), plainly.`
+Only the approach notes are shown to the learner; the rest is a brief for later generations, and briefs are short.`
 
 export const intakeApproachTemplate: PromptTemplate<
   IntakeApproachParams,
   z.infer<typeof approachOutputSchema>
 > = {
   kind: 'intake.approach',
-  version: 4,
+  // v5: fired once experience is known; adds progress, practice and
+  // goodLooksLike, and the notes are insight for the learner rather than method.
+  // v6: conversation counts as with_people, and practice describes the
+  // practice, not an app.
+  version: 6,
   model: 'sonnet',
   maxTokens: 8000,
   effort: 'low',
@@ -71,9 +97,9 @@ export const intakeApproachTemplate: PromptTemplate<
           `Why: ${params.whyChoice}${params.whyText ? ` — ${params.whyText}` : ''}`,
           ...(params.experienceChoice
             ? [
-                `Experience: ${params.experienceChoice}${params.experienceText ? ` — ${params.experienceText}` : ''}`,
+                `Experience: ${params.experienceChoice}${params.experienceText ? ` — in their words: ${params.experienceText}` : ''}`,
               ]
-            : ['Experience: not stated yet']),
+            : []),
         ].join('\n'),
       },
     ],

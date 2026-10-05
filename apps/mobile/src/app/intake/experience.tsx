@@ -15,8 +15,9 @@ const OPTIONS: { value: ExperienceChoice; label: string }[] = [
 ]
 
 /**
- * Step 3 (docs/01 §1). On advance, G2 and G2b go out together (both wait on
- * G1): what success could look like for step 4, and topics for step 5.
+ * Step 3 (docs/01 §1). On advance, G1, G2 and G2b go out together: the
+ * approach G3 will need, what success could look like for step 4, and topics
+ * for step 5.
  */
 export default function ExperienceStep() {
   const { answers, update, startChoices } = useIntake()

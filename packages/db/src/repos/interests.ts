@@ -1,6 +1,7 @@
 import { and, asc, eq, isNull } from 'drizzle-orm'
 import {
   respreadSortOrders,
+  type ApproachBrief,
   type ExperienceChoice,
   type Frequency,
   type InterestStatus,
@@ -33,6 +34,7 @@ export interface NewInterest {
   sessionMinutes: number
   readingAmount?: ReadingAmount
   approachNotes?: string
+  approachBrief?: ApproachBrief | null
   status: InterestStatus
   sortOrder: number
 }
@@ -54,6 +56,7 @@ export function createInterest(db: Database, ctx: RepoContext, input: NewInteres
     sessionMinutes: input.sessionMinutes,
     readingAmount: input.readingAmount ?? 'balanced',
     approachNotes: input.approachNotes ?? '',
+    approachBrief: input.approachBrief ?? null,
     status: input.status,
     sortOrder: input.sortOrder,
     createdAt: now,

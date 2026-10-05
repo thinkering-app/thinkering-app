@@ -5,8 +5,15 @@
   "experienceChoice": "in_middle",
   "experienceText": "I write small Python scripts for file renaming and API calls. Never used pandas; strong in Excel pivots and VLOOKUP.",
   "approach": {
-    "domain": "quantitative-technical",
+    "domain": "data analysis with pandas",
+    "progress": "doing",
     "approachNotes": "You already think in tables and write Python, so skip language basics and map pandas onto what you do in Excel: filters, pivots, lookups. Work on your own report data from the start, with worked examples you then adapt. The shift that matters is from clicking to describing a transformation in code you can rerun, so each session should end with a script that does one real step of your monthly report.",
+    "practice": "Write a short pandas step against a copy of their own monthly report file, run it, and check the result against the Excel version.",
+    "goodLooksLike": [
+      "Checks row counts before and after every join",
+      "Reruns the script on a new month without edits",
+      "Reaches for column operations, not row loops"
+    ],
     "pitfalls": [
       "Looping over rows like a script instead of using vectorized column operations.",
       "Silent join mistakes that duplicate or drop rows, unnoticed without row-count checks.",

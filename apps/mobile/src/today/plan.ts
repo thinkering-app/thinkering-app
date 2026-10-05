@@ -15,6 +15,8 @@ import {
   type SavedResourceRef,
   type Section,
   type TodayPlanParams,
+  REPEAT_LIMIT,
+  varyLibraryItems,
 } from '@thinkering/core'
 import {
   createActivity,
@@ -286,7 +288,8 @@ export async function requestActivity(
  * picks are asked about — after a finished card that's one section, and asking
  * for the others would duplicate what's on screen. Each pick is offered only
  * the items it can be made from (`usableItems`), and a pick with none is
- * dropped. `only` narrows one section's set to the item the learner chose, if
+ * dropped, and an item the section's last two activities both used is left out
+ * when there's another (`varyLibraryItems`). `only` narrows one section's set to the item the learner chose, if
  * it's active — its resource, if it needs one, was chosen with it — and
  * `matched` stands in for the saved resources G5a is told about.
  */
@@ -303,13 +306,23 @@ async function planCards(
   const prefs = listLibraryPrefs(db, interest.id)
   const situation = librarySituation(goals)
   const saved = listResources(db, interest.id)
+  const recentItems = Object.fromEntries(
+    SECTIONS.map((section) => [
+      section,
+      listHistory(db, { interestId: interest.id, section, limit: REPEAT_LIMIT }).map(
+        (a) => a.libraryItemId,
+      ),
+    ]),
+  ) as Record<Section, string[]>
   const itemsFor = (section: Section, pick: PlanPick) => {
     const chosen =
       only?.section === section &&
       activeLibraryItems(section, prefs, situation).some((i) => i.id === only.libraryItemId)
-    return chosen
-      ? [only.libraryItemId]
-      : usableItems(section, pick.goalId, prefs, situation, saved)
+    if (chosen) return [only.libraryItemId]
+    return varyLibraryItems(
+      usableItems(section, pick.goalId, prefs, situation, saved),
+      recentItems[section],
+    )
   }
   const usable = { next: [], strengthen: [], goFurther: [] } as Record<PlanKey, string[][]>
   const asked: TodayPlanParams['picks'] = { next: [], strengthen: [], goFurther: [] }

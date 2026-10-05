@@ -76,6 +76,29 @@ describe('buildInterestContext', () => {
     expect(text).toContain('### Path')
   })
 
+  it('keeps the whole profile, approach brief included, under any budget', () => {
+    const text = buildInterestContext(
+      input({
+        interest: {
+          ...input().interest,
+          successOutcomes: ['I can hold my own at dinner'],
+          approachBrief: {
+            domain: 'conversational German',
+            progress: 'with_people',
+            practice: 'Answer a dinner-table question aloud in two sentences.',
+            goodLooksLike: ['Keeps going past a missing word'],
+            pitfalls: ['Reading fluency mistaken for speaking fluency'],
+            progressionPrinciples: ['Social phrases before grammar rules'],
+          },
+        },
+      }),
+      { budgetTokens: 1 },
+    )
+    expect(text).toContain('progress here is mostly: with_people')
+    expect(text).toContain('Progression principles: Social phrases before grammar rules')
+    expect(text.endsWith('### Path (in order)')).toBe(true)
+  })
+
   it('caps history at 10 entries, newest first', () => {
     const text = buildInterestContext(
       input({

@@ -63,5 +63,6 @@ Renderer contract: unknown block kinds render as a graceful "update the app" pla
 
 - Respect the library item's structure (see `06-library.md` — each item specifies a page skeleton).
 - Interaction before explanation where the strategy calls for it (generation effect); explanation before practice for worked examples. Keep cognitive load low: one idea per page.
+- Practice fits the goal: for a skill, or a domain whose `progress` is doing, with_people or making (`docs/04`), the learner produces rather than recognizes, and a written rep is followed by a `reveal` with a model answer and what makes it work.
 - Ground apply-tier activities in the user's `contexts` and `resources` only when they genuinely fit.
 - Concrete examples over abstractions; adult tone; zero filler ("Great job!" only when the answer was actually good, and specific about why).

@@ -57,6 +57,7 @@ Card = { "goalId": string|null, "topic"?: string, "libraryItemId": string, "titl
 Rules:
 - One card per pick, same order. Never invent, drop, or reorder goals.
 - Choose items by fit: the item's "good for" hint vs the domain and the goal; variety (avoid yesterday's item for the same goal); prefer items built around a saved resource only when a well-matched resource is listed for that goal.
+- Fit means the kind of practice the goal needs. Its concepts say: a "concept" is something to understand, a "skill" something to do. Concepts strengthen through recall and explanation (retrieval-quiz, explain-back, compare-contrast); skills through reps with feedback (focused-drill, notice-training, faded-example, spot-the-error). When the learner context says progress here is mostly with_people or making, Go further means doing the thing — scenario-challenge, put-to-work, make-something — and the explaining items only for a goal made of concepts.
 - A pick with goalId null and no learner request is the strengthen prerequisite fallback: choose a genuinely prerequisite topic for their path (set "topic" to its short name) and pick a fitting strengthen item.
 - A pick with a learner request comes from the learner asking for this card. Choose the item and title to serve the request: what to focus on, or how they want to learn it. When the request names a way of learning and an active item matches it, choose that item even if the topic suits another one better or it was used recently — the learner's "how" outranks fit and variety. "Quiz me" or "test me" means retrieval-quiz; "walk me through an example" means a worked or faded example. If it has no goal, set "topic" to a short name for what they asked about.
 - Titles: concrete and specific to the goal + item (like "Spot the error: der/die/das" or "Tokens, not words"), max ~50 chars, sentence case, no colons unless natural.
@@ -70,8 +71,9 @@ export const todayPlanTemplate: PromptTemplate<
 > = {
   kind: 'today.plan',
   // v2: a pick can carry the learner's own request, from the + card; one that
-  // names a way of learning gets the matching item.
-  version: 2,
+  // names a way of learning gets the matching item. v3: items fit the kind of
+  // practice the goal needs — reps for skills, recall for concepts.
+  version: 3,
   model: 'haiku',
   maxTokens: 1500,
   temperature: 0.7,

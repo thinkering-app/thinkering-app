@@ -14,7 +14,7 @@ import { PROMPTS, type ImplementedKind } from '@thinkering/core'
 type Lane = 'intake' | 'day' | 'reflect' | 'onDemand'
 
 /** What the interest holds that the context block carries back into prompts. */
-type Stored = 'approach notes' | 'outcomes' | 'goals' | 'resources' | 'routine notes' | 'history'
+type Stored = 'approach' | 'outcomes' | 'goals' | 'resources' | 'routine notes' | 'history'
 
 interface Step {
   lane: Lane
@@ -26,23 +26,21 @@ interface Step {
 }
 
 const STEPS: Record<ImplementedKind, Step> = {
-  'intake.approach': { lane: 'intake', trigger: 'Intake step 2 → 3', writes: ['approach notes'] },
+  'intake.approach': { lane: 'intake', trigger: 'Step 3 → 4', writes: ['approach'] },
   'intake.outcomes': {
     lane: 'intake',
     trigger: 'Step 3 → 4',
-    from: [{ kind: 'intake.approach', carries: 'domain notes' }],
     writes: ['outcomes'],
   },
   'intake.topicOptions': {
     lane: 'intake',
     trigger: 'Step 3 → 4',
-    from: [{ kind: 'intake.approach', carries: 'domain notes' }],
   },
   'intake.path': {
     lane: 'intake',
     trigger: 'Step 5 → 6',
     from: [
-      { kind: 'intake.approach', carries: 'domain notes, pitfalls' },
+      { kind: 'intake.approach', carries: 'notes and brief' },
       { kind: 'intake.outcomes', carries: 'picked outcomes' },
       { kind: 'intake.topicOptions', carries: 'picked topics' },
     ],
@@ -93,14 +91,7 @@ const LANES: { lane: Lane; label: string; lead?: { title: string; note: string }
   { lane: 'onDemand', label: 'On demand' },
 ]
 
-const STORED: Stored[] = [
-  'approach notes',
-  'outcomes',
-  'goals',
-  'resources',
-  'routine notes',
-  'history',
-]
+const STORED: Stored[] = ['approach', 'outcomes', 'goals', 'resources', 'routine notes', 'history']
 
 const KINDS = Object.keys(STEPS) as ImplementedKind[]
 
