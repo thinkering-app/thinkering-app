@@ -294,7 +294,7 @@ export default function ActivityScreen() {
       streaming={doc === null}
       // Before any text, the model is still working out the activity (docs/04
       // §Thinking); once it writes, the title and pages follow.
-      waitLabel={partial === null ? 'Planning your activity' : 'Writing your activity'}
+      waitLabel={partial === null ? 'Planning your activity' : 'Preparing your activity'}
       libraryItem={libraryItem}
       sink={sink}
       page={page}

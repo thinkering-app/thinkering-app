@@ -39,11 +39,11 @@ Four tabs: **Today, Path, History, Me**.
 
 ## 3. Today
 
-Per selected interest (or aggregated for Explore → All): **Next**, **Strengthen** and **Go further**, each with a ⚙ and swipeable cards. A card shows title, goal and time estimate, or **Writing** until page 1 has streamed in (it can still be opened).
+Per selected interest (or aggregated for Explore → All): **Next**, **Strengthen** and **Go further**, each with a ⚙ and swipeable cards. A card shows title, goal and time estimate, or **Preparing** until page 1 has streamed in (it can still be opened).
 
 Each section has **one open card at a time**. Finishing it brings the next straight away, skipping goals the section already had today. A new day clears finished cards; unfinished ones stay, and only empty sections get a new card. Nothing is generated until needed.
 
-**Explore → All** suggests rather than prepares: cards from at most **2** exploring interests — never-practiced first, then least recently practiced (judged on days before today, so the pair holds for the day). They get titles (G5a) but no content; each says **Write**, and tapping writes it in place. Selecting a single interest fills its sections and writes ahead. A failed background write also shows **Write**.
+**Explore → All** suggests rather than prepares: cards from at most **2** exploring interests — never-practiced first, then least recently practiced (judged on days before today, so the pair holds for the day). They get titles (G5a) but no content; each says **Prepare**, and tapping writes it in place. Selecting a single interest fills its sections and writes ahead. A failed background write also shows **Prepare**.
 
 ### Card selection rules (deterministic — `packages/core/scheduler`)
 
@@ -55,7 +55,7 @@ Card metadata (title, estimate, library item) comes from the cheap **G5a** when 
 
 ### Adding an activity (+)
 
-With one interest in view, each section ends in a **+** card: optional goal chips, collapsed until opened (for Next, only unstarted goals); for Next and Strengthen, an optional activity type, collapsed the same way, listing the section's active library items each with an ⓘ (a section down to one type shows it, already chosen); and an optional focus field. Choosing a type built around a saved resource (Watch Along, Guided Reading) lists the saved resources of its media — the goal's first, then general ones, then other goals' — under an **Add a video** / **Add a reading** row that opens the add-link sheet (§5) and selects what it saves; a link of the other media is turned away. Create waits until a resource is chosen, and, when every type on the list is built around one, until a type is. Create plans the card through G5a and writes it through G5b, both given the request; a placeholder shows **Writing** meanwhile.
+With one interest in view, each section ends in a **+** card: optional goal chips, collapsed until opened (for Next, only unstarted goals); for Next and Strengthen, an optional activity type, collapsed the same way, listing the section's active library items each with an ⓘ (a section down to one type shows it, already chosen); and an optional focus field. Choosing a type built around a saved resource (Watch Along, Guided Reading) lists the saved resources of its media — the goal's first, then general ones, then other goals' — under an **Add a video** / **Add a reading** row that opens the add-link sheet (§5) and selects what it saves; a link of the other media is turned away. Create waits until a resource is chosen, and, when every type on the list is built around one, until a type is. Create plans the card through G5a and writes it through G5b, both given the request; a placeholder shows **Preparing** meanwhile.
 
 - With a goal: targets it and completes at the section's tier.
 - With only a focus: no goal — its topic names the request, and it moves no goal status.
