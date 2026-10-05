@@ -13,7 +13,7 @@ Conventions: `id` is a client-generated UUIDv7 (time-ordered). Timestamps are ep
 - **responses** — the learner's answers inside activities, one row per block, `payload` typed per block kind. Kept apart from `doc` so G6 and later features can query them.
 - **resources** — links for an interest. `source` is `user | suggested`; `summary` feeds generation and isn't shown; `goal_ids` ties a resource to goals.
 - **contexts** — projects, environments and people from Path settings, used by Go further activities.
-- **reflections** — a Reflection's `feeling_text` and `changes`: `{added, removed, revised, reordered}` goal titles, plus `outcomes: {before, after}` when the reflection changed what they're hoping for.
+- **reflections** — a Reflection's `feeling_text` and `changes`: `{added, removed, revised, reordered}` goal titles, plus `outcomes: {before, after}` on older reflections, from when the flow could change what they're hoping for.
 - **library_prefs** — per interest and section, whether a library item is active. No row means the item's default. Library definitions live in code (`packages/core/src/library`), not the database.
 - **routine_notes** — free-text routine preferences from G11; a null `interest_id` means global.
 

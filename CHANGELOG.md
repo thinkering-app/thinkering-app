@@ -67,6 +67,10 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- Reflect on progress is now Check in, above the suggested goals, and
+  asks one question: say how it's going, or list what you want to learn
+  next, and the suggestions add goals for it. What you're hoping for
+  stays in Path settings. A suggested move says where the goal would go.
 - Adding an interest asks what you're hoping for before which topics
   feel most relevant, and the topics are named for how much experience
   you have: everyday words if you're new to it, the field's terms if not.
