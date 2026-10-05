@@ -9,7 +9,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 ### Added
 
 - Dots beside Today show your week with the interest in view: one for each
-  day you're aiming for, filled in as you go. Tap them to see how your
+  day you're aiming for, filled in as you go, with a check once you've
+  learned today. Tap them to see how your
   week is going, and choose how many days in Configure learning routine.
 - The calendar shows how many weeks in a row you've learned something.
 - Path shows how many goals you've introduced, strengthened and put to use,
