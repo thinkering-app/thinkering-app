@@ -67,7 +67,12 @@ export const intakeDraftSchema = z.object({
   answers: intakeAnswersSchema,
   /** The step they were last on, 1-based. */
   step: z.number().int().min(1).max(INTAKE_STEP_TOTAL),
-  approach: keyed(approachOutputSchema),
+  /**
+   * Caught on its own: an approach from a build before the brief's newer fields
+   * no longer parses, and losing it costs one call where losing the draft
+   * would cost every answer.
+   */
+  approach: keyed(approachOutputSchema).catch(undefined),
   outcomes: keyed(outcomesOutputSchema),
   topics: keyed(topicOptionsOutputSchema),
   path: keyed(pathOutputSchema),

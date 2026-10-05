@@ -7,8 +7,8 @@ Authoritative description of user-facing behavior. Vocabulary per `00-overview.m
 Runs for a new user (after a welcome screen) and whenever an interest is added. One question per screen; answers stay editable in Path settings.
 
 1. **What's one thing you want to learn?** Free text, with a few tappable example chips. It becomes one interest with one path, so it asks for one thing; on a first interest, a line under the field says **You can add more later.**
-2. **Why?** **For my career / For a personal goal / For fun**, plus an optional follow-up. → On advance, fire **G1** (approach notes).
-3. **How much experience?** **Just getting started / Explored a bit / In the middle / Have a lot of experience**, plus an optional follow-up. → On advance, fire **G2** (outcomes) and **G2b** (topics) together; both wait on G1. Step 4 waits only on G2, and is the time G2b has to finish.
+2. **Why?** **For my career / For a personal goal / For fun**, plus an optional follow-up.
+3. **How much experience?** **Just getting started / Explored a bit / In the middle / Have a lot of experience**, plus an optional follow-up. → On advance, fire **G1** (approach), **G2** (outcomes) and **G2b** (topics) together; none waits on another. Step 4 waits only on G2, and is the time G2b has to finish; G1 has until G3 needs it.
 4. **What are you hoping for?** Multi-select from G2's 3–5 first-person outcomes, plus add-your-own. None is allowed.
 5. **Which topics feel most relevant?** Multi-select from G2b's ~10 topics, named for their experience — everyday words for a newcomer, the field's terms for someone experienced — plus add-your-own. None is allowed, as is moving on if G2b failed. → On advance, fire **G3** (interest name + 5–8 sequenced goals).
 6. **How much time?** Frequency (**Daily / Several times a week / When I can**), session length (**5 / 10 / 15 min / Custom**) and reading per page (**Short / Medium / Long**, starting on Medium). Session length sets an activity's pages; reading sets how much prose is on each.

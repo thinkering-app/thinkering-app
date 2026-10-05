@@ -91,6 +91,22 @@ describe('parseIntakeDraft', () => {
     expect(parseIntakeDraft(before)).toEqual(rest)
   })
 
+  it('keeps the answers of a draft saved before the approach brief grew, and asks again', () => {
+    const before = {
+      ...draft,
+      approach: {
+        key: '{}',
+        value: {
+          domain: 'language acquisition',
+          approachNotes: 'Hear German at your level, then say your own sentences.',
+          pitfalls: ['Reading fluency mistaken for speaking fluency'],
+          progressionPrinciples: ['Social phrases before grammar rules'],
+        },
+      },
+    }
+    expect(parseIntakeDraft(before)).toEqual(draft)
+  })
+
   it('drops a draft whose stored generation no longer fits its schema', () => {
     // Too few topics for the schema: the whole draft goes rather than a
     // half-trusted one.

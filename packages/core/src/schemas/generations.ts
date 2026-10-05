@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { SECTIONS } from '../domain'
+import { PROGRESS_KINDS, SECTIONS } from '../domain'
 import { blockSchema } from './blocks'
 import { webUrlSchema } from './url'
 
@@ -9,14 +9,28 @@ import { webUrlSchema } from './url'
  * is the ActivityDoc (schemas/activity-doc.ts).
  */
 
-/** G1 `intake.approach` — stored on the interest, reused as context by G2/G3/G5/G8. */
-export const approachOutputSchema = z.object({
-  /** Short domain classification, e.g. "quantitative-technical", "language". */
+/**
+ * G1's hidden half: how progress works in this domain at the learner's level.
+ * Stored on the interest (`approach_brief`) and read by every later generation
+ * through context assembly; never shown to the learner.
+ */
+export const approachBriefSchema = z.object({
+  /** The field, named plainly, e.g. "conversational German", "team leadership". */
   domain: z.string().min(1),
-  /** Effective approaches & pedagogy for this domain given their why + experience. Editable by the user. */
-  approachNotes: z.string().min(1),
+  progress: z.enum(PROGRESS_KINDS),
+  /** What one practice attempt looks like at their level, and where it happens. */
+  practice: z.string().min(1),
+  /** Observable signs of doing it well at their level. */
+  goodLooksLike: z.array(z.string().min(1)).min(1).max(8),
   pitfalls: z.array(z.string().min(1)).min(1).max(8),
   progressionPrinciples: z.array(z.string().min(1)).min(1).max(8),
+})
+export type ApproachBrief = z.infer<typeof approachBriefSchema>
+
+/** G1 `intake.approach` — the brief, plus the notes the learner reads and can edit. */
+export const approachOutputSchema = approachBriefSchema.extend({
+  /** What helps when learning this, at their level, to the learner. Editable by the user. */
+  approachNotes: z.string().min(1),
 })
 export type ApproachOutput = z.infer<typeof approachOutputSchema>
 

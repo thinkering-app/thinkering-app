@@ -1,0 +1,41 @@
+{
+  "wantToLearn": "Become a better manager for my team",
+  "whyChoice": "career",
+  "whyText": "I was promoted to lead my team of five engineers three months ago. My 1:1s feel aimless and I avoid hard feedback.",
+  "experienceChoice": "getting_started",
+  "approach": {
+    "domain": "engineering team management",
+    "progress": "with_people",
+    "approachNotes": "Managing well is mostly a set of conversations done deliberately, not a personality trait. The leverage right now is two things: giving your 1:1s a real structure so they stop feeling aimless, and saying the hard thing earlier and smaller, before it becomes a big thing. Skip frameworks about org design for now — you don't have that problem yet. Practice on real conversations this week, not hypothetical ones.",
+    "practice": "A short scripted move you try in your next real 1:1 or feedback moment, then a quick page reviewing how it landed.",
+    "goodLooksLike": [
+      "1:1s have a recurring structure the engineer can anticipate and prepare for.",
+      "You name a specific behavior and its impact within a day of noticing it.",
+      "Engineers bring you problems before they're emergencies."
+    ],
+    "pitfalls": [
+      "Mistaking being liked for being trusted — avoiding feedback feels kind but reads as disengagement.",
+      "Treating 1:1s as status updates instead of the person's own agenda.",
+      "Vague feedback ('be more proactive') that gives no actionable next step."
+    ],
+    "progressionPrinciples": [
+      "Start with 1:1 structure and small corrective feedback before tackling performance issues or conflict.",
+      "Practice one specific phrasing or move at a time, not general 'communication skills.'",
+      "Move from scripted language to adapting tone once the basic moves feel natural."
+    ]
+  },
+  "selectedTopics": ["Running useful 1:1s", "Giving hard feedback", "Setting expectations"],
+  "unselectedTopics": [
+    "Delegating work",
+    "Hiring interviews",
+    "Running team meetings",
+    "Career conversations",
+    "Handling conflict",
+    "Managing up",
+    "Performance reviews"
+  ],
+  "successOutcomes": [
+    "I run 1:1s my engineers look forward to",
+    "I give hard feedback within a day, calmly"
+  ]
+}

@@ -43,6 +43,13 @@
       "when": 1790959418594,
       "tag": "0005_add_activity_resource",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1791216912014,
+      "tag": "0006_add_interest_approach_brief",
+      "breakpoints": true
     }
   ]
 }

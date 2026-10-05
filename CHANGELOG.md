@@ -61,6 +61,9 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- The approach notes for a new interest are written for your level, and
+  activities now know what practice and doing it well look like for what
+  you're learning.
 - Adding an interest asks what you're hoping for before which topics
   feel most relevant, and the topics are named for how much experience
   you have: everyday words if you're new to it, the field's terms if not.

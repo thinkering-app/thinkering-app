@@ -13,19 +13,16 @@ const OPTIONS: { value: WhyChoice; label: string }[] = [
   { value: 'fun', label: 'For fun' },
 ]
 
-/** Step 2 (docs/01 §1). On advance, G1 goes out — it has step 3 to finish. */
+/** Step 2 (docs/01 §1). */
 export default function WhyStep() {
-  const { answers, update, startApproach } = useIntake()
+  const { answers, update } = useIntake()
 
   return (
     <StepScreen
       step={2}
       question="Why do you want to learn it?"
       continueDisabled={!answers.whyChoice || isOverLimit(answers.whyText, 'note')}
-      onContinue={() => {
-        startApproach()
-        router.push('/intake/experience')
-      }}
+      onContinue={() => router.push('/intake/experience')}
     >
       <View className="flex-row flex-wrap gap-2">
         {OPTIONS.map((option) => (

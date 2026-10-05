@@ -1,6 +1,7 @@
 import { index, integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import type {
   ActivityDoc,
+  ApproachBrief,
   AnalyticsValue,
   ActivityStatus,
   ContextKind,
@@ -48,6 +49,8 @@ export const interests = sqliteTable('interests', {
   sessionMinutes: integer('session_minutes').notNull(),
   readingAmount: text('reading_amount').$type<ReadingAmount>().notNull().default('balanced'),
   approachNotes: text('approach_notes').notNull().default(''),
+  /** G1's hidden brief, read by later generations (docs/04). Null for interests that predate it. */
+  approachBrief: text('approach_brief', { mode: 'json' }).$type<ApproachBrief>(),
   status: text('status').$type<InterestStatus>().notNull(),
   sortOrder: real('sort_order').notNull(),
   createdAt: createdAt(),

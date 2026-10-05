@@ -52,6 +52,7 @@ export function interestContext(interest: Interest, goals?: Goal[]): InterestCon
       frequency: interest.frequency,
       sessionMinutes: interest.sessionMinutes,
       approachNotes: interest.approachNotes,
+      approachBrief: interest.approachBrief,
     },
     goals: path.map((g) => ({
       title: g.title,

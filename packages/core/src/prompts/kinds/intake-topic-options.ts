@@ -6,7 +6,7 @@ import type { PromptTemplate } from '../types'
 
 /**
  * G2b `intake.topicOptions` — fired on intake step 3 → 4 alongside G2
- * (`intake.outcomes`), with the same params; consumes G1's output. The topic
+ * (`intake.outcomes`), with the same params; doesn't wait on G1. The topic
  * chips step 5 offers, worded for how much experience the learner has. Step 4
  * covers its wait.
  */
@@ -32,7 +32,8 @@ export const intakeTopicOptionsTemplate: PromptTemplate<
   z.infer<typeof topicOptionsOutputSchema>
 > = {
   kind: 'intake.topicOptions',
-  version: 1,
+  // v2: no longer waits on G1, so no approach lines.
+  version: 2,
   model: 'sonnet',
   maxTokens: 8000,
   effort: 'low',

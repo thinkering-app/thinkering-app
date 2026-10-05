@@ -3,10 +3,12 @@ import {
   CONCEPT_KINDS,
   CONTEXT_KINDS,
   GOAL_STATUSES,
+  PROGRESS_KINDS,
   SECTIONS,
   type ConceptKind,
   type ContextKind,
   type GoalStatus,
+  type ProgressKind,
   type Section,
 } from '../domain'
 import { cappedText } from '../limits'
@@ -31,6 +33,15 @@ export interface InterestContextInput {
     frequency: string
     sessionMinutes: number
     approachNotes?: string | null
+    /** G1's hidden brief; null for interests that predate it. */
+    approachBrief?: {
+      domain: string
+      progress: ProgressKind
+      practice: string
+      goodLooksLike: string[]
+      pitfalls: string[]
+      progressionPrinciples: string[]
+    } | null
   }
   /** In path order. */
   goals: {
@@ -69,6 +80,16 @@ export const interestContextInputSchema: z.ZodType<InterestContextInput> = z.obj
     frequency: cappedText('line'),
     sessionMinutes: z.number(),
     approachNotes: cappedText('note').nullish(),
+    approachBrief: z
+      .object({
+        domain: cappedText('line'),
+        progress: z.enum(PROGRESS_KINDS),
+        practice: cappedText('note'),
+        goodLooksLike: z.array(cappedText('note')).max(8),
+        pitfalls: z.array(cappedText('note')).max(8),
+        progressionPrinciples: z.array(cappedText('note')).max(8),
+      })
+      .nullish(),
   }),
   goals: z.array(
     z.object({
@@ -151,8 +172,18 @@ export function buildInterestContext(
   }
   lines.push(`Rhythm: ${i.frequency}, ${i.sessionMinutes}-minute sessions`)
   if (i.approachNotes) lines.push(`Approach notes: ${i.approachNotes}`)
+  const brief = i.approachBrief
+  if (brief) {
+    lines.push(`Domain: ${brief.domain} · progress here is mostly: ${brief.progress}`)
+    lines.push(`A practice attempt: ${brief.practice}`)
+    lines.push(`Doing it well looks like: ${brief.goodLooksLike.join(' · ')}`)
+    lines.push(`Pitfalls: ${brief.pitfalls.join(' · ')}`)
+    lines.push(`Progression principles: ${brief.progressionPrinciples.join(' · ')}`)
+  }
 
   lines.push('### Path (in order)')
+  // The profile and the path header are always kept, whatever the budget.
+  const alwaysKept = lines.length
   for (const g of input.goals) {
     const concepts = g.concepts.map((c) => `${c.label} (${c.kind})`).join(', ')
     lines.push(`- [${STATUS_LABEL[g.status]}] ${g.title}${concepts ? ` — ${concepts}` : ''}`)
@@ -198,13 +229,12 @@ export function buildInterestContext(
     }
   }
 
-  // Deterministic truncation: keep whole lines while under budget. The first
-  // six lines (profile + path header) are always kept.
+  // Deterministic truncation: keep whole lines while under budget.
   const kept: string[] = []
   let used = 0
   for (const [index, line] of lines.entries()) {
     const cost = estimateTokens(line + '\n')
-    if (index >= 6 && used + cost > budget) break
+    if (index >= alwaysKept && used + cost > budget) break
     kept.push(line)
     used += cost
   }

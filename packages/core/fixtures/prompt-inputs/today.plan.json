@@ -9,7 +9,27 @@
       "experienceText": "Two Duolingo streaks that died; I can order food.",
       "frequency": "several_weekly",
       "sessionMinutes": 10,
-      "approachNotes": "You learn a language by understanding messages and being pushed to produce them. We’ll pair short comprehensible input — reading and listening slightly above your level — with small speaking and writing reps every session, so recognition turns into production."
+      "approachNotes": "You learn a language by understanding messages and being pushed to produce them. We’ll pair short comprehensible input — reading and listening slightly above your level — with small speaking and writing reps every session, so recognition turns into production.",
+      "approachBrief": {
+        "domain": "conversational German",
+        "progress": "with_people",
+        "practice": "Answer a dinner-table question aloud in two or three sentences, then compare with a natural model reply; later, try one exchange at a real family dinner.",
+        "goodLooksLike": [
+          "Keeps a conversation going past a missing word",
+          "Asks follow-up questions, not only answers",
+          "Uses du and Sie without stopping to think"
+        ],
+        "pitfalls": [
+          "Recognizing words when reading feels like fluency but doesn't mean you can produce them aloud.",
+          "Overusing English grammar logic causes systematic errors in case endings and word order.",
+          "Politeness and small talk phrases get neglected in favor of vocabulary lists, hurting real dinners."
+        ],
+        "progressionPrinciples": [
+          "Start with high-frequency social phrases and questions before tackling grammar rules abstractly.",
+          "Interleave listening and speaking early so output habits form alongside comprehension.",
+          "Sequence topics around real family-dinner scenarios: introductions, food, opinions, small talk."
+        ]
+      }
     },
     "goals": [
       {

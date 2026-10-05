@@ -1,14 +1,14 @@
 {
   "kind": "intake.approach",
-  "promptVersion": 3,
+  "promptVersion": 5,
   "model": "claude-sonnet-5",
   "fixture": "default",
-  "text": "{\n  \"domain\": \"language acquisition\",\n  \"approachNotes\": \"You'll get the most from comprehensible input paired with real output: hear or read German at your level, then produce your own sentences, not just recognize them. Since Munich dinners are the goal, build around spoken, social register — greetings, family talk, food, opinions — over textbook grammar drills. Until we know your level, early sessions will test where you land; if you already know some German, we'll skip basics and go straight to gaps. As you progress, scaffolding (translations, sentence starters) fades and improvisation load increases.\",\n  \"pitfalls\": [\n    \"Recognizing words when reading feels like fluency but doesn't mean you can produce them aloud.\",\n    \"Overusing English grammar logic causes systematic errors in case endings and word order.\",\n    \"Politeness and small talk phrases get neglected in favor of vocabulary lists, hurting real dinners.\"\n  ],\n  \"progressionPrinciples\": [\n    \"Start with high-frequency social phrases and questions before tackling grammar rules abstractly.\",\n    \"Interleave listening and speaking early so output habits form alongside comprehension.\",\n    \"Sequence topics around real family-dinner scenarios: introductions, food, opinions, small talk.\"\n  ]\n}",
+  "text": "{\n  \"domain\": \"conversational German\",\n  \"progress\": \"with_people\",\n  \"approachNotes\": \"You know scattered words but not how to string a real exchange together — that's normal after app streaks, which drill vocabulary, not conversation. The shift now is producing full sentences out loud, even clumsy ones, instead of recognizing correct ones on a screen. Focus on dinner-table territory: asking questions, reacting, telling small stories about your day. Skip grammar rules you can't yet use; chase phrases you'll actually say in Munich.\",\n  \"practice\": \"Speak a short answer out loud to a real or imagined question a family member might ask at dinner, then check it against a model.\",\n  \"goodLooksLike\": [\n    \"Answers a question with a full sentence, not just a single word\",\n    \"Asks a follow-up question back instead of going quiet\",\n    \"Self-corrects word order or verb placement without being told\"\n  ],\n  \"pitfalls\": [\n    \"Mistaking word recognition on an app for being able to produce speech\",\n    \"Over-focusing on perfect grammar instead of getting a message across\",\n    \"Learning vocabulary lists disconnected from things you'd actually say at dinner\"\n  ],\n  \"progressionPrinciples\": [\n    \"Build around real dinner-table functions: asking, reacting, storytelling, not grammar topics\",\n    \"Push spoken output every session, even short, before adding new vocabulary\",\n    \"Interleave past material into new conversations so phrases get reused, not forgotten\"\n  ]\n}",
   "usage": {
-    "inputTokens": 61,
-    "outputTokens": 518,
-    "cacheReadTokens": 1466,
+    "inputTokens": 81,
+    "outputTokens": 510,
+    "cacheReadTokens": 1812,
     "cacheWriteTokens": 0
   },
-  "latencyMs": 10157
+  "latencyMs": 7490
 }

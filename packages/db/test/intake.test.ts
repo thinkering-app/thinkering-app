@@ -35,6 +35,14 @@ const INPUT: SaveIntakeInput = {
   sessionMinutes: 10,
   readingAmount: 'balanced',
   approachNotes: 'Comprehensible input first; delay explicit grammar.',
+  approachBrief: {
+    domain: 'conversational German',
+    progress: 'with_people',
+    practice: 'Answer a café question aloud, then compare with a natural reply.',
+    goodLooksLike: ['Keeps going past a missing word'],
+    pitfalls: ['Reading fluency mistaken for speaking fluency'],
+    progressionPrinciples: ['Social phrases before grammar rules'],
+  },
   status: 'focus',
   topics: [
     { label: 'Ordering food', origin: 'motivation', selected: true },

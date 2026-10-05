@@ -1,4 +1,5 @@
 import type {
+  ApproachBrief,
   ConceptKind,
   ExperienceChoice,
   Frequency,
@@ -44,6 +45,7 @@ export interface SaveIntakeInput {
   sessionMinutes: number
   readingAmount: ReadingAmount
   approachNotes: string
+  approachBrief: ApproachBrief
   status: InterestStatus
   topics: IntakeTopicInput[]
   goals: IntakeGoalInput[]
@@ -73,6 +75,7 @@ export function saveIntake(
     sessionMinutes: input.sessionMinutes,
     readingAmount: input.readingAmount,
     approachNotes: input.approachNotes,
+    approachBrief: input.approachBrief,
     status: input.status,
     sortOrder: nextInterestSortOrder(db),
   })
