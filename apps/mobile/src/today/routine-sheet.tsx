@@ -4,6 +4,7 @@ import {
   isOverLimit,
   libraryPrefsForSection,
   SECTIONS,
+  weeklyTarget,
   type RoutineOutput,
   type Section,
 } from '@thinkering/core'
@@ -14,12 +15,14 @@ import {
   listLibraryPrefs,
   listRoutineNotes,
   setLibraryPref,
+  updateInterest,
 } from '@thinkering/db'
 
 import { callAi } from '@/ai'
 import { librarySituation } from '@/ai/context'
 import { describeAiError } from '@/ai/generation'
 import { Button } from '@/components/button'
+import { ChoiceChip } from '@/components/choice-chip'
 import { Generating } from '@/components/generating'
 import { SECTION_LABELS } from '@/components/section-header'
 import { Sheet } from '@/components/sheet'
@@ -28,10 +31,11 @@ import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
 
 /**
- * "Configure learning routine" (docs/01 §3): the daily rhythm, then one
- * free-text question that G11 interprets into library activations and a
- * preference note, confirmed in one line. The rhythm itself is fixed for now;
- * the feedback board post is where people can ask to change it.
+ * "Configure learning routine" (docs/01 §3): the daily rhythm, the days a
+ * week Today's dots aim for, then one free-text question that G11 interprets
+ * into library activations and a preference note, confirmed in one line. The
+ * sections themselves are fixed for now; the feedback board post is where
+ * people can ask to change them.
  */
 
 const ROUTINE_FEEDBACK_URL = 'https://thinkering.featurebase.app/p/customize-learning-routine'
@@ -51,11 +55,14 @@ export function RoutineSheet({
   onClose,
   interestId,
   onChanged,
+  onWeeklyDaysChanged,
 }: {
   visible: boolean
   onClose: () => void
   interestId: string
   onChanged: () => void
+  /** Only the dots move: the day's cards stay as they are. */
+  onWeeklyDaysChanged: () => void
 }) {
   const [request, setRequest] = useState('')
   const [status, setStatus] = useState<'idle' | 'pending' | 'done' | 'error'>('idle')
@@ -155,6 +162,7 @@ export function RoutineSheet({
           </View>
         ))}
       </View>
+      <WeeklyDays key={interestId} interestId={interestId} onChanged={onWeeklyDaysChanged} />
       {status === 'pending' ? (
         <Generating label="Adjusting your routine" />
       ) : status === 'idle' ? (
@@ -179,5 +187,39 @@ export function RoutineSheet({
         <Text className="font-sans text-body text-ink">{message}</Text>
       )}
     </Sheet>
+  )
+}
+
+const WEEKLY_DAY_CHOICES = [1, 2, 3, 4, 5, 6, 7] as const
+
+/**
+ * The days a week Today's dots aim for (docs/01 §3) — the frequency's default
+ * until one is picked. Saved as tapped, like Path settings' lists.
+ */
+function WeeklyDays({ interestId, onChanged }: { interestId: string; onChanged: () => void }) {
+  const [target, setTarget] = useState(() => {
+    const interest = getInterest(db, interestId)
+    return interest ? weeklyTarget(interest) : null
+  })
+  const choose = (days: number | null) => {
+    setTarget(days)
+    updateInterest(db, repoContext, interestId, { weeklyDays: days ?? 0 })
+    onChanged()
+  }
+  return (
+    <View className="gap-3">
+      <Text className="font-sans-medium text-body text-ink">Days a week</Text>
+      <View className="flex-row flex-wrap gap-2">
+        {WEEKLY_DAY_CHOICES.map((days) => (
+          <ChoiceChip
+            key={days}
+            label={String(days)}
+            selected={target === days}
+            onPress={() => choose(days)}
+          />
+        ))}
+        <ChoiceChip label="No target" selected={target === null} onPress={() => choose(null)} />
+      </View>
+    </View>
   )
 }

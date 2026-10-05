@@ -9,17 +9,23 @@ type CalendarMonthProps = {
   label: string
   /** Local dates with at least one completed activity — the marked days (docs/01 §7). */
   marked: Set<LocalDate>
+  /** Weeks in a row with any activity; shown from two (docs/01 §7). */
+  streak: number
   today: LocalDate
   selected: LocalDate | null
   onSelect: (date: LocalDate) => void
   onMonthChange: (delta: number) => void
 }
 
-/** The Me calendar (docs/07): a month of days, the ones you did something on marked in sun. */
+/**
+ * The Me calendar (docs/07): a month of days, the ones you did something on
+ * marked in sun, and the weeks in a row you've done something under the month.
+ */
 export function CalendarMonth({
   month,
   label,
   marked,
+  streak,
   today,
   selected,
   onSelect,
@@ -46,6 +52,11 @@ export function CalendarMonth({
           <Ionicons name="chevron-forward" size={20} color={colors.ink.soft} />
         </Pressable>
       </View>
+      {streak >= 2 ? (
+        <Text className="-mt-2 text-center font-sans text-secondary text-ink-soft">
+          {streak} weeks in a row
+        </Text>
+      ) : null}
 
       <View className="flex-row">
         {WEEKDAY_LABELS.map((day) => (

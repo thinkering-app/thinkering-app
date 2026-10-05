@@ -65,13 +65,17 @@ With one interest in view, each section ends in a **+** card: optional goal chip
 
 Completing an activity marks the section heading with a check and count ("2 today") and the card with "Done today". Remaining cards stay available — completion celebrates, it doesn't lock.
 
+### Weekly rhythm
+
+With one interest in view, dots beside the **Today** title show its week (Monday to Sunday): one per day of its weekly target — chosen in **Configure learning routine**, or until then set by its frequency: **5** for daily, **3** for several times a week — filled for each day with a completed activity in that interest, light for the rest. Days past the target add filled dots; "when I can" (or **No target**) has none, so only filled dots show, and none until the first day. The dots aren't weekdays, so there's no wrong day to miss. Tapping them says what they mean in a toast — the count ("2 of 5 days this week.") and a short line for where the week stands: not started, under way, target met, past it, or no target. The line is picked from a fixed list (`today/week-copy.ts`), stable for the day. Explore → All has none.
+
 ### Configure (⚙ per section)
 
 **Activity settings: <section>**. Lists the section's library items for this user + interest + section, each with an ⓘ (what it is and why it helps) and an on/off switch. At least one must stay active.
 
 ### Configure learning routine
 
-Notes that daily counts aren't configurable yet (linking to the feedback board post), shows the routine, and asks **"What would you like more or less of?"** → **G11** turns the answer into library activations and preference notes and confirms in one line.
+Notes that daily counts aren't configurable yet (linking to the feedback board post), shows the routine, then **Days a week** — chips 1–7 and **No target**, saved as tapped, moving only the week dots — and asks **"What would you like more or less of?"** → **G11** turns the answer into library activations and preference notes and confirms in one line.
 
 ## 4. Activities
 
@@ -95,6 +99,7 @@ For one selected interest:
 
   Nothing is written until **Update path**, which saves path and outcomes together; the reflection records before and after.
 
+- **Progress**: under **Add a goal**, two caption lines — how many goals have reached at least each status ("8 introduced · 5 strengthened · 2 put to use", a status at zero left out) and the interest's completed activities ("23 activities completed"). No totals, so adding a goal never reads as ground lost. Hidden until the first completed activity.
 - **3 suggested goals** below the path (**G9**, cached, regenerated when the path changes), collapsed to their titles — tap to read one — and one tap to add. The way into a reflection sits last.
 
 ### Resources
@@ -115,7 +120,7 @@ For the selected interest, Explore → All, or one exploring interest: completed
 ## 7. Me
 
 - **Manage Interests**: reorder, set **In focus / Exploring / Archived**, unarchive, **+** to add. An unfinished intake (§1) sits above under **Unfinished**: continue, or discard after a confirm.
-- **Calendar**: active days highlighted; tapping one lists its activities by interest.
+- **Calendar**: active days highlighted; tapping one lists its activities by interest. Under the month, from two weeks up: **"N weeks in a row"** — weeks with an activity in any interest. The current week only adds once it has one and never breaks the run while it's under way; a broken run simply disappears.
 - **Settings**: the **⚙** on Me, Today, Path and History opens an index of screens.
 
 **Account and data** — what leaves this device:
