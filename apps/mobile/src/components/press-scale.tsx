@@ -38,7 +38,10 @@ export function PressScale({
       <Animated.View style={{ flexGrow: 1, transform: [{ scale: value }] }}>
         <Pressable
           {...props}
-          className={`flex-1 ${className ?? ''}`}
+          // `grow`, not `flex-1`: flex: 1 sets a zero basis, so in an auto-height
+          // row the card's own content didn't count toward its height and it
+          // collapsed to the row's other cards until a press re-laid it out.
+          className={`grow ${className ?? ''}`}
           onPressIn={(e) => {
             spring(scale)
             props.onPressIn?.(e)
