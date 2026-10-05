@@ -61,7 +61,7 @@ describe('activity player', () => {
     }
     await renderPlayer({ doc: partial, streaming: true })
     expect(screen.getByText('A new colleague, day one')).toBeTruthy()
-    expect(screen.getByText('Writing page 2…')).toBeTruthy()
+    expect(screen.getByText('Preparing page 2…')).toBeTruthy()
   })
 
   it('holds the wait inside the player until the first page arrives', async () => {

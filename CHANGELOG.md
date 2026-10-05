@@ -61,6 +61,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Changed
 
+- An activity that's still on its way says Preparing, not Writing, and one
+  you can ask for says Prepare.
 - A section's ⚙ is now Activity settings: a plain list of the kinds of
   activity it makes, each with an on/off switch and an ⓘ that says what it
   is.

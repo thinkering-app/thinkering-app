@@ -62,7 +62,7 @@ export function ActivityPlayer({
   doc,
   goalTitle,
   streaming = false,
-  waitLabel = 'Writing your activity',
+  waitLabel = 'Preparing your activity',
   libraryItem,
   sink,
   page: requested,
@@ -205,7 +205,7 @@ export function ActivityPlayer({
                   page={page}
                   label={
                     page && streaming && atEnd
-                      ? `Writing page ${doc.pages.length + 1}…`
+                      ? `Preparing page ${doc.pages.length + 1}…`
                       : 'Continue'
                   }
                   disabled={streaming && atEnd}
