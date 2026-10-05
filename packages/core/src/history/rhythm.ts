@@ -55,6 +55,8 @@ export function weekBoundsMs(date: LocalDate): { fromMs: number; toMs: number } 
 export interface WeekRhythm {
   /** Distinct days practiced this week, up to and including today. */
   done: number
+  /** Whether today is one of them: the last filled dot gets a check. */
+  doneToday: boolean
   target: number | null
 }
 
@@ -66,7 +68,7 @@ export function weekRhythm(
   const start = weekStartOf(today)
   const days = new Set<LocalDate>()
   for (const date of activeDates) if (date >= start && date <= today) days.add(date)
-  return { done: days.size, target }
+  return { done: days.size, doneToday: days.has(today), target }
 }
 
 /**

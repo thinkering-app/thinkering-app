@@ -29,7 +29,7 @@ Cornflower is the hero; ink is the workhorse text and dark color; leaf, sun and 
 Semantic mappings:
 
 - **Sections**: Next → cornflower · Strengthen → leaf · Go further → peach. Done today is one color across sections — `sun` — while the section color stays with the section: the heading gets a `sun` check and the day's count, a done card takes its section's tint, and its time chip becomes a `sun` "Done today" chip. When a section turns done while Today is in view, the check springs in after the screen settles; at mount, or with Reduce Motion on, it's simply there.
-- **Week dots** (Today title, `01` §3): 8px, `sun` for a day done, a `sun` ring on `sun-tint` for one still to go. The calendar's streak and Path's progress line are `ink-soft` captions — counts, not decorations.
+- **Week dots** (Today title, `01` §3): 8px, `sun` for a day done, a `sun` ring on `sun-tint` for one still to go. When today is one of the days done, its dot is 14px with an `ink` check, a small Section check. The calendar's streak and Path's progress line are `ink-soft` captions — counts, not decorations.
 - **Goal status**: `not_started` = white card + hairline · `introduced` = cornflower-tint fill · `strengthened` = cornflower-deep fill, light text · `applied` ("Put to use") = the strengthened treatment + a peach edge glow — celebratory, since going further is optional.
 - Errors are rare; use ink text and a peach accent, no harsh red.
 

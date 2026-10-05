@@ -151,7 +151,8 @@ describe('weekly rhythm (docs/01 §3, §7)', () => {
 
   it("counts this week's distinct days, up to today", () => {
     const dates = ['2026-10-04', '2026-10-05', '2026-10-05', '2026-10-07', '2026-10-09']
-    expect(weekRhythm(dates, '2026-10-08', 5)).toEqual({ done: 2, target: 5 })
+    expect(weekRhythm(dates, '2026-10-08', 5)).toEqual({ done: 2, doneToday: false, target: 5 })
+    expect(weekRhythm(dates, '2026-10-07', 5)).toEqual({ done: 2, doneToday: true, target: 5 })
   })
 
   it('takes the chosen days over the frequency, and 0 as no target', () => {
