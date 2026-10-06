@@ -43,6 +43,8 @@ Per selected interest (or aggregated for Explore → All): **Next**, **Strengthe
 
 Each section has **one open card at a time**. Finishing it brings the next straight away, skipping goals the section already had today. A new day clears finished cards; unfinished ones stay, and only empty sections get a new card. Nothing is generated until needed.
 
+Below the sections, an outlined **Configure learning routine** button (one interest in view), then a caption once there are cards: "Written by AI, which can get things wrong."
+
 **Explore → All** suggests rather than prepares: cards from at most **2** exploring interests — never-practiced first, then least recently practiced (judged on days before today, so the pair holds for the day). They get titles (G5a) but no content; each says **Prepare**, and tapping writes it in place. Selecting a single interest fills its sections and writes ahead. A failed background write also shows **Prepare**.
 
 ### Card selection rules (deterministic — `packages/core/scheduler`)
@@ -100,6 +102,7 @@ For one selected interest:
 
 - **Progress**: under **Add a goal**, two caption lines — how many goals have reached at least each status ("8 introduced · 5 strengthened · 2 put to use", a status at zero left out) and the interest's completed activities ("23 activities completed"). No totals, so adding a goal never reads as ground lost. Hidden until the first completed activity.
 - **3 suggested goals** below the path (**G9**, cached, regenerated when the path changes), collapsed to their titles — tap to read one — and one tap to add. The way into a reflection sits above them.
+- The same AI caption as Today closes the page.
 
 ### Resources
 
@@ -133,6 +136,7 @@ For the selected interest, Explore → All, or one exploring interest: completed
 
 **AI**:
 
+- A short note that the path and activities are written by AI, can get facts wrong or explain things poorly, and that the feedback button is the place to say so.
 - A meter of today's usage against the daily cap, pointing to `hello@thinkering.app` for more.
 - **Have a code?** raises the allowance (`04` §Usage metering — one device, once). Hidden with a BYO key or in fixture mode.
 - A BYO Anthropic key (SecureStore; unmetered, calls go direct). Native only.
