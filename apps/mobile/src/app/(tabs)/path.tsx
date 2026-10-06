@@ -12,6 +12,7 @@ import {
 } from '@thinkering/db'
 
 import { track } from '@/analytics'
+import { AiNote } from '@/components/ai-note'
 import { Button } from '@/components/button'
 import { EmptyState } from '@/components/empty-state'
 import { FeedbackButton } from '@/components/feedback-button'
@@ -138,6 +139,10 @@ export default function PathScreen() {
                   />
                 ))
               )}
+            </View>
+
+            <View className="pt-6">
+              <AiNote />
             </View>
           </>
         )}

@@ -18,6 +18,8 @@ build; internal refactors and docs don't appear here. The conventions are in
 - Choose how much reading goes on each page of an activity: short, medium
   or long. It's on the time step when you add an interest, and in Path
   settings.
+- A short note at the foot of Today and Path, and in Settings → AI, that
+  what you read is written by AI and can be wrong.
 - The end of each activity names its activity type, with an ⓘ that
   says what it is and why it helps.
 - Creating a Next or Strengthen activity, you can choose its activity type

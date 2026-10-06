@@ -8,6 +8,7 @@ import { getGoal } from '@thinkering/db'
 
 import { describeAiError } from '@/ai'
 import { ActivityCard } from '@/components/activity-card'
+import { AiNote } from '@/components/ai-note'
 import { Button } from '@/components/button'
 import { EmptyState } from '@/components/empty-state'
 import { FeedbackButton } from '@/components/feedback-button'
@@ -116,7 +117,8 @@ export default function TodayScreen() {
         <InterestSelector />
       </View>
 
-      <ScrollView className="flex-1" contentContainerClassName="gap-6 py-6">
+      {/* Bottom room so the foot of the list clears the feedback button. */}
+      <ScrollView className="flex-1" contentContainerClassName="gap-6 pb-24 pt-6">
         {/* A failed top-up after a finished card leaves the rest of Today in place. */}
         {error ? <GenerationError message={error} onRetry={retry} /> : null}
         {error && !hasCards ? null : empty && !generating ? (
@@ -157,16 +159,19 @@ export default function TodayScreen() {
         )}
 
         {configurable ? (
+          // Outlined, so it reads as a button beside the AI note's plain text.
           <Pressable
             accessibilityRole="button"
             onPress={() => setRoutineOpen(true)}
-            className="items-center self-center rounded-pill px-5 py-3 active:bg-cornflower-tint"
+            className="flex-row items-center gap-2 self-center rounded-pill border border-hairline px-4 py-2.5 active:bg-cornflower-tint"
           >
+            <Ionicons name="options-outline" size={16} color={colors.ink.soft} />
             <Text className="font-sans-medium text-secondary text-ink-soft">
               Configure learning routine
             </Text>
           </Pressable>
         ) : null}
+        {hasCards ? <AiNote /> : null}
       </ScrollView>
 
       {configurable ? (
