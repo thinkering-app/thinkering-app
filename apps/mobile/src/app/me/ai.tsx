@@ -91,6 +91,11 @@ export default function AiScreen() {
 
   return (
     <SubScreen title="AI">
+      <Text className="font-sans text-body leading-relaxed text-ink-soft">
+        Your path and activities are written by AI. It can get facts wrong or explain things poorly.
+        If something looks off, tell us with the feedback button.
+      </Text>
+
       {mode === 'byok' ? (
         <Text className="font-sans text-body text-ink-soft">
           Your own key is in use, so we don&apos;t meter these calls.
