@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Linking, Text, View } from 'react-native'
+import { Trans, useTranslation } from 'react-i18next'
 import {
   isOverLimit,
   libraryPrefsForSection,
@@ -24,7 +25,7 @@ import { describeAiError } from '@/ai/generation'
 import { Button } from '@/components/button'
 import { ChoiceChip } from '@/components/choice-chip'
 import { Generating } from '@/components/generating'
-import { SECTION_LABELS } from '@/components/section-header'
+import { SECTION_LABEL_KEY } from '@/components/section-header'
 import { Sheet } from '@/components/sheet'
 import { TextField } from '@/components/text-field'
 import { track } from '@/analytics'
@@ -40,15 +41,20 @@ import { db, repoContext } from '@/db'
 
 const ROUTINE_FEEDBACK_URL = 'https://thinkering.featurebase.app/p/customize-learning-routine'
 
-const ROUTINE: { section: Section; what: string; cadence: string }[] = [
-  { section: 'next', what: 'Learn something new', cadence: '1 a day' },
-  { section: 'strengthen', what: 'Review and deepen what you’ve learned', cadence: 'Optional' },
-  {
-    section: 'go_further',
-    what: 'Put your learning to use, or take it further',
-    cadence: 'Optional',
+const ROUTINE_SECTIONS: Section[] = ['next', 'strengthen', 'go_further']
+
+/** Translation keys for each row's "what" and "cadence" — a map, not the copy itself. */
+const ROUTINE_KEY = {
+  next: { what: 'today.routineSheet.next.what', cadence: 'today.routineSheet.next.cadence' },
+  strengthen: {
+    what: 'today.routineSheet.strengthen.what',
+    cadence: 'today.routineSheet.strengthen.cadence',
   },
-]
+  go_further: {
+    what: 'today.routineSheet.goFurther.what',
+    cadence: 'today.routineSheet.goFurther.cadence',
+  },
+} as const satisfies Record<Section, { what: string; cadence: string }>
 
 export function RoutineSheet({
   visible,
@@ -64,6 +70,7 @@ export function RoutineSheet({
   /** Only the dots move: the day's cards stay as they are. */
   onWeeklyDaysChanged: () => void
 }) {
+  const { t } = useTranslation()
   const [request, setRequest] = useState('')
   const [status, setStatus] = useState<'idle' | 'pending' | 'done' | 'error'>('idle')
   const [message, setMessage] = useState('')
@@ -125,13 +132,13 @@ export function RoutineSheet({
     <Sheet
       visible={visible}
       onClose={close}
-      title="Learning routine"
+      title={t('today.routineSheet.title')}
       footer={
         status === 'done' ? (
-          <Button label="Done" onPress={close} />
+          <Button label={t('common.done')} onPress={close} />
         ) : (
           <Button
-            label="Save"
+            label={t('common.save')}
             onPress={() => void submit()}
             disabled={
               request.trim().length === 0 || isOverLimit(request, 'note') || status === 'pending'
@@ -141,45 +148,55 @@ export function RoutineSheet({
       }
     >
       <Text className="font-sans text-secondary leading-relaxed text-ink-soft">
-        The sections are set for now. To change that, upvote or comment on{' '}
-        <Text
-          className="text-cornflower-deep"
-          accessibilityRole="link"
-          onPress={() => void Linking.openURL(ROUTINE_FEEDBACK_URL)}
-        >
-          the feedback board
-        </Text>
-        .
+        <Trans
+          t={t}
+          i18nKey="today.routineSheet.feedbackNotice"
+          components={{
+            a: (
+              <Text
+                className="text-cornflower-deep"
+                accessibilityRole="link"
+                onPress={() => void Linking.openURL(ROUTINE_FEEDBACK_URL)}
+              />
+            ),
+          }}
+        />
       </Text>
       <View className="gap-4">
-        {ROUTINE.map(({ section, what, cadence }) => (
+        {ROUTINE_SECTIONS.map((section) => (
           <View key={section} className="flex-row items-start justify-between gap-4">
             <View className="flex-1 gap-0.5">
-              <Text className="font-sans-medium text-body text-ink">{SECTION_LABELS[section]}</Text>
-              <Text className="font-sans text-secondary text-ink-soft">{what}</Text>
+              <Text className="font-sans-medium text-body text-ink">
+                {t(SECTION_LABEL_KEY[section])}
+              </Text>
+              <Text className="font-sans text-secondary text-ink-soft">
+                {t(ROUTINE_KEY[section].what)}
+              </Text>
             </View>
-            <Text className="font-sans text-secondary text-ink-soft">{cadence}</Text>
+            <Text className="font-sans text-secondary text-ink-soft">
+              {t(ROUTINE_KEY[section].cadence)}
+            </Text>
           </View>
         ))}
       </View>
       <WeeklyDays key={interestId} interestId={interestId} onChanged={onWeeklyDaysChanged} />
       {status === 'pending' ? (
-        <Generating label="Adjusting your routine" />
+        <Generating label={t('today.routineSheet.generating')} />
       ) : status === 'idle' ? (
         <View className="gap-3">
           <View className="gap-1">
             <Text className="font-sans-semibold text-body text-ink">
-              What would you like more or less of?
+              {t('today.routineSheet.prompt')}
             </Text>
             <Text className="font-sans text-secondary text-ink-soft">
-              Your activities will follow it from here on.
+              {t('today.routineSheet.promptHint')}
             </Text>
           </View>
           <TextField
             value={request}
             onChangeText={setRequest}
             multiline
-            placeholder="More speaking practice, less grammar"
+            placeholder={t('today.routineSheet.placeholder')}
             limit="note"
           />
         </View>
@@ -197,6 +214,7 @@ const WEEKLY_DAY_CHOICES = [1, 2, 3, 4, 5, 6, 7] as const
  * until one is picked. Saved as tapped, like Path settings' lists.
  */
 function WeeklyDays({ interestId, onChanged }: { interestId: string; onChanged: () => void }) {
+  const { t } = useTranslation()
   const [target, setTarget] = useState(() => {
     const interest = getInterest(db, interestId)
     return interest ? weeklyTarget(interest) : null
@@ -209,7 +227,9 @@ function WeeklyDays({ interestId, onChanged }: { interestId: string; onChanged: 
   }
   return (
     <View className="gap-3">
-      <Text className="font-sans-medium text-body text-ink">Days to aim for</Text>
+      <Text className="font-sans-medium text-body text-ink">
+        {t('today.routineSheet.daysToAimFor')}
+      </Text>
       <View className="flex-row flex-wrap gap-2">
         {WEEKLY_DAY_CHOICES.map((days) => (
           <ChoiceChip
@@ -219,7 +239,11 @@ function WeeklyDays({ interestId, onChanged }: { interestId: string; onChanged: 
             onPress={() => choose(days)}
           />
         ))}
-        <ChoiceChip label="No target" selected={target === null} onPress={() => choose(null)} />
+        <ChoiceChip
+          label={t('today.routineSheet.noTarget')}
+          selected={target === null}
+          onPress={() => choose(null)}
+        />
       </View>
     </View>
   )

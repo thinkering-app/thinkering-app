@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useEffect, useState, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Animated,
   Easing,
@@ -32,6 +33,7 @@ type SheetProps = {
  * keyboard, so the avoidance lives here rather than in each caller.
  */
 export function Sheet({ visible, onClose, title, children, footer }: SheetProps) {
+  const { t } = useTranslation()
   // Keep the native modal mounted while the exit motion finishes. The panel
   // and scrim have separate values so the dim can fade in place instead of
   // travelling up the screen with the sheet.
@@ -97,7 +99,7 @@ export function Sheet({ visible, onClose, title, children, footer }: SheetProps)
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           className="flex-1 justify-end"
         >
-          <Pressable className="flex-1" accessibilityLabel="Close" onPress={onClose} />
+          <Pressable className="flex-1" accessibilityLabel={t('common.close')} onPress={onClose} />
           <Animated.View
             className="max-h-[85%]"
             onLayout={(event) => setPanelHeight(event.nativeEvent.layout.height)}
@@ -121,7 +123,7 @@ export function Sheet({ visible, onClose, title, children, footer }: SheetProps)
                 <Text className="font-heading-bold text-title text-ink">{title}</Text>
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Close"
+                  accessibilityLabel={t('common.close')}
                   onPress={onClose}
                   hitSlop={12}
                 >

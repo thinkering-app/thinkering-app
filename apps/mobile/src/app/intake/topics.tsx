@@ -1,5 +1,6 @@
 import { router } from 'expo-router'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Generating } from '@/components/generating'
 import { useIntake } from '@/intake/context'
@@ -14,6 +15,7 @@ import { StepScreen } from '@/intake/step-screen'
  * advance, G3 goes out; step 6 covers its wait.
  */
 export default function TopicsStep() {
+  const { t } = useTranslation()
   const { answers, update, topics, startChoices, retryTopics, startPath } = useIntake()
 
   useEffect(() => {
@@ -23,7 +25,7 @@ export default function TopicsStep() {
   return (
     <StepScreen
       step={5}
-      question="Which topics feel most relevant?"
+      question={t('intake.topics.question')}
       continueDisabled={topics.status === 'idle' || topics.status === 'pending'}
       onContinue={() => {
         startPath()
@@ -32,8 +34,8 @@ export default function TopicsStep() {
     >
       <ChipPicker
         testID="intake-topics"
-        addLabel="Add your own"
-        generated={topics.status === 'ready' ? topics.value.topics.map((t) => t.label) : []}
+        addLabel={t('intake.chipPicker.addYourOwn')}
+        generated={topics.status === 'ready' ? topics.value.topics.map((entry) => entry.label) : []}
         custom={answers.customTopics}
         selected={answers.selectedTopics}
         onChange={({ custom, selected }) =>
@@ -43,7 +45,7 @@ export default function TopicsStep() {
       {topics.status === 'error' ? (
         <GenerationError message={topics.message} onRetry={retryTopics} />
       ) : topics.status !== 'ready' ? (
-        <Generating label="Finding topics" />
+        <Generating label={t('intake.topics.generating')} />
       ) : null}
     </StepScreen>
   )

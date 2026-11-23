@@ -8,6 +8,11 @@ build; internal refactors and docs don't appear here. The conventions are in
 
 ### Added
 
+- thinkering in Simplified Chinese. It follows your phone's language, or
+  choose one on the welcome screen or in Me → Settings → Language.
+- Each interest is written in the language you type it in. Change it from
+  the globe under the interest in Me → Interests. Ask a question in another
+  language and the answer comes back in it.
 - Dots beside Today show your week with the interest in view: one for each
   day you're aiming for, filled in as you go, with a check once you've
   learned today. Tap them to see how your

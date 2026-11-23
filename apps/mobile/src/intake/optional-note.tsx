@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Text, View } from 'react-native'
 
 import { TextField } from '@/components/text-field'
@@ -14,10 +15,12 @@ type OptionalNoteProps = {
  * the start, marked optional, and growing with what they write.
  */
 export function OptionalNote({ question, value, onChangeText }: OptionalNoteProps) {
+  const { t } = useTranslation()
   return (
     <View className="gap-2">
       <Text className="font-sans text-body text-ink">
-        {question} <Text className="text-secondary text-ink-soft">(optional)</Text>
+        {question}{' '}
+        <Text className="text-secondary text-ink-soft">{t('intake.optionalNote.suffix')}</Text>
       </Text>
       <TextField
         value={value}

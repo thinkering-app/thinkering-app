@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Pressable, Text, View } from 'react-native'
 import type { ResponsePayloadFor } from '@thinkering/core'
 
@@ -12,6 +13,7 @@ import type { BlockOf } from './types'
 
 /** Reflection / explain-back (docs/05). Saves as they type — there is no submit. */
 export function FreeTextBlock({ pageId, block }: { pageId: string; block: BlockOf<'freeText'> }) {
+  const { t } = useTranslation()
   const [answer, respond] = useResponse<ResponsePayloadFor<'freeText'>>(pageId, block.id)
   const ask = useAsk()
   const [considering, setConsidering] = useState(false)
@@ -46,7 +48,7 @@ export function FreeTextBlock({ pageId, block }: { pageId: string; block: BlockO
           {offerConsider ? (
             <ActionPill
               icon="bulb-outline"
-              label="Think about…"
+              label={t('player.freeText.thinkAbout')}
               tone="sun"
               onPress={() => setConsidering(true)}
             />
@@ -54,7 +56,7 @@ export function FreeTextBlock({ pageId, block }: { pageId: string; block: BlockO
           {ask ? (
             <ActionPill
               icon="chatbubble-outline"
-              label="Ask a question"
+              label={t('player.freeText.askQuestion')}
               tone="cornflower"
               onPress={ask}
             />

@@ -90,6 +90,7 @@ export {
   serverToolError,
   type ModelRequestFields,
 } from './prompts/request'
+export { languageInstructions, renderPrompt } from './prompts/language'
 export {
   PROMPTS,
   getPromptTemplate,
@@ -198,15 +199,18 @@ export {
   type ReflectionPlan,
   type SuggestedAddition,
 } from './path/reflection'
-export { outcomeLine, type OutcomeInput } from './history/outcome'
+export {
+  outcomeParts,
+  type OutcomeInput,
+  type OutcomeParts,
+  type OutcomeVerb,
+} from './history/outcome'
 export { groupByLocalDay, type DayGroup } from './history/grouping'
 export {
   isSameMonth,
   monthBoundsMs,
   monthGrid,
-  monthLabel,
   shiftMonth,
-  WEEKDAY_LABELS,
   yearMonthOf,
   type CalendarDay,
   type YearMonth,
@@ -272,3 +276,10 @@ export {
   PRIVACY_SECTIONS,
   type PrivacySection,
 } from './privacy/copy'
+export {
+  LANGUAGES,
+  LANGUAGE_NAMES,
+  languageFromLocaleTag,
+  languageOfText,
+  type Language,
+} from './language'

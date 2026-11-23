@@ -2,7 +2,9 @@ import Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
 import {
   getPromptTemplate,
+  LANGUAGES,
   modelRequestFields,
+  renderPrompt,
   SEARCH_DEADLINE_MS,
   serverToolError,
   type RenderedPrompt,
@@ -76,6 +78,12 @@ const bodySchema = z.object({
   kind: z.string().min(1).max(64),
   params: z.unknown(),
   stream: z.boolean().optional().default(true),
+  /**
+   * The language to write in (docs/04 §Content language). Builds before it
+   * send none, and one this server doesn't know yet — an app that shipped a
+   * language ahead of the server — gets English rather than a failed call.
+   */
+  language: z.enum(LANGUAGES).catch('en'),
   /** One repair round-trip (docs/04 §Failure handling): the client sends back
    * the invalid output + validation errors; we append them as extra turns. */
   repair: z
@@ -163,7 +171,7 @@ export async function POST(req: Request): Promise<Response> {
     return Response.json({ error: 'invalid_params', issues: params.error.issues }, { status: 400 })
   }
 
-  const rendered = template.render(params.data as never)
+  const rendered = renderPrompt(template, params.data, body.data.language)
   if (body.data.repair) {
     rendered.messages = [
       ...rendered.messages,

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { getSyncCursors, isBackupEnabled, setBackupEnabled } from '@thinkering/db'
 
 import { track } from '@/analytics'
@@ -21,6 +22,7 @@ export interface BackupState {
 }
 
 export function useBackup() {
+  const { t } = useTranslation()
   const [account, setAccount] = useState<Account | null>(null)
   const [enabled, setEnabled] = useState(() => isBackupEnabled(db))
   const [syncing, setSyncing] = useState(false)
@@ -41,18 +43,19 @@ export function useBackup() {
     }, []),
   )
 
-  const settle = useCallback((outcome: SyncOutcome) => {
-    if (outcome.ok) {
-      setLastSyncedAt(outcome.at)
-      setError(null)
-    } else if (outcome.reason === 'newer_schema') {
-      setError(
-        'Your other device is on a newer version of thinkering. Update this one to keep syncing.',
-      )
-    } else if (outcome.reason === 'failed') {
-      setError("We couldn't reach the backup just now.")
-    }
-  }, [])
+  const settle = useCallback(
+    (outcome: SyncOutcome) => {
+      if (outcome.ok) {
+        setLastSyncedAt(outcome.at)
+        setError(null)
+      } else if (outcome.reason === 'newer_schema') {
+        setError(t('me.data.newerDeviceSchema'))
+      } else if (outcome.reason === 'failed') {
+        setError(t('me.data.syncUnreachable'))
+      }
+    },
+    [t],
+  )
 
   const runSync = useCallback(async () => {
     setSyncing(true)
@@ -84,7 +87,7 @@ export function useBackup() {
         return true
       })
       if (!deleted) {
-        setError("We couldn't delete the backup from the server. Nothing has changed.")
+        setError(t('me.data.deleteBackupFailed'))
         return false
       }
       setEnabled(false)
@@ -95,7 +98,7 @@ export function useBackup() {
     } finally {
       setSyncing(false)
     }
-  }, [])
+  }, [t])
 
   const state: BackupState = {
     configured: backupConfigured,

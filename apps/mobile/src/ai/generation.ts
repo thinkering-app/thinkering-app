@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 
+import { t } from '@/i18n'
 import { AiBudgetError, AiOutdatedClientError, AiOutputError, isSearchFailure } from './client'
 
 /**
@@ -111,13 +112,13 @@ export function useGeneration<T>(restored?: Settled<T>): GenerationRunner<T> {
 
 /** Calm, plain failure copy (docs/07 voice) — no error codes in front of the user. */
 export function describeAiError(error: unknown): string {
-  if (error instanceof AiBudgetError) return "You've used today's included generation."
+  if (error instanceof AiBudgetError) return t('player.error.budgetUsed')
   // Nothing retrying can fix, so it asks for the one thing that helps.
-  if (error instanceof AiOutdatedClientError) return 'Update thinkering to keep going.'
+  if (error instanceof AiOutdatedClientError) return t('player.error.outdatedClient')
   // Before the shape check: a searching kind that came back unusable failed at
   // the search, and saying so is both truer and more actionable than blaming
   // the shape of something the learner never sees.
-  if (isSearchFailure(error)) return "Couldn't search the web just now."
-  if (error instanceof AiOutputError) return "That came back in a shape we couldn't use."
-  return "Couldn't generate that just now."
+  if (isSearchFailure(error)) return t('player.error.searchFailed')
+  if (error instanceof AiOutputError) return t('player.error.badOutput')
+  return t('player.error.generic')
 }

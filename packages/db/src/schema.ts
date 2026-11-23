@@ -12,6 +12,7 @@ import type {
   GoalSource,
   GoalStatus,
   InterestStatus,
+  Language,
   Rating,
   ReflectionChanges,
   ResourceSource,
@@ -53,6 +54,12 @@ export const interests = sqliteTable('interests', {
   approachNotes: text('approach_notes').notNull().default(''),
   /** G1's hidden brief, read by later generations (docs/04). Null for interests that predate it. */
   approachBrief: text('approach_brief', { mode: 'json' }).$type<ApproachBrief>(),
+  /**
+   * The language this interest's content is written in (docs/00 D23): set from
+   * what the learner typed at intake, changeable in Me → Interests. Null is
+   * English — every interest that predates the column was written in it.
+   */
+  contentLanguage: text('content_language').$type<Language>(),
   status: text('status').$type<InterestStatus>().notNull(),
   sortOrder: real('sort_order').notNull(),
   createdAt: createdAt(),

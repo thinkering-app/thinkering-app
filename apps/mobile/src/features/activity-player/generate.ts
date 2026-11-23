@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import {
+  languageOfText,
   describeResponse,
   extractPartialBlocks,
   extractPartialActivityDoc,
@@ -36,6 +37,7 @@ import {
 import { callAi } from '@/ai'
 import { interestContext } from '@/ai/context'
 import { db, repoContext } from '@/db'
+import { t } from '@/i18n'
 
 /**
  * The three generation calls an activity makes (docs/04): G5b writes the
@@ -233,10 +235,12 @@ export function fallbackReviewBlocks(doc: ActivityDoc): Block[] {
   return [
     {
       kind: 'paragraph',
+      // Stored in the doc like the model's own page, so it's written once, in
+      // the language the activity was generated in.
       md:
         labels.length > 0
-          ? `Worth holding on to from this one: ${labels.join(', ')}.`
-          : 'Worth holding on to: the idea this activity was built around.',
+          ? t('player.fallbackReview.withConcepts', { concepts: labels.join(', ') })
+          : t('player.fallbackReview.bare'),
     },
   ]
 }
@@ -269,6 +273,8 @@ export async function generateAskPage(
   const { output } = await callAi<QuestionOutput>('activity.question', params, {
     interestId: activity.interestId,
     activityId: activity.id,
+    // Answered in the language it was asked in, the interest's when that's unclear (docs/00 D23).
+    language: languageOfText(question, interest.contentLanguage ?? 'en'),
     signal: opts.signal,
     onText: opts.onPartial
       ? onNewPartial(

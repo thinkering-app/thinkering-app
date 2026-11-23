@@ -1,14 +1,15 @@
 import { router } from 'expo-router'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Pressable, SectionList, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { outcomeLine } from '@thinkering/core'
 import type { HistoryRow } from '@thinkering/db'
 
 import { EmptyState } from '@/components/empty-state'
 import { FeedbackButton } from '@/components/feedback-button'
 import { SettingsButton } from '@/components/settings-button'
 import { dayLabel } from '@/history/day-label'
+import { outcomeText } from '@/history/outcome'
 import { useHistory } from '@/history/use-history'
 import { useInterestSelection } from '@/interests/selection'
 import { InterestSelector } from '@/interests/selector'
@@ -20,6 +21,7 @@ import { useLocalToday } from '@/time'
  * day first, each row saying what it did for a goal. Tapping one reopens it.
  */
 export default function HistoryScreen() {
+  const { t } = useTranslation()
   const { selected, focus, exploring } = useInterestSelection()
   const interestIds = useMemo(
     () => (focus.length + exploring.length === 0 ? undefined : selected.map((i) => i.id)),
@@ -44,7 +46,9 @@ export default function HistoryScreen() {
     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'left', 'right']}>
       <View className="gap-4 px-5 pt-4">
         <View className="flex-row items-center gap-5">
-          <Text className="flex-1 font-heading-bold text-display text-ink">History</Text>
+          <Text className="flex-1 font-heading-bold text-display text-ink">
+            {t('history.title')}
+          </Text>
           {single ? <PathButtons interestId={single.id} /> : null}
           <SettingsButton />
         </View>
@@ -75,11 +79,13 @@ export default function HistoryScreen() {
 }
 
 function HistoryEntry({ row, interestName }: { row: HistoryRow; interestName?: string }) {
+  const { t } = useTranslation()
+  const outcome = outcomeText(row)
   return (
     <View className="px-5 pb-2">
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${row.title}. ${outcomeLine(row)}`}
+        accessibilityLabel={t('history.entryAccessibilityLabel', { title: row.title, outcome })}
         onPress={() => router.push(`/activity/${row.id}`)}
         className="gap-1 rounded-card border border-hairline bg-surface p-4 active:bg-cornflower-tint"
       >
@@ -87,16 +93,17 @@ function HistoryEntry({ row, interestName }: { row: HistoryRow; interestName?: s
           <Text className="font-sans text-caption text-ink-soft">{interestName}</Text>
         ) : null}
         <Text className="font-heading text-body text-ink">{row.title}</Text>
-        <Text className="font-sans text-secondary text-ink-soft">{outcomeLine(row)}</Text>
+        <Text className="font-sans text-secondary text-ink-soft">{outcome}</Text>
       </Pressable>
     </View>
   )
 }
 
 function Empty() {
+  const { t } = useTranslation()
   return (
     <View className="px-5">
-      <EmptyState message="Activities you finish show up here." color="leaf" />
+      <EmptyState message={t('history.empty')} color="leaf" />
     </View>
   )
 }

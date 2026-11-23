@@ -1,5 +1,6 @@
 import { isOverLimit } from '@thinkering/core'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Alert, Pressable, Text, View } from 'react-native'
 import type { Goal } from '@thinkering/db'
 
@@ -31,6 +32,7 @@ type GoalSheetProps = {
 }
 
 export function GoalSheet({ visible, onClose, goal, onSave, onDelete }: GoalSheetProps) {
+  const { t } = useTranslation()
   const [title, setTitle] = useState(goal?.title ?? '')
   const [description, setDescription] = useState(goal?.description ?? '')
 
@@ -43,10 +45,10 @@ export function GoalSheet({ visible, onClose, goal, onSave, onDelete }: GoalShee
 
   const confirmDelete = () => {
     if (!onDelete) return
-    Alert.alert('Remove this goal?', goal?.title, [
-      { text: 'Keep', style: 'cancel' },
+    Alert.alert(t('path.goalSheet.confirmDeleteTitle'), goal?.title, [
+      { text: t('path.goalSheet.keep'), style: 'cancel' },
       {
-        text: 'Remove',
+        text: t('path.goalSheet.remove'),
         style: 'destructive',
         onPress: () => {
           onDelete()
@@ -60,10 +62,10 @@ export function GoalSheet({ visible, onClose, goal, onSave, onDelete }: GoalShee
     <Sheet
       visible={visible}
       onClose={onClose}
-      title={goal ? 'Edit goal' : 'Add a goal'}
+      title={goal ? t('path.goalSheet.editTitle') : t('path.goalSheet.addTitle')}
       footer={
         <Button
-          label="Save"
+          label={t('common.save')}
           onPress={save}
           disabled={
             title.trim().length === 0 ||
@@ -76,16 +78,16 @@ export function GoalSheet({ visible, onClose, goal, onSave, onDelete }: GoalShee
       <TextField
         value={title}
         onChangeText={setTitle}
-        placeholder="What this goal covers"
-        accessibilityLabel="Goal title"
+        placeholder={t('path.goalSheet.titlePlaceholder')}
+        accessibilityLabel={t('path.goalSheet.titleAccessibilityLabel')}
         limit="line"
       />
       <TextField
         value={description}
         onChangeText={setDescription}
-        placeholder="A line or two of detail"
+        placeholder={t('path.goalSheet.descriptionPlaceholder')}
         multiline
-        accessibilityLabel="Goal description"
+        accessibilityLabel={t('path.goalSheet.descriptionAccessibilityLabel')}
         limit="note"
       />
       {goal && goal.concepts.length > 0 ? (
@@ -106,7 +108,9 @@ export function GoalSheet({ visible, onClose, goal, onSave, onDelete }: GoalShee
           onPress={confirmDelete}
           className="items-center self-center rounded-pill px-5 py-3"
         >
-          <Text className="font-sans-medium text-secondary text-ink-soft">Remove goal</Text>
+          <Text className="font-sans-medium text-secondary text-ink-soft">
+            {t('path.goalSheet.removeGoal')}
+          </Text>
         </Pressable>
       ) : null}
     </Sheet>

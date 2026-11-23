@@ -68,11 +68,48 @@ export const CONSIDER_WORDS_ASKED = 25
 /** What the recap may be made of: one paragraph, or a bullet per idea (docs/05). */
 const SUMMARY_BLOCK_KINDS: readonly string[] = ['paragraph', 'list']
 
+/**
+ * Chinese characters per English word, for reading a word budget in Chinese —
+ * the same rate the Chinese language block gives the model (docs/04 §Content
+ * language).
+ */
+export const HAN_CHARS_PER_WORD = 1.5
+
+/**
+ * Words in a text, in English terms: space-separated words, plus Chinese
+ * characters at HAN_CHARS_PER_WORD to the word. Chinese has no spaces, so a
+ * plain split would count a whole Chinese page as one word.
+ */
+export function wordCount(text: string): number {
+  const han = text.match(/\p{Script=Han}/gu)?.length ?? 0
+  const words = text
+    .replace(/\p{Script=Han}/gu, ' ')
+    .split(/\s+/)
+    .filter((w) => /[\p{L}\p{N}]/u.test(w)).length
+  return Math.round(words + han / HAN_CHARS_PER_WORD)
+}
+
 /** Learner-facing words in a list of blocks — markup and our ids dropped. */
 export function blockWordCount(blocks: readonly Block[]): number {
-  return pageToPlainText({ blocks: [...blocks] })
-    .split(/\s+/)
-    .filter(Boolean).length
+  return wordCount(pageToPlainText({ blocks: [...blocks] }))
+}
+
+/**
+ * The explanation on each content page, in words: everything the learner
+ * reads that isn't an interaction. The reading preference sets this, and
+ * interactions are left out of it (docs/05).
+ */
+export function contentPageProseWords(doc: ActivityDoc): { pageId: string; words: number }[] {
+  return doc.pages.flatMap((page) =>
+    page.kind === 'content'
+      ? [
+          {
+            pageId: page.id,
+            words: blockWordCount(page.blocks.filter((b) => !isInteractiveBlock(b))),
+          },
+        ]
+      : [],
+  )
 }
 
 /**

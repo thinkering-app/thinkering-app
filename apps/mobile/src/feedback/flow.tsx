@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/button'
 import { Sheet } from '@/components/sheet'
@@ -14,6 +15,7 @@ import { useFeedback } from './use-feedback'
  */
 
 export function FeedbackFlow({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const { t } = useTranslation()
   const [emailOpen, setEmailOpen] = useState(false)
   const [confirmation, setConfirmation] = useState<string | null>(null)
   const feedback = useFeedback({
@@ -21,7 +23,7 @@ export function FeedbackFlow({ visible, onClose }: { visible: boolean; onClose: 
     onSent: () => {
       setEmailOpen(false)
       onClose()
-      setConfirmation('Sent — thank you.')
+      setConfirmation(t('me.feedback.sentConfirmation'))
     },
   })
 
@@ -35,11 +37,11 @@ export function FeedbackFlow({ visible, onClose }: { visible: boolean; onClose: 
       <Sheet
         visible={visible}
         onClose={emailOpen ? closeEmail : onClose}
-        title={emailOpen ? 'Send feedback' : 'Feedback'}
+        title={emailOpen ? t('me.feedback.sendFeedbackTitle') : t('me.feedback.feedbackTitle')}
         footer={
           emailOpen ? (
             <Button
-              label={feedback.sending ? 'Sending…' : 'Send'}
+              label={feedback.sending ? t('me.feedback.sending') : t('me.feedback.send')}
               disabled={!feedback.canSend}
               onPress={feedback.send}
             />

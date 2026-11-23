@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useEffect, useRef, useState } from 'react'
 import { Animated, Easing, Pressable, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import type { Section } from '@thinkering/core'
 
 import { useReduceMotion } from '@/features/activity-player/celebration'
@@ -15,11 +16,15 @@ type SectionHeaderProps = {
   onConfigure?: () => void
 }
 
-export const SECTION_LABELS: Record<Section, string> = {
-  next: 'Next',
-  strengthen: 'Strengthen',
-  go_further: 'Go further',
-}
+/**
+ * Translation keys for a section's name — a map, not the strings themselves,
+ * so the language can change after this module loads (docs/AGENTS "Rules").
+ */
+export const SECTION_LABEL_KEY = {
+  next: 'today.section.next',
+  strengthen: 'today.section.strengthen',
+  go_further: 'today.section.goFurther',
+} as const satisfies Record<Section, string>
 
 /** Long enough for the pop back to Today to finish, so the arrival is seen. */
 const ARRIVAL_DELAY_MS = 300
@@ -43,12 +48,15 @@ export function SectionHeader({
   resetKey = '',
   onConfigure,
 }: SectionHeaderProps) {
+  const { t } = useTranslation()
   const done = completedToday > 0
   const { pop, burst } = useArrival(done, resetKey)
   return (
     <View className="flex-row items-center justify-between px-3 py-2">
       <View className="flex-row items-center gap-2">
-        <Text className="font-heading-bold text-heading text-ink">{SECTION_LABELS[section]}</Text>
+        <Text className="font-heading-bold text-heading text-ink">
+          {t(SECTION_LABEL_KEY[section])}
+        </Text>
         {done ? (
           <>
             {/* Styled inline: NativeWind doesn't reach an Animated.View on web. */}
@@ -105,14 +113,18 @@ export function SectionHeader({
                 <Ionicons name="checkmark" size={14} color={colors.ink.DEFAULT} />
               </Animated.View>
             </View>
-            <Text className="font-sans text-caption text-ink-soft">{completedToday} today</Text>
+            <Text className="font-sans text-caption text-ink-soft">
+              {t('today.section.completedToday', { count: completedToday })}
+            </Text>
           </>
         ) : null}
       </View>
       {onConfigure ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Configure ${SECTION_LABELS[section]}`}
+          accessibilityLabel={t('today.section.configureLabel', {
+            section: t(SECTION_LABEL_KEY[section]),
+          })}
           onPress={onConfigure}
           hitSlop={12}
         >

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { BackHandler, Linking, Text, View } from 'react-native'
 import { WebView } from 'react-native-webview'
 
@@ -11,6 +12,7 @@ import { Button } from '@/components/button'
  * its own implementation — see portal-view.web.tsx.
  */
 export function PortalView({ url, host }: { url: string; host: string }) {
+  const { t } = useTranslation()
   const webview = useRef<WebView>(null)
   const canGoBack = useRef(false)
   const [loading, setLoading] = useState(true)
@@ -30,10 +32,10 @@ export function PortalView({ url, host }: { url: string; host: string }) {
     return (
       <View className="flex-1 items-center justify-center gap-4 px-8">
         <Text className="text-center font-sans text-body text-ink-soft">
-          The feedback board didn&apos;t load.
+          {t('me.feedback.boardLoadFailed')}
         </Text>
         <Button
-          label="Try again"
+          label={t('common.tryAgain')}
           variant="quiet"
           onPress={() => {
             setFailed(false)
@@ -71,7 +73,7 @@ export function PortalView({ url, host }: { url: string; host: string }) {
       />
       {loading ? (
         <View className="absolute inset-0 items-center justify-center bg-paper">
-          <Text className="font-sans text-body text-ink-soft">Opening the feedback board…</Text>
+          <Text className="font-sans text-body text-ink-soft">{t('me.feedback.openingBoard')}</Text>
         </View>
       ) : null}
     </View>

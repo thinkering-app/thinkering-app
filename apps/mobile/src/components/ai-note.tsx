@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Text } from 'react-native'
 
 /**
@@ -5,9 +6,10 @@ import { Text } from 'react-native'
  * screen was written by a model. Me → Settings → AI says it at length.
  */
 export function AiNote() {
+  const { t } = useTranslation()
   return (
     <Text className="self-center text-center font-sans text-caption text-ink-soft">
-      Written by AI, which can get things wrong.
+      {t('common.aiNote')}
     </Text>
   )
 }

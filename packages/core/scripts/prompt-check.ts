@@ -10,6 +10,7 @@ import { parseActivityDoc } from '../src/schemas/activity-doc'
 import type { Block } from '../src/schemas/blocks'
 import {
   checkActivityDoc,
+  contentPageProseWords,
   checkResources,
   checkReviewBlocks,
   toneLintOutput,
@@ -20,14 +21,14 @@ import type { ResourcesSearchParams } from '../src/prompts/kinds/resources-searc
 import { loadFixtures, parseScriptArgs, requireTemplate, runLive } from './prompt-lib'
 import { extractJsonText } from '../src/streaming/json'
 
-const { kind, only } = parseScriptArgs(process.argv.slice(2))
+const { kind, only, language } = parseScriptArgs(process.argv.slice(2))
 const template = requireTemplate(kind)
 
 let failures = 0
 
 for (const fixture of loadFixtures(template.kind, only)) {
-  console.error(`\n── check ${template.kind} · ${fixture.name} ──`)
-  const result = await runLive(template, fixture.params)
+  console.error(`\n── check ${template.kind} · ${fixture.name} · ${language} ──`)
+  const result = await runLive(template, fixture.params, language)
   const issues: CheckIssue[] = []
 
   let output: unknown
@@ -51,6 +52,9 @@ for (const fixture of loadFixtures(template.kind, only)) {
           ...parsed.issues.map((i) => ({ check: 'schema', message: `${i.path}: ${i.message}` })),
         )
       } else {
+        // The explanation on each content page, for tuning the reading budget.
+        const prose = contentPageProseWords(parsed.doc).map((p) => p.words)
+        console.error(`prose words per content page: ${prose.join(', ')}`)
         issues.push(
           ...checkActivityDoc(parsed.doc, {
             estMinutes: params.estMinutes,

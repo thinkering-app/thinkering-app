@@ -1,8 +1,16 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useMemo, useReducer, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Pressable, Text, View } from 'react-native'
-import { INTEREST_STATUSES, type IntakeDraft, type InterestStatus } from '@thinkering/core'
+import {
+  INTEREST_STATUSES,
+  LANGUAGE_NAMES,
+  LANGUAGES,
+  type IntakeDraft,
+  type InterestStatus,
+  type Language,
+} from '@thinkering/core'
 import {
   clearIntakeDraft,
   getIntakeDraft,
@@ -12,8 +20,10 @@ import {
   type Interest,
 } from '@thinkering/db'
 
+import { ChoiceChip } from '@/components/choice-chip'
 import { confirmDestructive } from '@/components/confirm'
 import { Pill } from '@/components/pill'
+import { Sheet } from '@/components/sheet'
 import { SubScreen } from '@/components/sub-screen'
 import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
@@ -27,15 +37,16 @@ import { colors } from '@/theme/tokens'
  * that hasn't finished sits above them, to pick up or let go.
  */
 
-const STATUS_LABEL: Record<InterestStatus, string> = {
-  focus: 'In focus',
-  exploring: 'Exploring',
-  archived: 'Archived',
-}
-
 export default function ManageInterestsScreen() {
+  const { t } = useTranslation()
+  const STATUS_LABEL: Record<InterestStatus, string> = {
+    focus: t('me.interests.statusFocus'),
+    exploring: t('me.interests.statusExploring'),
+    archived: t('me.interests.statusArchived'),
+  }
   const [version, reload] = useReducer((n: number) => n + 1, 0)
   const [reordering, setReordering] = useState(false)
+  const [languageFor, setLanguageFor] = useState<Interest | null>(null)
   // eslint-disable-next-line react-hooks/exhaustive-deps -- `version` is the re-read trigger
   const interests = useMemo(() => listInterests(db), [version])
   // eslint-disable-next-line react-hooks/exhaustive-deps -- `version` is the re-read trigger
@@ -57,8 +68,8 @@ export default function ManageInterestsScreen() {
 
   const discardDraft = async () => {
     const confirmed = await confirmDestructive({
-      title: 'Discard this unfinished interest?',
-      confirmLabel: 'Discard',
+      title: t('me.interests.discardTitle'),
+      confirmLabel: t('me.interests.discardConfirm'),
     })
     if (!confirmed) return
     clearIntakeDraft(db)
@@ -71,13 +82,24 @@ export default function ManageInterestsScreen() {
     reload()
   }
 
+  // What's already written stays as it is; new generations follow (docs/00 D23).
+  const setLanguage = (interest: Interest, contentLanguage: Language) => {
+    setLanguageFor(null)
+    if (contentLanguage === (interest.contentLanguage ?? 'en')) return
+    updateInterest(db, repoContext, interest.id, { contentLanguage })
+    track('settings_changed', { key: 'interest_language' })
+    reload()
+  }
+
   return (
     <SubScreen
-      title="Interests"
+      title={t('me.interests.title')}
       action={
         reordering ? (
           <Pressable accessibilityRole="button" onPress={() => setReordering(false)} hitSlop={10}>
-            <Text className="font-sans-medium text-body text-cornflower-deep">Done</Text>
+            <Text className="font-sans-medium text-body text-cornflower-deep">
+              {t('common.done')}
+            </Text>
           </Pressable>
         ) : (
           // Existing users skip the welcome screen (docs/01 §1), same as the
@@ -85,7 +107,7 @@ export default function ManageInterestsScreen() {
           <Pressable
             testID="me-add-interest"
             accessibilityRole="button"
-            accessibilityLabel="Add an interest"
+            accessibilityLabel={t('me.interests.addInterest')}
             onPress={addInterest}
             hitSlop={10}
           >
@@ -96,7 +118,9 @@ export default function ManageInterestsScreen() {
     >
       {draft ? (
         <View className="gap-3">
-          <Text className="font-heading-bold text-heading text-ink">Unfinished</Text>
+          <Text className="font-heading-bold text-heading text-ink">
+            {t('me.interests.unfinishedHeading')}
+          </Text>
           <DraftRow draft={draft} onDiscard={() => void discardDraft()} />
         </View>
       ) : null}
@@ -106,7 +130,9 @@ export default function ManageInterestsScreen() {
           <InterestRow
             key={interest.id}
             interest={interest}
+            statusLabel={STATUS_LABEL}
             onStatus={(status) => setStatus(interest, status)}
+            onLanguage={() => setLanguageFor(interest)}
             onLongPress={() => setReordering(true)}
             onMoveUp={reordering && index > 0 ? () => move(index, index - 1) : undefined}
             onMoveDown={
@@ -118,12 +144,16 @@ export default function ManageInterestsScreen() {
 
       {archived.length > 0 ? (
         <View className="gap-3">
-          <Text className="font-heading-bold text-heading text-ink">Archived</Text>
+          <Text className="font-heading-bold text-heading text-ink">
+            {t('me.interests.statusArchived')}
+          </Text>
           {archived.map((interest) => (
             <InterestRow
               key={interest.id}
               interest={interest}
+              statusLabel={STATUS_LABEL}
               onStatus={(status) => setStatus(interest, status)}
+              onLanguage={() => setLanguageFor(interest)}
             />
           ))}
         </View>
@@ -131,34 +161,59 @@ export default function ManageInterestsScreen() {
 
       {interests.length === 0 && !draft ? (
         <Text className="px-3 py-10 text-center font-sans text-body text-ink-soft">
-          Interests you add show up here.
+          {t('me.interests.emptyState')}
         </Text>
       ) : null}
       {resumeSheet}
+      <Sheet
+        visible={languageFor !== null}
+        onClose={() => setLanguageFor(null)}
+        title={t('me.language.title')}
+      >
+        <View className="flex-row flex-wrap gap-2">
+          {LANGUAGES.map((language) => (
+            <ChoiceChip
+              key={language}
+              testID={`interest-language-${language}`}
+              label={LANGUAGE_NAMES[language]}
+              selected={(languageFor?.contentLanguage ?? 'en') === language}
+              onPress={() => languageFor && setLanguage(languageFor, language)}
+            />
+          ))}
+        </View>
+        <Text className="font-sans text-secondary text-ink-soft">
+          {t('me.interests.languageNote')}
+        </Text>
+      </Sheet>
     </SubScreen>
   )
 }
 
 /** Picks the intake up where it was left; the draft goes only on a confirmed discard. */
 function DraftRow({ draft, onDiscard }: { draft: IntakeDraft; onDiscard: () => void }) {
+  const { t } = useTranslation()
   const wantToLearn = draft.answers.wantToLearn.trim()
   return (
     <View className="flex-row items-center gap-3 rounded-card border border-hairline bg-surface p-4">
       <Pressable
         testID="me-resume-intake"
         accessibilityRole="button"
-        accessibilityLabel={`Keep going with ${wantToLearn}`}
+        accessibilityLabel={t('me.interests.keepGoingWith', { name: wantToLearn })}
         onPress={() => router.push('/intake')}
         className="flex-1 gap-2"
       >
         <Text className="font-heading text-body text-ink">{wantToLearn}</Text>
         <View className="flex-row items-center gap-1">
-          <Text className="font-sans-medium text-secondary text-cornflower-deep">Keep going</Text>
+          <Text className="font-sans-medium text-secondary text-cornflower-deep">
+            {t('me.interests.keepGoing')}
+          </Text>
           <Ionicons name="chevron-forward" size={16} color={colors.cornflower.deep} />
         </View>
       </Pressable>
       <Pressable accessibilityRole="button" onPress={onDiscard} hitSlop={10}>
-        <Text className="font-sans-medium text-secondary text-ink-soft">Discard</Text>
+        <Text className="font-sans-medium text-secondary text-ink-soft">
+          {t('me.interests.discardConfirm')}
+        </Text>
       </Pressable>
     </View>
   )
@@ -166,18 +221,24 @@ function DraftRow({ draft, onDiscard }: { draft: IntakeDraft; onDiscard: () => v
 
 function InterestRow({
   interest,
+  statusLabel,
   onStatus,
+  onLanguage,
   onLongPress,
   onMoveUp,
   onMoveDown,
 }: {
   interest: Interest
+  statusLabel: Record<InterestStatus, string>
   onStatus: (status: InterestStatus) => void
+  onLanguage: () => void
   onLongPress?: () => void
   onMoveUp?: () => void
   onMoveDown?: () => void
 }) {
+  const { t } = useTranslation()
   const reordering = onMoveUp !== undefined || onMoveDown !== undefined
+  const language = interest.contentLanguage ?? 'en'
   return (
     <Pressable
       onLongPress={onLongPress}
@@ -191,7 +252,7 @@ function InterestRow({
           <View className="flex-row gap-4">
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`Move ${interest.name} up`}
+              accessibilityLabel={t('me.interests.moveUp', { name: interest.name })}
               disabled={!onMoveUp}
               onPress={onMoveUp}
               hitSlop={8}
@@ -204,7 +265,7 @@ function InterestRow({
             </Pressable>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`Move ${interest.name} down`}
+              accessibilityLabel={t('me.interests.moveDown', { name: interest.name })}
               disabled={!onMoveDown}
               onPress={onMoveDown}
               hitSlop={8}
@@ -222,12 +283,25 @@ function InterestRow({
         {INTEREST_STATUSES.map((status) => (
           <Pill
             key={status}
-            label={STATUS_LABEL[status]}
+            label={statusLabel[status]}
             selected={interest.status === status}
             onPress={() => onStatus(status)}
           />
         ))}
       </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('me.interests.languageAccessibilityLabel', {
+          name: interest.name,
+          language: LANGUAGE_NAMES[language],
+        })}
+        onPress={onLanguage}
+        hitSlop={8}
+        className="flex-row items-center gap-1.5 self-start"
+      >
+        <Ionicons name="globe-outline" size={16} color={colors.ink.soft} />
+        <Text className="font-sans text-secondary text-ink-soft">{LANGUAGE_NAMES[language]}</Text>
+      </Pressable>
     </Pressable>
   )
 }

@@ -18,10 +18,6 @@ export { ReplayMask } from './recorder'
 const REPLAY_KEY = 'posthog_replay_opt_in'
 const DECIDED_KEY = 'posthog_replay_decided'
 
-/** What a replay shows, said the same way on the welcome ask and in settings. */
-export const REPLAY_EXPLAINER =
-  "Screen recordings of your sessions help us fix problems and see how learning here feels. They aren't linked to you, and your email, passwords and API key are hidden, but they show what's on screen — your activities and what you type."
-
 /** Whether this build can record at all — the same PostHog key as analytics. */
 export function isReplayAvailable(): boolean {
   return isAnalyticsConfigured()

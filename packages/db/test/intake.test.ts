@@ -43,6 +43,7 @@ const INPUT: SaveIntakeInput = {
     pitfalls: ['Reading fluency mistaken for speaking fluency'],
     progressionPrinciples: ['Social phrases before grammar rules'],
   },
+  contentLanguage: 'zh-Hans',
   status: 'focus',
   topics: [
     { label: 'Ordering food', origin: 'motivation', selected: true },
@@ -71,6 +72,7 @@ describe('saveIntake', () => {
 
     expect(interest.name).toBe('Conversational German')
     expect(interest.status).toBe('focus')
+    expect(interest.contentLanguage).toBe('zh-Hans')
     expect(interest.sortOrder).toBe(1)
     expect(listTopics(db, interest.id).map((t) => [t.label, t.selected])).toEqual([
       ['Ordering food', true],

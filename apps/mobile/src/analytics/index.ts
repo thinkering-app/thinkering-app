@@ -6,7 +6,6 @@ export {
   isReplayAvailable,
   isReplayOptedIn,
   isReplayUndecided,
-  REPLAY_EXPLAINER,
   ReplayMask,
   setReplayConsent,
   useSessionReplay,

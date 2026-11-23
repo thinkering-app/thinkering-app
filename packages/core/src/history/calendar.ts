@@ -22,23 +22,6 @@ export interface CalendarDay {
 
 const MS_PER_DAY = 86_400_000
 
-export const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const
-
-const MONTH_NAMES = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-] as const
-
 export function yearMonthOf(date: LocalDate): YearMonth {
   const [year, month] = date.split('-').map(Number)
   return { year: year!, month: month! }
@@ -47,10 +30,6 @@ export function yearMonthOf(date: LocalDate): YearMonth {
 export function shiftMonth({ year, month }: YearMonth, delta: number): YearMonth {
   const zeroBased = year * 12 + (month - 1) + delta
   return { year: Math.floor(zeroBased / 12), month: (zeroBased % 12) + 1 }
-}
-
-export function monthLabel({ year, month }: YearMonth): string {
-  return `${MONTH_NAMES[month - 1]} ${year}`
 }
 
 export function isSameMonth(a: YearMonth, b: YearMonth): boolean {
