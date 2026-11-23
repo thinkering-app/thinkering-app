@@ -1,7 +1,9 @@
 import { isOverLimit, TEXT_LIMIT_COUNTER_FROM, TEXT_LIMITS, type TextLimit } from '@thinkering/core'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Text, TextInput, type TextInputProps, View } from 'react-native'
 
+import { currentFormatLocale } from '@/i18n'
 import { colors } from '@/theme/tokens'
 
 const MIN_MULTILINE_HEIGHT = 72
@@ -51,6 +53,7 @@ export function TextField({
   testID,
   limit,
 }: TextFieldProps) {
+  const { t } = useTranslation()
   const [contentHeight, setContentHeight] = useState(0)
   const max = limit ? TEXT_LIMITS[limit] : undefined
   const over = limit ? isOverLimit(value, limit) : false
@@ -98,9 +101,16 @@ export function TextField({
           accessibilityLiveRegion="polite"
           className={`self-end px-1 font-sans text-caption ${over ? 'text-ink' : 'text-ink-soft'}`}
         >
-          {`${value.length.toLocaleString()} / ${max.toLocaleString()}${over ? ' · too long to send' : ''}`}
+          {t(over ? 'common.textField.counterOver' : 'common.textField.counter', {
+            length: formatNumber(value.length),
+            max: formatNumber(max),
+          })}
         </Text>
       ) : null}
     </View>
   )
+}
+
+function formatNumber(n: number): string {
+  return new Intl.NumberFormat(currentFormatLocale()).format(n)
 }

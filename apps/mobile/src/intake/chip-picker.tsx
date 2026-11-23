@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Pressable, TextInput, View } from 'react-native'
 
 import { ChoiceChip } from '@/components/choice-chip'
@@ -32,6 +33,7 @@ export function ChipPicker({
   addLabel,
   testID,
 }: ChipPickerProps) {
+  const { t } = useTranslation()
   const [draft, setDraft] = useState('')
   const labels = [...custom, ...generated.filter((label) => !custom.includes(label))]
 
@@ -74,7 +76,7 @@ export function ChipPicker({
         />
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Add"
+          accessibilityLabel={t('common.add')}
           accessibilityState={{ disabled: !draft.trim() }}
           disabled={!draft.trim()}
           onPress={add}

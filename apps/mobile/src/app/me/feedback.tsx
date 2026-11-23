@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/button'
 import { SubScreen } from '@/components/sub-screen'
@@ -12,22 +13,25 @@ import { useFeedback } from '@/feedback/use-feedback'
  * opens the same way.
  */
 export default function FeedbackScreen() {
+  const { t } = useTranslation()
   const [emailOpen, setEmailOpen] = useState(false)
   const [confirmation, setConfirmation] = useState<string | null>(null)
   const feedback = useFeedback({
     onSent: () => {
       setEmailOpen(false)
-      setConfirmation('Sent — thank you.')
+      setConfirmation(t('me.feedback.sentConfirmation'))
     },
   })
 
   return (
-    <SubScreen title={emailOpen ? 'Send feedback' : 'Feedback'}>
+    <SubScreen
+      title={emailOpen ? t('me.feedback.sendFeedbackTitle') : t('me.feedback.feedbackTitle')}
+    >
       {emailOpen ? (
         <>
           <FeedbackEmailFields feedback={feedback} />
           <Button
-            label={feedback.sending ? 'Sending…' : 'Send'}
+            label={feedback.sending ? t('me.feedback.sending') : t('me.feedback.send')}
             disabled={!feedback.canSend}
             onPress={feedback.send}
           />

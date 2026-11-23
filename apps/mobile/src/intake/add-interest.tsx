@@ -1,5 +1,6 @@
 import { router } from 'expo-router'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Text, View } from 'react-native'
 import type { IntakeDraft } from '@thinkering/core'
 import { clearIntakeDraft, getIntakeDraft } from '@thinkering/db'
@@ -14,6 +15,7 @@ import { db } from '@/db'
  * replaces it — so a draft is never lost to a tap on +.
  */
 export function useAddInterest() {
+  const { t } = useTranslation()
   // Held past closing, so the sheet keeps its text while it slides away.
   const [draft, setDraft] = useState<IntakeDraft | null>(null)
   const [open, setOpen] = useState(false)
@@ -38,13 +40,17 @@ export function useAddInterest() {
     <Sheet
       visible={open}
       onClose={() => setOpen(false)}
-      title="Pick up where you left off?"
+      title={t('intake.addInterest.resumeTitle')}
       footer={
         <View className="gap-1">
-          <Button testID="intake-resume" label="Keep going" onPress={() => go(true)} />
+          <Button
+            testID="intake-resume"
+            label={t('intake.addInterest.keepGoing')}
+            onPress={() => go(true)}
+          />
           <Button
             testID="intake-start-new"
-            label="Start something new"
+            label={t('intake.addInterest.startNew')}
             variant="quiet"
             onPress={() => go(false)}
           />

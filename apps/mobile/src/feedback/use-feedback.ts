@@ -1,5 +1,6 @@
 import { router } from 'expo-router'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Linking, Platform } from 'react-native'
 import { featurebasePortalUrl, type FeedbackContext } from '@thinkering/core'
 
@@ -50,6 +51,7 @@ export function useFeedback({
   onSent,
   onNavigateAway,
 }: { onSent?: () => void; onNavigateAway?: () => void } = {}): Feedback {
+  const { t } = useTranslation()
   const context = useFeedbackContext()
   const [message, setMessageState] = useState('')
   const [replyEmail, setReplyEmail] = useState('')
@@ -72,7 +74,7 @@ export function useFeedback({
     const email = replyEmail.trim()
     if (text.length === 0) return
     if (email.length > 0 && !EMAIL.test(email)) {
-      setError("That email address doesn't look right.")
+      setError(t('me.feedback.invalidEmail'))
       return
     }
     setError(null)
@@ -88,7 +90,7 @@ export function useFeedback({
         setReplyEmail('')
         onSent?.()
       })
-      .catch(() => setError("That didn't send. Your message is still here — try again."))
+      .catch(() => setError(t('me.feedback.sendFailed')))
       .finally(() => setSending(false))
   }
 

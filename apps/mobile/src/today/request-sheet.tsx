@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useMemo, useState, type ReactNode } from 'react'
 import { Pressable, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import {
   activeLibraryItems,
   isOverLimit,
@@ -14,10 +15,11 @@ import { getInterest, listGoals, listLibraryPrefs, listResources } from '@thinke
 import { librarySituation } from '@/ai/context'
 import { Button } from '@/components/button'
 import { ChoiceChip } from '@/components/choice-chip'
-import { SECTION_LABELS } from '@/components/section-header'
+import { SECTION_LABEL_KEY } from '@/components/section-header'
 import { InfoDialog, Sheet } from '@/components/sheet'
 import { TextField } from '@/components/text-field'
 import { db } from '@/db'
+import { libraryItemCopy } from '@/i18n/library'
 import { AddLinkSheet } from '@/resources/add-link-sheet'
 import { hostOf } from '@/resources/link'
 import { colors } from '@/theme/tokens'
@@ -45,6 +47,7 @@ export function RequestSheet({
   today: LocalDate
   onRequest: (request: ActivityRequest) => void
 }) {
+  const { t } = useTranslation()
   const [goalsOpen, setGoalsOpen] = useState(false)
   const [goalId, setGoalId] = useState<string | null>(null)
   const [typesOpen, setTypesOpen] = useState(false)
@@ -130,6 +133,8 @@ export function RequestSheet({
     onClose()
   }
 
+  const infoCopy = info ? libraryItemCopy(info) : null
+
   const submit = () => {
     onRequest({
       section,
@@ -145,11 +150,18 @@ export function RequestSheet({
     <Sheet
       visible={visible}
       onClose={close}
-      title={`Create a new ${SECTION_LABELS[section]} activity`}
-      footer={<Button label="Create" onPress={submit} disabled={!ready} testID="request-create" />}
+      title={t('today.request.createTitle', { section: t(SECTION_LABEL_KEY[section]) })}
+      footer={
+        <Button
+          label={t('today.request.create')}
+          onPress={submit}
+          disabled={!ready}
+          testID="request-create"
+        />
+      }
     >
       {goals.length > 0 ? (
-        <Fold label="For an existing goal (optional)" open={goalsOpen} onToggle={toggleGoals}>
+        <Fold label={t('today.request.forGoal')} open={goalsOpen} onToggle={toggleGoals}>
           <View className="flex-row flex-wrap gap-2">
             {goals.map((goal) => (
               <ChoiceChip
@@ -168,7 +180,7 @@ export function RequestSheet({
           <TypeRow item={types[0]!} selected onInfo={setInfo} />
         </View>
       ) : types.length > 1 ? (
-        <Fold label="Activity type (optional)" open={typesOpen} onToggle={toggleTypes}>
+        <Fold label={t('today.request.activityType')} open={typesOpen} onToggle={toggleTypes}>
           <View>
             {types.map((item, i) => {
               const selected = item.id === libraryItemId
@@ -236,7 +248,7 @@ export function RequestSheet({
       <TextField
         value={focus}
         onChangeText={setFocus}
-        placeholder="Anything to focus on, or how you'd like to learn it"
+        placeholder={t('today.request.focusPlaceholder')}
         multiline
         testID="request-focus"
         limit="note"
@@ -255,11 +267,15 @@ export function RequestSheet({
         />
       ) : null}
       <InfoDialog
-        visible={info !== null}
+        visible={infoCopy !== null}
         onClose={() => setInfo(null)}
-        title={info?.name ?? ''}
+        title={infoCopy?.name ?? ''}
         body={
-          info ? [info.overview, info.whyItHelps, info.activation].filter(Boolean).join('\n\n') : ''
+          infoCopy
+            ? [infoCopy.overview, infoCopy.whyItHelps, infoCopy.activation]
+                .filter(Boolean)
+                .join('\n\n')
+            : ''
         }
       />
     </Sheet>
@@ -281,6 +297,8 @@ function TypeRow({
   onPress?: () => void
   onInfo: (item: LibraryItem) => void
 }) {
+  const { t } = useTranslation()
+  const { name } = libraryItemCopy(item)
   return (
     <Pressable
       accessibilityRole="button"
@@ -293,11 +311,11 @@ function TypeRow({
         <Text
           className={`shrink font-sans-medium text-body ${selected ? 'text-cornflower-deep' : 'text-ink'}`}
         >
-          {item.name}
+          {name}
         </Text>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`About ${item.name}`}
+          accessibilityLabel={t('today.aboutItem', { name })}
           onPress={() => onInfo(item)}
           hitSlop={10}
         >

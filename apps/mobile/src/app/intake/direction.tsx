@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { router } from 'expo-router'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Pressable, Text, View } from 'react-native'
 
 import { Card } from '@/components/card'
@@ -16,12 +17,23 @@ import { colors } from '@/theme/tokens'
  * Step 7 (docs/01 §1) — the generated interest name and goals, filling in as G3
  * streams, plus where the interest landed (D15) with a one-tap override.
  */
-const MODE_HINT = {
-  focus: 'For things you want to make steady progress on.',
-  exploring: "For things you're curious about, with no rush.",
+const MODE_HINT_KEY = {
+  focus: 'intake.direction.modeHint.focus',
+  exploring: 'intake.direction.modeHint.exploring',
+} as const
+
+const MODE_LABEL_KEY = {
+  focus: 'intake.direction.modeLabel.focus',
+  exploring: 'intake.direction.modeLabel.exploring',
+} as const
+
+const MODE_A11Y_KEY = {
+  focus: 'intake.direction.modeAccessibilityLabel.focus',
+  exploring: 'intake.direction.modeAccessibilityLabel.exploring',
 } as const
 
 export default function DirectionStep() {
+  const { t } = useTranslation()
   const { answers, update, path, partialPath, startPath, retryPath, placement, save } = useIntake()
 
   useEffect(() => {
@@ -53,11 +65,11 @@ export default function DirectionStep() {
   return (
     <StepScreen
       step={7}
-      question="Here's a direction we can start with."
+      question={t('intake.direction.question')}
       footer={
         <PrimaryAction
           testID="intake-finish"
-          label="Go to Today"
+          label={t('intake.direction.goToToday')}
           onPress={finish}
           disabled={!ready}
         />
@@ -69,12 +81,12 @@ export default function DirectionStep() {
         <View className="gap-6">
           <View className="gap-3">
             <Text className="font-sans text-secondary text-ink-soft">
-              We&apos;ll keep evolving this as you go.
+              {t('intake.direction.evolving')}
             </Text>
             <Pressable
               accessibilityRole="button"
               accessibilityState={{ selected: mode === 'focus' }}
-              accessibilityLabel={`Mode: ${mode === 'focus' ? 'in focus' : 'exploring'}. Tap to switch.`}
+              accessibilityLabel={t(MODE_A11Y_KEY[mode])}
               onPress={() => update({ statusOverride: mode === 'focus' ? 'exploring' : 'focus' })}
               className="flex-row items-center gap-2 self-start rounded-pill border border-hairline px-3 py-2 active:bg-cornflower-tint"
             >
@@ -84,16 +96,16 @@ export default function DirectionStep() {
                 color={mode === 'focus' ? colors.cornflower.deep : colors.ink.soft}
               />
               <Text className="font-sans text-secondary text-ink-soft">
-                {mode === 'focus' ? 'In focus' : 'Exploring'}
+                {t(MODE_LABEL_KEY[mode])}
               </Text>
             </Pressable>
-            <Text className="font-sans text-secondary text-ink-soft">{MODE_HINT[mode]}</Text>
+            <Text className="font-sans text-secondary text-ink-soft">{t(MODE_HINT_KEY[mode])}</Text>
           </View>
 
           {name ? (
             <Text className="font-heading-bold text-display text-ink">{name}</Text>
           ) : (
-            <Generating label="Putting a path together" />
+            <Generating label={t('intake.direction.generating')} />
           )}
 
           <View className="gap-3">

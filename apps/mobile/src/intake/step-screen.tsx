@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { Redirect, router, useFocusEffect, useNavigation } from 'expo-router'
 import { useCallback, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { furthestIntakeStep } from '@thinkering/core'
@@ -34,9 +35,10 @@ export function StepScreen({
   children,
   footer,
   onContinue,
-  continueLabel = 'Continue',
+  continueLabel,
   continueDisabled = false,
 }: StepScreenProps) {
+  const { t } = useTranslation()
   // Steps 1–6 finish here; step 7 replaces the action and is counted by
   // `intake_completed` instead (docs/08).
   const { answers, completeStep, visitStep, hasInterest } = useIntake()
@@ -86,7 +88,7 @@ export function StepScreen({
         <View className="flex-row items-center gap-3 px-5 pt-2">
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Back"
+            accessibilityLabel={t('intake.stepScreen.back')}
             onPress={back}
             hitSlop={12}
           >
@@ -98,7 +100,7 @@ export function StepScreen({
             <Pressable
               testID="intake-close"
               accessibilityRole="button"
-              accessibilityLabel="Close"
+              accessibilityLabel={t('intake.stepScreen.close')}
               onPress={requestLeave}
               hitSlop={12}
               className="ml-auto"
@@ -122,7 +124,7 @@ export function StepScreen({
           {footer ?? (
             <PrimaryAction
               testID="intake-continue"
-              label={continueLabel}
+              label={continueLabel ?? t('common.continue')}
               onPress={advance}
               disabled={continueDisabled}
             />

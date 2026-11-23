@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Text } from 'react-native'
 import { isOverLimit, resourceMediaOf, type ResourceMedia } from '@thinkering/core'
 import { createResource, type Interest, type Resource } from '@thinkering/db'
@@ -31,6 +32,7 @@ export function AddLinkSheet({
   media?: ResourceMedia
   onSaved: (resource: Resource) => void
 }) {
+  const { t } = useTranslation()
   const [url, setUrl] = useState('')
   const [status, setStatus] = useState<'url' | 'fetching' | 'draft' | 'error'>('url')
   const [error, setError] = useState('')
@@ -42,7 +44,7 @@ export function AddLinkSheet({
   const fetchDraft = async () => {
     const normalized = normalizeUrl(url)
     if (!normalized) {
-      setError("That doesn't look like a link.")
+      setError(t('path.resources.invalidLink'))
       setStatus('error')
       return
     }
@@ -89,12 +91,12 @@ export function AddLinkSheet({
       visible={visible}
       onClose={onClose}
       title={
-        media === 'video' ? 'Add a video' : media === 'article' ? 'Add a reading' : 'Add a link'
+        media === 'video' ? 'Add a video' : media === 'article' ? 'Add a reading' : t('path.resources.addLinkSheetTitle')
       }
       footer={
         status === 'draft' ? (
           <Button
-            label="Save"
+            label={t('common.save')}
             onPress={save}
             disabled={
               isOverLimit(title, 'line') ||
@@ -104,7 +106,7 @@ export function AddLinkSheet({
           />
         ) : status === 'fetching' ? null : (
           <Button
-            label="Look it up"
+            label={t('path.resources.lookItUp')}
             onPress={() => void fetchDraft()}
             disabled={url.trim().length === 0}
           />
@@ -112,29 +114,29 @@ export function AddLinkSheet({
       }
     >
       {status === 'fetching' ? (
-        <Generating label="Reading the page" />
+        <Generating label={t('path.resources.readingThePage')} />
       ) : status === 'draft' ? (
         <>
           <Text className="font-sans text-caption text-ink-soft">{hostOf(draft?.url ?? '')}</Text>
           <TextField
             value={title}
             onChangeText={setTitle}
-            accessibilityLabel="Resource title"
+            accessibilityLabel={t('path.resources.titleFieldAccessibilityLabel')}
             limit="line"
           />
           <TextField
             value={description}
             onChangeText={setDescription}
             multiline
-            accessibilityLabel="What it is"
+            accessibilityLabel={t('path.resources.whatItIsAccessibilityLabel')}
             limit="note"
           />
           <TextField
             value={howToUse}
             onChangeText={setHowToUse}
             multiline
-            placeholder="How this could be used"
-            accessibilityLabel="How this could be used"
+            placeholder={t('path.resources.howToUsePlaceholder')}
+            accessibilityLabel={t('path.resources.howToUseAccessibilityLabel')}
             limit="note"
           />
         </>
@@ -146,9 +148,9 @@ export function AddLinkSheet({
               setUrl(text)
               if (status === 'error') setStatus('url')
             }}
-            placeholder={media === 'video' ? 'Paste a YouTube link' : 'Paste a link'}
+            placeholder={media === 'video' ? 'Paste a YouTube link' : t('path.resources.linkPlaceholder')}
             autoFocus
-            accessibilityLabel="Link to add"
+            accessibilityLabel={t('path.resources.linkAccessibilityLabel')}
             onSubmitEditing={() => void fetchDraft()}
           />
           {status === 'error' ? (

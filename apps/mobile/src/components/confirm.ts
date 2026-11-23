@@ -1,5 +1,7 @@
 import { Alert } from 'react-native'
 
+import { t } from '@/i18n'
+
 /** A destructive yes/no, as a promise. Web has its own implementation. */
 export function confirmDestructive(options: {
   title: string
@@ -8,7 +10,7 @@ export function confirmDestructive(options: {
 }): Promise<boolean> {
   return new Promise((resolve) => {
     Alert.alert(options.title, options.message, [
-      { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+      { text: t('common.cancel'), style: 'cancel', onPress: () => resolve(false) },
       { text: options.confirmLabel, style: 'destructive', onPress: () => resolve(true) },
     ])
   })

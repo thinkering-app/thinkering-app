@@ -1,5 +1,6 @@
 import { router } from 'expo-router'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Generating } from '@/components/generating'
 import { useIntake } from '@/intake/context'
@@ -14,6 +15,7 @@ import { StepScreen } from '@/intake/step-screen'
  * step 5 went out at the same time and use this step to finish.
  */
 export default function SuccessStep() {
+  const { t } = useTranslation()
   const { answers, update, success, startChoices, retryOutcomes } = useIntake()
 
   useEffect(() => {
@@ -24,13 +26,13 @@ export default function SuccessStep() {
   return (
     <StepScreen
       step={4}
-      question="What are you hoping for?"
+      question={t('intake.success.question')}
       continueDisabled={success.status !== 'ready'}
       onContinue={() => router.push('/intake/topics')}
     >
       <ChipPicker
         testID="intake-success"
-        addLabel="Add your own"
+        addLabel={t('intake.chipPicker.addYourOwn')}
         generated={success.status === 'ready' ? success.value.outcomes : []}
         custom={answers.customOutcomes}
         selected={answers.selectedOutcomes}
@@ -41,7 +43,7 @@ export default function SuccessStep() {
       {success.status === 'error' ? (
         <GenerationError message={success.message} onRetry={retryOutcomes} />
       ) : success.status !== 'ready' ? (
-        <Generating label="Thinking it through" />
+        <Generating label={t('intake.success.generating')} />
       ) : null}
     </StepScreen>
   )

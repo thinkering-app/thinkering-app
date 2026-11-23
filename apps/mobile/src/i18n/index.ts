@@ -8,7 +8,7 @@ import { en } from './locales/en'
 export { AVAILABLE_LANGUAGES } from './language'
 
 /**
- * App copy (docs/07 §Copy). Components read strings with `useTranslation()`
+ * App copy (docs/07 §Copy and translation). Components read strings with `useTranslation()`
  * from react-i18next; code outside React uses `t` from here. Keys are typed
  * against the English source, so a misspelt key fails typecheck.
  *

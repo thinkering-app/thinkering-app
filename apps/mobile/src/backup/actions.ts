@@ -1,6 +1,7 @@
 import { exportData, importData, parseExportFile, type ImportRefusal } from '@thinkering/db'
 
 import { db } from '@/db'
+import { t } from '@/i18n'
 import { pickJsonFile, shareJsonFile } from './file'
 
 /**
@@ -50,10 +51,10 @@ export function refusalMessage(reason: ImportRefusal): string {
   switch (reason) {
     case 'newer_format':
     case 'newer_schema':
-      return 'That backup came from a newer version of thinkering. Update the app, then try again.'
+      return t('me.data.refusalNewer')
     case 'invalid':
-      return "That backup is damaged — some of it couldn't be read."
+      return t('me.data.refusalInvalid')
     case 'unreadable':
-      return "That file isn't a thinkering backup."
+      return t('me.data.refusalUnreadable')
   }
 }

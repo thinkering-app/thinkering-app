@@ -1,4 +1,5 @@
 import { fetch } from 'expo/fetch'
+import { t } from '@/i18n'
 import { signedHeaders } from './device'
 import { API_BASE_URL } from './settings'
 
@@ -50,8 +51,8 @@ export async function redeemCode(code: string): Promise<{ granted: number; limit
     headers: await signedHeaders(body),
     body,
   })
-  if (res.status === 404) throw new CodeError("That code didn't work.")
-  if (res.status === 429) throw new CodeError('Too many tries today. Try again tomorrow.')
-  if (!res.ok) throw new CodeError("We couldn't reach the server.")
+  if (res.status === 404) throw new CodeError(t('me.ai.codeRejected'))
+  if (res.status === 429) throw new CodeError(t('me.ai.codeTooManyTries'))
+  if (!res.ok) throw new CodeError(t('me.ai.codeUnreachable'))
   return (await res.json()) as { granted: number; limit: number }
 }

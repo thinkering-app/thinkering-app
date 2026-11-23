@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
+import { useTranslation } from 'react-i18next'
 import { Pressable, Text, View } from 'react-native'
 
 import { ReplayMask } from '@/analytics'
@@ -21,37 +22,39 @@ export function FeedbackChooser({
   feedback: Feedback
   onEmail: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <>
       {feedback.portal ? (
         <Option
           icon="chatbubbles-outline"
-          label="Post to a feedback board"
-          caption="Feature requests, discussion, and bugs — post or upvote with an account or anonymously."
+          label={t('me.feedback.postToBoard')}
+          caption={t('me.feedback.postToBoardCaption')}
           onPress={feedback.openPortal}
         />
       ) : null}
       <Option
         icon="mail-outline"
-        label="Send privately by email"
-        caption="Goes only to us."
+        label={t('me.feedback.sendPrivately')}
+        caption={t('me.feedback.sendPrivatelyCaption')}
         onPress={onEmail}
       />
       <Text className="pt-2 font-sans text-caption text-ink-soft">
-        Questions or privacy concerns: {FEEDBACK_CONTACT}
+        {t('me.feedback.contactLine', { email: FEEDBACK_CONTACT })}
       </Text>
     </>
   )
 }
 
 export function FeedbackEmailFields({ feedback }: { feedback: Feedback }) {
+  const { t } = useTranslation()
   return (
     <>
       <TextField
         value={feedback.message}
         onChangeText={feedback.setMessage}
-        placeholder="What's on your mind?"
-        accessibilityLabel="Your feedback"
+        placeholder={t('me.feedback.messagePlaceholder')}
+        accessibilityLabel={t('me.feedback.messageAccessibilityLabel')}
         multiline
         autoFocus
       />
@@ -59,13 +62,13 @@ export function FeedbackEmailFields({ feedback }: { feedback: Feedback }) {
         <TextField
           value={feedback.replyEmail}
           onChangeText={feedback.setReplyEmail}
-          placeholder="Email, if you'd like a reply (optional)"
-          accessibilityLabel="Your email, for a reply"
+          placeholder={t('me.feedback.emailPlaceholder')}
+          accessibilityLabel={t('me.feedback.emailAccessibilityLabel')}
         />
       </ReplayMask>
       <View className="flex-row items-center gap-4">
         <View className="flex-1 gap-1">
-          <Text className="font-sans text-body text-ink">Include app details</Text>
+          <Text className="font-sans text-body text-ink">{t('me.feedback.includeAppDetails')}</Text>
           <Text className="font-sans text-caption text-ink-soft">
             {describeFeedbackContext(feedback.context)}
           </Text>

@@ -1,6 +1,7 @@
 import { listInterests, setBackupEnabled } from '@thinkering/db'
 
 import { db } from '@/db'
+import { t } from '@/i18n'
 import { syncNow } from './engine'
 
 export type AccountRestore = { ok: true; hasInterests: boolean } | { ok: false; message: string }
@@ -17,12 +18,11 @@ export async function restoreFromAccount(): Promise<AccountRestore> {
   if (outcome.reason === 'newer_schema') {
     return {
       ok: false,
-      message:
-        'Your backup came from a newer version of thinkering. Update the app, then try again.',
+      message: t('me.account.restoreNewerSchema'),
     }
   }
   return {
     ok: false,
-    message: "We couldn't reach your backup. Check your connection and try again.",
+    message: t('me.account.restoreUnreachable'),
   }
 }

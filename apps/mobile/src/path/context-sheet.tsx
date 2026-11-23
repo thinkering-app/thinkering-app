@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Pressable, Text, View } from 'react-native'
 import { CONTEXT_KINDS, isOverLimit, type ContextKind } from '@thinkering/core'
 import type { Context } from '@thinkering/db'
@@ -17,11 +18,11 @@ import { TextField } from '@/components/text-field'
  * context it is editing.
  */
 
-export const CONTEXT_KIND_LABEL: Record<ContextKind, string> = {
-  project: 'Project',
-  environment: 'Environment',
-  person: 'Person',
-}
+export const CONTEXT_KIND_LABEL_KEY = {
+  project: 'path.contextSheet.kind.project',
+  environment: 'path.contextSheet.kind.environment',
+  person: 'path.contextSheet.kind.person',
+} as const satisfies Record<ContextKind, string>
 
 export interface ContextDraft {
   kind: ContextKind
@@ -38,6 +39,7 @@ type ContextSheetProps = {
 }
 
 export function ContextSheet({ visible, onClose, context, onSave, onDelete }: ContextSheetProps) {
+  const { t } = useTranslation()
   const [kind, setKind] = useState<ContextKind>(context?.kind ?? 'project')
   const [label, setLabel] = useState(context?.label ?? '')
   const [notes, setNotes] = useState(context?.notes ?? '')
@@ -53,10 +55,10 @@ export function ContextSheet({ visible, onClose, context, onSave, onDelete }: Co
     <Sheet
       visible={visible}
       onClose={onClose}
-      title={context ? 'Edit context' : 'Add a context'}
+      title={context ? t('path.contextSheet.editTitle') : t('path.contextSheet.addTitle')}
       footer={
         <Button
-          label="Save"
+          label={t('common.save')}
           onPress={save}
           disabled={
             label.trim().length === 0 || isOverLimit(label, 'line') || isOverLimit(notes, 'note')
@@ -68,7 +70,7 @@ export function ContextSheet({ visible, onClose, context, onSave, onDelete }: Co
         {CONTEXT_KINDS.map((option) => (
           <ChoiceChip
             key={option}
-            label={CONTEXT_KIND_LABEL[option]}
+            label={t(CONTEXT_KIND_LABEL_KEY[option])}
             selected={kind === option}
             onPress={() => setKind(option)}
           />
@@ -77,16 +79,20 @@ export function ContextSheet({ visible, onClose, context, onSave, onDelete }: Co
       <TextField
         value={label}
         onChangeText={setLabel}
-        placeholder={kind === 'person' ? 'Who' : 'What'}
-        accessibilityLabel="Context name"
+        placeholder={
+          kind === 'person'
+            ? t('path.contextSheet.namePlaceholderWho')
+            : t('path.contextSheet.namePlaceholderWhat')
+        }
+        accessibilityLabel={t('path.contextSheet.nameAccessibilityLabel')}
         limit="line"
       />
       <TextField
         value={notes}
         onChangeText={setNotes}
-        placeholder="Anything worth knowing about it"
+        placeholder={t('path.contextSheet.notesPlaceholder')}
         multiline
-        accessibilityLabel="Context notes"
+        accessibilityLabel={t('path.contextSheet.notesAccessibilityLabel')}
         limit="note"
       />
       {onDelete ? (
@@ -98,7 +104,9 @@ export function ContextSheet({ visible, onClose, context, onSave, onDelete }: Co
           }}
           className="items-center self-center rounded-pill px-5 py-3"
         >
-          <Text className="font-sans-medium text-secondary text-ink-soft">Remove</Text>
+          <Text className="font-sans-medium text-secondary text-ink-soft">
+            {t('path.contextSheet.remove')}
+          </Text>
         </Pressable>
       ) : null}
     </Sheet>

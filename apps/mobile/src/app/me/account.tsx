@@ -1,5 +1,6 @@
 import { router } from 'expo-router'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Text, View } from 'react-native'
 import { resetSyncCursors, setBackupEnabled } from '@thinkering/db'
 
@@ -20,6 +21,7 @@ import { scheduleSync } from '@/sync/schedule'
  */
 
 export default function AccountScreen() {
+  const { t } = useTranslation()
   const [account, setAccount] = useState<Account | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [mode, setMode] = useState<AccountFormMode>('sign_in')
@@ -43,7 +45,7 @@ export default function AccountScreen() {
       const result = await changePassword(password)
       if (!result.ok) return setError(result.message)
       setPassword('')
-      setMessage('Password changed.')
+      setMessage(t('me.account.passwordChanged'))
     } finally {
       setBusy(false)
     }
@@ -63,10 +65,9 @@ export default function AccountScreen() {
    */
   const removeAccount = async () => {
     const confirmed = await confirmDestructive({
-      title: 'Delete your account?',
-      message:
-        'Your account and the copy on our server are deleted for good. Your learning stays on this device.',
-      confirmLabel: 'Delete account',
+      title: t('me.account.deleteAccountTitle'),
+      message: t('me.account.deleteAccountMessage'),
+      confirmLabel: t('me.account.deleteAccount'),
     })
     if (!confirmed) return
     setBusy(true)
@@ -83,11 +84,11 @@ export default function AccountScreen() {
     }
   }
 
-  if (!loaded) return <SubScreen title="Account" />
+  if (!loaded) return <SubScreen title={t('me.account.title')} />
 
   if (account) {
     return (
-      <SubScreen title="Account">
+      <SubScreen title={t('me.account.title')}>
         <ReplayMask>
           <Text className="font-sans text-body text-ink">{account.email}</Text>
         </ReplayMask>
@@ -96,15 +97,15 @@ export default function AccountScreen() {
             <TextField
               value={password}
               onChangeText={setPassword}
-              placeholder="New password"
-              accessibilityLabel="New password"
+              placeholder={t('me.account.newPasswordLabel')}
+              accessibilityLabel={t('me.account.newPasswordLabel')}
               secureTextEntry
               autoComplete="new-password"
               autoCapitalize="none"
             />
           </ReplayMask>
           <Button
-            label={busy ? 'Saving…' : 'Change password'}
+            label={busy ? t('me.account.saving') : t('me.account.changePassword')}
             onPress={() => void savePassword()}
             disabled={busy || password.length < 8}
           />
@@ -112,13 +113,13 @@ export default function AccountScreen() {
         <FormFeedback message={message} error={error} />
         <View className="gap-2 border-t border-hairline pt-6">
           <Button
-            label="Delete account"
+            label={t('me.account.deleteAccount')}
             variant="quiet"
             onPress={() => void removeAccount()}
             disabled={busy}
           />
           <Text className="font-sans text-caption text-ink-soft">
-            Deletes the account and the copy on our server. Your learning stays on this device.
+            {t('me.account.deleteAccountCaption')}
           </Text>
         </View>
       </SubScreen>
@@ -126,10 +127,14 @@ export default function AccountScreen() {
   }
 
   return (
-    <SubScreen title={mode === 'create' ? 'Create an account' : 'Sign in'}>
+    <SubScreen
+      title={mode === 'create' ? t('me.account.createTitle') : t('me.account.signInTitle')}
+    >
       <AccountForm mode={mode} onSignedIn={signedIn} />
       <TextLink
-        label={mode === 'create' ? 'I already have an account' : 'Create an account'}
+        label={
+          mode === 'create' ? t('me.account.alreadyHaveAccount') : t('me.account.createAccountLink')
+        }
         onPress={() => setMode(mode === 'create' ? 'sign_in' : 'create')}
       />
     </SubScreen>
