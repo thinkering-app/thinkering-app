@@ -214,6 +214,7 @@ const WEEKLY_DAY_CHOICES = [1, 2, 3, 4, 5, 6, 7] as const
  * until one is picked. Saved as tapped, like Path settings' lists.
  */
 function WeeklyDays({ interestId, onChanged }: { interestId: string; onChanged: () => void }) {
+  const { t } = useTranslation()
   const [target, setTarget] = useState(() => {
     const interest = getInterest(db, interestId)
     return interest ? weeklyTarget(interest) : null
@@ -226,7 +227,9 @@ function WeeklyDays({ interestId, onChanged }: { interestId: string; onChanged: 
   }
   return (
     <View className="gap-3">
-      <Text className="font-sans-medium text-body text-ink">Days to aim for</Text>
+      <Text className="font-sans-medium text-body text-ink">
+        {t('today.routineSheet.daysToAimFor')}
+      </Text>
       <View className="flex-row flex-wrap gap-2">
         {WEEKLY_DAY_CHOICES.map((days) => (
           <ChoiceChip
@@ -236,7 +239,11 @@ function WeeklyDays({ interestId, onChanged }: { interestId: string; onChanged: 
             onPress={() => choose(days)}
           />
         ))}
-        <ChoiceChip label="No target" selected={target === null} onPress={() => choose(null)} />
+        <ChoiceChip
+          label={t('today.routineSheet.noTarget')}
+          selected={target === null}
+          onPress={() => choose(null)}
+        />
       </View>
     </View>
   )

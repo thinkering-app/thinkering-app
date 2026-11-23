@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { Pressable, Text, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { monthGrid, WEEKDAY_LABELS, type LocalDate, type YearMonth } from '@thinkering/core'
+import { monthGrid, type LocalDate, type YearMonth } from '@thinkering/core'
 
 import { colors } from '@/theme/tokens'
 
@@ -56,14 +56,14 @@ export function CalendarMonth({
       </View>
       {streak >= 2 ? (
         <Text className="-mt-2 text-center font-sans text-secondary text-ink-soft">
-          {streak} weeks in a row
+          {t('common.calendarMonth.weeksInARow', { count: streak })}
         </Text>
       ) : null}
 
       <View className="flex-row">
-        {WEEKDAY_LABELS.map((day) => (
-          <Text key={day} className="flex-1 text-center font-sans text-caption text-ink-soft">
-            {day.slice(0, 1)}
+        {t('common.calendarMonth.weekdayInitials', { returnObjects: true }).map((day, i) => (
+          <Text key={i} className="flex-1 text-center font-sans text-caption text-ink-soft">
+            {day}
           </Text>
         ))}
       </View>

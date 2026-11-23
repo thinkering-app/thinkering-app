@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { groupByLocalDay } from './grouping'
 import { outcomeParts } from './outcome'
-import { monthBoundsMs, monthGrid, monthLabel, shiftMonth, yearMonthOf } from './calendar'
+import { monthBoundsMs, monthGrid, shiftMonth } from './calendar'
 import { localDateOf } from '../scheduler/local-date'
 import { weekBoundsMs, weekRhythm, weekStartOf, weeklyStreak, weeklyTarget } from './rhythm'
 
@@ -125,7 +125,6 @@ describe('calendar month grid', () => {
     expect(shiftMonth({ year: 2026, month: 12 }, 1)).toEqual({ year: 2027, month: 1 })
     expect(shiftMonth({ year: 2026, month: 1 }, -1)).toEqual({ year: 2025, month: 12 })
     expect(shiftMonth({ year: 2026, month: 1 }, -13)).toEqual({ year: 2024, month: 12 })
-    expect(monthLabel(yearMonthOf('2026-09-15'))).toBe('September 2026')
   })
 
   it('bounds contain every instant whose local date is in the month', () => {

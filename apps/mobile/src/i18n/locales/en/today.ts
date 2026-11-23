@@ -52,8 +52,45 @@ export const today = {
     reading: 'Reading',
     focusPlaceholder: "Anything to focus on, or how you'd like to learn it",
   },
+  /** Tapping Today's week dots (docs/01 §3): the days learned this week, then where the week stands. */
+  week: {
+    count_one: '{{count}} day this week.',
+    count_other: '{{count}} days this week.',
+    countOfTarget_one: '{{count}} of {{target}} day this week.',
+    countOfTarget_other: '{{count}} of {{target}} days this week.',
+    learnedToday: 'Learned today.',
+    /** A target, and nothing yet this week. No claims about time left: it may be Sunday. */
+    fresh: [
+      'A new week, ready when you are.',
+      'One activity gets the week going.',
+      'Any day is a good day to start.',
+    ],
+    /** Under way. */
+    going: ['Nicely under way.', "It's adding up.", 'Good rhythm so far.', 'Steady does it.'],
+    /** Exactly the target. */
+    met: [
+      'Week complete. Take a bow.',
+      'You did what you set out to do.',
+      'Every day you planned. Well done.',
+      "That's the week. Your future self says thanks.",
+    ],
+    /** Past it. */
+    beyond: [
+      'Above and beyond.',
+      'More than you planned. Lovely.',
+      'Past your target, and still going.',
+    ],
+    /** No target. The dots only show once there's a day, so there's always one to celebrate. */
+    open: [
+      'Curiosity, followed.',
+      'Learning on your own terms.',
+      'Nicely done, on your own schedule.',
+    ],
+  },
   routineSheet: {
     title: 'Learning routine',
+    daysToAimFor: 'Days to aim for',
+    noTarget: 'No target',
     feedbackNotice:
       'The sections are set for now. To change that, upvote or comment on <a>the feedback board</a>.',
     next: { what: 'Learn something new', cadence: '1 a day' },

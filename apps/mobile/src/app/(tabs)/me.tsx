@@ -3,7 +3,7 @@ import { useCallback, useMemo, useReducer, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { monthLabel, type LocalDate } from '@thinkering/core'
+import type { LocalDate } from '@thinkering/core'
 import { listInterests } from '@thinkering/db'
 
 import { CalendarMonth } from '@/components/calendar-month'
@@ -49,7 +49,11 @@ export default function MeScreen() {
 
         <CalendarMonth
           month={month}
-          label={monthLabel(month)}
+          label={t('common.calendarMonth.title', {
+            monthName: t('common.calendarMonth.months', { returnObjects: true })[month.month - 1],
+            month: month.month,
+            year: month.year,
+          })}
           marked={marked}
           streak={streak}
           today={today}

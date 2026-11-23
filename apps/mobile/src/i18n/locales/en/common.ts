@@ -24,7 +24,27 @@ export const common = {
   calendarMonth: {
     previousMonth: 'Previous month',
     nextMonth: 'Next month',
+    title: '{{monthName}} {{year}}',
+    months: [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ],
+    weekdayInitials: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+    weeksInARow_one: '{{count}} week in a row',
+    weeksInARow_other: '{{count}} weeks in a row',
   },
+  /** The quiet line at the foot of Today and Path. */
+  aiNote: 'Written by AI, which can get things wrong.',
   textField: {
     counter: '{{length}} / {{max}}',
     counterOver: '{{length}} / {{max}} · too long to send',

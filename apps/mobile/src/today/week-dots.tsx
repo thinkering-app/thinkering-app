@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useFocusEffect } from 'expo-router'
 import { useCallback, useMemo, useReducer } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Pressable, View } from 'react-native'
 import {
   localDateOf,
@@ -34,6 +35,7 @@ export function WeekDots({
   today: LocalDate
   onExplain: (message: string) => void
 }) {
+  const { t } = useTranslation()
   const rhythm = useWeekRhythm(interest, today)
   const { done, doneToday, target } = rhythm
   const count = Math.max(done, target ?? 0)
@@ -42,7 +44,9 @@ export function WeekDots({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${weekCount(rhythm)}${doneToday ? ' Learned today.' : ''}`}
+      accessibilityLabel={
+        doneToday ? `${weekCount(rhythm)} ${t('today.week.learnedToday')}` : weekCount(rhythm)
+      }
       onPress={() => onExplain(weekMessage(rhythm, today))}
       hitSlop={10}
       className="flex-row items-center gap-1"
