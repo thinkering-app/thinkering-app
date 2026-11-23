@@ -176,7 +176,9 @@ export function RequestSheet({
       ) : null}
       {single ? (
         <View className="gap-2">
-          <Text className="font-sans-medium text-secondary text-ink-soft">Activity type</Text>
+          <Text className="font-sans-medium text-secondary text-ink-soft">
+            {t('today.request.activityTypeChosen')}
+          </Text>
           <TypeRow item={types[0]!} selected onInfo={setInfo} />
         </View>
       ) : types.length > 1 ? (
@@ -201,7 +203,7 @@ export function RequestSheet({
       {type && needsResource ? (
         <View className="gap-2">
           <Text className="font-sans-medium text-secondary text-ink-soft">
-            {type.resourceMedia === 'video' ? 'Video' : 'Reading'}
+            {type.resourceMedia === 'video' ? t('today.request.video') : t('today.request.reading')}
           </Text>
           <View>
             <Pressable
@@ -212,7 +214,9 @@ export function RequestSheet({
             >
               <Ionicons name="add" size={20} color={colors.cornflower.deep} />
               <Text className="flex-1 font-sans-medium text-body text-cornflower-deep">
-                {type.resourceMedia === 'video' ? 'Add a video' : 'Add a reading'}
+                {type.resourceMedia === 'video'
+                  ? t('path.resources.addVideo')
+                  : t('path.resources.addReading')}
               </Text>
             </Pressable>
             {resources.map((resource) => {
