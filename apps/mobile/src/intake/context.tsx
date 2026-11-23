@@ -12,11 +12,13 @@ import {
   EMPTY_INTAKE_ANSWERS,
   extractPartialPath,
   isDraftWorthKeeping,
+  languageOfText,
   placeInterest,
   type ApproachOutput,
   type ExperienceChoice,
   type IntakeAnswers,
   type InterestStatus,
+  type Language,
   type OutcomesOutput,
   type PartialPath,
   type PathOutput,
@@ -34,6 +36,7 @@ import {
 import { callAi } from '@/ai'
 import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
+import { currentLanguage } from '@/i18n'
 import { useGeneration, type GenerationState } from '@/ai/generation'
 import { currentPicks } from './chip-picker'
 import { stepName } from './steps'
@@ -177,8 +180,11 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
   const ensureApproach = useCallback(
     (a: IntakeAnswers, experienceChoice: ExperienceChoice): Promise<ApproachOutput> => {
       const params = choicesParams(a, experienceChoice)
-      return approach.start(JSON.stringify(params), (signal) =>
-        callAi<ApproachOutput>('intake.approach', params, { signal }).then((r) => r.output),
+      const language = intakeLanguage(a)
+      return approach.start(JSON.stringify({ params, language }), (signal) =>
+        callAi<ApproachOutput>('intake.approach', params, { signal, language }).then(
+          (r) => r.output,
+        ),
       )
     },
     [approach],
@@ -193,16 +199,23 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
     if (!answers.experienceChoice) return
     ensureApproach(answers, answers.experienceChoice).catch(() => {})
     const params = choicesParams(answers, answers.experienceChoice)
-    const key = JSON.stringify(params)
+    const language = intakeLanguage(answers)
+    const key = JSON.stringify({ params, language })
     outcomes
       .start(key, async (signal) => {
-        const result = await callAi<OutcomesOutput>('intake.outcomes', params, { signal })
+        const result = await callAi<OutcomesOutput>('intake.outcomes', params, {
+          signal,
+          language,
+        })
         return result.output
       })
       .catch(() => {})
     topics
       .start(key, async (signal) => {
-        const result = await callAi<TopicOptionsOutput>('intake.topicOptions', params, { signal })
+        const result = await callAi<TopicOptionsOutput>('intake.topicOptions', params, {
+          signal,
+          language,
+        })
         return result.output
       })
       .catch(() => {})
@@ -215,14 +228,15 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
       topics.state.status === 'ready' ? topics.state.value.topics.map((t) => t.label) : []
     const offeredOutcomes = outcomes.state.status === 'ready' ? outcomes.state.value.outcomes : []
     const params = pathParams(answers, experienceChoice, offeredTopics, offeredOutcomes)
+    const language = intakeLanguage(answers)
     path
-      .start(JSON.stringify(params), async (signal) => {
+      .start(JSON.stringify({ params, language }), async (signal) => {
         setPartialPath({ goals: [] })
         const resolved = await ensureApproach(answers, experienceChoice)
         const result = await callAi<PathOutput>(
           'intake.path',
           { ...params, approach: resolved },
-          { signal, onText: (text) => setPartialPath(extractPartialPath(text)) },
+          { signal, language, onText: (text) => setPartialPath(extractPartialPath(text)) },
         )
         return result.output
       })
@@ -264,6 +278,7 @@ export function IntakeProvider({ children }: { children: ReactNode }) {
       sessionMinutes,
       readingAmount: answers.readingAmount,
       ...splitApproach(approach.state.value),
+      contentLanguage: intakeLanguage(answers),
       status: answers.statusOverride ?? placement,
       topics: [
         ...answers.customTopics.map((label) => ({
@@ -360,4 +375,12 @@ function pathParams(
       offeredOutcomes,
     ),
   }
+}
+
+/**
+ * The language a new interest's content is written in (docs/00 D23): the one
+ * they typed what they want to learn in, or the app's when that doesn't say.
+ */
+function intakeLanguage(answers: IntakeAnswers): Language {
+  return languageOfText(answers.wantToLearn, currentLanguage())
 }

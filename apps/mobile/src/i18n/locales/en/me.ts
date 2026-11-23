@@ -12,7 +12,7 @@ export const me = {
   language: {
     title: 'Language',
     device: 'Match this device',
-    note: 'New activities are written in this language. What you already have stays as it is.',
+    note: 'A new interest is written in the language you type it in, or in this one.',
   },
   home: {
     title: 'Me',
@@ -125,6 +125,8 @@ export const me = {
     emptyState: 'Interests you add show up here.',
     moveUp: 'Move {{name}} up',
     moveDown: 'Move {{name}} down',
+    languageAccessibilityLabel: '{{name}} is written in {{language}}. Change',
+    languageNote: 'New activities and goals are written in this language.',
   },
   ai: {
     title: 'AI',

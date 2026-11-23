@@ -3,7 +3,14 @@ import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useMemo, useReducer, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, Text, View } from 'react-native'
-import { INTEREST_STATUSES, type IntakeDraft, type InterestStatus } from '@thinkering/core'
+import {
+  INTEREST_STATUSES,
+  LANGUAGE_NAMES,
+  LANGUAGES,
+  type IntakeDraft,
+  type InterestStatus,
+  type Language,
+} from '@thinkering/core'
 import {
   clearIntakeDraft,
   getIntakeDraft,
@@ -13,8 +20,10 @@ import {
   type Interest,
 } from '@thinkering/db'
 
+import { ChoiceChip } from '@/components/choice-chip'
 import { confirmDestructive } from '@/components/confirm'
 import { Pill } from '@/components/pill'
+import { Sheet } from '@/components/sheet'
 import { SubScreen } from '@/components/sub-screen'
 import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
@@ -37,6 +46,7 @@ export default function ManageInterestsScreen() {
   }
   const [version, reload] = useReducer((n: number) => n + 1, 0)
   const [reordering, setReordering] = useState(false)
+  const [languageFor, setLanguageFor] = useState<Interest | null>(null)
   // eslint-disable-next-line react-hooks/exhaustive-deps -- `version` is the re-read trigger
   const interests = useMemo(() => listInterests(db), [version])
   // eslint-disable-next-line react-hooks/exhaustive-deps -- `version` is the re-read trigger
@@ -69,6 +79,15 @@ export default function ManageInterestsScreen() {
   const setStatus = (interest: Interest, status: InterestStatus) => {
     updateInterest(db, repoContext, interest.id, { status })
     track('settings_changed', { key: 'interest_status' })
+    reload()
+  }
+
+  // What's already written stays as it is; new generations follow (docs/00 D23).
+  const setLanguage = (interest: Interest, contentLanguage: Language) => {
+    setLanguageFor(null)
+    if (contentLanguage === (interest.contentLanguage ?? 'en')) return
+    updateInterest(db, repoContext, interest.id, { contentLanguage })
+    track('settings_changed', { key: 'interest_language' })
     reload()
   }
 
@@ -113,6 +132,7 @@ export default function ManageInterestsScreen() {
             interest={interest}
             statusLabel={STATUS_LABEL}
             onStatus={(status) => setStatus(interest, status)}
+            onLanguage={() => setLanguageFor(interest)}
             onLongPress={() => setReordering(true)}
             onMoveUp={reordering && index > 0 ? () => move(index, index - 1) : undefined}
             onMoveDown={
@@ -133,6 +153,7 @@ export default function ManageInterestsScreen() {
               interest={interest}
               statusLabel={STATUS_LABEL}
               onStatus={(status) => setStatus(interest, status)}
+              onLanguage={() => setLanguageFor(interest)}
             />
           ))}
         </View>
@@ -144,6 +165,26 @@ export default function ManageInterestsScreen() {
         </Text>
       ) : null}
       {resumeSheet}
+      <Sheet
+        visible={languageFor !== null}
+        onClose={() => setLanguageFor(null)}
+        title={t('me.language.title')}
+      >
+        <View className="flex-row flex-wrap gap-2">
+          {LANGUAGES.map((language) => (
+            <ChoiceChip
+              key={language}
+              testID={`interest-language-${language}`}
+              label={LANGUAGE_NAMES[language]}
+              selected={(languageFor?.contentLanguage ?? 'en') === language}
+              onPress={() => languageFor && setLanguage(languageFor, language)}
+            />
+          ))}
+        </View>
+        <Text className="font-sans text-secondary text-ink-soft">
+          {t('me.interests.languageNote')}
+        </Text>
+      </Sheet>
     </SubScreen>
   )
 }
@@ -182,6 +223,7 @@ function InterestRow({
   interest,
   statusLabel,
   onStatus,
+  onLanguage,
   onLongPress,
   onMoveUp,
   onMoveDown,
@@ -189,12 +231,14 @@ function InterestRow({
   interest: Interest
   statusLabel: Record<InterestStatus, string>
   onStatus: (status: InterestStatus) => void
+  onLanguage: () => void
   onLongPress?: () => void
   onMoveUp?: () => void
   onMoveDown?: () => void
 }) {
   const { t } = useTranslation()
   const reordering = onMoveUp !== undefined || onMoveDown !== undefined
+  const language = interest.contentLanguage ?? 'en'
   return (
     <Pressable
       onLongPress={onLongPress}
@@ -245,6 +289,19 @@ function InterestRow({
           />
         ))}
       </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('me.interests.languageAccessibilityLabel', {
+          name: interest.name,
+          language: LANGUAGE_NAMES[language],
+        })}
+        onPress={onLanguage}
+        hitSlop={8}
+        className="flex-row items-center gap-1.5 self-start"
+      >
+        <Ionicons name="globe-outline" size={16} color={colors.ink.soft} />
+        <Text className="font-sans text-secondary text-ink-soft">{LANGUAGE_NAMES[language]}</Text>
+      </Pressable>
     </Pressable>
   )
 }

@@ -29,3 +29,18 @@ export function languageFromLocaleTag(tag: string): Language | null {
   }
   return null
 }
+
+/**
+ * The language someone wrote in, read from its script: any Chinese character
+ * makes it Chinese, and two or more words in Latin letters make it English.
+ * Anything else says nothing, so `fallback` stands: a lone name ("Python",
+ * "Excel") is how people write it in either language, and "C++" or "3D" has
+ * no words at all. Used to pick an interest's content language from what was
+ * typed at intake, and the language of a question asked mid-activity
+ * (docs/00 D23).
+ */
+export function languageOfText(text: string, fallback: Language): Language {
+  if (/\p{Script=Han}/u.test(text)) return 'zh-Hans'
+  const latinWords = text.match(/[A-Za-z][A-Za-z'’-]*/g) ?? []
+  return latinWords.length >= 2 ? 'en' : fallback
+}

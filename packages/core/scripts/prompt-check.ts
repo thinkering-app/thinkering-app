@@ -20,14 +20,14 @@ import type { ResourcesSearchParams } from '../src/prompts/kinds/resources-searc
 import { loadFixtures, parseScriptArgs, requireTemplate, runLive } from './prompt-lib'
 import { extractJsonText } from '../src/streaming/json'
 
-const { kind, only } = parseScriptArgs(process.argv.slice(2))
+const { kind, only, language } = parseScriptArgs(process.argv.slice(2))
 const template = requireTemplate(kind)
 
 let failures = 0
 
 for (const fixture of loadFixtures(template.kind, only)) {
-  console.error(`\n── check ${template.kind} · ${fixture.name} ──`)
-  const result = await runLive(template, fixture.params)
+  console.error(`\n── check ${template.kind} · ${fixture.name} · ${language} ──`)
+  const result = await runLive(template, fixture.params, language)
   const issues: CheckIssue[] = []
 
   let output: unknown

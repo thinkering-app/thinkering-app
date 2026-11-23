@@ -121,7 +121,7 @@ For the selected interest, Explore → All, or one exploring interest: completed
 
 ## 7. Me
 
-- **Manage Interests**: reorder, set **In focus / Exploring / Archived**, unarchive, **+** to add. An unfinished intake (§1) sits above under **Unfinished**: continue, or discard after a confirm.
+- **Manage Interests**: reorder, set **In focus / Exploring / Archived**, unarchive, **+** to add. Each row names the interest's content language with a globe; tapping it picks another, which new goals and activities follow (`00` D23). An unfinished intake (§1) sits above under **Unfinished**: continue, or discard after a confirm.
 - **Calendar**: active days highlighted; tapping one lists its activities by interest. Under the month, from two weeks up: **"N weeks in a row"** — weeks with an activity in any interest. The current week only adds once it has one and never breaks the run while it's under way; a broken run simply disappears.
 - **Settings**: the **⚙** on Me, Today, Path and History opens an index of screens.
 
@@ -132,7 +132,7 @@ For the selected interest, Explore → All, or one exploring interest: completed
 - **Anonymous usage**: on by default, not linked to identity (D9), not asked — the Privacy page describes it.
 - **Session replays**: opt-in, off by default, separate from usage (D22). Asked once, in a card on the intake welcome screen clear of **Get started**, with **Share** and **No thanks** weighted equally. Doesn't block intake; undecided until answered or toggled. Absent without a PostHog key.
 - **Getting back in**: on the welcome screen, **I already have an account or a backup file**. **Sign in** turns backup on, waits for the first sync, then opens Today (or intake if the account is empty); a session surviving reinstall offers **Continue** or **Use a different account**. **Restore from a backup file** needs no confirm. Without Supabase, only the file restore shows.
-- **Language**: under those, the current language named in itself (with a globe), which opens the same choices as Me → Settings → Language (`00` D23). Absent while the app has one language.
+- **Language**: under those, the current language named in itself (with a globe), which opens the same choices as Me → Settings → Language (`00` D23).
 - **Delete all data**: confirms, then deletes the learner's data on the device and, when signed in, on the server, then reopens at the welcome screen. It keeps a "no" to anonymous usage, and keeps the account (deleted in Me → Account).
 
 **AI**:

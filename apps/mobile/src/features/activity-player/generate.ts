@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import {
+  languageOfText,
   describeResponse,
   extractPartialBlocks,
   extractPartialActivityDoc,
@@ -272,6 +273,8 @@ export async function generateAskPage(
   const { output } = await callAi<QuestionOutput>('activity.question', params, {
     interestId: activity.interestId,
     activityId: activity.id,
+    // Answered in the language it was asked in, the interest's when that's unclear (docs/00 D23).
+    language: languageOfText(question, interest.contentLanguage ?? 'en'),
     signal: opts.signal,
     onText: opts.onPartial
       ? onNewPartial(

@@ -5,6 +5,7 @@ import {
   type ExperienceChoice,
   type Frequency,
   type InterestStatus,
+  type Language,
   type ReadingAmount,
   type WhyChoice,
 } from '@thinkering/core'
@@ -35,6 +36,8 @@ export interface NewInterest {
   readingAmount?: ReadingAmount
   approachNotes?: string
   approachBrief?: ApproachBrief | null
+  /** Null or absent is English (docs/00 D23). */
+  contentLanguage?: Language | null
   status: InterestStatus
   sortOrder: number
 }
@@ -57,6 +60,7 @@ export function createInterest(db: Database, ctx: RepoContext, input: NewInteres
     readingAmount: input.readingAmount ?? 'balanced',
     approachNotes: input.approachNotes ?? '',
     approachBrief: input.approachBrief ?? null,
+    contentLanguage: input.contentLanguage ?? null,
     status: input.status,
     sortOrder: input.sortOrder,
     createdAt: now,

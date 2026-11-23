@@ -99,6 +99,7 @@ export const SETTINGS_KEYS = [
   'session_replay_opt_in',
   'interest_status',
   'interest_order',
+  'interest_language',
   'frequency',
   'session_minutes',
   'reading_amount',

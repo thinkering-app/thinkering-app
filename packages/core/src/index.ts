@@ -90,6 +90,7 @@ export {
   serverToolError,
   type ModelRequestFields,
 } from './prompts/request'
+export { languageInstructions, renderPrompt } from './prompts/language'
 export {
   PROMPTS,
   getPromptTemplate,
@@ -275,4 +276,10 @@ export {
   PRIVACY_SECTIONS,
   type PrivacySection,
 } from './privacy/copy'
-export { LANGUAGES, LANGUAGE_NAMES, languageFromLocaleTag, type Language } from './language'
+export {
+  LANGUAGES,
+  LANGUAGE_NAMES,
+  languageFromLocaleTag,
+  languageOfText,
+  type Language,
+} from './language'

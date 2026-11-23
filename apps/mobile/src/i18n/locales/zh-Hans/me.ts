@@ -15,7 +15,7 @@ export const me: TranslationOf<typeof english> = {
   language: {
     title: '语言',
     device: '跟随系统',
-    note: '新练习会用这种语言编写，已有的内容保持不变。',
+    note: '新兴趣会用你输入时的语言编写；看不出来时，就用这里选的语言。',
   },
   home: {
     title: '我',
@@ -121,6 +121,8 @@ export const me: TranslationOf<typeof english> = {
     emptyState: '你添加的兴趣会显示在这里。',
     moveUp: '将“{{name}}”上移',
     moveDown: '将“{{name}}”下移',
+    languageAccessibilityLabel: '{{name}}使用{{language}}。更改',
+    languageNote: '新的练习和目标会用这种语言编写。',
   },
   ai: {
     title: 'AI',

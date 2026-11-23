@@ -10,16 +10,19 @@ import {
   modelRequestFields,
   parseActivityDoc,
   RECORDED_RESPONSES,
+  renderPrompt,
   SEARCH_DEADLINE_MS,
   serverToolError,
   SseParser,
   type AiErrorType,
   type AnyPromptTemplate,
+  type Language,
   type RenderedPrompt,
 } from '@thinkering/core'
-import { logLlmCall } from '@thinkering/db'
+import { getInterest, logLlmCall } from '@thinkering/db'
 import { track } from '@/analytics'
 import { db, repoContext } from '@/db'
+import { currentLanguage } from '@/i18n'
 import { signedHeaders } from './device'
 import { KEYS, secureGet } from './secure-store'
 import { API_BASE_URL, getAiMode, type AiMode } from './settings'
@@ -67,6 +70,11 @@ export interface AiCallOptions {
   /** Accumulated raw text so far — feed extractPartialActivityDoc for G5b. */
   onText?: (text: string) => void
   mode?: AiMode
+  /**
+   * What the model writes in (docs/00 D23). Left out, it's the interest's
+   * content language, or the app's when the call has no interest.
+   */
+  language?: Language
 }
 
 export interface AiCallResult<T = unknown> {
@@ -134,6 +142,12 @@ function aiErrorType(error: unknown): AiErrorType {
   return (error as { errorType?: AiErrorType } | null)?.errorType ?? 'other'
 }
 
+/** An interest's content language; English for one that predates the setting. */
+function contentLanguageFor(interestId: string | undefined): Language {
+  if (!interestId) return currentLanguage()
+  return getInterest(db, interestId)?.contentLanguage ?? 'en'
+}
+
 /** What happened on the way to a call's result, for `ai_call`. */
 interface Attempts {
   retried: boolean
@@ -143,13 +157,17 @@ interface Attempts {
 export async function callAi<T = unknown>(
   kind: string,
   params: unknown,
-  opts: AiCallOptions = {},
+  callOpts: AiCallOptions = {},
 ): Promise<AiCallResult<T>> {
   const template = getPromptTemplate(kind)
   if (!template) throw new Error(`unknown generation kind "${kind}"`)
   const parsedParams = template.paramsSchema.parse(params)
+  const opts = {
+    ...callOpts,
+    language: callOpts.language ?? contentLanguageFor(callOpts.interestId),
+  }
   const mode = opts.mode ?? getAiMode()
-  const rendered = template.render(parsedParams as never)
+  const rendered = renderPrompt(template, parsedParams, opts.language)
   const started = Date.now()
   const attempts: Attempts = { retried: false, repaired: false }
 
@@ -393,7 +411,13 @@ async function proxyCall(
   repair: Repair | undefined,
   opts: AiCallOptions,
 ): Promise<Execution> {
-  const body = JSON.stringify({ kind, params, stream: true, ...(repair ? { repair } : {}) })
+  const body = JSON.stringify({
+    kind,
+    params,
+    language: opts.language ?? 'en',
+    stream: true,
+    ...(repair ? { repair } : {}),
+  })
   const res = await fetch(`${API_BASE_URL}/api/ai`, {
     method: 'POST',
     headers: await signedHeaders(body),
