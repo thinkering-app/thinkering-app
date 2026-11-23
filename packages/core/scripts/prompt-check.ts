@@ -10,6 +10,7 @@ import { parseActivityDoc } from '../src/schemas/activity-doc'
 import type { Block } from '../src/schemas/blocks'
 import {
   checkActivityDoc,
+  contentPageProseWords,
   checkResources,
   checkReviewBlocks,
   toneLintOutput,
@@ -51,6 +52,9 @@ for (const fixture of loadFixtures(template.kind, only)) {
           ...parsed.issues.map((i) => ({ check: 'schema', message: `${i.path}: ${i.message}` })),
         )
       } else {
+        // The explanation on each content page, for tuning the reading budget.
+        const prose = contentPageProseWords(parsed.doc).map((p) => p.words)
+        console.error(`prose words per content page: ${prose.join(', ')}`)
         issues.push(
           ...checkActivityDoc(parsed.doc, {
             estMinutes: params.estMinutes,

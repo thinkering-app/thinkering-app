@@ -7,9 +7,11 @@ import {
   checkActivityDoc,
   checkResources,
   checkReviewBlocks,
+  contentPageProseWords,
   pageCountRange,
   toneLintIssues,
   type ResourceExpectations,
+  wordCount,
 } from './checks'
 
 const GOAL_CONCEPTS = ['c-prompt-clear', 'c-prompt-fewshot']
@@ -244,5 +246,40 @@ describe('checkReviewBlocks', () => {
     ]).map((i) => i.check)
     expect(checks).toContain('review-length')
     expect(checks).toContain('review-shape')
+  })
+})
+
+describe('wordCount', () => {
+  it('counts Chinese characters at 1.5 to the word, beside any English', () => {
+    expect(wordCount('Say what you actually want.')).toBe(5)
+    expect(wordCount('说清楚你想要什么。')).toBe(5) // 8 characters; punctuation isn't one
+    expect(wordCount('用 Python 写一个小脚本')).toBe(6) // 7 characters and a word
+  })
+
+  it('flags a long Chinese review that a split on spaces would read as one word', () => {
+    const checks = checkReviewBlocks([{ kind: 'paragraph', md: '这'.repeat(120) }]).map(
+      (i) => i.check,
+    )
+    expect(checks).toContain('review-length')
+  })
+})
+
+describe('contentPageProseWords', () => {
+  it('counts what content pages explain, and not their interactions', () => {
+    const doc = freshDoc()
+    const before = contentPageProseWords(doc)
+    expect(before.map((p) => p.pageId)).toEqual(
+      doc.pages.filter((p) => p.kind === 'content').map((p) => p.id),
+    )
+    const page = doc.pages.find((p) => p.kind === 'content')!
+    page.blocks!.push({
+      kind: 'reveal',
+      id: 'r-extra',
+      prompt: 'Your turn',
+      md: 'word '.repeat(40),
+    })
+    expect(contentPageProseWords(doc)).toEqual(before)
+    page.blocks!.push({ kind: 'paragraph', md: 'word '.repeat(40) })
+    expect(contentPageProseWords(doc)[0]!.words).toBe(before[0]!.words + 40)
   })
 })
