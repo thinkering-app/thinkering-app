@@ -272,3 +272,4 @@ export {
   PRIVACY_SECTIONS,
   type PrivacySection,
 } from './privacy/copy'
+export { LANGUAGES, LANGUAGE_NAMES, languageFromLocaleTag, type Language } from './language'
