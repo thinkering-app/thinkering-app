@@ -5,6 +5,7 @@ export const intake = {
     getStarted: 'Get started',
     signInOrRestore: 'I already have an account or a backup file',
     restoreFromBackup: 'Restore from a backup',
+    languageAccessibilityLabel: 'Language: {{language}}',
   },
   returning: {
     title: 'Welcome back',
